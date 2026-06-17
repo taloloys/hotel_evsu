@@ -1,11 +1,17 @@
 <div class="p-4">
 
-    <div class="mb-5">
+    <div class="d-flex align-items-center mb-4 pb-3 border-bottom border-secondary border-opacity-25">
 
-        <h3 class="text-white fw-bold">
-            <i class="fa-solid fa-hotel me-2"></i>
-            Don Felipe Hotel
-        </h3>
+        <img src="{{ asset('images/logo.png') }}"
+             alt="Don Felipe Hotel Logo"
+             class="me-3"
+             style="width:80px; height:70px; object-fit:contain;">
+
+        <div>
+            <h5 class="text-white fw-bold mb-2">
+                Don Felipe Hotel
+            </h5>
+        </div>
 
     </div>
 
