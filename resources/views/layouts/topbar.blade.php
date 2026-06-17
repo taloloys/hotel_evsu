@@ -6,19 +6,27 @@
 
             <!-- Left Section -->
 
-            <div>
+            <div class="d-flex align-items-center">
 
-                <small class="text-muted text-uppercase fw-semibold">
-                    Hotel Management System
-                </small>
+                <a href="{{ url('/') }}" class="d-flex align-items-center text-decoration-none me-3">
+                    <img src="{{ asset('images/icons/icon-32x32.png') }}" alt="Larrazabal crest" style="width:36px;height:36px;object-fit:contain;border-radius:6px;">
+                </a>
 
-                <div class="d-flex align-items-center mt-1">
+                <div>
 
-                    <i class="fa-solid fa-location-dot text-primary me-2"></i>
+                    <small class="text-muted text-uppercase fw-semibold">
+                        Hotel Don Felipe
+                    </small>
 
-                    <span class="fw-semibold">
-                        @yield('pageTitle')
-                    </span>
+                    <div class="d-flex align-items-center mt-1">
+
+                        <i class="fa-solid fa-location-dot text-primary me-2"></i>
+
+                        <span class="fw-semibold">
+                            @yield('pageTitle')
+                        </span>
+
+                    </div>
 
                 </div>
 
@@ -83,11 +91,11 @@
                         <li class="px-3 py-2">
 
                             <div class="fw-semibold">
-                                Admin User
+                                {{ auth()->user()?->full_name ?? 'Admin User' }}
                             </div>
 
                             <small class="text-muted">
-                                Front Desk Staff
+                                {{ auth()->user()?->role ?? 'Front Desk Staff' }}
                             </small>
 
                         </li>
@@ -115,10 +123,14 @@
                         </li>
 
                         <li>
-                            <a class="dropdown-item text-danger" href="#">
-                                <i class="fa-solid fa-right-from-bracket me-2"></i>
-                                Logout
-                            </a>
+                            <form method="POST" action="{{ route('logout') }}">
+                                @csrf
+
+                                <button type="submit" class="dropdown-item text-danger">
+                                    <i class="fa-solid fa-right-from-bracket me-2"></i>
+                                    Logout
+                                </button>
+                            </form>
                         </li>
 
                     </ul>

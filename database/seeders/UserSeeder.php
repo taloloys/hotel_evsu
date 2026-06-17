@@ -15,7 +15,7 @@ class UserSeeder extends Seeder
         User::query()->updateOrCreate(
             ['username' => 'admin'],
             [
-                'full_name' => 'System Administrator',
+                'full_name' => 'SoftwareAdmin',
                 'password_hash' => 'password',
                 'role' => 'ADMIN',
             ]
