@@ -9,13 +9,8 @@
              style="width:80px; height:70px; object-fit:contain;">
 
         <div>
-            <h5 class="text-white fw-bold mb-0">
-                Don Felipe Hotel
-            </h5>
-
-            <small class="text-secondary">
-                Admin Panel
-            </small>
+            <h5 class="text-white fw-bold mb-0">Don Felipe Hotel</h5>
+            <small class="text-secondary">Admin Panel</small>
         </div>
 
     </div>
@@ -37,7 +32,7 @@
         <!-- USERS -->
         <a href="{{ route('admin.users') }}"
            class="nav-link {{ request()->routeIs('admin.users') ? 'active' : '' }}">
-            <i class="fa-solid fa-users me-2"></i>
+            <i class="fa-solid fa-user-group me-2"></i>
             Users
         </a>
 
@@ -71,14 +66,14 @@
 
         <!-- CHARGE CODES -->
         <a href="{{ route('admin.chargecodes') }}"
-           class="nav-link {{ request()->routeIs('admin.chargecodes') ? 'active' : '' }}">
+        class="nav-link {{ request()->routeIs('admin.chargecodes') ? 'active' : '' }}">
             <i class="fa-solid fa-receipt me-2"></i>
             Charge Codes
         </a>
 
         <!-- ACTIVITY LOGS -->
         <a href="{{ route('admin.activitylogs') }}"
-           class="nav-link {{ request()->routeIs('admin.activitylogs') ? 'active' : '' }}">
+        class="nav-link {{ request()->routeIs('admin.activitylogs') ? 'active' : '' }}">
             <i class="fa-solid fa-clock-rotate-left me-2"></i>
             Activity Logs
         </a>

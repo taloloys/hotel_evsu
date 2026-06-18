@@ -76,10 +76,12 @@ Route::prefix('admin')->group(function () {
     Route::view('/rooms', 'admin.rooms.index')
         ->name('admin.rooms');
 
-    Route::view('/chargecodes', 'admin.charge-codes.index')
+    // CHARGE CODES (FIXED naming consistency)
+    Route::view('/chargecodes', 'admin.chargecodes.index')
         ->name('admin.chargecodes');
 
-    Route::view('/activitylogs', 'admin.activity-logs.index')
+    // ACTIVITY LOGS (KEEP THIS CONSISTENT)
+    Route::view('/activitylogs', 'admin.activitylogs.index')
         ->name('admin.activitylogs');
 
 });
