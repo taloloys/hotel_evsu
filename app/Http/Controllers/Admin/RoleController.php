@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Models\Permission;
 use App\Models\Role;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -15,9 +16,10 @@ class RoleController extends Controller
      */
     public function index(): View
     {
-        $roles = Role::withCount('users')->get();
+        $roles = Role::with('permissions')->withCount('users')->get();
+        $permissions = Permission::where('is_active', true)->get();
 
-        return view('admin.roles.index', compact('roles'));
+        return view('admin.roles.index', compact('roles', 'permissions'));
     }
 
     /**
@@ -28,13 +30,19 @@ class RoleController extends Controller
         $validated = $request->validate([
             'role_name' => ['required', 'string', 'max:50', 'unique:roles,role_name'],
             'description' => ['nullable', 'string', 'max:255'],
+            'permissions' => ['nullable', 'array'],
+            'permissions.*' => ['exists:permissions,permission_id'],
         ]);
 
-        Role::create([
+        $role = Role::create([
             'role_name' => strtoupper($validated['role_name']),
             'description' => $validated['description'] ?? null,
             'is_active' => true,
         ]);
+
+        if (! empty($validated['permissions'])) {
+            $role->permissions()->sync($validated['permissions']);
+        }
 
         return redirect()
             ->route('admin.roles')
@@ -46,15 +54,26 @@ class RoleController extends Controller
      */
     public function update(Request $request, Role $role): RedirectResponse
     {
+        // Prevent editing the ADMIN role
+        if (strtoupper($role->role_name) === 'ADMIN') {
+            return redirect()
+                ->route('admin.roles')
+                ->withErrors(['cannot_edit_admin' => 'The Administrator role cannot be modified.']);
+        }
+
         $validated = $request->validate([
             'role_name' => ['required', 'string', 'max:50', 'unique:roles,role_name,'.$role->role_id.',role_id'],
             'description' => ['nullable', 'string', 'max:255'],
+            'permissions' => ['nullable', 'array'],
+            'permissions.*' => ['exists:permissions,permission_id'],
         ]);
 
         $role->update([
             'role_name' => strtoupper($validated['role_name']),
             'description' => $validated['description'] ?? null,
         ]);
+
+        $role->permissions()->sync($validated['permissions'] ?? []);
 
         return redirect()
             ->route('admin.roles')

@@ -106,6 +106,19 @@
                                 <small class="text-muted">
                                     {{ $role->description ?? 'No description provided.' }}
                                 </small>
+                                @if($role->permissions->isNotEmpty())
+                                    <div class="mt-2 d-flex flex-wrap gap-1">
+                                        @foreach($role->permissions as $perm)
+                                            <span class="badge bg-light text-secondary border border-secondary-subtle px-2 py-1" style="font-size:.65rem; font-weight: 500;">
+                                                <i class="fa-solid fa-key me-1 fa-xs text-muted"></i>{{ $perm->permission_key }}
+                                            </span>
+                                        @endforeach
+                                    </div>
+                                @else
+                                    <div class="mt-2 text-muted small" style="font-size:.65rem;">
+                                        <i class="fa-solid fa-circle-exclamation me-1"></i>No permissions assigned
+                                    </div>
+                                @endif
                             </div>
 
                         </div>
@@ -203,7 +216,7 @@
 
         {{-- EDIT ROLE MODAL --}}
         <div class="modal fade" id="editRoleModal{{ $role->role_id }}" tabindex="-1">
-            <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-dialog modal-dialog-centered modal-lg">
                 <div class="modal-content">
 
                     <div class="modal-header">
@@ -235,6 +248,35 @@
                                           name="description"
                                           rows="2"
                                           maxlength="255">{{ $role->description }}</textarea>
+                            </div>
+
+                            <div class="mb-3">
+                                <label class="form-label fw-semibold">Assign Permissions</label>
+                                <div class="border rounded p-3 bg-light" style="max-height: 250px; overflow-y: auto;">
+                                    @foreach($permissions->groupBy('module') as $moduleName => $modulePermissions)
+                                        <div class="mb-3">
+                                            <h6 class="fw-bold border-bottom pb-1 text-muted small mb-2">{{ $moduleName }} Module</h6>
+                                            <div class="row g-2">
+                                                @foreach($modulePermissions as $perm)
+                                                    <div class="col-md-6">
+                                                        <div class="form-check">
+                                                            <input class="form-check-input" 
+                                                                   type="checkbox" 
+                                                                   name="permissions[]" 
+                                                                   value="{{ $perm->permission_id }}" 
+                                                                   id="edit_perm_{{ $role->role_id }}_{{ $perm->permission_id }}"
+                                                                   {{ $role->permissions->contains('permission_id', $perm->permission_id) ? 'checked' : '' }}>
+                                                            <label class="form-check-label small" for="edit_perm_{{ $role->role_id }}_{{ $perm->permission_id }}">
+                                                                <strong>{{ $perm->permission_key }}</strong>
+                                                                <br><span class="text-muted d-block" style="font-size: 0.75rem; line-height: 1.1;">{{ $perm->description }}</span>
+                                                            </label>
+                                                        </div>
+                                                    </div>
+                                                @endforeach
+                                            </div>
+                                        </div>
+                                    @endforeach
+                                </div>
                             </div>
 
                         </div>
@@ -305,7 +347,7 @@
      ============================================= --}}
 <div class="modal fade" id="addRoleModal" tabindex="-1">
 
-    <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
 
         <div class="modal-content">
 
@@ -342,6 +384,35 @@
                                   rows="2"
                                   placeholder="Short role description"
                                   maxlength="255">{{ old('description') }}</textarea>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold">Assign Permissions</label>
+                        <div class="border rounded p-3 bg-light" style="max-height: 250px; overflow-y: auto;">
+                            @foreach($permissions->groupBy('module') as $moduleName => $modulePermissions)
+                                <div class="mb-3">
+                                    <h6 class="fw-bold border-bottom pb-1 text-muted small mb-2">{{ $moduleName }} Module</h6>
+                                    <div class="row g-2">
+                                        @foreach($modulePermissions as $perm)
+                                            <div class="col-md-6">
+                                                <div class="form-check">
+                                                    <input class="form-check-input" 
+                                                           type="checkbox" 
+                                                           name="permissions[]" 
+                                                           value="{{ $perm->permission_id }}" 
+                                                           id="add_perm_{{ $perm->permission_id }}"
+                                                           {{ is_array(old('permissions')) && in_array($perm->permission_id, old('permissions')) ? 'checked' : '' }}>
+                                                    <label class="form-check-label small" for="add_perm_{{ $perm->permission_id }}">
+                                                        <strong>{{ $perm->permission_key }}</strong>
+                                                        <br><span class="text-muted d-block" style="font-size: 0.75rem; line-height: 1.1;">{{ $perm->description }}</span>
+                                                    </label>
+                                                </div>
+                                            </div>
+                                        @endforeach
+                                    </div>
+                                </div>
+                            @endforeach
+                        </div>
                     </div>
 
                 </div>
