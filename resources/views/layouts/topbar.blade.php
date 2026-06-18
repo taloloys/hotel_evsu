@@ -117,6 +117,17 @@
                             <hr class="dropdown-divider">
                         </li>
 
+                        <li>
+                            <form method="POST" action="{{ route('logout') }}">
+                                @csrf
+
+                                <button type="submit" class="dropdown-item text-danger">
+                                    <i class="fa-solid fa-right-from-bracket me-2"></i>
+                                    Logout
+                                </button>
+                            </form>
+                        </li>
+
                     </ul>
 
                 </div>
