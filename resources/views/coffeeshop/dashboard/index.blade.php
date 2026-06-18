@@ -153,12 +153,6 @@
 <!-- MAIN SECTION -->
 <div class="card border-0 shadow-sm">
 
-    <div class="card-header bg-white">
-        <h5 class="fw-bold mb-0">
-            Coffee Shop Inventory Monitoring
-        </h5>
-    </div>
-
     <div class="card-body coffee-dashboard">
 
         <!-- LEGEND -->

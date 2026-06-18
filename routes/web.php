@@ -39,20 +39,21 @@ Route::middleware('auth')->group(function () {
 
     });
 
-    Route::prefix('accounting')->group(function () {
+Route::prefix('accounting')->group(function () {
 
-        Route::view('/dashboard', 'accounting.dashboard.index')
-            ->name('accounting.dashboard');
+    Route::view('/dashboard', 'accounting.dashboard.index')
+        ->name('accounting.dashboard');
 
-        Route::view('/invoices', 'accounting.invoices.index')
-            ->name('accounting.invoices');
+    Route::view('/invoices', 'accounting.invoices.index')
+        ->name('accounting.invoices');
 
-        Route::view('/payments', 'accounting.payments.index')
-            ->name('accounting.payments');
+    Route::view('/payments', 'accounting.payments.index')
+        ->name('accounting.payments');
 
-        Route::view('/reports', 'accounting.reports.index')
-            ->name('accounting.reports');
-    });
+    Route::view('/reports', 'accounting.reports.index')
+        ->name('accounting.reports');
+});
+
 
     Route::prefix('coffeeshop')->group(function () {
 
@@ -65,12 +66,13 @@ Route::middleware('auth')->group(function () {
         Route::view('/orders', 'coffeeshop.orders.index')
             ->name('coffeeshop.orders');
 
-        Route::view('/sales', 'coffeeshop.sales.index')
-            ->name('coffeeshop.sales');
+    Route::view('/sales', 'coffeeshop.sales.index')
+        ->name('coffeeshop.sales');
 
-        Route::view('/inventory', 'coffeeshop.inventory.index')
-            ->name('coffeeshop.inventory');
-    });
+    Route::view('/inventory', 'coffeeshop.inventory.index')
+        ->name('coffeeshop.inventory');
+});
+
 
     Route::prefix('admin')->group(function () {
 
@@ -89,11 +91,9 @@ Route::middleware('auth')->group(function () {
     Route::view('/rooms', 'admin.rooms.index')
         ->name('admin.rooms');
 
-    // CHARGE CODES (FIXED naming consistency)
     Route::view('/chargecodes', 'admin.chargecodes.index')
         ->name('admin.chargecodes');
 
-    // ACTIVITY LOGS (KEEP THIS CONSISTENT)
     Route::view('/activitylogs', 'admin.activitylogs.index')
         ->name('admin.activitylogs');
 
