@@ -5,6 +5,7 @@ namespace App\Models;
 // use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Database\Factories\UserFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 
@@ -28,8 +29,28 @@ class User extends Authenticatable
         'username',
         'password_hash',
         'full_name',
-        'role',
+        'role_id',
     ];
+
+    /**
+     * Get the role associated with the user.
+     *
+     * @return BelongsTo<Role, $this>
+     */
+    public function role(): BelongsTo
+    {
+        return $this->belongsTo(Role::class, 'role_id', 'role_id');
+    }
+
+    /**
+     * Determine if the user has the given permission.
+     */
+    public function hasPermission(string $permissionKey): bool
+    {
+        return $this->role?->permissions()
+            ->where('permission_key', $permissionKey)
+            ->exists() ?? false;
+    }
 
     /**
      * The attributes that should be hidden for serialization.

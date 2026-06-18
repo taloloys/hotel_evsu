@@ -90,7 +90,7 @@
                             </div>
 
                             <small class="text-muted">
-                                {{ auth()->user()?->role ?? 'Front Desk Staff' }}
+                                {{ auth()->user()?->role?->role_name ?? 'Front Desk Staff' }}
                             </small>
 
                         </li>
