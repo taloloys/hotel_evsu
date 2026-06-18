@@ -56,6 +56,7 @@ Route::middleware('auth')->group(function () {
 
         Route::view('/reports', 'accounting.reports.index')
             ->name('accounting.reports');
+
     });
 
     Route::prefix('coffeeshop')->group(function () {
