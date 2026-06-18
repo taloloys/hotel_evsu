@@ -14,7 +14,7 @@
             <div class="card-body d-flex justify-content-between align-items-center">
                 <div>
                     <div class="text-muted small">Total Roles</div>
-                    <h4 class="mb-0">4</h4>
+                    <h4 class="mb-0">{{ $totalRolesCount }}</h4>
                 </div>
                 <i class="fa-solid fa-user-shield fs-3 text-primary"></i>
             </div>
@@ -26,7 +26,7 @@
             <div class="card-body d-flex justify-content-between align-items-center">
                 <div>
                     <div class="text-muted small">Permissions</div>
-                    <h4 class="mb-0">5</h4>
+                    <h4 class="mb-0">{{ $totalPermissionsCount }}</h4>
                 </div>
                 <i class="fa-solid fa-key fs-3 text-warning"></i>
             </div>
@@ -38,7 +38,7 @@
             <div class="card-body d-flex justify-content-between align-items-center">
                 <div>
                     <div class="text-muted small">System Users</div>
-                    <h4 class="mb-0">3</h4>
+                    <h4 class="mb-0">{{ $totalUsersCount }}</h4>
                 </div>
                 <i class="fa-solid fa-users fs-3 text-success"></i>
             </div>
@@ -63,24 +63,35 @@
 
                 <div class="list-group list-group-flush">
 
-                    <div class="list-group-item d-flex justify-content-between align-items-center px-0">
-                        Admin
-                        <span class="badge bg-dark">Full Access</span>
-                    </div>
-
-                    <div class="list-group-item px-0">Front Desk</div>
-                    <div class="list-group-item px-0">Accounting</div>
-                    <div class="list-group-item px-0">Coffee Shop</div>
+                    @foreach($roles as $role)
+                        @php
+                            $roleLabel = match($role->role_name) {
+                                'ADMIN' => 'Admin',
+                                'FRONT_DESK' => 'Front Desk',
+                                'ACCOUNTING' => 'Accounting',
+                                'CAFETERIA' => 'Coffee Shop',
+                                default => ucwords(strtolower(str_replace('_', ' ', $role->role_name)))
+                            };
+                        @endphp
+                        <div class="list-group-item d-flex justify-content-between align-items-center px-0 {{ $role->is_active ? '' : 'text-muted text-decoration-line-through' }}">
+                            {{ $roleLabel }}
+                            @if(strtoupper($role->role_name) === 'ADMIN')
+                                <span class="badge bg-dark">Full Access</span>
+                            @elseif(! $role->is_active)
+                                <span class="badge bg-secondary" style="font-size: 0.65rem;">Disabled</span>
+                            @endif
+                        </div>
+                    @endforeach
 
                 </div>
 
             </div>
 
             <div class="card-footer bg-white border-0">
-                <button class="btn btn-primary w-100">
+                <a href="{{ route('admin.roles') }}" class="btn btn-primary w-100">
                     <i class="fa-solid fa-plus me-2"></i>
                     Add Role
-                </button>
+                </a>
             </div>
 
         </div>
@@ -100,21 +111,24 @@
 
                 <div class="list-group list-group-flush">
 
-                    <div class="list-group-item px-0">manage-users</div>
-                    <div class="list-group-item px-0">manage-reservations</div>
-                    <div class="list-group-item px-0">view-folio</div>
-                    <div class="list-group-item px-0">process-checkout</div>
-                    <div class="list-group-item px-0">manage-inventory</div>
+                    @foreach($permissions as $permission)
+                        <div class="list-group-item d-flex justify-content-between align-items-center px-0 {{ $permission->is_active ? '' : 'text-muted text-decoration-line-through' }}">
+                            {{ $permission->permission_key }}
+                            @if(! $permission->is_active)
+                                <span class="badge bg-secondary" style="font-size: 0.65rem;">Disabled</span>
+                            @endif
+                        </div>
+                    @endforeach
 
                 </div>
 
             </div>
 
             <div class="card-footer bg-white border-0">
-                <button class="btn btn-warning w-100">
+                <a href="{{ route('admin.permissions') }}" class="btn btn-warning w-100 text-dark">
                     <i class="fa-solid fa-plus me-2"></i>
                     Add Permission
-                </button>
+                </a>
             </div>
 
         </div>
@@ -134,30 +148,43 @@
 
                 <div class="list-group list-group-flush">
 
-                    <div class="list-group-item d-flex justify-content-between align-items-center px-0">
-                        Front Desk User
-                        <span class="badge bg-primary">Front Desk</span>
-                    </div>
-
-                    <div class="list-group-item d-flex justify-content-between align-items-center px-0">
-                        Cashier
-                        <span class="badge bg-info">Accounting</span>
-                    </div>
-
-                    <div class="list-group-item d-flex justify-content-between align-items-center px-0">
-                        Admin User
-                        <span class="badge bg-dark">Admin</span>
-                    </div>
+                    @foreach($users as $user)
+                        @php
+                            $badgeClass = match($user->role?->role_name) {
+                                'ADMIN' => 'bg-dark',
+                                'FRONT_DESK' => 'bg-primary',
+                                'ACCOUNTING' => 'bg-info text-dark',
+                                'CAFETERIA' => 'bg-warning text-dark',
+                                default => 'bg-secondary'
+                            };
+                            $roleLabel = match($user->role?->role_name) {
+                                'ADMIN' => 'Admin',
+                                'FRONT_DESK' => 'Front Desk',
+                                'ACCOUNTING' => 'Accounting',
+                                'CAFETERIA' => 'Coffee Shop',
+                                default => $user->role?->role_name ?? '—'
+                            };
+                        @endphp
+                        <div class="list-group-item d-flex justify-content-between align-items-center px-0 {{ $user->is_active ? '' : 'text-muted text-decoration-line-through' }}">
+                            <div>
+                                {{ $user->full_name }}
+                                @if(! $user->is_active)
+                                    <small class="text-secondary ms-1">(Disabled)</small>
+                                @endif
+                            </div>
+                            <span class="badge {{ $badgeClass }}">{{ $roleLabel }}</span>
+                        </div>
+                    @endforeach
 
                 </div>
 
             </div>
 
             <div class="card-footer bg-white border-0">
-                <button class="btn btn-success w-100">
+                <a href="{{ route('admin.users') }}" class="btn btn-success w-100">
                     <i class="fa-solid fa-user-plus me-2"></i>
                     Assign Role
-                </button>
+                </a>
             </div>
 
         </div>
@@ -182,47 +209,38 @@
                 <thead class="table-light">
                     <tr>
                         <th>Permission</th>
-                        <th>Admin</th>
-                        <th>Front Desk</th>
-                        <th>Accounting</th>
-                        <th>Coffee Shop</th>
+                        @foreach($activeRoles as $role)
+                            <th>
+                                {{ match($role->role_name) {
+                                    'ADMIN' => 'Admin',
+                                    'FRONT_DESK' => 'Front Desk',
+                                    'ACCOUNTING' => 'Accounting',
+                                    'CAFETERIA' => 'Coffee Shop',
+                                    default => ucwords(strtolower(str_replace('_', ' ', $role->role_name)))
+                                } }}
+                            </th>
+                        @endforeach
                     </tr>
                 </thead>
 
                 <tbody>
-
-                    <tr>
-                        <td>Manage Users</td>
-                        <td><i class="fa-solid fa-check text-success"></i></td>
-                        <td></td>
-                        <td></td>
-                        <td></td>
-                    </tr>
-
-                    <tr>
-                        <td>Reservations</td>
-                        <td><i class="fa-solid fa-check text-success"></i></td>
-                        <td><i class="fa-solid fa-check text-success"></i></td>
-                        <td></td>
-                        <td></td>
-                    </tr>
-
-                    <tr>
-                        <td>Guest Folio</td>
-                        <td><i class="fa-solid fa-check text-success"></i></td>
-                        <td><i class="fa-solid fa-check text-success"></i></td>
-                        <td><i class="fa-solid fa-check text-success"></i></td>
-                        <td></td>
-                    </tr>
-
-                    <tr>
-                        <td>POS System</td>
-                        <td><i class="fa-solid fa-check text-success"></i></td>
-                        <td></td>
-                        <td></td>
-                        <td><i class="fa-solid fa-check text-success"></i></td>
-                    </tr>
-
+                    @foreach($activePermissions as $permission)
+                        <tr>
+                            <td>
+                                <strong>{{ $permission->permission_key }}</strong>
+                                <br><small class="text-muted">{{ $permission->description }}</small>
+                            </td>
+                            @foreach($activeRoles as $role)
+                                <td>
+                                    @if($role->permissions->contains('permission_id', $permission->permission_id))
+                                        <i class="fa-solid fa-check text-success fs-5"></i>
+                                    @else
+                                        <span class="text-muted">—</span>
+                                    @endif
+                                </td>
+                            @endforeach
+                        </tr>
+                    @endforeach
                 </tbody>
 
             </table>
