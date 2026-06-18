@@ -4,13 +4,8 @@
 
         <div class="d-flex justify-content-between align-items-center">
 
-            <!-- Left Section -->
 
             <div class="d-flex align-items-center">
-
-                <a href="{{ url('/') }}" class="d-flex align-items-center text-decoration-none me-3">
-                    <img src="{{ asset('images/icons/icon-32x32.png') }}" alt="Larrazabal crest" style="width:36px;height:36px;object-fit:contain;border-radius:6px;">
-                </a>
 
                 <div>
 
@@ -120,17 +115,6 @@
 
                         <li>
                             <hr class="dropdown-divider">
-                        </li>
-
-                        <li>
-                            <form method="POST" action="{{ route('logout') }}">
-                                @csrf
-
-                                <button type="submit" class="dropdown-item text-danger">
-                                    <i class="fa-solid fa-right-from-bracket me-2"></i>
-                                    Logout
-                                </button>
-                            </form>
                         </li>
 
                     </ul>
