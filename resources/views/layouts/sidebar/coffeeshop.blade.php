@@ -54,9 +54,6 @@
             <i class="fa-solid fa-chart-line me-2"></i>
             Sales
         </a>
-
-        <hr class="border-secondary opacity-25 my-3">
-
     </nav>
 
 </div>

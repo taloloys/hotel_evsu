@@ -53,9 +53,6 @@ Route::prefix('coffeeshop')->group(function () {
 
     Route::view('/sales', 'coffeeshop.sales.index')
         ->name('coffeeshop.sales');
-
-    Route::view('/inventory', 'coffeeshop.inventory.index')
-        ->name('coffeeshop.inventory');
 });
 
 
