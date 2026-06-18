@@ -32,7 +32,7 @@ class LoginController extends Controller
 
         $request->session()->regenerate();
 
-        return redirect()->intended(route('dashboard'));
+        return redirect()->intended($this->dashboardRouteForRole(Auth::user()?->role));
     }
 
     public function logout(Request $request): RedirectResponse
@@ -43,5 +43,16 @@ class LoginController extends Controller
         $request->session()->regenerateToken();
 
         return redirect()->route('home');
+    }
+
+    private function dashboardRouteForRole(?string $role): string
+    {
+        return match ($role) {
+            'ADMIN' => route('admin.dashboard'),
+            'FRONT_DESK' => route('frontdesk.dashboard'),
+            'ACCOUNTING' => route('accounting.dashboard'),
+            'CAFETERIA' => route('coffeeshop.dashboard'),
+            default => route('home'),
+        };
     }
 }

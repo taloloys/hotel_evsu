@@ -1,6 +1,19 @@
 <?php
 
+use App\Http\Controllers\Auth\LoginController;
 use Illuminate\Support\Facades\Route;
+
+Route::get('/', [LoginController::class, 'create'])
+    ->name('home');
+
+Route::get('/login', [LoginController::class, 'create'])
+    ->name('login');
+
+Route::post('/login', [LoginController::class, 'store'])
+    ->name('login.store');
+
+Route::post('/logout', [LoginController::class, 'logout'])
+    ->name('logout');
 
 Route::prefix('frontdesk')->group(function () {
 
@@ -39,7 +52,6 @@ Route::prefix('accounting')->group(function () {
         ->name('accounting.reports');
 });
 
-
 Route::prefix('coffeeshop')->group(function () {
 
     Route::view('/dashboard', 'coffeeshop.dashboard.index')
@@ -57,7 +69,6 @@ Route::prefix('coffeeshop')->group(function () {
     Route::view('/inventory', 'coffeeshop.inventory.index')
         ->name('coffeeshop.inventory');
 });
-
 
 Route::prefix('admin')->group(function () {
 
