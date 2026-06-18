@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\Admin\RoleController;
 use App\Http\Controllers\Admin\UserController;
 use App\Http\Controllers\Auth\LoginController;
 use Illuminate\Support\Facades\Route;
@@ -90,8 +91,17 @@ Route::middleware('auth')->group(function () {
         Route::patch('/users/{user}', [UserController::class, 'update'])
             ->name('admin.users.update');
 
-        Route::view('/roles', 'admin.roles.index')
+        Route::get('/roles', [RoleController::class, 'index'])
             ->name('admin.roles');
+
+        Route::post('/roles', [RoleController::class, 'store'])
+            ->name('admin.roles.store');
+
+        Route::patch('/roles/{role}/toggle', [RoleController::class, 'toggleStatus'])
+            ->name('admin.roles.toggle');
+
+        Route::patch('/roles/{role}', [RoleController::class, 'update'])
+            ->name('admin.roles.update');
 
         Route::view('/permissions', 'admin.permissions.index')
             ->name('admin.permissions');

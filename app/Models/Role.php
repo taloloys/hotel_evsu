@@ -22,7 +22,18 @@ class Role extends Model
     protected $fillable = [
         'role_name',
         'description',
+        'is_active',
     ];
+
+    /**
+     * @return array<string, string>
+     */
+    protected function casts(): array
+    {
+        return [
+            'is_active' => 'boolean',
+        ];
+    }
 
     /**
      * Get the users associated with this role.

@@ -6,7 +6,46 @@
 
 @section('content')
 
-<!-- HEADER -->
+{{-- TOAST CONTAINER --}}
+<div class="toast-container position-fixed bottom-0 end-0 p-3" style="z-index: 1100;">
+
+    @if (session('success'))
+        <div id="successToast" class="toast align-items-center text-white bg-success border-0 shadow" role="alert" aria-live="assertive" aria-atomic="true" data-bs-delay="4000">
+            <div class="d-flex">
+                <div class="toast-body">
+                    <i class="fa-solid fa-circle-check me-2"></i>{{ session('success') }}
+                </div>
+                <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
+            </div>
+        </div>
+    @endif
+
+    @if ($errors->has('cannot_disable_admin'))
+        <div id="errorToast" class="toast align-items-center text-white bg-danger border-0 shadow" role="alert" aria-live="assertive" aria-atomic="true" data-bs-delay="5000">
+            <div class="d-flex">
+                <div class="toast-body">
+                    <i class="fa-solid fa-triangle-exclamation me-2"></i>{{ $errors->first('cannot_disable_admin') }}
+                </div>
+                <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
+            </div>
+        </div>
+    @endif
+
+    @if ($errors->any() && ! $errors->has('cannot_disable_admin'))
+        <div id="validationToast" class="toast align-items-center text-white bg-danger border-0 shadow" role="alert" aria-live="assertive" aria-atomic="true" data-bs-delay="6000">
+            <div class="d-flex">
+                <div class="toast-body">
+                    <i class="fa-solid fa-triangle-exclamation me-2"></i>
+                    <strong>Error:</strong> {{ $errors->first() }}
+                </div>
+                <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
+            </div>
+        </div>
+    @endif
+
+</div>
+
+{{-- HEADER --}}
 <div class="d-flex justify-content-between align-items-center mb-4">
 
     <div>
@@ -21,117 +60,127 @@
 
 </div>
 
-<!-- ROLE LIST -->
+{{-- ROLE LIST --}}
 <div class="card border-0 shadow-sm">
 
     <div class="card-body p-0">
 
         <div class="list-group list-group-flush">
 
-            <!-- ADMIN -->
-            <div class="list-group-item d-flex justify-content-between align-items-center py-3">
+            @forelse ($roles as $role)
 
-                <div class="d-flex align-items-center">
+                @php
+                    $isAdmin   = strtoupper($role->role_name) === 'ADMIN';
+                    $isActive  = $role->is_active;
 
-                    <div class="bg-light rounded-circle d-flex align-items-center justify-content-center me-3"
-                         style="width:42px;height:42px;">
-                        <i class="fa-solid fa-user-shield text-dark"></i>
-                    </div>
+                    $iconMap = [
+                        'ADMIN'      => ['icon' => 'fa-user-shield',     'color' => 'text-dark',    'bg' => 'bg-light'],
+                        'FRONT_DESK' => ['icon' => 'fa-bell-concierge',  'color' => 'text-primary', 'bg' => 'bg-primary bg-opacity-10'],
+                        'ACCOUNTING' => ['icon' => 'fa-receipt',         'color' => 'text-info',    'bg' => 'bg-info bg-opacity-10'],
+                        'CAFETERIA'  => ['icon' => 'fa-mug-hot',         'color' => 'text-success', 'bg' => 'bg-success bg-opacity-10'],
+                        'HOUSEKEEPING' => ['icon' => 'fa-broom',         'color' => 'text-warning', 'bg' => 'bg-warning bg-opacity-10'],
+                    ];
 
-                    <div>
-                        <div class="fw-semibold">Administrator</div>
-                        <small class="text-muted">Full system access across all modules</small>
+                    $meta = $iconMap[strtoupper($role->role_name)] ?? ['icon' => 'fa-id-badge', 'color' => 'text-secondary', 'bg' => 'bg-light'];
+                @endphp
+
+                <div class="list-group-item py-3 {{ $isActive ? '' : 'opacity-60' }}">
+
+                    <div class="d-flex justify-content-between align-items-center">
+
+                        {{-- ROLE INFO --}}
+                        <div class="d-flex align-items-center">
+
+                            <div class="{{ $meta['bg'] }} rounded-circle d-flex align-items-center justify-content-center me-3"
+                                 style="width:42px;height:42px;flex-shrink:0;">
+                                <i class="fa-solid {{ $meta['icon'] }} {{ $meta['color'] }}"></i>
+                            </div>
+
+                            <div>
+                                <div class="fw-semibold">
+                                    {{ ucwords(strtolower(str_replace('_', ' ', $role->role_name))) }}
+                                    @if (! $isActive)
+                                        <span class="badge bg-secondary ms-1" style="font-size:.65rem;">Disabled</span>
+                                    @endif
+                                </div>
+                                <small class="text-muted">
+                                    {{ $role->description ?? 'No description provided.' }}
+                                </small>
+                            </div>
+
+                        </div>
+
+                        {{-- BADGES + ACTIONS --}}
+                        <div class="d-flex align-items-center gap-2">
+
+                            {{-- User count badge --}}
+                            <span class="badge bg-light text-dark border">
+                                <i class="fa-solid fa-users me-1 text-muted" style="font-size:.7rem;"></i>
+                                {{ $role->users_count }} {{ Str::plural('user', $role->users_count) }}
+                            </span>
+
+                            {{-- System badge for ADMIN --}}
+                            @if ($isAdmin)
+                                <span class="badge bg-dark">System</span>
+                            @else
+                                <span class="badge {{ $isActive ? 'bg-success' : 'bg-secondary' }}">
+                                    {{ $isActive ? 'Active' : 'Inactive' }}
+                                </span>
+                            @endif
+
+                            {{-- Actions dropdown --}}
+                            @if (! $isAdmin)
+                                <div class="dropdown">
+                                    <button class="btn btn-sm btn-light border"
+                                            data-bs-toggle="dropdown"
+                                            id="roleActions{{ $role->role_id }}"
+                                            aria-expanded="false">
+                                        <i class="fa-solid fa-ellipsis-vertical"></i>
+                                    </button>
+                                    <ul class="dropdown-menu dropdown-menu-end shadow-sm border-0"
+                                        aria-labelledby="roleActions{{ $role->role_id }}">
+
+                                        <li>
+                                            <button class="dropdown-item"
+                                                    data-bs-toggle="modal"
+                                                    data-bs-target="#editRoleModal{{ $role->role_id }}">
+                                                <i class="fa-solid fa-pen-to-square me-2 text-primary"></i>
+                                                Edit Role
+                                            </button>
+                                        </li>
+
+                                        <li><hr class="dropdown-divider"></li>
+
+                                        <li>
+                                            <button class="dropdown-item {{ $isActive ? 'text-danger' : 'text-success' }}"
+                                                    data-bs-toggle="modal"
+                                                    data-bs-target="#toggleRoleModal{{ $role->role_id }}">
+                                                <i class="fa-solid {{ $isActive ? 'fa-ban' : 'fa-circle-check' }} me-2"></i>
+                                                {{ $isActive ? 'Disable Role' : 'Enable Role' }}
+                                            </button>
+                                        </li>
+
+                                    </ul>
+                                </div>
+                            @else
+                                {{-- Admin role: locked indicator --}}
+                                <span class="text-muted" title="System role cannot be modified">
+                                    <i class="fa-solid fa-lock fa-sm"></i>
+                                </span>
+                            @endif
+
+                        </div>
+
                     </div>
 
                 </div>
 
-                <span class="badge bg-dark">System</span>
-
-            </div>
-
-            <!-- FRONT DESK -->
-            <div class="list-group-item d-flex justify-content-between align-items-center py-3">
-
-                <div class="d-flex align-items-center">
-
-                    <div class="bg-light rounded-circle d-flex align-items-center justify-content-center me-3"
-                         style="width:42px;height:42px;">
-                        <i class="fa-solid fa-bell-concierge text-primary"></i>
-                    </div>
-
-                    <div>
-                        <div class="fw-semibold">Front Desk</div>
-                        <small class="text-muted">Reservations, check-in & guest handling</small>
-                    </div>
-
+            @empty
+                <div class="list-group-item py-4 text-center text-muted">
+                    <i class="fa-solid fa-circle-info me-1"></i>
+                    No roles found. Add your first role above.
                 </div>
-
-                <span class="badge bg-primary">Operations</span>
-
-            </div>
-
-            <!-- ACCOUNTING -->
-            <div class="list-group-item d-flex justify-content-between align-items-center py-3">
-
-                <div class="d-flex align-items-center">
-
-                    <div class="bg-light rounded-circle d-flex align-items-center justify-content-center me-3"
-                         style="width:42px;height:42px;">
-                        <i class="fa-solid fa-receipt text-info"></i>
-                    </div>
-
-                    <div>
-                        <div class="fw-semibold">Accounting</div>
-                        <small class="text-muted">Billing, invoices & payments</small>
-                    </div>
-
-                </div>
-
-                <span class="badge bg-info text-dark">Finance</span>
-
-            </div>
-
-            <!-- COFFEE SHOP -->
-            <div class="list-group-item d-flex justify-content-between align-items-center py-3">
-
-                <div class="d-flex align-items-center">
-
-                    <div class="bg-light rounded-circle d-flex align-items-center justify-content-center me-3"
-                         style="width:42px;height:42px;">
-                        <i class="fa-solid fa-mug-hot text-success"></i>
-                    </div>
-
-                    <div>
-                        <div class="fw-semibold">Coffee Shop</div>
-                        <small class="text-muted">POS, orders & cashier operations</small>
-                    </div>
-
-                </div>
-
-                <span class="badge bg-success">POS</span>
-
-            </div>
-
-            <!-- HOUSEKEEPING -->
-            <div class="list-group-item d-flex justify-content-between align-items-center py-3">
-
-                <div class="d-flex align-items-center">
-
-                    <div class="bg-light rounded-circle d-flex align-items-center justify-content-center me-3"
-                         style="width:42px;height:42px;">
-                        <i class="fa-solid fa-broom text-warning"></i>
-                    </div>
-
-                    <div>
-                        <div class="fw-semibold">Housekeeping</div>
-                        <small class="text-muted">Room cleaning & maintenance tasks</small>
-                    </div>
-
-                </div>
-
-                <span class="badge bg-warning text-dark">Service</span>
-
-            </div>
+            @endforelse
 
         </div>
 
@@ -139,14 +188,121 @@
 
 </div>
 
-<!-- FOOTER NOTE -->
+{{-- FOOTER NOTE --}}
 <div class="mt-3 text-muted small">
     Roles define access permissions for each hotel department and system module.
 </div>
 
-<!-- =========================
-ADD ROLE MODAL (SIMPLE + REALISTIC)
-========================= -->
+
+{{-- =============================================
+     MODALS: EDIT + TOGGLE per role
+     ============================================= --}}
+
+@foreach ($roles as $role)
+    @if (strtoupper($role->role_name) !== 'ADMIN')
+
+        {{-- EDIT ROLE MODAL --}}
+        <div class="modal fade" id="editRoleModal{{ $role->role_id }}" tabindex="-1">
+            <div class="modal-dialog modal-dialog-centered">
+                <div class="modal-content">
+
+                    <div class="modal-header">
+                        <h5 class="modal-title fw-bold">Edit Role</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                    </div>
+
+                    <form action="{{ route('admin.roles.update', $role->role_id) }}" method="POST">
+                        @csrf
+                        @method('PATCH')
+
+                        <div class="modal-body">
+
+                            <div class="mb-3">
+                                <label class="form-label fw-semibold" for="edit_role_name_{{ $role->role_id }}">Role Name</label>
+                                <input type="text"
+                                       class="form-control"
+                                       id="edit_role_name_{{ $role->role_id }}"
+                                       name="role_name"
+                                       value="{{ $role->role_name }}"
+                                       required
+                                       maxlength="50">
+                            </div>
+
+                            <div class="mb-3">
+                                <label class="form-label fw-semibold" for="edit_description_{{ $role->role_id }}">Description</label>
+                                <textarea class="form-control"
+                                          id="edit_description_{{ $role->role_id }}"
+                                          name="description"
+                                          rows="2"
+                                          maxlength="255">{{ $role->description }}</textarea>
+                            </div>
+
+                        </div>
+
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-light" data-bs-dismiss="modal">Cancel</button>
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fa-solid fa-save me-1"></i>
+                                Save Changes
+                            </button>
+                        </div>
+
+                    </form>
+
+                </div>
+            </div>
+        </div>
+
+        {{-- TOGGLE STATUS MODAL --}}
+        <div class="modal fade" id="toggleRoleModal{{ $role->role_id }}" tabindex="-1">
+            <div class="modal-dialog modal-dialog-centered modal-sm">
+                <div class="modal-content">
+
+                    <div class="modal-header border-0 pb-0">
+                        <h5 class="modal-title fw-bold">
+                            {{ $role->is_active ? 'Disable Role' : 'Enable Role' }}
+                        </h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                    </div>
+
+                    <div class="modal-body pt-2">
+                        <p class="text-muted mb-0">
+                            @if ($role->is_active)
+                                Are you sure you want to <strong>disable</strong> the
+                                <strong>{{ ucwords(strtolower(str_replace('_', ' ', $role->role_name))) }}</strong> role?
+                                Staff with this role will lose access.
+                            @else
+                                Re-enable the
+                                <strong>{{ ucwords(strtolower(str_replace('_', ' ', $role->role_name))) }}</strong> role?
+                                Staff with this role will regain access.
+                            @endif
+                        </p>
+                    </div>
+
+                    <div class="modal-footer border-0 pt-0">
+                        <button type="button" class="btn btn-light btn-sm" data-bs-dismiss="modal">Cancel</button>
+                        <form action="{{ route('admin.roles.toggle', $role->role_id) }}" method="POST" class="d-inline">
+                            @csrf
+                            @method('PATCH')
+                            <button type="submit"
+                                    class="btn btn-sm {{ $role->is_active ? 'btn-danger' : 'btn-success' }}">
+                                <i class="fa-solid {{ $role->is_active ? 'fa-ban' : 'fa-circle-check' }} me-1"></i>
+                                {{ $role->is_active ? 'Disable' : 'Enable' }}
+                            </button>
+                        </form>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+
+    @endif
+@endforeach
+
+
+{{-- =============================================
+     ADD ROLE MODAL
+     ============================================= --}}
 <div class="modal fade" id="addRoleModal" tabindex="-1">
 
     <div class="modal-dialog modal-dialog-centered">
@@ -158,38 +314,47 @@ ADD ROLE MODAL (SIMPLE + REALISTIC)
                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
 
-            <div class="modal-body">
+            <form action="{{ route('admin.roles.store') }}" method="POST">
+                @csrf
 
-                <div class="mb-3">
-                    <label class="form-label">Role Name</label>
-                    <input type="text" class="form-control" placeholder="e.g. Front Desk Supervisor">
+                <div class="modal-body">
+
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold" for="add_role_name">Role Name</label>
+                        <input type="text"
+                               class="form-control @error('role_name') is-invalid @enderror"
+                               id="add_role_name"
+                               name="role_name"
+                               placeholder="e.g. FRONT_DESK_SUPERVISOR"
+                               value="{{ old('role_name') }}"
+                               required
+                               maxlength="50">
+                        @error('role_name')
+                            <div class="invalid-feedback">{{ $message }}</div>
+                        @enderror
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold" for="add_description">Description</label>
+                        <textarea class="form-control"
+                                  id="add_description"
+                                  name="description"
+                                  rows="2"
+                                  placeholder="Short role description"
+                                  maxlength="255">{{ old('description') }}</textarea>
+                    </div>
+
                 </div>
 
-                <div class="mb-3">
-                    <label class="form-label">Description</label>
-                    <textarea class="form-control" rows="2" placeholder="Short role description"></textarea>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-light" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fa-solid fa-save me-1"></i>
+                        Save Role
+                    </button>
                 </div>
 
-                <div class="mb-3">
-                    <label class="form-label">Department</label>
-                    <select class="form-select">
-                        <option>Operations</option>
-                        <option>Finance</option>
-                        <option>POS</option>
-                        <option>Service</option>
-                        <option>System</option>
-                    </select>
-                </div>
-
-            </div>
-
-            <div class="modal-footer">
-                <button class="btn btn-light" data-bs-dismiss="modal">Cancel</button>
-                <button class="btn btn-primary">
-                    <i class="fa-solid fa-save me-1"></i>
-                    Save Role
-                </button>
-            </div>
+            </form>
 
         </div>
 
@@ -198,3 +363,13 @@ ADD ROLE MODAL (SIMPLE + REALISTIC)
 </div>
 
 @endsection
+
+@push('scripts')
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        document.querySelectorAll('.toast').forEach(function (el) {
+            new bootstrap.Toast(el).show();
+        });
+    });
+</script>
+@endpush
