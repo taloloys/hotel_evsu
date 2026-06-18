@@ -21,7 +21,21 @@ class Permission extends Model
     protected $fillable = [
         'permission_key',
         'description',
+        'module',
+        'is_active',
     ];
+
+    /**
+     * Get the attributes that should be cast.
+     *
+     * @return array<string, string>
+     */
+    protected function casts(): array
+    {
+        return [
+            'is_active' => 'boolean',
+        ];
+    }
 
     /**
      * Get the roles associated with this permission.

@@ -48,9 +48,10 @@ class User extends Authenticatable
      */
     public function hasPermission(string $permissionKey): bool
     {
-        return $this->role?->permissions()
-            ->where('permission_key', $permissionKey)
-            ->exists() ?? false;
+        return (bool) ($this->role?->is_active && $this->role->permissions()
+            ->where('permissions.permission_key', $permissionKey)
+            ->where('permissions.is_active', true)
+            ->exists());
     }
 
     /**

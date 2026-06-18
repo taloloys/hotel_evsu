@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\Admin\PermissionController;
 use App\Http\Controllers\Admin\RoleController;
 use App\Http\Controllers\Admin\UserController;
 use App\Http\Controllers\Auth\LoginController;
@@ -103,8 +104,17 @@ Route::middleware('auth')->group(function () {
         Route::patch('/roles/{role}', [RoleController::class, 'update'])
             ->name('admin.roles.update');
 
-        Route::view('/permissions', 'admin.permissions.index')
+        Route::get('/permissions', [PermissionController::class, 'index'])
             ->name('admin.permissions');
+
+        Route::post('/permissions', [PermissionController::class, 'store'])
+            ->name('admin.permissions.store');
+
+        Route::patch('/permissions/{permission}/toggle', [PermissionController::class, 'toggleStatus'])
+            ->name('admin.permissions.toggle');
+
+        Route::patch('/permissions/{permission}', [PermissionController::class, 'update'])
+            ->name('admin.permissions.update');
 
         Route::view('/rooms', 'admin.rooms.index')
             ->name('admin.rooms');

@@ -17,18 +17,22 @@ class UserSeeder extends Seeder
     {
         // 1. Create permissions
         $permissions = [
-            'manage-users' => 'Manage system users and roles',
-            'manage-reservations' => 'Manage reservations and guest registrations',
-            'view-folio' => 'View guest folio and billing status',
-            'process-checkout' => 'Process guest checkout and record payments',
-            'manage-inventory' => 'Manage coffeeshop inventory and sales orders',
+            'manage-users' => ['desc' => 'Manage system users and roles', 'module' => 'System'],
+            'manage-reservations' => ['desc' => 'Manage reservations and guest registrations', 'module' => 'Front Desk'],
+            'view-folio' => ['desc' => 'View guest folio and billing status', 'module' => 'Accounting'],
+            'process-checkout' => ['desc' => 'Process guest checkout and record payments', 'module' => 'Front Desk'],
+            'manage-inventory' => ['desc' => 'Manage coffeeshop inventory and sales orders', 'module' => 'Inventory'],
         ];
 
         $permissionModels = [];
-        foreach ($permissions as $key => $desc) {
+        foreach ($permissions as $key => $data) {
             $permissionModels[$key] = Permission::updateOrCreate(
                 ['permission_key' => $key],
-                ['description' => $desc]
+                [
+                    'description' => $data['desc'],
+                    'module' => $data['module'],
+                    'is_active' => true,
+                ]
             );
         }
 
