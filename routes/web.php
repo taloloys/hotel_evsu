@@ -24,21 +24,29 @@ Route::prefix('frontdesk')->group(function () {
 
 });
 
-Route::prefix('accounting')->group(function () {
+Route::prefix('accounting')->name('accounting.')->group(function () {
 
     Route::view('/dashboard', 'accounting.dashboard.index')
-        ->name('accounting.dashboard');
-
-    Route::view('/invoices', 'accounting.invoices.index')
-        ->name('accounting.invoices');
+        ->name('dashboard');
 
     Route::view('/payments', 'accounting.payments.index')
-        ->name('accounting.payments');
+        ->name('payments');
+
+    Route::view('/billing', 'accounting.billing.index')
+        ->name('billing');
 
     Route::view('/reports', 'accounting.reports.index')
-        ->name('accounting.reports');
-});
+        ->name('reports');
+    
+    Route::view('/audit', 'accounting.audit.index')
+        ->name('audit');
 
+    Route::view('/expenses', 'accounting.expenses.index')
+        ->name('expenses');
+    
+    Route::view('/receivables', 'accounting.receivables.index')
+        ->name('receivables');
+});
 
 Route::prefix('coffeeshop')->group(function () {
 
@@ -73,11 +81,9 @@ Route::prefix('admin')->group(function () {
     Route::view('/rooms', 'admin.rooms.index')
         ->name('admin.rooms');
 
-    // CHARGE CODES (FIXED naming consistency)
     Route::view('/chargecodes', 'admin.chargecodes.index')
         ->name('admin.chargecodes');
 
-    // ACTIVITY LOGS (KEEP THIS CONSISTENT)
     Route::view('/activitylogs', 'admin.activitylogs.index')
         ->name('admin.activitylogs');
 
