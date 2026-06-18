@@ -1,8 +1,8 @@
 @extends('layouts.app')
 
-@section('title', 'Roles Management')
-@section('pageTitle', 'Roles Management')
-@section('pageSubtitle', 'Manage hotel staff roles and access levels')
+@section('title', 'Permissions Management')
+@section('pageTitle', 'Permissions')
+@section('pageSubtitle', 'Control system access for hotel operations')
 
 @section('content')
 
@@ -10,38 +10,35 @@
 <div class="d-flex justify-content-between align-items-center mb-4">
 
     <div>
-        <h5 class="fw-bold mb-0">Hotel Roles</h5>
-        <small class="text-muted">Control access across hotel departments</small>
+        <h5 class="fw-bold mb-0">Permissions</h5>
+        <small class="text-muted">Manage access rights for hotel staff roles</small>
     </div>
 
-    <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addRoleModal">
+    <button class="btn btn-warning" data-bs-toggle="modal" data-bs-target="#addPermissionModal">
         <i class="fa-solid fa-plus me-1"></i>
-        Add Role
+        Add Permission
     </button>
 
 </div>
 
-<!-- ROLE LIST -->
+<!-- PERMISSION LIST -->
 <div class="card border-0 shadow-sm">
 
     <div class="card-body p-0">
 
         <div class="list-group list-group-flush">
 
-            <!-- ADMIN -->
+            <!-- ITEM -->
             <div class="list-group-item d-flex justify-content-between align-items-center py-3">
 
                 <div class="d-flex align-items-center">
 
                     <div class="bg-light rounded-circle d-flex align-items-center justify-content-center me-3"
                          style="width:42px;height:42px;">
-                        <i class="fa-solid fa-user-shield text-dark"></i>
+                        <i class="fa-solid fa-user text-secondary"></i>
                     </div>
 
-                    <div>
-                        <div class="fw-semibold">Administrator</div>
-                        <small class="text-muted">Full system access across all modules</small>
-                    </div>
+                    <div class="fw-semibold">manage-users</div>
 
                 </div>
 
@@ -49,7 +46,7 @@
 
             </div>
 
-            <!-- FRONT DESK -->
+            <!-- ITEM -->
             <div class="list-group-item d-flex justify-content-between align-items-center py-3">
 
                 <div class="d-flex align-items-center">
@@ -59,18 +56,15 @@
                         <i class="fa-solid fa-bell-concierge text-primary"></i>
                     </div>
 
-                    <div>
-                        <div class="fw-semibold">Front Desk</div>
-                        <small class="text-muted">Reservations, check-in & guest handling</small>
-                    </div>
+                    <div class="fw-semibold">manage-reservations</div>
 
                 </div>
 
-                <span class="badge bg-primary">Operations</span>
+                <span class="badge bg-primary">Front Desk</span>
 
             </div>
 
-            <!-- ACCOUNTING -->
+            <!-- ITEM -->
             <div class="list-group-item d-flex justify-content-between align-items-center py-3">
 
                 <div class="d-flex align-items-center">
@@ -80,56 +74,47 @@
                         <i class="fa-solid fa-receipt text-info"></i>
                     </div>
 
-                    <div>
-                        <div class="fw-semibold">Accounting</div>
-                        <small class="text-muted">Billing, invoices & payments</small>
-                    </div>
+                    <div class="fw-semibold">view-folio</div>
 
                 </div>
 
-                <span class="badge bg-info text-dark">Finance</span>
+                <span class="badge bg-info text-dark">Accounting</span>
 
             </div>
 
-            <!-- COFFEE SHOP -->
+            <!-- ITEM -->
             <div class="list-group-item d-flex justify-content-between align-items-center py-3">
 
                 <div class="d-flex align-items-center">
 
                     <div class="bg-light rounded-circle d-flex align-items-center justify-content-center me-3"
                          style="width:42px;height:42px;">
-                        <i class="fa-solid fa-mug-hot text-success"></i>
+                        <i class="fa-solid fa-bell-concierge text-primary"></i>
                     </div>
 
-                    <div>
-                        <div class="fw-semibold">Coffee Shop</div>
-                        <small class="text-muted">POS, orders & cashier operations</small>
-                    </div>
+                    <div class="fw-semibold">process-checkout</div>
 
                 </div>
 
-                <span class="badge bg-success">POS</span>
+                <span class="badge bg-primary">Front Desk</span>
 
             </div>
 
-            <!-- HOUSEKEEPING -->
+            <!-- ITEM -->
             <div class="list-group-item d-flex justify-content-between align-items-center py-3">
 
                 <div class="d-flex align-items-center">
 
                     <div class="bg-light rounded-circle d-flex align-items-center justify-content-center me-3"
                          style="width:42px;height:42px;">
-                        <i class="fa-solid fa-broom text-warning"></i>
+                        <i class="fa-solid fa-boxes-stacked text-success"></i>
                     </div>
 
-                    <div>
-                        <div class="fw-semibold">Housekeeping</div>
-                        <small class="text-muted">Room cleaning & maintenance tasks</small>
-                    </div>
+                    <div class="fw-semibold">manage-inventory</div>
 
                 </div>
 
-                <span class="badge bg-warning text-dark">Service</span>
+                <span class="badge bg-success">Inventory</span>
 
             </div>
 
@@ -139,45 +124,38 @@
 
 </div>
 
-<!-- FOOTER NOTE -->
+<!-- FOOTER -->
 <div class="mt-3 text-muted small">
-    Roles define access permissions for each hotel department and system module.
+    Permissions define what actions hotel staff can perform in the system.
 </div>
 
-<!-- =========================
-ADD ROLE MODAL (SIMPLE + REALISTIC)
-========================= -->
-<div class="modal fade" id="addRoleModal" tabindex="-1">
+<!-- ADD PERMISSION MODAL -->
+<div class="modal fade" id="addPermissionModal" tabindex="-1">
 
     <div class="modal-dialog modal-dialog-centered">
 
         <div class="modal-content">
 
             <div class="modal-header">
-                <h5 class="modal-title fw-bold">Add New Role</h5>
+                <h5 class="modal-title fw-bold">Add Permission</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
 
             <div class="modal-body">
 
                 <div class="mb-3">
-                    <label class="form-label">Role Name</label>
-                    <input type="text" class="form-control" placeholder="e.g. Front Desk Supervisor">
+                    <label class="form-label">Permission Name</label>
+                    <input type="text" class="form-control" placeholder="e.g. manage-users">
                 </div>
 
                 <div class="mb-3">
-                    <label class="form-label">Description</label>
-                    <textarea class="form-control" rows="2" placeholder="Short role description"></textarea>
-                </div>
-
-                <div class="mb-3">
-                    <label class="form-label">Department</label>
+                    <label class="form-label">Module</label>
                     <select class="form-select">
-                        <option>Operations</option>
-                        <option>Finance</option>
-                        <option>POS</option>
-                        <option>Service</option>
                         <option>System</option>
+                        <option>Front Desk</option>
+                        <option>Accounting</option>
+                        <option>Inventory</option>
+                        <option>POS</option>
                     </select>
                 </div>
 
@@ -185,9 +163,9 @@ ADD ROLE MODAL (SIMPLE + REALISTIC)
 
             <div class="modal-footer">
                 <button class="btn btn-light" data-bs-dismiss="modal">Cancel</button>
-                <button class="btn btn-primary">
+                <button class="btn btn-warning">
                     <i class="fa-solid fa-save me-1"></i>
-                    Save Role
+                    Save
                 </button>
             </div>
 
