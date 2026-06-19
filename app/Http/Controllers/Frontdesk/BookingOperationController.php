@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Frontdesk;
 
 use App\Http\Controllers\Controller;
+use App\Models\ActivityLog;
 use App\Models\Booking;
 use App\Models\Room;
 use Carbon\Carbon;
@@ -50,6 +51,14 @@ class BookingOperationController extends Controller
 
         $booking->room->update(['status' => 'OCCUPIED']);
 
+        $booking->load('folio.guest');
+        $guestName = $booking->folio?->guest ? ($booking->folio->guest->first_name.' '.$booking->folio->guest->last_name) : 'Guest';
+        $roomNumber = $booking->room?->room_number ?? 'N/A';
+        ActivityLog::log(
+            'CHECK_IN',
+            "Checked in guest {$guestName} to Room {$roomNumber} (Booking #{$booking->booking_id})."
+        );
+
         return response()->json([
             'success' => true,
             'message' => 'Guest checked in successfully!',
@@ -90,11 +99,20 @@ class BookingOperationController extends Controller
         );
 
         $booking->update([
+            'actual_check_in' => $booking->actual_check_in, // preserve check-in time
             'actual_check_out' => $actualCheckOut,
             'status' => 'CHECKED_OUT',
         ]);
 
         $booking->room->update(['status' => 'CLEANING']);
+
+        $booking->load('folio.guest');
+        $guestName = $booking->folio?->guest ? ($booking->folio->guest->first_name.' '.$booking->folio->guest->last_name) : 'Guest';
+        $roomNumber = $booking->room?->room_number ?? 'N/A';
+        ActivityLog::log(
+            'CHECK_IN',
+            "Checked out guest {$guestName} from Room {$roomNumber} (Booking #{$booking->booking_id})."
+        );
 
         return response()->json([
             'success' => true,
@@ -123,6 +141,11 @@ class BookingOperationController extends Controller
 
         $room->update(['status' => 'AVAILABLE']);
 
+        ActivityLog::log(
+            'ROOM_MODIFIED',
+            "Room {$room->room_number} status updated to AVAILABLE (Housekeeping Cleaned)."
+        );
+
         return response()->json([
             'success' => true,
             'message' => 'Room cleaned and is now available!',
@@ -149,6 +172,11 @@ class BookingOperationController extends Controller
         }
 
         $room->update(['status' => 'CLEANING']);
+
+        ActivityLog::log(
+            'ROOM_MODIFIED',
+            "Room {$room->room_number} status updated to CLEANING."
+        );
 
         return response()->json([
             'success' => true,
@@ -177,6 +205,11 @@ class BookingOperationController extends Controller
 
         $room->update(['status' => 'MAINTENANCE']);
 
+        ActivityLog::log(
+            'ROOM_MODIFIED',
+            "Room {$room->room_number} status updated to MAINTENANCE (Out of Order)."
+        );
+
         return response()->json([
             'success' => true,
             'message' => 'Room marked as under maintenance (out of order).',
@@ -203,6 +236,11 @@ class BookingOperationController extends Controller
         }
 
         $room->update(['status' => 'AVAILABLE']);
+
+        ActivityLog::log(
+            'ROOM_MODIFIED',
+            "Room {$room->room_number} status updated to AVAILABLE (Maintenance Complete)."
+        );
 
         return response()->json([
             'success' => true,

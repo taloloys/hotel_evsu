@@ -30,6 +30,18 @@ class ActivityLog extends Model
 
     public function user(): BelongsTo
     {
-        return $this->belongsTo(User::class);
+        return $this->belongsTo(User::class, 'user_id', 'user_id');
+    }
+
+    /**
+     * Helper to easily create an activity log record.
+     */
+    public static function log(string $actionType, string $description, ?int $userId = null): self
+    {
+        return self::create([
+            'user_id' => $userId ?? auth()->id() ?? 1,
+            'action_type' => $actionType,
+            'description' => $description,
+        ]);
     }
 }

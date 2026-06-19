@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Models\ActivityLog;
 use App\Models\Role;
 use App\Models\User;
 use Illuminate\Http\RedirectResponse;
@@ -47,6 +48,11 @@ class UserController extends Controller
             'is_active' => true,
         ]);
 
+        ActivityLog::log(
+            'ROOM_MODIFIED',
+            "Created user account for {$validated['full_name']} (username: {$validated['username']})."
+        );
+
         return redirect()
             ->route('admin.users')
             ->with('success', 'User created successfully.');
@@ -66,6 +72,11 @@ class UserController extends Controller
         $user->update([
             'is_active' => ! $user->is_active,
         ]);
+
+        ActivityLog::log(
+            'ROOM_MODIFIED',
+            "Toggled user account status for {$user->full_name} (username: {$user->username}) to ".($user->is_active ? 'ENABLED' : 'DISABLED').'.'
+        );
 
         $statusMessage = $user->is_active ? 'enabled' : 'disabled';
 
@@ -97,6 +108,11 @@ class UserController extends Controller
         }
 
         $user->update($updateData);
+
+        ActivityLog::log(
+            'ROOM_MODIFIED',
+            "Updated user account details for {$user->full_name} (username: {$user->username})."
+        );
 
         return redirect()
             ->route('admin.users')

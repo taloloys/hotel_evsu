@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\Admin\ActivityLogController;
 use App\Http\Controllers\Admin\ChargeCodeController;
 use App\Http\Controllers\Admin\DashboardController;
 use App\Http\Controllers\Admin\PermissionController;
@@ -175,8 +176,11 @@ Route::middleware('auth')->group(function () {
         Route::patch('/chargecodes/{chargeCode}', [ChargeCodeController::class, 'update'])
             ->name('admin.chargecodes.update');
 
-        Route::view('/activitylogs', 'admin.activitylogs.index')
+        Route::get('/activitylogs', [ActivityLogController::class, 'index'])
             ->name('admin.activitylogs');
+
+        Route::get('/activitylogs/export', [ActivityLogController::class, 'export'])
+            ->name('admin.activitylogs.export');
 
     });
 });

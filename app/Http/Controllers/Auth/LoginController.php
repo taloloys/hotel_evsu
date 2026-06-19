@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
+use App\Models\ActivityLog;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -32,6 +33,8 @@ class LoginController extends Controller
                 ->onlyInput('username');
         }
 
+        ActivityLog::log('LOGIN', 'User logged in successfully.');
+
         $request->session()->regenerate();
 
         return redirect()->intended($this->dashboardRouteForRole(Auth::user()?->role?->role_name));
@@ -39,6 +42,8 @@ class LoginController extends Controller
 
     public function logout(Request $request): RedirectResponse
     {
+        ActivityLog::log('LOGIN', 'User logged out.');
+
         Auth::logout();
 
         $request->session()->invalidate();

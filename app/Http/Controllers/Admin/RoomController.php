@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Models\ActivityLog;
 use App\Models\Room;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -92,6 +93,11 @@ class RoomController extends Controller
             'is_active' => true,
         ]);
 
+        ActivityLog::log(
+            'ROOM_MODIFIED',
+            "Created room {$validated['room_number']} ({$validated['room_type']}) with base rate \${$validated['base_rate']}."
+        );
+
         return redirect()
             ->route('admin.rooms')
             ->with('success', 'Room created successfully.');
@@ -118,6 +124,11 @@ class RoomController extends Controller
 
         $room->update($validated);
 
+        ActivityLog::log(
+            'ROOM_MODIFIED',
+            "Updated room {$room->room_number} details (Type: {$validated['room_type']}, Base Rate: \${$validated['base_rate']}, Status: {$validated['status']})."
+        );
+
         return redirect()
             ->route('admin.rooms')
             ->with('success', 'Room updated successfully.');
@@ -140,6 +151,11 @@ class RoomController extends Controller
         $room->update([
             'is_active' => ! $room->is_active,
         ]);
+
+        ActivityLog::log(
+            'ROOM_MODIFIED',
+            "Toggled room {$room->room_number} active status to ".($room->is_active ? 'ENABLED' : 'DISABLED').'.'
+        );
 
         $statusMessage = $room->is_active ? 'enabled' : 'disabled';
 

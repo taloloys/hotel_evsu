@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Frontdesk;
 
 use App\Http\Controllers\Controller;
+use App\Models\ActivityLog;
 use App\Models\Booking;
 use App\Models\Folio;
 use App\Models\Guest;
@@ -143,6 +144,11 @@ class ReservationController extends Controller
             ]);
 
             $room->update(['status' => 'RESERVED']);
+
+            ActivityLog::log(
+                'RESERVATION_CREATE',
+                "Created reservation for guest {$validated['first_name']} {$validated['last_name']} with Folio #{$folio->folio_number} (Room {$room->room_number})."
+            );
         });
 
         return redirect()
@@ -159,7 +165,7 @@ class ReservationController extends Controller
         }
 
         DB::transaction(function () use ($booking) {
-            $booking->load('room');
+            $booking->load(['room', 'folio.guest']);
 
             $booking->update(['status' => 'CANCELLED']);
 
@@ -174,6 +180,13 @@ class ReservationController extends Controller
                     $booking->room->update(['status' => 'AVAILABLE']);
                 }
             }
+
+            $guestName = $booking->folio?->guest ? ($booking->folio->guest->first_name.' '.$booking->folio->guest->last_name) : 'Guest';
+            $roomNumber = $booking->room?->room_number ?? 'N/A';
+            ActivityLog::log(
+                'RESERVATION_CREATE',
+                "Cancelled reservation #{$booking->booking_id} for {$guestName} (Room {$roomNumber})."
+            );
         });
 
         return redirect()
