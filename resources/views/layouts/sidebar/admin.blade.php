@@ -71,6 +71,20 @@
             Charge Codes
         </a>
 
+        <!-- SHIFT SCHEDULES -->
+        <a href="{{ route('admin.shift-schedules') }}"
+        class="nav-link {{ (request()->routeIs('admin.shift-schedules*') && !request()->routeIs('admin.shift-sales*')) ? 'active' : '' }}">
+            <i class="fa-solid fa-calendar-check me-2"></i>
+            Shift Schedules
+        </a>
+
+        <!-- SHIFT SALES -->
+        <a href="{{ route('admin.shift-sales') }}"
+        class="nav-link {{ request()->routeIs('admin.shift-sales*') ? 'active' : '' }}">
+            <i class="fa-solid fa-cash-register me-2"></i>
+            Shift Sales
+        </a>
+
         <!-- ACTIVITY LOGS -->
         <a href="{{ route('admin.activitylogs') }}"
         class="nav-link {{ request()->routeIs('admin.activitylogs') ? 'active' : '' }}">

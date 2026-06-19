@@ -6,12 +6,15 @@ use App\Http\Controllers\Admin\DashboardController;
 use App\Http\Controllers\Admin\PermissionController;
 use App\Http\Controllers\Admin\RoleController;
 use App\Http\Controllers\Admin\RoomController;
+use App\Http\Controllers\Admin\ShiftScheduleController;
 use App\Http\Controllers\Admin\UserController;
 use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\Frontdesk\BookingOperationController;
 use App\Http\Controllers\Frontdesk\DashboardController as FrontdeskDashboardController;
 use App\Http\Controllers\Frontdesk\RegistrationController;
 use App\Http\Controllers\Frontdesk\ReservationController;
+use App\Http\Controllers\Frontdesk\ShiftController as FrontdeskShiftController;
+use App\Http\Controllers\Frontdesk\ShiftSalesController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', [LoginController::class, 'create'])
@@ -72,8 +75,14 @@ Route::middleware('auth')->group(function () {
         Route::view('/guest-folio', 'frontdesk.guest-folio.index')
             ->name('frontdesk.guest-folio');
 
-        Route::view('/shift-sales', 'frontdesk.shift-sales.index')
+        Route::get('/shift-sales', [ShiftSalesController::class, 'index'])
             ->name('frontdesk.shift-sales');
+
+        Route::post('/shift/open', [FrontdeskShiftController::class, 'open'])
+            ->name('frontdesk.shift.open');
+
+        Route::post('/shift/close', [FrontdeskShiftController::class, 'close'])
+            ->name('frontdesk.shift.close');
 
     });
 
@@ -181,6 +190,25 @@ Route::middleware('auth')->group(function () {
 
         Route::get('/activitylogs/export', [ActivityLogController::class, 'export'])
             ->name('admin.activitylogs.export');
+
+        // SHIFT SCHEDULES
+        Route::get('/shift-schedules', [ShiftScheduleController::class, 'index'])
+            ->name('admin.shift-schedules');
+
+        Route::post('/shift-schedules', [ShiftScheduleController::class, 'store'])
+            ->name('admin.shift-schedules.store');
+
+        Route::patch('/shift-schedules/{schedule}', [ShiftScheduleController::class, 'update'])
+            ->name('admin.shift-schedules.update');
+
+        Route::delete('/shift-schedules/{schedule}', [ShiftScheduleController::class, 'destroy'])
+            ->name('admin.shift-schedules.delete');
+
+        Route::get('/shift-schedules/{schedule}/report', [ShiftScheduleController::class, 'report'])
+            ->name('admin.shift-schedules.report');
+
+        Route::get('/shift-sales', [ShiftSalesController::class, 'index'])
+            ->name('admin.shift-sales');
 
     });
 });

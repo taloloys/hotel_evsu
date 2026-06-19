@@ -5,6 +5,9 @@ namespace App\Http\Controllers\Frontdesk;
 use App\Http\Controllers\Controller;
 use App\Models\Booking;
 use App\Models\Room;
+use App\Models\Shift;
+use App\Models\ShiftSchedule;
+use App\Models\Transaction;
 use Carbon\Carbon;
 use Illuminate\View\View;
 
@@ -13,6 +16,40 @@ class DashboardController extends Controller
     public function index(): View
     {
         $today = Carbon::now()->toDateString();
+        $userId = auth()->id();
+
+        // Active shift
+        $activeShift = Shift::where('user_id', $userId)
+            ->whereNull('end_time')
+            ->with('schedule')
+            ->first();
+
+        // Available schedules for today that haven't started yet
+        $todaySchedules = ShiftSchedule::where('user_id', $userId)
+            ->whereDate('shift_date', $today)
+            ->where('status', 'SCHEDULED')
+            ->get();
+
+        // Shift sales totals
+        $shiftSales = [
+            'charges' => 0.00,
+            'payments' => 0.00,
+            'cash' => 0.00,
+            'card' => 0.00,
+        ];
+
+        if ($activeShift) {
+            $shiftSales['charges'] = Transaction::where('shift_id', $activeShift->shift_id)
+                ->sum('charge_amount');
+            $shiftSales['payments'] = Transaction::where('shift_id', $activeShift->shift_id)
+                ->sum('credit_amount');
+            $shiftSales['cash'] = Transaction::where('shift_id', $activeShift->shift_id)
+                ->where('payment_method', 'CASH')
+                ->sum('credit_amount');
+            $shiftSales['card'] = Transaction::where('shift_id', $activeShift->shift_id)
+                ->where('payment_method', 'CREDIT_CARD')
+                ->sum('credit_amount');
+        }
 
         // Get today's arrivals
         $todayArrivals = Booking::whereDate('arrival_date', $today)
@@ -129,6 +166,9 @@ class DashboardController extends Controller
             'vacantRooms' => $vacantRooms,
             'occupiedRoomList' => $occupiedRoomList,
             'totalRooms' => Room::where('is_active', true)->count(),
+            'activeShift' => $activeShift,
+            'todaySchedules' => $todaySchedules,
+            'shiftSales' => $shiftSales,
         ]);
     }
 }

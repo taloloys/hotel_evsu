@@ -104,6 +104,55 @@
     }
 </style>
 
+@if($errors->has('shift'))
+    <div class="alert alert-danger alert-dismissible fade show border-0 shadow-sm mb-4" role="alert">
+        <i class="fa-solid fa-triangle-exclamation me-2"></i>{{ $errors->first('shift') }}
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+@endif
+
+<!-- SHIFT MANAGEMENT BAR -->
+<div class="card border-0 shadow-sm mb-4 rounded-4 {{ $activeShift ? 'border-start border-4 border-success' : 'border-start border-4 border-warning' }}">
+    <div class="card-body p-4">
+        <div class="d-flex justify-content-between align-items-center flex-wrap gap-3">
+            <div class="d-flex align-items-center">
+                <div class="rounded-circle d-flex align-items-center justify-content-center me-3 {{ $activeShift ? 'bg-success-subtle text-success' : 'bg-warning-subtle text-warning' }}" style="width: 48px; height: 48px;">
+                    <i class="fa-solid fa-cash-register fs-4"></i>
+                </div>
+                <div>
+                    @if($activeShift)
+                        <h6 class="fw-bold mb-1">
+                            Active Shift Session: <span class="text-success">{{ $activeShift->schedule ? $activeShift->schedule->shift_name : 'Unscheduled Shift' }}</span>
+                        </h6>
+                        <small class="text-muted">
+                            Opened at {{ $activeShift->start_time->format('M d, g:i A') }} | Live Sales: 
+                            <strong class="text-success">₱{{ number_format($shiftSales['payments'], 2) }}</strong> (Cash: ₱{{ number_format($shiftSales['cash'], 2) }}, Card: ₱{{ number_format($shiftSales['card'], 2) }}) | Charges posted: <strong class="text-danger">₱{{ number_format($shiftSales['charges'], 2) }}</strong>
+                        </small>
+                    @else
+                        <h6 class="fw-bold mb-1 text-warning">
+                            ⚠️ No Active Shift Session
+                        </h6>
+                        <small class="text-muted">
+                            Please open a cashier shift drawer session to perform reservation check-ins, check-outs, and billing postings.
+                        </small>
+                    @endif
+                </div>
+            </div>
+            <div>
+                @if($activeShift)
+                    <button class="btn btn-outline-danger btn-sm px-3" data-bs-toggle="modal" data-bs-target="#closeShiftModal">
+                        <i class="fa-solid fa-power-off me-1"></i> Close Shift
+                    </button>
+                @else
+                    <button class="btn btn-primary btn-sm px-3" data-bs-toggle="modal" data-bs-target="#openShiftModal">
+                        <i class="fa-solid fa-play me-1"></i> Open Shift / Drawer
+                    </button>
+                @endif
+            </div>
+        </div>
+    </div>
+</div>
+
 <!-- KPI CARDS -->
 <div class="row g-4 mb-4">
 
@@ -580,6 +629,88 @@
                 <p class="mb-3"><span class="badge" id="modalRoomStatus"></span></p>
                 <div id="modalRoomActions"></div>
             </div>
+        </div>
+    </div>
+</div>
+
+<!-- Open Shift Modal -->
+<div class="modal fade" id="openShiftModal" tabindex="-1" aria-labelledby="openShiftModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow">
+            <div class="modal-header">
+                <h5 class="modal-title fw-bold" id="openShiftModalLabel">
+                    <i class="fa-solid fa-play text-primary me-2"></i>Open Shift Drawer
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form method="POST" action="{{ route('frontdesk.shift.open') }}">
+                @csrf
+                <div class="modal-body">
+                    <p class="text-muted small">Select your scheduled shift for today to open the session and activate your transactions drawer.</p>
+                    
+                    <div class="mb-3">
+                        <label for="open_schedule_id" class="form-label fw-semibold">Today's Schedule</label>
+                        <select id="open_schedule_id" name="schedule_id" class="form-select">
+                            <option value="">No Schedule (Unscheduled Shift)</option>
+                            @foreach($todaySchedules as $sched)
+                                <option value="{{ $sched->id }}">
+                                    {{ $sched->shift_name }} ({{ Carbon\Carbon::parse($sched->scheduled_start_time)->format('g:i A') }} - {{ Carbon\Carbon::parse($sched->scheduled_end_time)->format('g:i A') }})
+                                </option>
+                            @endforeach
+                        </select>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-light" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-primary">Start Shift Session</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Close Shift Modal -->
+<div class="modal fade" id="closeShiftModal" tabindex="-1" aria-labelledby="closeShiftModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow">
+            <div class="modal-header">
+                <h5 class="modal-title fw-bold" id="closeShiftModalLabel">
+                    <i class="fa-solid fa-power-off text-danger me-2"></i>Close Shift Session
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form method="POST" action="{{ route('frontdesk.shift.close') }}">
+                @csrf
+                <div class="modal-body">
+                    <p class="text-muted small">Reconcile your drawer. Closing this shift session will deactivate your POS/billing transactions drawer.</p>
+                    
+                    <div class="bg-light p-3 rounded-3 mb-3">
+                        <h6 class="fw-bold mb-2">Shift Sales Summary</h6>
+                        <div class="d-flex justify-content-between mb-1 small">
+                            <span class="text-muted">Total Cash Payments:</span>
+                            <span class="fw-bold text-success">₱{{ number_format($shiftSales['cash'], 2) }}</span>
+                        </div>
+                        <div class="d-flex justify-content-between mb-1 small">
+                            <span class="text-muted">Total Card Payments:</span>
+                            <span class="fw-bold text-primary">₱{{ number_format($shiftSales['card'], 2) }}</span>
+                        </div>
+                        <div class="d-flex justify-content-between border-top pt-2 mt-2 fw-bold">
+                            <span>Total Sales Collected:</span>
+                            <span>₱{{ number_format($shiftSales['payments'], 2) }}</span>
+                        </div>
+                        <div class="d-flex justify-content-between text-danger mt-1 small">
+                            <span>Charges Posted to Rooms:</span>
+                            <span>₱{{ number_format($shiftSales['charges'], 2) }}</span>
+                        </div>
+                    </div>
+                    
+                    <p class="text-danger small fw-semibold mb-0">Are you sure you want to end your shift now?</p>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-light" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-danger">Confirm Close Shift</button>
+                </div>
+            </form>
         </div>
     </div>
 </div>

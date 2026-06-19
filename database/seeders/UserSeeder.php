@@ -22,6 +22,7 @@ class UserSeeder extends Seeder
             'view-folio' => ['desc' => 'View guest folio and billing status', 'module' => 'Accounting'],
             'process-checkout' => ['desc' => 'Process guest checkout and record payments', 'module' => 'Front Desk'],
             'manage-inventory' => ['desc' => 'Manage coffeeshop inventory and sales orders', 'module' => 'Inventory'],
+            'manage-shifts' => ['desc' => 'Manage shift schedules and view sales reports', 'module' => 'System'],
         ];
 
         $permissionModels = [];
@@ -41,7 +42,7 @@ class UserSeeder extends Seeder
             'ADMIN' => [
                 'label' => 'Administrator',
                 'description' => 'Full system administrator with all access privileges',
-                'permissions' => ['manage-users', 'manage-reservations', 'view-folio', 'process-checkout', 'manage-inventory'],
+                'permissions' => ['manage-users', 'manage-reservations', 'view-folio', 'process-checkout', 'manage-inventory', 'manage-shifts'],
             ],
             'FRONT_DESK' => [
                 'label' => 'Front Desk Operations',

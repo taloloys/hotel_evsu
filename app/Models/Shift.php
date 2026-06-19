@@ -14,6 +14,7 @@ class Shift extends Model
 
     protected $fillable = [
         'user_id',
+        'schedule_id',
         'start_time',
         'end_time',
     ];
@@ -28,7 +29,12 @@ class Shift extends Model
 
     public function user(): BelongsTo
     {
-        return $this->belongsTo(User::class);
+        return $this->belongsTo(User::class, 'user_id', 'user_id');
+    }
+
+    public function schedule(): BelongsTo
+    {
+        return $this->belongsTo(ShiftSchedule::class, 'schedule_id', 'id');
     }
 
     public function transactions(): HasMany
