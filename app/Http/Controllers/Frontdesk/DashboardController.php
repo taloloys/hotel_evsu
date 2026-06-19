@@ -59,16 +59,32 @@ class DashboardController extends Controller
             })
             ->toArray();
 
-        // Get today's bookings (arrivals + departures)
-        $todayBookings = Booking::with(['folio.guest', 'room'])
-            ->where(function ($query) use ($today) {
-                $query->whereDate('arrival_date', $today)
-                    ->orWhereDate('departure_date', $today);
+        $guestBookingsQuery = fn () => Booking::with(['folio.guest', 'room'])
+            ->whereHas('folio', fn ($query) => $query->whereNotNull('guest_id'));
+
+        // Today's check-ins and reservations (arrivals only)
+        $todayCheckIns = $guestBookingsQuery()
+            ->whereDate('arrival_date', $today)
+            ->whereIn('status', ['RESERVED', 'CHECKED_IN'])
+            ->orderBy('arrival_time')
+            ->get();
+
+        // Today's check-outs (departures — pending and completed)
+        $todayCheckOuts = $guestBookingsQuery()
+            ->whereDate('departure_date', $today)
+            ->whereIn('status', ['CHECKED_IN', 'CHECKED_OUT'])
+            ->orderBy('departure_time')
+            ->get();
+
+        // Rooms ready for guests: available status with no active reservation or occupancy
+        $vacantRooms = Room::query()
+            ->where('status', 'AVAILABLE')
+            ->whereDoesntHave('bookings', function ($query) use ($today) {
+                $query->whereIn('status', ['RESERVED', 'CHECKED_IN'])
+                    ->whereDate('departure_date', '>=', $today);
             })
-            ->whereHas('folio', function ($query) {
-                $query->whereNotNull('guest_id');
-            })
-            ->orderBy('arrival_date')
+            ->orderBy('room_type')
+            ->orderBy('room_number')
             ->get();
 
         return view('frontdesk.dashboard.index', [
@@ -79,7 +95,9 @@ class DashboardController extends Controller
             'needsCleaningRooms' => $needsCleaningRooms,
             'maintenanceRooms' => $maintenanceRooms,
             'roomsByType' => $roomsByType,
-            'todayBookings' => $todayBookings,
+            'todayCheckIns' => $todayCheckIns,
+            'todayCheckOuts' => $todayCheckOuts,
+            'vacantRooms' => $vacantRooms,
             'totalRooms' => Room::count(),
         ]);
     }

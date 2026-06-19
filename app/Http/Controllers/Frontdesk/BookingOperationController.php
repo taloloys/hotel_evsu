@@ -64,6 +64,8 @@ class BookingOperationController extends Controller
     {
         $request->validate([
             'booking_id' => ['required', 'exists:bookings,booking_id'],
+            'checkout_time' => ['required', 'regex:/^(0?[1-9]|1[0-2]):[0-5][0-9]$/'],
+            'checkout_period' => ['required', 'in:AM,PM'],
         ]);
 
         $booking = Booking::with('room')->findOrFail($request->booking_id);
@@ -82,8 +84,13 @@ class BookingOperationController extends Controller
             ], 422);
         }
 
+        $actualCheckOut = Carbon::createFromFormat(
+            'Y-m-d g:i A',
+            Carbon::today()->format('Y-m-d').' '.$request->checkout_time.' '.$request->checkout_period
+        );
+
         $booking->update([
-            'actual_check_out' => Carbon::now(),
+            'actual_check_out' => $actualCheckOut,
             'status' => 'CHECKED_OUT',
         ]);
 

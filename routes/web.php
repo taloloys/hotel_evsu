@@ -7,6 +7,7 @@ use App\Http\Controllers\Admin\UserController;
 use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\Frontdesk\BookingOperationController;
 use App\Http\Controllers\Frontdesk\DashboardController as FrontdeskDashboardController;
+use App\Http\Controllers\Frontdesk\ReservationController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', [LoginController::class, 'create'])
@@ -46,8 +47,14 @@ Route::middleware('auth')->group(function () {
         Route::post('/room/maintenance-complete', [BookingOperationController::class, 'markMaintenanceComplete'])
             ->name('frontdesk.room.maintenance-complete');
 
-        Route::view('/reservation', 'frontdesk.reservation.index')
+        Route::get('/reservation', [ReservationController::class, 'index'])
             ->name('frontdesk.reservation');
+
+        Route::post('/reservation', [ReservationController::class, 'store'])
+            ->name('frontdesk.reservation.store');
+
+        Route::patch('/reservation/{booking}/cancel', [ReservationController::class, 'cancel'])
+            ->name('frontdesk.reservation.cancel');
 
         Route::view('/registration', 'frontdesk.registration.index')
             ->name('frontdesk.registration');
