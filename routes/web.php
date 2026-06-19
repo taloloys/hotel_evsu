@@ -91,14 +91,23 @@ Route::middleware('auth')->group(function () {
         Route::view('/dashboard', 'accounting.dashboard.index')
             ->name('accounting.dashboard');
 
-        Route::view('/invoices', 'accounting.invoices.index')
-            ->name('accounting.invoices');
+        Route::view('/billing', 'accounting.billing.index')
+            ->name('accounting.billing');
 
         Route::view('/payments', 'accounting.payments.index')
             ->name('accounting.payments');
 
+        Route::view('/receivables', 'accounting.receivables.index')
+            ->name('accounting.receivables');
+
+        Route::view('/expenses', 'accounting.expenses.index')
+            ->name('accounting.expenses');
+
         Route::view('/reports', 'accounting.reports.index')
             ->name('accounting.reports');
+
+        Route::view('/audit', 'accounting.audit.index')
+            ->name('accounting.audit');
 
     });
 
