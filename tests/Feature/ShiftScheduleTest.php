@@ -3,6 +3,7 @@
 use App\Models\ChargeCode;
 use App\Models\Folio;
 use App\Models\Guest;
+use App\Models\Permission;
 use App\Models\Role;
 use App\Models\Shift;
 use App\Models\ShiftSchedule;
@@ -25,6 +26,25 @@ beforeEach(function (): void {
         'role_name' => 'FRONT_DESK',
         'description' => 'Front Desk Role',
         'is_active' => true,
+    ]);
+
+    $manageReservations = Permission::create([
+        'permission_key' => 'manage-reservations',
+        'description' => 'Manage reservations',
+        'module' => 'Front Desk',
+        'is_active' => true,
+    ]);
+
+    $viewFolio = Permission::create([
+        'permission_key' => 'view-folio',
+        'description' => 'View folio',
+        'module' => 'Accounting',
+        'is_active' => true,
+    ]);
+
+    $this->frontdeskRole->permissions()->sync([
+        $manageReservations->permission_id,
+        $viewFolio->permission_id,
     ]);
 
     // Users

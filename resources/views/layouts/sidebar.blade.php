@@ -1,7 +1,11 @@
 <div class="p-4">
 
+    @if(auth()->user()?->role?->role_name === 'ADMIN')
+
+        @include('layouts.sidebar.admin_master')
+
     {{-- FRONT DESK --}}
-    @if(request()->is('frontdesk*') || request()->routeIs('frontdesk.*'))
+    @elseif(request()->is('frontdesk*') || request()->routeIs('frontdesk.*'))
 
         @include('layouts.sidebar.frontdesk')
 

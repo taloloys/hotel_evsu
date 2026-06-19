@@ -33,60 +33,64 @@ Route::middleware('auth')->group(function () {
 
     Route::prefix('frontdesk')->group(function () {
 
-        Route::get('/dashboard', [FrontdeskDashboardController::class, 'index'])
-            ->name('frontdesk.dashboard');
+        Route::middleware('can:manage-reservations')->group(function () {
+            Route::get('/dashboard', [FrontdeskDashboardController::class, 'index'])
+                ->name('frontdesk.dashboard');
 
-        Route::post('/booking/check-in', [BookingOperationController::class, 'checkIn'])
-            ->name('frontdesk.booking.check-in');
+            Route::post('/booking/check-in', [BookingOperationController::class, 'checkIn'])
+                ->name('frontdesk.booking.check-in');
 
-        Route::post('/booking/check-out', [BookingOperationController::class, 'checkOut'])
-            ->name('frontdesk.booking.check-out');
+            Route::post('/booking/check-out', [BookingOperationController::class, 'checkOut'])
+                ->name('frontdesk.booking.check-out');
 
-        Route::post('/room/mark-cleaned', [BookingOperationController::class, 'markCleaned'])
-            ->name('frontdesk.room.mark-cleaned');
+            Route::post('/room/mark-cleaned', [BookingOperationController::class, 'markCleaned'])
+                ->name('frontdesk.room.mark-cleaned');
 
-        Route::post('/room/mark-for-cleaning', [BookingOperationController::class, 'markForCleaning'])
-            ->name('frontdesk.room.mark-for-cleaning');
+            Route::post('/room/mark-for-cleaning', [BookingOperationController::class, 'markForCleaning'])
+                ->name('frontdesk.room.mark-for-cleaning');
 
-        Route::post('/room/mark-maintenance', [BookingOperationController::class, 'markForMaintenance'])
-            ->name('frontdesk.room.mark-maintenance');
+            Route::post('/room/mark-maintenance', [BookingOperationController::class, 'markForMaintenance'])
+                ->name('frontdesk.room.mark-maintenance');
 
-        Route::post('/room/maintenance-complete', [BookingOperationController::class, 'markMaintenanceComplete'])
-            ->name('frontdesk.room.maintenance-complete');
+            Route::post('/room/maintenance-complete', [BookingOperationController::class, 'markMaintenanceComplete'])
+                ->name('frontdesk.room.maintenance-complete');
 
-        Route::get('/reservation', [ReservationController::class, 'index'])
-            ->name('frontdesk.reservation');
+            Route::get('/reservation', [ReservationController::class, 'index'])
+                ->name('frontdesk.reservation');
 
-        Route::post('/reservation', [ReservationController::class, 'store'])
-            ->name('frontdesk.reservation.store');
+            Route::post('/reservation', [ReservationController::class, 'store'])
+                ->name('frontdesk.reservation.store');
 
-        Route::patch('/reservation/{booking}/cancel', [ReservationController::class, 'cancel'])
-            ->name('frontdesk.reservation.cancel');
+            Route::patch('/reservation/{booking}/cancel', [ReservationController::class, 'cancel'])
+                ->name('frontdesk.reservation.cancel');
 
-        Route::get('/registration', [RegistrationController::class, 'index'])
-            ->name('frontdesk.registration');
+            Route::get('/registration', [RegistrationController::class, 'index'])
+                ->name('frontdesk.registration');
 
-        Route::post('/registration', [RegistrationController::class, 'store'])
-            ->name('frontdesk.registration.store');
+            Route::post('/registration', [RegistrationController::class, 'store'])
+                ->name('frontdesk.registration.store');
 
-        Route::view('/guest-list', 'frontdesk.guest-list.index')
-            ->name('frontdesk.guest-list');
+            Route::post('/shift/open', [FrontdeskShiftController::class, 'open'])
+                ->name('frontdesk.shift.open');
 
-        Route::view('/guest-folio', 'frontdesk.guest-folio.index')
-            ->name('frontdesk.guest-folio');
+            Route::post('/shift/close', [FrontdeskShiftController::class, 'close'])
+                ->name('frontdesk.shift.close');
+        });
 
-        Route::get('/shift-sales', [ShiftSalesController::class, 'index'])
-            ->name('frontdesk.shift-sales');
+        Route::middleware('can:view-folio')->group(function () {
+            Route::view('/guest-list', 'frontdesk.guest-list.index')
+                ->name('frontdesk.guest-list');
 
-        Route::post('/shift/open', [FrontdeskShiftController::class, 'open'])
-            ->name('frontdesk.shift.open');
+            Route::view('/guest-folio', 'frontdesk.guest-folio.index')
+                ->name('frontdesk.guest-folio');
 
-        Route::post('/shift/close', [FrontdeskShiftController::class, 'close'])
-            ->name('frontdesk.shift.close');
+            Route::get('/shift-sales', [ShiftSalesController::class, 'index'])
+                ->name('frontdesk.shift-sales');
+        });
 
     });
 
-    Route::prefix('accounting')->group(function () {
+    Route::prefix('accounting')->middleware('can:view-folio')->group(function () {
 
         Route::view('/dashboard', 'accounting.dashboard.index')
             ->name('accounting.dashboard');
@@ -111,7 +115,7 @@ Route::middleware('auth')->group(function () {
 
     });
 
-    Route::prefix('coffeeshop')->group(function () {
+    Route::prefix('coffeeshop')->middleware('can:manage-inventory')->group(function () {
 
         Route::view('/dashboard', 'coffeeshop.dashboard.index')
             ->name('coffeeshop.dashboard');
@@ -129,7 +133,7 @@ Route::middleware('auth')->group(function () {
             ->name('coffeeshop.inventory');
     });
 
-    Route::prefix('admin')->group(function () {
+    Route::prefix('admin')->middleware('can:manage-users')->group(function () {
 
         Route::get('/dashboard', [DashboardController::class, 'index'])
             ->name('admin.dashboard');

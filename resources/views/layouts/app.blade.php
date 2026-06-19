@@ -26,11 +26,12 @@
 
         .sidebar{
             width:260px;
-            min-height:100vh;
+            height:100vh;
             background:#0f172a;
             position:fixed;
             left:0;
             top:0;
+            overflow-y:auto;
         }
 
         .main-content{

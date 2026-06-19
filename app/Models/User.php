@@ -54,15 +54,20 @@ class User extends Authenticatable
         return $this->hasMany(Shift::class, 'user_id', 'user_id');
     }
 
-    /**
-     * Determine if the user has the given permission.
-     */
     public function hasPermission(string $permissionKey): bool
     {
-        return (bool) ($this->role?->is_active && $this->role->permissions()
+        if (! $this->role?->is_active) {
+            return false;
+        }
+
+        if ($this->role->role_name === 'ADMIN') {
+            return true;
+        }
+
+        return (bool) $this->role->permissions()
             ->where('permissions.permission_key', $permissionKey)
             ->where('permissions.is_active', true)
-            ->exists());
+            ->exists();
     }
 
     /**

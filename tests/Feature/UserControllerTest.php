@@ -31,6 +31,17 @@ test('unauthenticated users are redirected to login', function (): void {
         ->assertRedirect(route('login'));
 });
 
+test('non-admin users without permission cannot view the users management page', function (): void {
+    $staffUser = User::factory()->create([
+        'username' => 'staff_no_perm',
+        'role_id' => $this->staffRole->role_id,
+    ]);
+
+    $this->actingAs($staffUser)
+        ->get(route('admin.users'))
+        ->assertForbidden();
+});
+
 test('authenticated admin can view the users management page', function (): void {
     // Create another user to display
     $staffUser = User::factory()->create([
