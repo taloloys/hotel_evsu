@@ -87,6 +87,33 @@ class DashboardController extends Controller
             ->orderBy('room_number')
             ->get();
 
+        $occupiedRoomList = Room::query()
+            ->where('status', 'OCCUPIED')
+            ->with(['bookings' => function ($query) {
+                $query->where('status', 'CHECKED_IN')
+                    ->with(['folio.guest']);
+            }])
+            ->orderBy('room_type')
+            ->orderBy('room_number')
+            ->get()
+            ->map(function (Room $room) {
+                $activeBooking = $room->bookings->first();
+
+                return [
+                    'room_id' => $room->room_id,
+                    'room_number' => $room->room_number,
+                    'room_type' => $room->room_type,
+                    'guest_name' => $activeBooking
+                        ? trim(
+                            ($activeBooking->folio?->guest?->first_name ?? '').' '.
+                            ($activeBooking->folio?->guest?->last_name ?? '')
+                        )
+                        : null,
+                    'folio_number' => $activeBooking?->folio?->folio_number,
+                    'departure_date' => $activeBooking?->departure_date,
+                ];
+            });
+
         return view('frontdesk.dashboard.index', [
             'todayArrivals' => $todayArrivals,
             'todayDepartures' => $todayDepartures,
@@ -98,6 +125,7 @@ class DashboardController extends Controller
             'todayCheckIns' => $todayCheckIns,
             'todayCheckOuts' => $todayCheckOuts,
             'vacantRooms' => $vacantRooms,
+            'occupiedRoomList' => $occupiedRoomList,
             'totalRooms' => Room::count(),
         ]);
     }

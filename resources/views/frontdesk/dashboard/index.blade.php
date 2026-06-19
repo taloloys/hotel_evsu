@@ -6,6 +6,13 @@
 
 @section('content')
 
+@if(session('success'))
+    <div class="alert alert-success alert-dismissible fade show border-0 shadow-sm" role="alert">
+        <i class="fa-solid fa-circle-check me-2"></i>{{ session('success') }}
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+@endif
+
 <style>
     .room-dashboard {
         background: #f5f5f5;
@@ -291,6 +298,69 @@
             <p class="text-muted small mb-0 mt-3 d-none" id="vacantRoomsNoResults">No rooms match your search.</p>
         @else
             <p class="text-muted text-center py-4 mb-0">No vacant rooms available right now</p>
+        @endif
+    </div>
+</div>
+
+<!-- OCCUPIED ROOMS -->
+<div class="card border-0 shadow-sm mb-4">
+    <div class="card-header bg-white">
+        <div class="d-flex flex-wrap justify-content-between align-items-center gap-3">
+            <h5 class="fw-bold mb-0">
+                <i class="fa-solid fa-bed text-primary"></i> Occupied Rooms
+                <span class="badge bg-primary ms-2">{{ $occupiedRoomList->count() }}</span>
+            </h5>
+            @if($occupiedRoomList->count() > 0)
+                <div class="d-flex flex-wrap gap-2">
+                    <div class="input-group input-group-sm" style="width: 220px;">
+                        <span class="input-group-text"><i class="fa-solid fa-search"></i></span>
+                        <input type="text" class="form-control" id="occupiedRoomSearch" placeholder="Search room or guest...">
+                    </div>
+                    <select class="form-select form-select-sm" id="occupiedRoomSort" style="width: 180px;">
+                        <option value="room-asc">Room (Low-High)</option>
+                        <option value="room-desc">Room (High-Low)</option>
+                        <option value="guest-asc">Guest (A-Z)</option>
+                        <option value="guest-desc">Guest (Z-A)</option>
+                    </select>
+                </div>
+            @endif
+        </div>
+    </div>
+    <div class="card-body">
+        @if($occupiedRoomList->count() > 0)
+            <p class="text-muted small mb-3">Rooms currently checked in, including walk-in registrations.</p>
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0" id="occupiedRoomsTable">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Room</th>
+                            <th>Type</th>
+                            <th>Guest</th>
+                            <th>Folio</th>
+                            <th>Departure</th>
+                        </tr>
+                    </thead>
+                    <tbody id="occupiedRoomsTableBody">
+                        @foreach($occupiedRoomList as $room)
+                            <tr
+                                data-room-number="{{ strtolower($room['room_number']) }}"
+                                data-room-type="{{ strtolower($room['room_type']) }}"
+                                data-guest-name="{{ strtolower($room['guest_name'] ?? '') }}"
+                                data-room-sort="{{ $room['room_number'] }}"
+                            >
+                                <td><span class="badge bg-primary">{{ $room['room_number'] }}</span></td>
+                                <td>{{ $room['room_type'] }}</td>
+                                <td><strong>{{ $room['guest_name'] ?: '—' }}</strong></td>
+                                <td>{{ $room['folio_number'] ?: '—' }}</td>
+                                <td>{{ $room['departure_date']?->format('M d, Y') ?? '—' }}</td>
+                            </tr>
+                        @endforeach
+                    </tbody>
+                </table>
+            </div>
+            <p class="text-muted small mb-0 mt-3 d-none" id="occupiedRoomsNoResults">No occupied rooms match your search.</p>
+        @else
+            <p class="text-muted text-center py-4 mb-0">No occupied rooms right now</p>
         @endif
     </div>
 </div>
@@ -584,6 +654,15 @@
         if (vacantRoomSort) {
             vacantRoomSort.addEventListener('change', filterAndSortVacantRooms);
         }
+
+        const occupiedRoomSearch = document.getElementById('occupiedRoomSearch');
+        const occupiedRoomSort = document.getElementById('occupiedRoomSort');
+        if (occupiedRoomSearch) {
+            occupiedRoomSearch.addEventListener('input', filterAndSortOccupiedRooms);
+        }
+        if (occupiedRoomSort) {
+            occupiedRoomSort.addEventListener('change', filterAndSortOccupiedRooms);
+        }
     });
 
     function getRoomStatusClass(status) {
@@ -823,6 +902,59 @@
         visibleItems.forEach(item => list.appendChild(item));
 
         const noResults = document.getElementById('vacantRoomsNoResults');
+        if (noResults) {
+            noResults.classList.toggle('d-none', visibleCount > 0);
+        }
+    }
+
+    function filterAndSortOccupiedRooms() {
+        const tbody = document.getElementById('occupiedRoomsTableBody');
+        if (!tbody) {
+            return;
+        }
+
+        const searchTerm = (document.getElementById('occupiedRoomSearch')?.value || '').toLowerCase().trim();
+        const sortBy = document.getElementById('occupiedRoomSort')?.value || 'room-asc';
+        const rows = Array.from(tbody.querySelectorAll('tr'));
+        let visibleCount = 0;
+
+        rows.forEach(row => {
+            const roomNumber = row.getAttribute('data-room-number') || '';
+            const roomType = row.getAttribute('data-room-type') || '';
+            const guestName = row.getAttribute('data-guest-name') || '';
+            const matches = roomNumber.includes(searchTerm)
+                || roomType.includes(searchTerm)
+                || guestName.includes(searchTerm);
+            row.style.display = matches ? '' : 'none';
+            if (matches) {
+                visibleCount++;
+            }
+        });
+
+        const visibleRows = rows.filter(row => row.style.display !== 'none');
+
+        visibleRows.sort((a, b) => {
+            const roomA = parseInt(a.getAttribute('data-room-sort'), 10) || 0;
+            const roomB = parseInt(b.getAttribute('data-room-sort'), 10) || 0;
+            const guestA = a.getAttribute('data-guest-name') || '';
+            const guestB = b.getAttribute('data-guest-name') || '';
+
+            switch (sortBy) {
+                case 'room-desc':
+                    return roomB - roomA;
+                case 'guest-asc':
+                    return guestA.localeCompare(guestB) || roomA - roomB;
+                case 'guest-desc':
+                    return guestB.localeCompare(guestA) || roomA - roomB;
+                case 'room-asc':
+                default:
+                    return roomA - roomB;
+            }
+        });
+
+        visibleRows.forEach(row => tbody.appendChild(row));
+
+        const noResults = document.getElementById('occupiedRoomsNoResults');
         if (noResults) {
             noResults.classList.toggle('d-none', visibleCount > 0);
         }

@@ -7,6 +7,7 @@ use App\Http\Controllers\Admin\UserController;
 use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\Frontdesk\BookingOperationController;
 use App\Http\Controllers\Frontdesk\DashboardController as FrontdeskDashboardController;
+use App\Http\Controllers\Frontdesk\RegistrationController;
 use App\Http\Controllers\Frontdesk\ReservationController;
 use Illuminate\Support\Facades\Route;
 
@@ -56,8 +57,11 @@ Route::middleware('auth')->group(function () {
         Route::patch('/reservation/{booking}/cancel', [ReservationController::class, 'cancel'])
             ->name('frontdesk.reservation.cancel');
 
-        Route::view('/registration', 'frontdesk.registration.index')
+        Route::get('/registration', [RegistrationController::class, 'index'])
             ->name('frontdesk.registration');
+
+        Route::post('/registration', [RegistrationController::class, 'store'])
+            ->name('frontdesk.registration.store');
 
         Route::view('/guest-list', 'frontdesk.guest-list.index')
             ->name('frontdesk.guest-list');
