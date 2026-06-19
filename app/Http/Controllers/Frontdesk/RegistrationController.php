@@ -8,6 +8,7 @@ use App\Models\Folio;
 use App\Models\Guest;
 use App\Models\Room;
 use Carbon\Carbon;
+use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -69,7 +70,7 @@ class RegistrationController extends Controller
         ]);
 
         $today = Carbon::now()->toDateString();
-        $room = Room::findOrFail($validated['room_id']);
+        $room = Room::where('is_active', true)->findOrFail($validated['room_id']);
 
         if (! $this->isRoomAssignable($room, $today)) {
             return back()
@@ -85,7 +86,7 @@ class RegistrationController extends Controller
 
         $guestName = trim($validated['first_name'].' '.$validated['last_name']);
 
-        DB::transaction(function () use ($validated, $room, $guestName) {
+        DB::transaction(function () use ($validated, $room) {
             $guest = Guest::create([
                 'first_name' => $validated['first_name'],
                 'last_name' => $validated['last_name'],
@@ -133,11 +134,12 @@ class RegistrationController extends Controller
     }
 
     /**
-     * @return \Illuminate\Database\Eloquent\Collection<int, Room>
+     * @return Collection<int, Room>
      */
     private function assignableRooms(string $today)
     {
         return Room::query()
+            ->where('is_active', true)
             ->where('status', 'AVAILABLE')
             ->whereDoesntHave('bookings', function ($query) use ($today) {
                 $query->whereIn('status', ['RESERVED', 'CHECKED_IN'])
@@ -150,6 +152,10 @@ class RegistrationController extends Controller
 
     private function isRoomAssignable(Room $room, string $today): bool
     {
+        if (! $room->is_active) {
+            return false;
+        }
+
         if ($room->status !== 'AVAILABLE') {
             return false;
         }

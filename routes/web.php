@@ -3,6 +3,7 @@
 use App\Http\Controllers\Admin\DashboardController;
 use App\Http\Controllers\Admin\PermissionController;
 use App\Http\Controllers\Admin\RoleController;
+use App\Http\Controllers\Admin\RoomController;
 use App\Http\Controllers\Admin\UserController;
 use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\Frontdesk\BookingOperationController;
@@ -149,8 +150,17 @@ Route::middleware('auth')->group(function () {
         Route::patch('/permissions/{permission}', [PermissionController::class, 'update'])
             ->name('admin.permissions.update');
 
-        Route::view('/rooms', 'admin.rooms.index')
+        Route::get('/rooms', [RoomController::class, 'index'])
             ->name('admin.rooms');
+
+        Route::post('/rooms', [RoomController::class, 'store'])
+            ->name('admin.rooms.store');
+
+        Route::patch('/rooms/{room}/toggle', [RoomController::class, 'toggleStatus'])
+            ->name('admin.rooms.toggle');
+
+        Route::patch('/rooms/{room}', [RoomController::class, 'update'])
+            ->name('admin.rooms.update');
 
         Route::view('/chargecodes', 'admin.chargecodes.index')
             ->name('admin.chargecodes');

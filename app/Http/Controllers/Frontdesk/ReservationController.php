@@ -55,6 +55,7 @@ class ReservationController extends Controller
             ->pluck('room_type');
 
         $assignableRooms = Room::query()
+            ->where('is_active', true)
             ->where('status', 'AVAILABLE')
             ->orderBy('room_number')
             ->get(['room_id', 'room_number', 'room_type', 'base_rate']);
@@ -92,7 +93,7 @@ class ReservationController extends Controller
             'departure_time' => ['required', 'date_format:H:i'],
         ]);
 
-        $room = Room::findOrFail($validated['room_id']);
+        $room = Room::where('is_active', true)->findOrFail($validated['room_id']);
 
         if ($room->status !== 'AVAILABLE') {
             return back()

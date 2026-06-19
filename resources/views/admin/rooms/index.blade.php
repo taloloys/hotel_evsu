@@ -6,13 +6,53 @@
 
 @section('content')
 
-<!-- HEADER -->
-<div class="d-flex justify-content-between align-items-center mb-4">
+{{-- TOAST CONTAINER --}}
+<div class="toast-container position-fixed bottom-0 end-0 p-3" style="z-index: 1100;">
 
-    <div>
-        <h5 class="fw-bold mb-0">Hotel Rooms</h5>
-        <small class="text-muted">Monitor room status and manage availability</small>
-    </div>
+    @if(session('success'))
+        <div id="successToast" class="toast align-items-center text-white bg-success border-0 shadow" role="alert" aria-live="assertive" aria-atomic="true" data-bs-delay="4000">
+            <div class="d-flex">
+                <div class="toast-body">
+                    <i class="fa-solid fa-circle-check me-2"></i>{{ session('success') }}
+                </div>
+                <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
+            </div>
+        </div>
+    @endif
+
+    @if($errors->has('cannot_disable_occupied'))
+        <div id="errorToast" class="toast align-items-center text-white bg-danger border-0 shadow" role="alert" aria-live="assertive" aria-atomic="true" data-bs-delay="5000">
+            <div class="d-flex">
+                <div class="toast-body">
+                    <i class="fa-solid fa-triangle-exclamation me-2"></i>{{ $errors->first('cannot_disable_occupied') }}
+                </div>
+                <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
+            </div>
+        </div>
+    @endif
+
+    @if($errors->has('cannot_activate_status'))
+        <div id="errorToast" class="toast align-items-center text-white bg-danger border-0 shadow" role="alert" aria-live="assertive" aria-atomic="true" data-bs-delay="5000">
+            <div class="d-flex">
+                <div class="toast-body">
+                    <i class="fa-solid fa-triangle-exclamation me-2"></i>{{ $errors->first('cannot_activate_status') }}
+                </div>
+                <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
+            </div>
+        </div>
+    @endif
+
+    @if($errors->any() && !$errors->has('cannot_disable_occupied') && !$errors->has('cannot_activate_status'))
+        <div id="validationToast" class="toast align-items-center text-white bg-danger border-0 shadow" role="alert" aria-live="assertive" aria-atomic="true" data-bs-delay="6000">
+            <div class="d-flex">
+                <div class="toast-body">
+                    <i class="fa-solid fa-triangle-exclamation me-2"></i>
+                    <strong>Error:</strong> {{ $errors->first() }}
+                </div>
+                <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
+            </div>
+        </div>
+    @endif
 
 </div>
 
@@ -24,9 +64,11 @@
             <div class="card-body d-flex justify-content-between align-items-center">
                 <div>
                     <div class="text-muted small">Total Rooms</div>
-                    <h4 class="mb-0">120</h4>
+                    <h4 class="mb-0 fw-bold">{{ $totalCount }}</h4>
                 </div>
-                <i class="fa-solid fa-door-open fs-3 text-primary"></i>
+                <div class="bg-primary-subtle text-primary rounded-circle d-flex align-items-center justify-content-center" style="width: 48px; height: 48px;">
+                    <i class="fa-solid fa-door-open fs-4"></i>
+                </div>
             </div>
         </div>
     </div>
@@ -36,9 +78,11 @@
             <div class="card-body d-flex justify-content-between align-items-center">
                 <div>
                     <div class="text-muted small">Occupied</div>
-                    <h4 class="mb-0">85</h4>
+                    <h4 class="mb-0 fw-bold text-danger">{{ $occupiedCount }}</h4>
                 </div>
-                <i class="fa-solid fa-bed fs-3 text-danger"></i>
+                <div class="bg-danger-subtle text-danger rounded-circle d-flex align-items-center justify-content-center" style="width: 48px; height: 48px;">
+                    <i class="fa-solid fa-bed fs-4"></i>
+                </div>
             </div>
         </div>
     </div>
@@ -48,9 +92,11 @@
             <div class="card-body d-flex justify-content-between align-items-center">
                 <div>
                     <div class="text-muted small">Available</div>
-                    <h4 class="mb-0">30</h4>
+                    <h4 class="mb-0 fw-bold text-success">{{ $availableCount }}</h4>
                 </div>
-                <i class="fa-solid fa-door-open fs-3 text-success"></i>
+                <div class="bg-success-subtle text-success rounded-circle d-flex align-items-center justify-content-center" style="width: 48px; height: 48px;">
+                    <i class="fa-solid fa-door-open fs-4"></i>
+                </div>
             </div>
         </div>
     </div>
@@ -59,141 +105,237 @@
         <div class="card border-0 shadow-sm">
             <div class="card-body d-flex justify-content-between align-items-center">
                 <div>
-                    <div class="text-muted small">Maintenance</div>
-                    <h4 class="mb-0">5</h4>
+                    <div class="text-muted small">Maintenance / Inactive</div>
+                    <h4 class="mb-0 fw-bold text-warning">{{ $maintenanceCount }} <span class="text-muted fs-6">/ {{ $inactiveCount }}</span></h4>
                 </div>
-                <i class="fa-solid fa-screwdriver-wrench fs-3 text-warning"></i>
+                <div class="bg-warning-subtle text-warning rounded-circle d-flex align-items-center justify-content-center" style="width: 48px; height: 48px;">
+                    <i class="fa-solid fa-screwdriver-wrench fs-4"></i>
+                </div>
             </div>
         </div>
     </div>
 
 </div>
 
-<!-- ROOMS TABLE -->
+<!-- ROOMS TABLE CARD -->
 <div class="card border-0 shadow-sm">
 
-    <!-- TOP RIGHT BUTTON -->
-    <div class="card-header bg-white border-0 d-flex justify-content-end align-items-center py-3">
+    <!-- HEADER / ACTIONS -->
+    <div class="card-header bg-white border-0 d-flex justify-content-between align-items-center py-3">
+        <div>
+            <h5 class="fw-bold mb-0">Hotel Rooms</h5>
+            <small class="text-muted">Monitor room status, floor assignments, and rates</small>
+        </div>
 
-        <button class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#addRoomModal">
-            <i class="fa-solid fa-plus me-1"></i>
-            Add Room
-        </button>
+        <div class="d-flex gap-2 align-items-center">
+            <!-- SEARCH -->
+            <div style="width: 200px;">
+                <input type="text"
+                    id="roomSearchInput"
+                    class="form-control form-control-sm"
+                    placeholder="Search room number..."
+                    autocomplete="off">
+            </div>
 
+            <!-- FILTER ICON DROPDOWN -->
+            <div class="dropdown">
+                <button class="btn btn-outline-secondary btn-sm" data-bs-toggle="dropdown">
+                    <i class="fa-solid fa-filter"></i>
+                </button>
+
+                <div class="dropdown-menu dropdown-menu-end p-3" style="min-width: 260px;">
+
+                    <label class="form-label small mb-1">Room Type</label>
+                    <select id="filterTypeSelect" class="form-select form-select-sm mb-2">
+                        <option value="">All Types</option>
+                        @foreach($roomTypes as $type)
+                            <option value="{{ $type }}">{{ $type }}</option>
+                        @endforeach
+                    </select>
+
+                    <label class="form-label small mb-1">Status</label>
+                    <select id="filterStatusSelect" class="form-select form-select-sm mb-2">
+                        <option value="">All Statuses</option>
+                        <option value="AVAILABLE">Available</option>
+                        <option value="OCCUPIED">Occupied</option>
+                        <option value="RESERVED">Reserved</option>
+                        <option value="CLEANING">Cleaning</option>
+                        <option value="MAINTENANCE">Maintenance</option>
+                    </select>
+
+                    <label class="form-label small mb-1">Active/Disabled Status</label>
+                    <select id="filterActiveSelect" class="form-select form-select-sm mb-3">
+                        <option value="">All Statuses</option>
+                        <option value="active">Active</option>
+                        <option value="disabled">Disabled</option>
+                    </select>
+
+                    <div class="d-flex gap-2">
+                        <button id="filterApplyBtn" class="btn btn-primary btn-sm w-50">Apply</button>
+                        <button id="filterResetBtn" class="btn btn-light btn-sm w-50">Reset</button>
+                    </div>
+
+                </div>
+            </div>
+
+            <!-- ADD ROOM BUTTON -->
+            <button class="btn btn-primary btn-sm px-3" data-bs-toggle="modal" data-bs-target="#addRoomModal">
+                <i class="fa-solid fa-plus me-1"></i>
+                Add Room
+            </button>
+        </div>
     </div>
 
     <div class="card-body p-0">
 
         <div class="table-responsive">
 
-            <table class="table table-hover align-middle mb-0">
+            <table id="roomsTable" class="table table-hover align-middle mb-0">
 
                 <thead class="table-light">
                     <tr>
-                        <th>Room</th>
+                        <th class="ps-3">Room</th>
                         <th>Type</th>
                         <th>Floor</th>
                         <th>Status</th>
                         <th>Rate</th>
-                        <th class="text-center">Action</th>
+                        <th>System Status</th>
+                        <th class="text-center" style="width: 140px;">Action</th>
                     </tr>
                 </thead>
 
                 <tbody>
+                    @forelse($rooms as $room)
+                        @php
+                            $statusBadge = match($room->status) {
+                                'AVAILABLE' => 'bg-success',
+                                'OCCUPIED' => 'bg-danger',
+                                'RESERVED' => 'bg-primary',
+                                'CLEANING' => 'bg-info text-dark',
+                                'MAINTENANCE' => 'bg-warning text-dark',
+                                default => 'bg-secondary'
+                            };
 
-                    <!-- ROOM 1 -->
-                    <tr>
-                        <td>
-                            <div class="d-flex align-items-center">
-                                <div class="bg-light rounded-circle d-flex align-items-center justify-content-center me-3"
-                                     style="width:42px;height:42px;">
-                                    <i class="fa-solid fa-bed text-secondary"></i>
+                            $statusLabel = match($room->status) {
+                                'AVAILABLE' => 'Available',
+                                'OCCUPIED' => 'Occupied',
+                                'RESERVED' => 'Reserved',
+                                'CLEANING' => 'Cleaning',
+                                'MAINTENANCE' => 'Maintenance',
+                                default => $room->status
+                            };
+
+                            $isOccupiedOrReserved = in_array($room->status, ['OCCUPIED', 'RESERVED'], true);
+                        @endphp
+                        <tr 
+                            data-roomnumber="{{ strtolower($room->room_number) }}"
+                            data-type="{{ strtolower($room->room_type) }}"
+                            data-status="{{ $room->status }}"
+                            data-active="{{ $room->is_active ? 'active' : 'disabled' }}"
+                            @if(!$room->is_active) class="opacity-75 bg-light-subtle" @endif>
+                            <td class="ps-3">
+                                <div class="d-flex align-items-center">
+                                    <div class="bg-light rounded-circle d-flex align-items-center justify-content-center me-3"
+                                         style="width:42px;height:42px;">
+                                        <i class="fa-solid fa-bed text-secondary"></i>
+                                    </div>
+                                    <div>
+                                        <div class="fw-semibold">Room {{ $room->room_number }}</div>
+                                        <small class="text-muted">ID: R-{{ str_pad($room->room_id, 3, '0', STR_PAD_LEFT) }}</small>
+                                    </div>
                                 </div>
-                                <div>
-                                    <div class="fw-semibold">Room 101</div>
-                                    <small class="text-muted">Standard Room</small>
+                            </td>
+
+                            <td>{{ $room->room_type }}</td>
+                            <td>{{ $room->floor }}</td>
+
+                            <td><span class="badge {{ $statusBadge }}">{{ $statusLabel }}</span></td>
+
+                            <td>₱{{ number_format($room->base_rate, 2) }}</td>
+
+                            <td>
+                                @if($room->is_active)
+                                    <span class="badge bg-success"><i class="fa-solid fa-circle-check me-1"></i>Active</span>
+                                @else
+                                    <span class="badge bg-danger"><i class="fa-solid fa-circle-xmark me-1"></i>Disabled</span>
+                                @endif
+                            </td>
+
+                            <td class="text-center">
+                                <div class="d-flex justify-content-center gap-1">
+                                    {{-- VIEW DETAILS --}}
+                                    <button type="button" 
+                                            class="btn btn-outline-primary btn-sm px-2"
+                                            title="View details"
+                                            data-bs-toggle="modal"
+                                            data-bs-target="#viewRoomModal"
+                                            data-room-id="{{ $room->room_id }}"
+                                            data-room-number="{{ $room->room_number }}"
+                                            data-room-type="{{ $room->room_type }}"
+                                            data-floor="{{ $room->floor }}"
+                                            data-base-rate="{{ $room->base_rate }}"
+                                            data-status-label="{{ $statusLabel }}"
+                                            data-status-class="{{ $statusBadge }}"
+                                            data-active="{{ $room->is_active ? 'Active' : 'Disabled' }}"
+                                            data-active-class="{{ $room->is_active ? 'bg-success' : 'bg-danger' }}">
+                                        <i class="fa-solid fa-eye"></i>
+                                    </button>
+
+                                    {{-- EDIT ROOM --}}
+                                    <button type="button" 
+                                            class="btn btn-outline-warning btn-sm px-2"
+                                            title="Edit room"
+                                            data-bs-toggle="modal"
+                                            data-bs-target="#editRoomModal"
+                                            data-room-id="{{ $room->room_id }}"
+                                            data-room-number="{{ $room->room_number }}"
+                                            data-room-type="{{ $room->room_type }}"
+                                            data-base-rate="{{ $room->base_rate }}"
+                                            data-status="{{ $room->status }}"
+                                            data-update-url="{{ route('admin.rooms.update', $room) }}">
+                                        <i class="fa-solid fa-pen"></i>
+                                    </button>
+
+                                    {{-- TOGGLE STATUS --}}
+                                    @if($isOccupiedOrReserved && $room->is_active)
+                                        <button class="btn btn-outline-secondary btn-sm px-2"
+                                                title="Cannot disable an occupied or reserved room"
+                                                data-bs-toggle="tooltip"
+                                                disabled>
+                                            <i class="fa-solid fa-ban"></i>
+                                        </button>
+                                    @else
+                                        <form action="{{ route('admin.rooms.toggle', $room) }}" method="POST" class="d-inline m-0">
+                                            @csrf
+                                            @method('PATCH')
+                                            @if($room->is_active)
+                                                <button type="submit" class="btn btn-outline-danger btn-sm px-2" title="Disable room">
+                                                    <i class="fa-solid fa-ban"></i>
+                                                </button>
+                                            @else
+                                                <button type="submit" class="btn btn-outline-success btn-sm px-2" title="Enable room">
+                                                    <i class="fa-solid fa-check"></i>
+                                                </button>
+                                            @endif
+                                        </form>
+                                    @endif
                                 </div>
-                            </div>
-                        </td>
+                            </td>
+                        </tr>
+                    @empty
+                        <tr id="noResultsRow">
+                            <td colspan="7" class="text-center py-4 text-muted">
+                                No rooms found in the system.
+                            </td>
+                        </tr>
+                    @endforelse
 
-                        <td>Single</td>
-                        <td>1st Floor</td>
-
-                        <td><span class="badge bg-success">Available</span></td>
-
-                        <td>₱2,500</td>
-
-                        <td class="text-center">
-                            <div class="btn-group btn-group-sm">
-                                <button class="btn btn-outline-primary"><i class="fa-solid fa-eye"></i></button>
-                                <button class="btn btn-outline-warning"><i class="fa-solid fa-pen"></i></button>
-                                <button class="btn btn-outline-danger"><i class="fa-solid fa-ban"></i></button>
-                            </div>
+                    {{-- Shown by JS when filters hide all visible rows --}}
+                    <tr id="noFilterResultsRow" style="display:none;">
+                        <td colspan="7" class="text-center py-4 text-muted">
+                            <i class="fa-solid fa-magnifying-glass me-2"></i>No rooms match your search or filter.
                         </td>
                     </tr>
-
-                    <!-- ROOM 2 -->
-                    <tr>
-                        <td>
-                            <div class="d-flex align-items-center">
-                                <div class="bg-light rounded-circle d-flex align-items-center justify-content-center me-3"
-                                     style="width:42px;height:42px;">
-                                    <i class="fa-solid fa-bed text-secondary"></i>
-                                </div>
-                                <div>
-                                    <div class="fw-semibold">Room 205</div>
-                                    <small class="text-muted">Deluxe Room</small>
-                                </div>
-                            </div>
-                        </td>
-
-                        <td>Double</td>
-                        <td>2nd Floor</td>
-
-                        <td><span class="badge bg-danger">Occupied</span></td>
-
-                        <td>₱3,800</td>
-
-                        <td class="text-center">
-                            <div class="btn-group btn-group-sm">
-                                <button class="btn btn-outline-primary"><i class="fa-solid fa-eye"></i></button>
-                                <button class="btn btn-outline-warning"><i class="fa-solid fa-pen"></i></button>
-                                <button class="btn btn-outline-danger"><i class="fa-solid fa-ban"></i></button>
-                            </div>
-                        </td>
-                    </tr>
-
-                    <!-- ROOM 3 -->
-                    <tr>
-                        <td>
-                            <div class="d-flex align-items-center">
-                                <div class="bg-light rounded-circle d-flex align-items-center justify-content-center me-3"
-                                     style="width:42px;height:42px;">
-                                    <i class="fa-solid fa-bed text-secondary"></i>
-                                </div>
-                                <div>
-                                    <div class="fw-semibold">Room 310</div>
-                                    <small class="text-muted">Suite</small>
-                                </div>
-                            </div>
-                        </td>
-
-                        <td>Suite</td>
-                        <td>3rd Floor</td>
-
-                        <td><span class="badge bg-warning text-dark">Maintenance</span></td>
-
-                        <td>₱6,500</td>
-
-                        <td class="text-center">
-                            <div class="btn-group btn-group-sm">
-                                <button class="btn btn-outline-primary"><i class="fa-solid fa-eye"></i></button>
-                                <button class="btn btn-outline-warning"><i class="fa-solid fa-pen"></i></button>
-                                <button class="btn btn-outline-danger"><i class="fa-solid fa-ban"></i></button>
-                            </div>
-                        </td>
-                    </tr>
-
                 </tbody>
 
             </table>
@@ -204,67 +346,290 @@
 
 </div>
 
-<!-- ADD ROOM MODAL -->
-<div class="modal fade" id="addRoomModal" tabindex="-1">
-
+<!-- =========================================================
+     ADD ROOM MODAL
+     ========================================================= -->
+<div class="modal fade" id="addRoomModal" tabindex="-1" aria-labelledby="addRoomModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered">
-
         <div class="modal-content">
 
             <div class="modal-header">
-                <h5 class="modal-title fw-bold">Add New Room</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                <h5 class="modal-title fw-bold" id="addRoomModalLabel">
+                    <i class="fa-solid fa-plus me-2 text-primary"></i>Add New Room
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
 
-            <div class="modal-body">
+            <form method="POST" action="{{ route('admin.rooms.store') }}">
+                @csrf
+                <div class="modal-body">
 
-                <div class="mb-3">
-                    <label class="form-label">Room Number</label>
-                    <input type="text" class="form-control" placeholder="e.g. 101">
+                    <div class="mb-3">
+                        <label for="add_room_number" class="form-label">Room Number</label>
+                        <input type="text" id="add_room_number" name="room_number" class="form-control" placeholder="e.g. 101" required>
+                        <small class="text-muted">The floor is parsed dynamically from the room number prefix.</small>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="add_room_type" class="form-label">Room Type</label>
+                        <input type="text" id="add_room_type" name="room_type" class="form-control" list="roomTypesList" placeholder="e.g. Single Room" required>
+                        <datalist id="roomTypesList">
+                            @foreach($roomTypes as $type)
+                                <option value="{{ $type }}">
+                            @endforeach
+                        </datalist>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="add_base_rate" class="form-label">Base Rate (PHP)</label>
+                        <input type="number" id="add_base_rate" name="base_rate" class="form-control" placeholder="2500" step="0.01" min="0" required>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="add_status" class="form-label">Initial Status</label>
+                        <select id="add_status" name="status" class="form-select" required>
+                            <option value="AVAILABLE" selected>Available</option>
+                            <option value="CLEANING">Cleaning</option>
+                            <option value="MAINTENANCE">Maintenance</option>
+                        </select>
+                    </div>
+
                 </div>
 
-                <div class="mb-3">
-                    <label class="form-label">Room Type</label>
-                    <select class="form-select">
-                        <option>Standard</option>
-                        <option>Deluxe</option>
-                        <option>Suite</option>
-                    </select>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-light" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fa-solid fa-save me-1"></i>Save Room
+                    </button>
+                </div>
+            </form>
+
+        </div>
+    </div>
+</div>
+
+<!-- =========================================================
+     VIEW DETAILS MODAL
+     ========================================================= -->
+<div class="modal fade" id="viewRoomModal" tabindex="-1" aria-labelledby="viewRoomModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+
+            <div class="modal-header border-0 pb-0">
+                <h5 class="modal-title fw-bold" id="viewRoomModalLabel">
+                    <i class="fa-solid fa-bed me-2 text-primary"></i>Room Details
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+
+            <div class="modal-body pt-3">
+
+                <div class="text-center mb-4">
+                    <div class="bg-light rounded-circle d-flex align-items-center justify-content-center mx-auto mb-3"
+                         style="width:72px;height:72px;">
+                        <i class="fa-solid fa-door-open fa-2x text-secondary"></i>
+                    </div>
+                    <h5 class="fw-bold mb-1" id="view-room-number">—</h5>
+                    <span class="badge" id="view-status-badge">—</span>
                 </div>
 
-                <div class="mb-3">
-                    <label class="form-label">Floor</label>
-                    <input type="text" class="form-control" placeholder="e.g. 1st Floor">
-                </div>
-
-                <div class="mb-3">
-                    <label class="form-label">Rate (PHP)</label>
-                    <input type="number" class="form-control" placeholder="2500">
-                </div>
-
-                <div class="mb-3">
-                    <label class="form-label">Status</label>
-                    <select class="form-select">
-                        <option>Available</option>
-                        <option>Occupied</option>
-                        <option>Maintenance</option>
-                    </select>
+                <div class="list-group list-group-flush rounded">
+                    <div class="list-group-item d-flex justify-content-between px-0">
+                        <span class="text-muted small">Room Type</span>
+                        <span class="fw-semibold small" id="view-room-type">—</span>
+                    </div>
+                    <div class="list-group-item d-flex justify-content-between px-0">
+                        <span class="text-muted small">Floor Assignment</span>
+                        <span class="fw-semibold small" id="view-floor">—</span>
+                    </div>
+                    <div class="list-group-item d-flex justify-content-between px-0">
+                        <span class="text-muted small">Base Rate (Nightly)</span>
+                        <span class="fw-semibold small text-primary" id="view-base-rate">—</span>
+                    </div>
+                    <div class="list-group-item d-flex justify-content-between px-0 border-0">
+                        <span class="text-muted small">System Status</span>
+                        <span id="view-active-badge" class="badge">—</span>
+                    </div>
                 </div>
 
             </div>
 
-            <div class="modal-footer">
-                <button class="btn btn-light" data-bs-dismiss="modal">Cancel</button>
-                <button class="btn btn-primary">
-                    <i class="fa-solid fa-save me-1"></i>
-                    Save Room
-                </button>
+            <div class="modal-footer border-0 pt-0">
+                <button type="button" class="btn btn-light" data-bs-dismiss="modal">Close</button>
             </div>
 
         </div>
-
     </div>
+</div>
 
+<!-- =========================================================
+     EDIT ROOM MODAL
+     ========================================================= -->
+<div class="modal fade" id="editRoomModal" tabindex="-1" aria-labelledby="editRoomModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+
+            <div class="modal-header">
+                <h5 class="modal-title fw-bold" id="editRoomModalLabel">
+                    <i class="fa-solid fa-pen me-2 text-warning"></i>Edit Room
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+
+            <form method="POST" id="editRoomForm" action="">
+                @csrf
+                @method('PATCH')
+                <div class="modal-body">
+
+                    <div class="mb-3">
+                        <label for="edit_room_number" class="form-label">Room Number</label>
+                        <input type="text" id="edit_room_number" name="room_number" class="form-control" required>
+                        <small class="text-muted">The floor is parsed dynamically from the room number prefix.</small>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="edit_room_type" class="form-label">Room Type</label>
+                        <input type="text" id="edit_room_type" name="room_type" class="form-control" list="roomTypesList" required>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="edit_base_rate" class="form-label">Base Rate (PHP)</label>
+                        <input type="number" id="edit_base_rate" name="base_rate" class="form-control" step="0.01" min="0" required>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="edit_status" class="form-label">Status</label>
+                        <select id="edit_status" name="status" class="form-select" required>
+                            <option value="AVAILABLE">Available</option>
+                            <option value="OCCUPIED">Occupied</option>
+                            <option value="RESERVED">Reserved</option>
+                            <option value="CLEANING">Cleaning</option>
+                            <option value="MAINTENANCE">Maintenance</option>
+                        </select>
+                    </div>
+
+                </div>
+
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-light" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-warning text-white">
+                        <i class="fa-solid fa-save me-1"></i>Save Changes
+                    </button>
+                </div>
+            </form>
+
+        </div>
+    </div>
 </div>
 
 @endsection
+
+@push('scripts')
+<script>
+    // ── Auto-show any pending toasts & initialize tooltips ────────────────
+    document.addEventListener('DOMContentLoaded', function () {
+        document.querySelectorAll('.toast').forEach(function (el) {
+            new bootstrap.Toast(el).show();
+        });
+
+        // Initialize tooltips
+        const tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+        tooltipTriggerList.map(function (tooltipTriggerEl) {
+            return new bootstrap.Tooltip(tooltipTriggerEl);
+        });
+    });
+
+    // ── View Details modal population ─────────────────────────────────────
+    document.getElementById('viewRoomModal').addEventListener('show.bs.modal', function (event) {
+        const btn = event.relatedTarget;
+        document.getElementById('view-room-number').textContent = 'Room ' + btn.dataset.roomNumber;
+        document.getElementById('view-room-type').textContent   = btn.dataset.roomType;
+        document.getElementById('view-floor').textContent       = btn.dataset.floor;
+        document.getElementById('view-base-rate').textContent   = '₱' + Number(btn.dataset.baseRate).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+
+        const statusBadge = document.getElementById('view-status-badge');
+        statusBadge.textContent = btn.dataset.statusLabel;
+        statusBadge.className   = 'badge ' + btn.dataset.statusClass;
+
+        const activeBadge = document.getElementById('view-active-badge');
+        activeBadge.textContent = btn.dataset.active;
+        activeBadge.className   = 'badge ' + btn.dataset.activeClass;
+    });
+
+    // ── Edit Room modal population ────────────────────────────────────────
+    document.getElementById('editRoomModal').addEventListener('show.bs.modal', function (event) {
+        const btn = event.relatedTarget;
+        document.getElementById('edit_room_number').value = btn.dataset.roomNumber;
+        document.getElementById('edit_room_type').value   = btn.dataset.roomType;
+        document.getElementById('edit_base_rate').value   = btn.dataset.baseRate;
+        document.getElementById('edit_status').value      = btn.dataset.status;
+        document.getElementById('editRoomForm').action    = btn.dataset.updateUrl;
+    });
+
+    // ── Search & Filter logic ─────────────────────────────────────────────
+    (function () {
+        const searchInput      = document.getElementById('roomSearchInput');
+        const typeSelect       = document.getElementById('filterTypeSelect');
+        const statusSelect     = document.getElementById('filterStatusSelect');
+        const activeSelect     = document.getElementById('filterActiveSelect');
+        const applyBtn         = document.getElementById('filterApplyBtn');
+        const resetBtn         = document.getElementById('filterResetBtn');
+        const tbody            = document.querySelector('#roomsTable tbody');
+        const noFilterRow      = document.getElementById('noFilterResultsRow');
+        const dropdownToggleEl = document.querySelector('.dropdown [data-bs-toggle="dropdown"]');
+
+        let activeType = '';
+        let activeStatus = '';
+        let activeActive = '';
+
+        function applyFilters() {
+            const query = searchInput.value.trim().toLowerCase();
+            const rows  = tbody.querySelectorAll('tr[data-roomnumber]');
+            let visible = 0;
+
+            rows.forEach(function (row) {
+                const matchSearch = !query || row.dataset.roomnumber.includes(query);
+                const matchType   = !activeType || row.dataset.type === activeType.toLowerCase();
+                const matchStatus = !activeStatus || row.dataset.status === activeStatus;
+                const matchActive = !activeActive || row.dataset.active === activeActive;
+
+                const show = matchSearch && matchType && matchStatus && matchActive;
+                row.style.display = show ? '' : 'none';
+                if (show) visible++;
+            });
+
+            // Show "no match" row only when rooms exist but all are filtered out
+            if (noFilterRow) {
+                noFilterRow.style.display = (rows.length > 0 && visible === 0) ? '' : 'none';
+            }
+        }
+
+        // Real-time search as user types
+        searchInput.addEventListener('input', applyFilters);
+
+        // Apply filters and close the dropdown
+        applyBtn.addEventListener('click', function () {
+            activeType   = typeSelect.value;
+            activeStatus = statusSelect.value;
+            activeActive = activeSelect.value;
+            applyFilters();
+            if (dropdownToggleEl) {
+                const dropdown = bootstrap.Dropdown.getInstance(dropdownToggleEl);
+                if (dropdown) { dropdown.hide(); }
+            }
+        });
+
+        // Reset everything
+        resetBtn.addEventListener('click', function () {
+            searchInput.value  = '';
+            typeSelect.value   = '';
+            statusSelect.value = '';
+            activeSelect.value = '';
+            activeType         = '';
+            activeStatus       = '';
+            activeActive       = '';
+            applyFilters();
+        });
+    })();
+</script>
+@endpush

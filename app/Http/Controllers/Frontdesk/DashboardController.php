@@ -25,13 +25,13 @@ class DashboardController extends Controller
             ->count();
 
         // Get room status counts
-        $occupiedRooms = Room::where('status', 'OCCUPIED')->count();
-        $availableRooms = Room::where('status', 'AVAILABLE')->count();
-        $needsCleaningRooms = Room::where('status', 'CLEANING')->count();
-        $maintenanceRooms = Room::where('status', 'MAINTENANCE')->count();
+        $occupiedRooms = Room::where('is_active', true)->where('status', 'OCCUPIED')->count();
+        $availableRooms = Room::where('is_active', true)->where('status', 'AVAILABLE')->count();
+        $needsCleaningRooms = Room::where('is_active', true)->where('status', 'CLEANING')->count();
+        $maintenanceRooms = Room::where('is_active', true)->where('status', 'MAINTENANCE')->count();
 
         // Get all rooms grouped by room type with active booking info
-        $roomsByType = Room::with(['bookings' => function ($query) {
+        $roomsByType = Room::where('is_active', true)->with(['bookings' => function ($query) {
             $query->where('status', 'CHECKED_IN')
                 ->with(['folio.guest']);
         }])
@@ -78,6 +78,7 @@ class DashboardController extends Controller
 
         // Rooms ready for guests: available status with no active reservation or occupancy
         $vacantRooms = Room::query()
+            ->where('is_active', true)
             ->where('status', 'AVAILABLE')
             ->whereDoesntHave('bookings', function ($query) use ($today) {
                 $query->whereIn('status', ['RESERVED', 'CHECKED_IN'])
@@ -88,6 +89,7 @@ class DashboardController extends Controller
             ->get();
 
         $occupiedRoomList = Room::query()
+            ->where('is_active', true)
             ->where('status', 'OCCUPIED')
             ->with(['bookings' => function ($query) {
                 $query->where('status', 'CHECKED_IN')
@@ -126,7 +128,7 @@ class DashboardController extends Controller
             'todayCheckOuts' => $todayCheckOuts,
             'vacantRooms' => $vacantRooms,
             'occupiedRoomList' => $occupiedRoomList,
-            'totalRooms' => Room::count(),
+            'totalRooms' => Room::where('is_active', true)->count(),
         ]);
     }
 }
