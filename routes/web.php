@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\Admin\ChargeCodeController;
 use App\Http\Controllers\Admin\DashboardController;
 use App\Http\Controllers\Admin\PermissionController;
 use App\Http\Controllers\Admin\RoleController;
@@ -162,8 +163,17 @@ Route::middleware('auth')->group(function () {
         Route::patch('/rooms/{room}', [RoomController::class, 'update'])
             ->name('admin.rooms.update');
 
-        Route::view('/chargecodes', 'admin.chargecodes.index')
+        Route::get('/chargecodes', [ChargeCodeController::class, 'index'])
             ->name('admin.chargecodes');
+
+        Route::post('/chargecodes', [ChargeCodeController::class, 'store'])
+            ->name('admin.chargecodes.store');
+
+        Route::patch('/chargecodes/{chargeCode}/toggle', [ChargeCodeController::class, 'toggleStatus'])
+            ->name('admin.chargecodes.toggle');
+
+        Route::patch('/chargecodes/{chargeCode}', [ChargeCodeController::class, 'update'])
+            ->name('admin.chargecodes.update');
 
         Route::view('/activitylogs', 'admin.activitylogs.index')
             ->name('admin.activitylogs');
