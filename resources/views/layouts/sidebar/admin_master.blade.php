@@ -16,11 +16,13 @@
     </div>
 
     <!-- ADMIN PANEL -->
+    @canany(['manage-users', 'manage-shifts'])
     <div class="text-uppercase text-secondary small fw-bold mb-2">
         Admin Control
     </div>
 
     <nav class="nav flex-column mb-3">
+        @can('manage-users')
         <a href="{{ route('admin.dashboard') }}"
            class="nav-link {{ request()->routeIs('admin.dashboard') ? 'active' : '' }}">
             <i class="fa-solid fa-chart-line me-2"></i>
@@ -56,7 +58,9 @@
             <i class="fa-solid fa-receipt me-2"></i>
             Charge Codes
         </a>
+        @endcan
 
+        @can('manage-shifts')
         <a href="{{ route('admin.shift-schedules') }}"
            class="nav-link {{ (request()->routeIs('admin.shift-schedules*') && !request()->routeIs('admin.shift-sales*')) ? 'active' : '' }}">
             <i class="fa-solid fa-calendar-check me-2"></i>
@@ -68,22 +72,28 @@
             <i class="fa-solid fa-cash-register me-2"></i>
             Shift Sales
         </a>
+        @endcan
 
+        @can('manage-users')
         <a href="{{ route('admin.activitylogs') }}"
            class="nav-link {{ request()->routeIs('admin.activitylogs') ? 'active' : '' }}">
             <i class="fa-solid fa-clock-rotate-left me-2"></i>
             Activity Logs
         </a>
+        @endcan
     </nav>
-
-    <hr class="border-secondary opacity-25 my-3">
+    @endcanany
 
     <!-- FRONT DESK -->
+    @canany(['manage-reservations', 'view-folio'])
+    <hr class="border-secondary opacity-25 my-3">
+
     <div class="text-uppercase text-secondary small fw-bold mb-2">
         Front Desk
     </div>
 
     <nav class="nav flex-column mb-3">
+        @can('manage-reservations')
         <a href="{{ route('frontdesk.dashboard') }}"
            class="nav-link {{ request()->routeIs('frontdesk.dashboard') ? 'active' : '' }}">
             <i class="fa-solid fa-hotel me-2"></i>
@@ -101,7 +111,9 @@
             <i class="fa-solid fa-user-plus me-2"></i>
             Registration
         </a>
+        @endcan
 
+        @can('view-folio')
         <a href="{{ route('frontdesk.guest-list') }}"
            class="nav-link {{ request()->routeIs('frontdesk.guest-list') ? 'active' : '' }}">
             <i class="fa-solid fa-users me-2"></i>
@@ -119,11 +131,14 @@
             <i class="fa-solid fa-cash-register me-2"></i>
             Shift Sales
         </a>
+        @endcan
     </nav>
-
-    <hr class="border-secondary opacity-25 my-3">
+    @endcanany
 
     <!-- COFFEE SHOP -->
+    @can('manage-inventory')
+    <hr class="border-secondary opacity-25 my-3">
+
     <div class="text-uppercase text-secondary small fw-bold mb-2">
         Coffee Shop
     </div>
@@ -159,10 +174,12 @@
             Inventory
         </a>
     </nav>
-
-    <hr class="border-secondary opacity-25 my-3">
+    @endcan
 
     <!-- ACCOUNTING -->
+    @can('view-folio')
+    <hr class="border-secondary opacity-25 my-3">
+
     <div class="text-uppercase text-secondary small fw-bold mb-2">
         Accounting
     </div>
@@ -210,5 +227,6 @@
             Audit Logs
         </a>
     </nav>
+    @endcan
 
 </div>

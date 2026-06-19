@@ -102,3 +102,64 @@ test('authenticated admin can view the admin dashboard page with dynamic data', 
     $response->assertSee('Admin User');
     $response->assertSee('Front Desk Person');
 });
+
+test('sidebar renders dynamic links based on user permissions for staff user', function (): void {
+    // staffUser has only 'manage-reservations' permission
+    $response = $this->actingAs($this->staffUser)
+        ->get(route('frontdesk.dashboard'));
+
+    $response->assertOk();
+
+    // Should see reservation links
+    $response->assertSee(route('frontdesk.dashboard'));
+    $response->assertSee(route('frontdesk.reservation'));
+    $response->assertSee(route('frontdesk.registration'));
+
+    // Should NOT see view-folio links (guest list, guest folio, shift sales)
+    $response->assertDontSee(route('frontdesk.guest-list'));
+    $response->assertDontSee(route('frontdesk.guest-folio'));
+    $response->assertDontSee(route('frontdesk.shift-sales'));
+});
+
+test('sidebar renders dynamic links for user with custom multiple permissions', function (): void {
+    // Create custom role and assign multiple permissions
+    $customRole = Role::create([
+        'role_name' => 'CUSTOM_STAFF',
+        'description' => 'Custom Staff Role',
+        'is_active' => true,
+    ]);
+
+    $viewFolio = Permission::create([
+        'permission_key' => 'view-folio',
+        'description' => 'View guest folio',
+        'module' => 'Accounting',
+        'is_active' => true,
+    ]);
+
+    $customRole->permissions()->sync([
+        $this->reservationsPermission->permission_id,
+        $viewFolio->permission_id,
+    ]);
+
+    $customUser = User::factory()->create([
+        'username' => 'custom_staff',
+        'full_name' => 'Custom Staff Person',
+        'role_id' => $customRole->role_id,
+        'is_active' => true,
+    ]);
+
+    $response = $this->actingAs($customUser)
+        ->get(route('frontdesk.dashboard'));
+
+    $response->assertOk();
+
+    // Should see reservations links
+    $response->assertSee(route('frontdesk.dashboard'));
+    $response->assertSee(route('frontdesk.reservation'));
+    $response->assertSee(route('frontdesk.registration'));
+
+    // Should also see view-folio links now
+    $response->assertSee(route('frontdesk.guest-list'));
+    $response->assertSee(route('frontdesk.guest-folio'));
+    $response->assertSee(route('frontdesk.shift-sales'));
+});

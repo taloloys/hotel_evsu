@@ -16,6 +16,7 @@
     </div>
 
     <!-- MENU TITLE -->
+    @canany(['manage-users', 'manage-shifts'])
     <div class="text-uppercase text-secondary small fw-bold mb-2">
         Main Menu
     </div>
@@ -23,6 +24,7 @@
     <nav class="nav flex-column">
 
         <!-- DASHBOARD -->
+        @can('manage-users')
         <a href="{{ route('admin.dashboard') }}"
            class="nav-link {{ request()->routeIs('admin.dashboard') ? 'active' : '' }}">
             <i class="fa-solid fa-chart-line me-2"></i>
@@ -56,42 +58,54 @@
             <i class="fa-solid fa-bed me-2"></i>
             Rooms
         </a>
+        @endcan
 
+        @canany(['manage-users', 'manage-shifts'])
         <hr class="border-secondary opacity-25 my-3">
 
         <!-- SYSTEM SECTION -->
         <div class="text-uppercase text-secondary small fw-bold mb-2">
             System
         </div>
+        @endcanany
 
         <!-- CHARGE CODES -->
+        @can('manage-users')
         <a href="{{ route('admin.chargecodes') }}"
         class="nav-link {{ request()->routeIs('admin.chargecodes') ? 'active' : '' }}">
             <i class="fa-solid fa-receipt me-2"></i>
             Charge Codes
         </a>
+        @endcan
 
         <!-- SHIFT SCHEDULES -->
+        @can('manage-shifts')
         <a href="{{ route('admin.shift-schedules') }}"
         class="nav-link {{ (request()->routeIs('admin.shift-schedules*') && !request()->routeIs('admin.shift-sales*')) ? 'active' : '' }}">
             <i class="fa-solid fa-calendar-check me-2"></i>
             Shift Schedules
         </a>
+        @endcan
 
         <!-- SHIFT SALES -->
+        @can('manage-shifts')
         <a href="{{ route('admin.shift-sales') }}"
         class="nav-link {{ request()->routeIs('admin.shift-sales*') ? 'active' : '' }}">
             <i class="fa-solid fa-cash-register me-2"></i>
             Shift Sales
         </a>
+        @endcan
 
         <!-- ACTIVITY LOGS -->
+        @can('manage-users')
         <a href="{{ route('admin.activitylogs') }}"
         class="nav-link {{ request()->routeIs('admin.activitylogs') ? 'active' : '' }}">
             <i class="fa-solid fa-clock-rotate-left me-2"></i>
             Activity Logs
         </a>
+        @endcan
 
     </nav>
+    @endcanany
 
 </div>

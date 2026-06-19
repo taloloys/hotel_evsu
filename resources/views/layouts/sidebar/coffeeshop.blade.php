@@ -21,6 +21,7 @@
     </div>
 
     <!-- MENU TITLE -->
+    @can('manage-inventory')
     <div class="text-uppercase text-secondary small fw-bold mb-2">
         Main Menu
     </div>
@@ -55,5 +56,6 @@
             Sales
         </a>
     </nav>
+    @endcan
 
 </div>

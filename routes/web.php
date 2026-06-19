@@ -133,95 +133,97 @@ Route::middleware('auth')->group(function () {
             ->name('coffeeshop.inventory');
     });
 
-    Route::prefix('admin')->middleware('can:manage-users')->group(function () {
+    Route::prefix('admin')->group(function () {
+        Route::middleware('can:manage-users')->group(function () {
+            Route::get('/dashboard', [DashboardController::class, 'index'])
+                ->name('admin.dashboard');
 
-        Route::get('/dashboard', [DashboardController::class, 'index'])
-            ->name('admin.dashboard');
+            Route::get('/users', [UserController::class, 'index'])
+                ->name('admin.users');
 
-        Route::get('/users', [UserController::class, 'index'])
-            ->name('admin.users');
+            Route::post('/users', [UserController::class, 'store'])
+                ->name('admin.users.store');
 
-        Route::post('/users', [UserController::class, 'store'])
-            ->name('admin.users.store');
+            Route::patch('/users/{user}/toggle', [UserController::class, 'toggleStatus'])
+                ->name('admin.users.toggle');
 
-        Route::patch('/users/{user}/toggle', [UserController::class, 'toggleStatus'])
-            ->name('admin.users.toggle');
+            Route::patch('/users/{user}', [UserController::class, 'update'])
+                ->name('admin.users.update');
 
-        Route::patch('/users/{user}', [UserController::class, 'update'])
-            ->name('admin.users.update');
+            Route::get('/roles', [RoleController::class, 'index'])
+                ->name('admin.roles');
 
-        Route::get('/roles', [RoleController::class, 'index'])
-            ->name('admin.roles');
+            Route::post('/roles', [RoleController::class, 'store'])
+                ->name('admin.roles.store');
 
-        Route::post('/roles', [RoleController::class, 'store'])
-            ->name('admin.roles.store');
+            Route::patch('/roles/{role}/toggle', [RoleController::class, 'toggleStatus'])
+                ->name('admin.roles.toggle');
 
-        Route::patch('/roles/{role}/toggle', [RoleController::class, 'toggleStatus'])
-            ->name('admin.roles.toggle');
+            Route::patch('/roles/{role}', [RoleController::class, 'update'])
+                ->name('admin.roles.update');
 
-        Route::patch('/roles/{role}', [RoleController::class, 'update'])
-            ->name('admin.roles.update');
+            Route::get('/permissions', [PermissionController::class, 'index'])
+                ->name('admin.permissions');
 
-        Route::get('/permissions', [PermissionController::class, 'index'])
-            ->name('admin.permissions');
+            Route::post('/permissions', [PermissionController::class, 'store'])
+                ->name('admin.permissions.store');
 
-        Route::post('/permissions', [PermissionController::class, 'store'])
-            ->name('admin.permissions.store');
+            Route::patch('/permissions/{permission}/toggle', [PermissionController::class, 'toggleStatus'])
+                ->name('admin.permissions.toggle');
 
-        Route::patch('/permissions/{permission}/toggle', [PermissionController::class, 'toggleStatus'])
-            ->name('admin.permissions.toggle');
+            Route::patch('/permissions/{permission}', [PermissionController::class, 'update'])
+                ->name('admin.permissions.update');
 
-        Route::patch('/permissions/{permission}', [PermissionController::class, 'update'])
-            ->name('admin.permissions.update');
+            Route::get('/rooms', [RoomController::class, 'index'])
+                ->name('admin.rooms');
 
-        Route::get('/rooms', [RoomController::class, 'index'])
-            ->name('admin.rooms');
+            Route::post('/rooms', [RoomController::class, 'store'])
+                ->name('admin.rooms.store');
 
-        Route::post('/rooms', [RoomController::class, 'store'])
-            ->name('admin.rooms.store');
+            Route::patch('/rooms/{room}/toggle', [RoomController::class, 'toggleStatus'])
+                ->name('admin.rooms.toggle');
 
-        Route::patch('/rooms/{room}/toggle', [RoomController::class, 'toggleStatus'])
-            ->name('admin.rooms.toggle');
+            Route::patch('/rooms/{room}', [RoomController::class, 'update'])
+                ->name('admin.rooms.update');
 
-        Route::patch('/rooms/{room}', [RoomController::class, 'update'])
-            ->name('admin.rooms.update');
+            Route::get('/chargecodes', [ChargeCodeController::class, 'index'])
+                ->name('admin.chargecodes');
 
-        Route::get('/chargecodes', [ChargeCodeController::class, 'index'])
-            ->name('admin.chargecodes');
+            Route::post('/chargecodes', [ChargeCodeController::class, 'store'])
+                ->name('admin.chargecodes.store');
 
-        Route::post('/chargecodes', [ChargeCodeController::class, 'store'])
-            ->name('admin.chargecodes.store');
+            Route::patch('/chargecodes/{chargeCode}/toggle', [ChargeCodeController::class, 'toggleStatus'])
+                ->name('admin.chargecodes.toggle');
 
-        Route::patch('/chargecodes/{chargeCode}/toggle', [ChargeCodeController::class, 'toggleStatus'])
-            ->name('admin.chargecodes.toggle');
+            Route::patch('/chargecodes/{chargeCode}', [ChargeCodeController::class, 'update'])
+                ->name('admin.chargecodes.update');
 
-        Route::patch('/chargecodes/{chargeCode}', [ChargeCodeController::class, 'update'])
-            ->name('admin.chargecodes.update');
+            Route::get('/activitylogs', [ActivityLogController::class, 'index'])
+                ->name('admin.activitylogs');
 
-        Route::get('/activitylogs', [ActivityLogController::class, 'index'])
-            ->name('admin.activitylogs');
+            Route::get('/activitylogs/export', [ActivityLogController::class, 'export'])
+                ->name('admin.activitylogs.export');
+        });
 
-        Route::get('/activitylogs/export', [ActivityLogController::class, 'export'])
-            ->name('admin.activitylogs.export');
+        Route::middleware('can:manage-shifts')->group(function () {
+            // SHIFT SCHEDULES
+            Route::get('/shift-schedules', [ShiftScheduleController::class, 'index'])
+                ->name('admin.shift-schedules');
 
-        // SHIFT SCHEDULES
-        Route::get('/shift-schedules', [ShiftScheduleController::class, 'index'])
-            ->name('admin.shift-schedules');
+            Route::post('/shift-schedules', [ShiftScheduleController::class, 'store'])
+                ->name('admin.shift-schedules.store');
 
-        Route::post('/shift-schedules', [ShiftScheduleController::class, 'store'])
-            ->name('admin.shift-schedules.store');
+            Route::patch('/shift-schedules/{schedule}', [ShiftScheduleController::class, 'update'])
+                ->name('admin.shift-schedules.update');
 
-        Route::patch('/shift-schedules/{schedule}', [ShiftScheduleController::class, 'update'])
-            ->name('admin.shift-schedules.update');
+            Route::delete('/shift-schedules/{schedule}', [ShiftScheduleController::class, 'destroy'])
+                ->name('admin.shift-schedules.delete');
 
-        Route::delete('/shift-schedules/{schedule}', [ShiftScheduleController::class, 'destroy'])
-            ->name('admin.shift-schedules.delete');
+            Route::get('/shift-schedules/{schedule}/report', [ShiftScheduleController::class, 'report'])
+                ->name('admin.shift-schedules.report');
 
-        Route::get('/shift-schedules/{schedule}/report', [ShiftScheduleController::class, 'report'])
-            ->name('admin.shift-schedules.report');
-
-        Route::get('/shift-sales', [ShiftSalesController::class, 'index'])
-            ->name('admin.shift-sales');
-
+            Route::get('/shift-sales', [ShiftSalesController::class, 'index'])
+                ->name('admin.shift-sales');
+        });
     });
 });

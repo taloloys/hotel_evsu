@@ -16,6 +16,7 @@
     </div>
 
     <!-- MENU TITLE -->
+    @can('view-folio')
     <div class="text-uppercase text-secondary small fw-bold mb-3">
         Accounting
     </div>
@@ -72,5 +73,6 @@
         </a>
 
     </nav>
+    @endcan
 
 </div>

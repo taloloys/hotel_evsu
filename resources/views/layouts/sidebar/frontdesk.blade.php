@@ -21,6 +21,7 @@
     </div>
 
     <!-- MENU TITLE -->
+    @canany(['manage-reservations', 'view-folio'])
     <div class="text-uppercase text-secondary small fw-bold mb-2">
         Main Menu
     </div>
@@ -28,40 +29,51 @@
     <nav class="nav flex-column">
 
         <!-- DASHBOARD -->
+        @can('manage-reservations')
         <a href="{{ route('frontdesk.dashboard') }}"
            class="nav-link {{ request()->routeIs('frontdesk.dashboard') ? 'active' : '' }}">
             <i class="fa-solid fa-chart-line me-2"></i>
             Dashboard
         </a>
+        @endcan
 
         <!-- RESERVATION -->
+        @can('manage-reservations')
         <a href="{{ route('frontdesk.reservation') }}"
            class="nav-link {{ request()->routeIs('frontdesk.reservation') ? 'active' : '' }}">
             <i class="fa-solid fa-calendar-check me-2"></i>
             Reservation
         </a>
+        @endcan
 
         <!-- REGISTRATION -->
+        @can('manage-reservations')
         <a href="{{ route('frontdesk.registration') }}"
            class="nav-link {{ request()->routeIs('frontdesk.registration') ? 'active' : '' }}">
             <i class="fa-solid fa-user-plus me-2"></i>
             Registration
         </a>
+        @endcan
 
         <!-- GUEST LIST -->
+        @can('view-folio')
         <a href="{{ route('frontdesk.guest-list') }}"
            class="nav-link {{ request()->routeIs('frontdesk.guest-list') ? 'active' : '' }}">
             <i class="fa-solid fa-users me-2"></i>
             Guest List
         </a>
+        @endcan
 
         <!-- GUEST FOLIO -->
+        @can('view-folio')
         <a href="{{ route('frontdesk.guest-folio') }}"
            class="nav-link {{ request()->routeIs('frontdesk.guest-folio') ? 'active' : '' }}">
             <i class="fa-solid fa-file-invoice-dollar me-2"></i>
             Guest Folio
         </a>
+        @endcan
 
+        @can('view-folio')
         <hr class="border-secondary opacity-25 my-3">
 
         <!-- FINANCIAL -->
@@ -75,7 +87,9 @@
             <i class="fa-solid fa-cash-register me-2"></i>
             Shift Sales
         </a>
+        @endcan
 
     </nav>
+    @endcanany
 
 </div>
