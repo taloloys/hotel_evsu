@@ -35,11 +35,11 @@ class Booking extends Model
 
     public function folio(): BelongsTo
     {
-        return $this->belongsTo(Folio::class);
+        return $this->belongsTo(Folio::class, 'folio_id', 'folio_id');
     }
 
     public function room(): BelongsTo
     {
-        return $this->belongsTo(Room::class);
+        return $this->belongsTo(Room::class, 'room_id', 'room_id');
     }
 }

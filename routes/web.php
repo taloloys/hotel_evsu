@@ -5,6 +5,8 @@ use App\Http\Controllers\Admin\PermissionController;
 use App\Http\Controllers\Admin\RoleController;
 use App\Http\Controllers\Admin\UserController;
 use App\Http\Controllers\Auth\LoginController;
+use App\Http\Controllers\Frontdesk\BookingOperationController;
+use App\Http\Controllers\Frontdesk\DashboardController as FrontdeskDashboardController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', [LoginController::class, 'create'])
@@ -23,8 +25,26 @@ Route::middleware('auth')->group(function () {
 
     Route::prefix('frontdesk')->group(function () {
 
-        Route::view('/dashboard', 'frontdesk.dashboard.index')
+        Route::get('/dashboard', [FrontdeskDashboardController::class, 'index'])
             ->name('frontdesk.dashboard');
+
+        Route::post('/booking/check-in', [BookingOperationController::class, 'checkIn'])
+            ->name('frontdesk.booking.check-in');
+
+        Route::post('/booking/check-out', [BookingOperationController::class, 'checkOut'])
+            ->name('frontdesk.booking.check-out');
+
+        Route::post('/room/mark-cleaned', [BookingOperationController::class, 'markCleaned'])
+            ->name('frontdesk.room.mark-cleaned');
+
+        Route::post('/room/mark-for-cleaning', [BookingOperationController::class, 'markForCleaning'])
+            ->name('frontdesk.room.mark-for-cleaning');
+
+        Route::post('/room/mark-maintenance', [BookingOperationController::class, 'markForMaintenance'])
+            ->name('frontdesk.room.mark-maintenance');
+
+        Route::post('/room/maintenance-complete', [BookingOperationController::class, 'markMaintenanceComplete'])
+            ->name('frontdesk.room.maintenance-complete');
 
         Route::view('/reservation', 'frontdesk.reservation.index')
             ->name('frontdesk.reservation');

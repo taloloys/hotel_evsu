@@ -38,7 +38,7 @@ class Folio extends Model
 
     public function guest(): BelongsTo
     {
-        return $this->belongsTo(Guest::class);
+        return $this->belongsTo(Guest::class, 'guest_id', 'guest_id');
     }
 
     public function bookings(): HasMany
