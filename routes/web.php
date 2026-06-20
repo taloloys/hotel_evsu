@@ -1,5 +1,11 @@
 <?php
 
+use App\Http\Controllers\Accounting\AuditController;
+use App\Http\Controllers\Accounting\BillingController;
+use App\Http\Controllers\Accounting\ExpenseController;
+use App\Http\Controllers\Accounting\PaymentController;
+use App\Http\Controllers\Accounting\ReceivableController;
+use App\Http\Controllers\Accounting\ReportController;
 use App\Http\Controllers\Admin\ActivityLogController;
 use App\Http\Controllers\Admin\ChargeCodeController;
 use App\Http\Controllers\Admin\DashboardController;
@@ -92,25 +98,37 @@ Route::middleware('auth')->group(function () {
 
     Route::prefix('accounting')->middleware('can:view-folio')->group(function () {
 
-        Route::view('/dashboard', 'accounting.dashboard.index')
+        Route::get('/dashboard', [App\Http\Controllers\Accounting\DashboardController::class, 'index'])
             ->name('accounting.dashboard');
 
-        Route::view('/billing', 'accounting.billing.index')
+        Route::get('/billing', [BillingController::class, 'index'])
             ->name('accounting.billing');
 
-        Route::view('/payments', 'accounting.payments.index')
+        Route::get('/billing/{folio}', [BillingController::class, 'show'])
+            ->name('accounting.billing.show');
+
+        Route::get('/payments', [PaymentController::class, 'index'])
             ->name('accounting.payments');
 
-        Route::view('/receivables', 'accounting.receivables.index')
+        Route::post('/payments', [PaymentController::class, 'store'])
+            ->name('accounting.payments.store');
+
+        Route::get('/receivables', [ReceivableController::class, 'index'])
             ->name('accounting.receivables');
 
-        Route::view('/expenses', 'accounting.expenses.index')
+        Route::get('/expenses', [ExpenseController::class, 'index'])
             ->name('accounting.expenses');
 
-        Route::view('/reports', 'accounting.reports.index')
+        Route::post('/expenses', [ExpenseController::class, 'store'])
+            ->name('accounting.expenses.store');
+
+        Route::patch('/expenses/{expense}/approve', [ExpenseController::class, 'approve'])
+            ->name('accounting.expenses.approve');
+
+        Route::get('/reports', [ReportController::class, 'index'])
             ->name('accounting.reports');
 
-        Route::view('/audit', 'accounting.audit.index')
+        Route::get('/audit', [AuditController::class, 'index'])
             ->name('accounting.audit');
 
     });

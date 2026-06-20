@@ -38,7 +38,7 @@ class Transaction extends Model
 
     public function folio(): BelongsTo
     {
-        return $this->belongsTo(Folio::class);
+        return $this->belongsTo(Folio::class, 'folio_id', 'folio_id');
     }
 
     public function chargeCode(): BelongsTo

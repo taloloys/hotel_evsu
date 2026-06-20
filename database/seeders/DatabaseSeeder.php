@@ -24,6 +24,7 @@ class DatabaseSeeder extends Seeder
             ActivityLogSeeder::class,
             BookingSeeder::class,
             TransactionSeeder::class,
+            ExpenseSeeder::class,
         ]);
     }
 }

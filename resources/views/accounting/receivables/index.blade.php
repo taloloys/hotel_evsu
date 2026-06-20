@@ -13,7 +13,7 @@
         <div class="card border-0 shadow-sm">
             <div class="card-body">
                 <div class="text-muted small">Total Receivables</div>
-                <div class="fw-bold fs-3">₱68,450</div>
+                <div class="fw-bold fs-3 text-danger">₱{{ number_format($totalReceivables, 2) }}</div>
             </div>
         </div>
     </div>
@@ -21,8 +21,8 @@
     <div class="col-lg-3">
         <div class="card border-0 shadow-sm">
             <div class="card-body">
-                <div class="text-muted small">0–30 Days</div>
-                <div class="fw-bold fs-3 text-success">₱32,200</div>
+                <div class="text-muted small">Current (0–30 Days)</div>
+                <div class="fw-bold fs-3 text-success">₱{{ number_format($currentReceivables, 2) }}</div>
             </div>
         </div>
     </div>
@@ -30,8 +30,8 @@
     <div class="col-lg-3">
         <div class="card border-0 shadow-sm">
             <div class="card-body">
-                <div class="text-muted small">31–60 Days</div>
-                <div class="fw-bold fs-3 text-warning">₱18,150</div>
+                <div class="text-muted small">Overdue (31–60 Days)</div>
+                <div class="fw-bold fs-3 text-warning">₱{{ number_format($overdueReceivables, 2) }}</div>
             </div>
         </div>
     </div>
@@ -39,8 +39,8 @@
     <div class="col-lg-3">
         <div class="card border-0 shadow-sm">
             <div class="card-body">
-                <div class="text-muted small">Overdue</div>
-                <div class="fw-bold fs-3 text-danger">₱18,100</div>
+                <div class="text-muted small">Critical (>60 Days)</div>
+                <div class="fw-bold fs-3 text-danger">₱{{ number_format($criticalReceivables, 2) }}</div>
             </div>
         </div>
     </div>
@@ -49,7 +49,7 @@
 
 
 <!-- ACTION BAR -->
-<div class="card border-0 shadow-sm mb-3">
+<form action="{{ route('accounting.receivables') }}" method="GET" class="card border-0 shadow-sm mb-3">
 
     <div class="card-body d-flex justify-content-between align-items-center">
 
@@ -61,30 +61,27 @@
         <div class="d-flex gap-2">
 
             <!-- SEARCH -->
-            <input type="text"
-                   class="form-control form-control-sm"
-                   style="width: 220px;"
-                   placeholder="Search guest / room">
+            <input type="text" name="search" class="form-control form-control-sm"
+                   style="width: 220px;" placeholder="Search guest / room" value="{{ $search }}">
 
             <!-- FILTER -->
-            <select class="form-select form-select-sm" style="width: 160px;">
-                <option>All Status</option>
-                <option>Current</option>
-                <option>Overdue</option>
-                <option>Critical</option>
+            <select name="status" class="form-select form-select-sm" style="width: 160px;" onchange="this.form.submit()">
+                <option value="ALL" {{ $statusFilter === 'ALL' ? 'selected' : '' }}>All Status</option>
+                <option value="CURRENT" {{ $statusFilter === 'CURRENT' ? 'selected' : '' }}>Current</option>
+                <option value="OVERDUE" {{ $statusFilter === 'OVERDUE' ? 'selected' : '' }}>Overdue</option>
+                <option value="CRITICAL" {{ $statusFilter === 'CRITICAL' ? 'selected' : '' }}>Critical</option>
             </select>
 
-            <!-- EXPORT -->
-            <button class="btn btn-outline-secondary btn-sm">
-                <i class="fa-solid fa-download me-1"></i>
-                Export
+            <!-- SEARCH BUTTON -->
+            <button type="submit" class="btn btn-primary btn-sm px-3">
+                <i class="fa-solid fa-magnifying-glass me-1"></i> Search
             </button>
 
         </div>
 
     </div>
 
-</div>
+</form>
 
 
 <!-- TABLE -->
@@ -98,9 +95,9 @@
                 <tr>
                     <th>Guest</th>
                     <th>Room</th>
-                    <th>Invoice</th>
+                    <th>Folio No</th>
                     <th>Due Date</th>
-                    <th>Status</th>
+                    <th>Age Status</th>
                     <th class="text-end">Balance</th>
                     <th class="text-center">Action</th>
                 </tr>
@@ -108,47 +105,33 @@
 
             <tbody>
 
-                <tr>
-                    <td>Juan Dela Cruz</td>
-                    <td>Room 101</td>
-                    <td>INV-1001</td>
-                    <td>2026-06-25</td>
-                    <td><span class="badge bg-success">Current</span></td>
-                    <td class="text-end fw-bold">₱12,500</td>
-                    <td class="text-center">
-                        <button class="btn btn-sm btn-outline-primary">
-                            <i class="fa-solid fa-eye"></i>
-                        </button>
-                    </td>
-                </tr>
-
-                <tr>
-                    <td>Maria Santos</td>
-                    <td>Room 205</td>
-                    <td>INV-1002</td>
-                    <td>2026-06-20</td>
-                    <td><span class="badge bg-warning text-dark">Overdue</span></td>
-                    <td class="text-end fw-bold text-warning">₱18,150</td>
-                    <td class="text-center">
-                        <button class="btn btn-sm btn-outline-primary">
-                            <i class="fa-solid fa-eye"></i>
-                        </button>
-                    </td>
-                </tr>
-
-                <tr>
-                    <td>John Smith</td>
-                    <td>Room 310</td>
-                    <td>INV-1003</td>
-                    <td>2026-06-15</td>
-                    <td><span class="badge bg-danger">Critical</span></td>
-                    <td class="text-end fw-bold text-danger">₱18,100</td>
-                    <td class="text-center">
-                        <button class="btn btn-sm btn-outline-primary">
-                            <i class="fa-solid fa-eye"></i>
-                        </button>
-                    </td>
-                </tr>
+                @forelse($receivables as $rec)
+                    <tr>
+                        <td>{{ $rec->guest_name }}</td>
+                        <td>Room {{ $rec->room_number }}</td>
+                        <td>{{ $rec->folio_number }}</td>
+                        <td>{{ $rec->due_date }}</td>
+                        <td>
+                            @if($rec->status === 'Current')
+                                <span class="badge bg-success">Current ({{ $rec->days_old }} days)</span>
+                            @elseif($rec->status === 'Overdue')
+                                <span class="badge bg-warning text-dark">Overdue ({{ $rec->days_old }} days)</span>
+                            @else
+                                <span class="badge bg-danger">Critical ({{ $rec->days_old }} days)</span>
+                            @endif
+                        </td>
+                        <td class="text-end fw-bold text-danger">₱{{ number_format($rec->balance, 2) }}</td>
+                        <td class="text-center">
+                            <a href="{{ route('accounting.billing.show', $rec->folio_id) }}" class="btn btn-sm btn-outline-primary">
+                                <i class="fa-solid fa-eye me-1"></i> View Folio
+                            </a>
+                        </td>
+                    </tr>
+                @empty
+                    <tr>
+                        <td colspan="7" class="text-center text-muted py-4">No outstanding accounts receivable found.</td>
+                    </tr>
+                @endforelse
 
             </tbody>
 

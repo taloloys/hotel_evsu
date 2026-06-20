@@ -1,0 +1,97 @@
+<?php
+
+namespace App\Http\Controllers\Accounting;
+
+use App\Http\Controllers\Controller;
+use App\Models\Folio;
+use Carbon\Carbon;
+use Illuminate\Http\Request;
+use Illuminate\View\View;
+
+class ReceivableController extends Controller
+{
+    public function index(Request $request): View
+    {
+        $search = $request->input('search');
+        $statusFilter = $request->input('status', 'ALL'); // ALL, CURRENT, OVERDUE, CRITICAL
+
+        // We fetch open folios with bookings and transactions
+        $query = Folio::where('status', 'OPEN')
+            ->with(['guest', 'bookings.room', 'transactions']);
+
+        if ($search) {
+            $query->where(function ($q) use ($search) {
+                $q->where('folio_number', 'like', "%{$search}%")
+                    ->orWhereHas('guest', function ($g) use ($search) {
+                        $g->where('first_name', 'like', "%{$search}%")
+                            ->orWhere('last_name', 'like', "%{$search}%");
+                    })
+                    ->orWhereHas('bookings.room', function ($r) use ($search) {
+                        $r->where('room_number', 'like', "%{$search}%");
+                    });
+            });
+        }
+
+        $folios = $query->orderBy('folio_id', 'desc')->get();
+
+        $now = Carbon::now();
+
+        // Map and compute balances and age
+        $receivables = $folios->map(function ($folio) use ($now) {
+            $totalCharges = $folio->transactions->sum('charge_amount');
+            $totalCredits = $folio->transactions->sum('credit_amount');
+            $balance = $totalCharges - $totalCredits;
+
+            // Age is based on the arrival date of the first booking or the creation date
+            $arrivalDate = $folio->bookings->first() ? Carbon::parse($folio->bookings->first()->arrival_date) : $now;
+            $daysOld = $now->diffInDays($arrivalDate);
+
+            // Determine status based on age
+            if ($daysOld <= 30) {
+                $status = 'Current';
+            } elseif ($daysOld <= 60) {
+                $status = 'Overdue';
+            } else {
+                $status = 'Critical';
+            }
+
+            return (object) [
+                'folio_id' => $folio->folio_id,
+                'folio_number' => $folio->folio_number,
+                'guest_name' => $folio->guest ? trim($folio->guest->first_name.' '.$folio->guest->last_name) : 'No Guest',
+                'room_number' => $folio->bookings->first() && $folio->bookings->first()->room ? $folio->bookings->first()->room->room_number : 'N/A',
+                'due_date' => $arrivalDate->addDays(30)->toDateString(), // 30 days due
+                'days_old' => $daysOld,
+                'status' => $status,
+                'balance' => $balance,
+            ];
+        })->filter(function ($folio) {
+            // Only include folios that have an actual outstanding balance
+            return $folio->balance > 0;
+        });
+
+        // Apply aging status filter
+        if ($statusFilter !== 'ALL') {
+            $receivables = $receivables->filter(function ($r) use ($statusFilter) {
+                return strtoupper($r->status) === strtoupper($statusFilter);
+            });
+        }
+
+        // Compute KPIs
+        $totalReceivables = $receivables->sum('balance');
+
+        $currentReceivables = $receivables->filter(fn ($r) => $r->status === 'Current')->sum('balance');
+        $overdueReceivables = $receivables->filter(fn ($r) => $r->status === 'Overdue')->sum('balance');
+        $criticalReceivables = $receivables->filter(fn ($r) => $r->status === 'Critical')->sum('balance');
+
+        return view('accounting.receivables.index', [
+            'receivables' => $receivables,
+            'totalReceivables' => $totalReceivables,
+            'currentReceivables' => $currentReceivables,
+            'overdueReceivables' => $overdueReceivables,
+            'criticalReceivables' => $criticalReceivables,
+            'search' => $search,
+            'statusFilter' => $statusFilter,
+        ]);
+    }
+}
