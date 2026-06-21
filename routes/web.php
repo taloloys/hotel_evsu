@@ -16,7 +16,10 @@ use App\Http\Controllers\Admin\ShiftScheduleController;
 use App\Http\Controllers\Admin\UserController;
 use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\Frontdesk\BookingOperationController;
+use App\Http\Controllers\Frontdesk\CheckInController;
 use App\Http\Controllers\Frontdesk\DashboardController as FrontdeskDashboardController;
+use App\Http\Controllers\Frontdesk\GuestFolioController;
+use App\Http\Controllers\Frontdesk\GuestListController;
 use App\Http\Controllers\Frontdesk\RegistrationController;
 use App\Http\Controllers\Frontdesk\ReservationController;
 use App\Http\Controllers\Frontdesk\ShiftController as FrontdeskShiftController;
@@ -76,6 +79,12 @@ Route::middleware('auth')->group(function () {
             Route::post('/registration', [RegistrationController::class, 'store'])
                 ->name('frontdesk.registration.store');
 
+            Route::get('/check-in', [CheckInController::class, 'index'])
+                ->name('frontdesk.checkin');
+
+            Route::post('/check-in', [CheckInController::class, 'store'])
+                ->name('frontdesk.checkin.store');
+
             Route::post('/shift/open', [FrontdeskShiftController::class, 'open'])
                 ->name('frontdesk.shift.open');
 
@@ -84,11 +93,29 @@ Route::middleware('auth')->group(function () {
         });
 
         Route::middleware('can:view-folio')->group(function () {
-            Route::view('/guest-list', 'frontdesk.guest-list.index')
+            Route::get('/guest-list', [GuestListController::class, 'index'])
                 ->name('frontdesk.guest-list');
 
-            Route::view('/guest-folio', 'frontdesk.guest-folio.index')
+            Route::get('/guest-folio', [GuestFolioController::class, 'index'])
                 ->name('frontdesk.guest-folio');
+
+            Route::post('/guest-folio/{folio}/transaction', [GuestFolioController::class, 'postTransaction'])
+                ->name('frontdesk.guest-folio.transaction');
+
+            Route::post('/guest-folio/booking/{booking}/transfer', [GuestFolioController::class, 'transferRoom'])
+                ->name('frontdesk.guest-folio.transfer');
+
+            Route::post('/guest-folio/booking/{booking}/check-in', [GuestFolioController::class, 'checkInBooking'])
+                ->name('frontdesk.guest-folio.checkin');
+
+            Route::post('/guest-folio/booking/{booking}/check-out', [GuestFolioController::class, 'checkOutBooking'])
+                ->name('frontdesk.guest-folio.checkout');
+
+            Route::post('/guest-folio/{folio}/close', [GuestFolioController::class, 'closeFolio'])
+                ->name('frontdesk.guest-folio.close');
+
+            Route::post('/guest-folio/{folio}/reopen', [GuestFolioController::class, 'reopenFolio'])
+                ->name('frontdesk.guest-folio.reopen');
 
             Route::get('/shift-sales', [ShiftSalesController::class, 'index'])
                 ->name('frontdesk.shift-sales');

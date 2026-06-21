@@ -1,8 +1,8 @@
 @extends('layouts.app')
 
-@section('title', 'Registration - Don Felipe Hotel')
-@section('pageTitle', 'Guest Registration')
-@section('pageSubtitle', 'Register walk-in guests and assign available rooms.')
+@section('title', 'Check In - Don Felipe Hotel')
+@section('pageTitle', 'Existing Guest Check In')
+@section('pageSubtitle', 'Check in existing guests and assign available rooms.')
 
 @section('content')
 
@@ -32,7 +32,7 @@
 
 <div class="container-fluid">
 
-    <form method="POST" action="{{ route('frontdesk.registration.store') }}" id="registrationForm">
+    <form method="POST" action="{{ route('frontdesk.checkin.store') }}" id="checkInForm">
         @csrf
 
         <div class="card border-0 shadow-sm mb-4">
@@ -65,29 +65,56 @@
 
         <div class="card border-0 shadow-sm mb-4">
             <div class="card-header bg-white">
-                <h5 class="fw-bold mb-0">Guest Information</h5>
+                <h5 class="fw-bold mb-0">Guest Selection</h5>
             </div>
 
             <div class="card-body">
                 <div class="row g-3">
-                    <div class="col-md-6">
-                        <label class="form-label" for="last_name">Last Name <span class="text-danger">*</span></label>
-                        <input type="text" class="form-control @error('last_name') is-invalid @enderror" id="last_name" name="last_name" value="{{ old('last_name') }}" maxlength="50" required>
+                    <div class="col-md-12">
+                        <label class="form-label" for="guest_search">Search Existing Guest</label>
+                        <div class="input-group">
+                            <span class="input-group-text"><i class="fa-solid fa-magnifying-glass"></i></span>
+                            <input type="text" class="form-control" id="guest_search" placeholder="Type guest's first or last name to search...">
+                        </div>
                     </div>
 
-                    <div class="col-md-6">
-                        <label class="form-label" for="first_name">First Name <span class="text-danger">*</span></label>
-                        <input type="text" class="form-control @error('first_name') is-invalid @enderror" id="first_name" name="first_name" value="{{ old('first_name') }}" maxlength="50" required>
+                    <div class="col-md-12">
+                        <label class="form-label" for="guest_id">Select Guest <span class="text-danger">*</span></label>
+                        <select class="form-select @error('guest_id') is-invalid @enderror" id="guest_id" name="guest_id" required>
+                            <option value="">Choose a guest...</option>
+                            @foreach($guests as $guest)
+                                <option
+                                    value="{{ $guest->guest_id }}"
+                                    data-contact="{{ $guest->contact_number ?? 'N/A' }}"
+                                    data-address="{{ trim(($guest->address_line1 ?? '') . ' ' . ($guest->address_line2 ?? '')) ?: 'N/A' }}"
+                                    @selected(old('guest_id') == $guest->guest_id)
+                                >
+                                    {{ $guest->last_name }}, {{ $guest->first_name }}
+                                </option>
+                            @endforeach
+                        </select>
+                        @error('guest_id')
+                            <div class="invalid-feedback">{{ $message }}</div>
+                        @enderror
                     </div>
+                </div>
 
-                    <div class="col-md-8">
-                        <label class="form-label" for="address_line1">Address</label>
-                        <input type="text" class="form-control @error('address_line1') is-invalid @enderror" id="address_line1" name="address_line1" value="{{ old('address_line1') }}" maxlength="100">
-                    </div>
-
-                    <div class="col-md-4">
-                        <label class="form-label" for="contact_number">Mobile Number</label>
-                        <input type="text" class="form-control @error('contact_number') is-invalid @enderror" id="contact_number" name="contact_number" value="{{ old('contact_number') }}" maxlength="20">
+                <!-- Guest Details Card (Read-only confirmation) -->
+                <div class="mt-4 p-3 bg-light border rounded d-none" id="guest_info_card">
+                    <h6 class="fw-bold mb-3 text-secondary text-uppercase small">Selected Guest Information</h6>
+                    <div class="row">
+                        <div class="col-md-6 mb-2">
+                            <span class="text-muted d-block small">Full Name</span>
+                            <strong id="display_guest_name">-</strong>
+                        </div>
+                        <div class="col-md-6 mb-2">
+                            <span class="text-muted d-block small">Mobile Number</span>
+                            <strong id="display_guest_contact">-</strong>
+                        </div>
+                        <div class="col-md-12">
+                            <span class="text-muted d-block small">Address</span>
+                            <strong id="display_guest_address">-</strong>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -207,7 +234,7 @@
                     <div class="col-md-12">
                         <div class="alert alert-light border mb-0">
                             <i class="fa-solid fa-circle-info text-primary me-1"></i>
-                            Saving this registration will immediately check the guest in and mark the selected room as <strong>OCCUPIED</strong> on the dashboard.
+                            Saving this check-in will immediately check the guest in and mark the selected room as <strong>OCCUPIED</strong> on the dashboard.
                         </div>
                     </div>
                 </div>
@@ -217,9 +244,9 @@
         <div class="card border-0 shadow-sm">
             <div class="card-body">
                 <div class="d-flex justify-content-end gap-2">
-                    <a href="{{ route('frontdesk.registration') }}" class="btn btn-secondary">Clear</a>
+                    <a href="{{ route('frontdesk.checkin') }}" class="btn btn-secondary">Clear</a>
                     <button type="submit" class="btn btn-primary" @disabled($assignableRooms->isEmpty())>
-                        <i class="fa-solid fa-floppy-disk me-1"></i> Save Registration
+                        <i class="fa-solid fa-floppy-disk me-1"></i> Save Check In
                     </button>
                 </div>
             </div>
@@ -234,12 +261,65 @@
 @push('scripts')
 <script>
     document.addEventListener('DOMContentLoaded', function() {
+        const guestSearch = document.getElementById('guest_search');
+        const guestSelect = document.getElementById('guest_id');
+        const guestInfoCard = document.getElementById('guest_info_card');
+        const displayGuestName = document.getElementById('display_guest_name');
+        const displayGuestContact = document.getElementById('display_guest_contact');
+        const displayGuestAddress = document.getElementById('display_guest_address');
+
         const roomTypeFilter = document.getElementById('room_type_filter');
         const roomSelect = document.getElementById('room_id');
         const rateDisplay = document.getElementById('room_base_rate_display');
         const arrivalDate = document.getElementById('arrival_date');
         const departureDate = document.getElementById('departure_date');
 
+        // Search Guest Filtering
+        if (guestSearch && guestSelect) {
+            const allGuestOptions = Array.from(guestSelect.querySelectorAll('option[value]'));
+
+            guestSearch.addEventListener('input', function() {
+                const query = this.value.toLowerCase().trim();
+
+                allGuestOptions.forEach(option => {
+                    if (option.value === "") {
+                        return;
+                    }
+                    const text = option.textContent.toLowerCase();
+                    const matches = text.includes(query);
+                    option.hidden = !matches;
+                    option.disabled = !matches;
+                });
+
+                // If currently selected option is now hidden, reset selection
+                const current = guestSelect.options[guestSelect.selectedIndex];
+                if (current && current.disabled) {
+                    guestSelect.value = '';
+                    guestInfoCard.classList.add('d-none');
+                }
+            });
+        }
+
+        // Selected Guest details card updater
+        if (guestSelect) {
+            function updateGuestDetails() {
+                const selected = guestSelect.options[guestSelect.selectedIndex];
+                if (!selected || !selected.value) {
+                    guestInfoCard.classList.add('d-none');
+                    return;
+                }
+
+                displayGuestName.textContent = selected.textContent.trim();
+                displayGuestContact.textContent = selected.getAttribute('data-contact') || 'N/A';
+                displayGuestAddress.textContent = selected.getAttribute('data-address') || 'N/A';
+                guestInfoCard.classList.remove('d-none');
+            }
+
+            guestSelect.addEventListener('change', updateGuestDetails);
+            updateGuestDetails(); // Run on initial load to handle old inputs
+        }
+
+        // Room rate and filtering
         function updateRateDisplay() {
             const selected = roomSelect.options[roomSelect.selectedIndex];
             if (!selected || !selected.value) {

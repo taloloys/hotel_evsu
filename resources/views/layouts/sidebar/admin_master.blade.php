@@ -106,6 +106,12 @@
                     <i class="fa-solid fa-user-plus me-2"></i>
                     Registration
                 </a>
+
+                <a href="{{ route('frontdesk.checkin') }}"
+                    class="nav-link {{ request()->routeIs('frontdesk.checkin') ? 'active' : '' }}">
+                    <i class="fa-solid fa-key me-2"></i>
+                    Check In
+                </a>
             @endcan
 
             @can('view-folio')

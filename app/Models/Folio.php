@@ -27,12 +27,15 @@ class Folio extends Model
         'symbol',
         'folio_type',
         'status',
+        'payment_method',
+        'net_rate',
     ];
 
     protected function casts(): array
     {
         return [
             'has_joiner' => 'boolean',
+            'net_rate' => 'decimal:2',
         ];
     }
 

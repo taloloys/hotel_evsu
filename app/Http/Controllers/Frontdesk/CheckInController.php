@@ -14,8 +14,11 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\View\View;
 
-class RegistrationController extends Controller
+class CheckInController extends Controller
 {
+    /**
+     * Display the check-in form for existing guests.
+     */
     public function index(): View
     {
         $today = Carbon::now()->toDateString();
@@ -28,9 +31,16 @@ class RegistrationController extends Controller
             ->orderBy('room_type')
             ->pluck('room_type');
 
-        return view('frontdesk.registration.index', [
+        // Fetch all existing guests, ordered by last name, then first name
+        $guests = Guest::query()
+            ->orderBy('last_name')
+            ->orderBy('first_name')
+            ->get();
+
+        return view('frontdesk.check-in.index', [
             'assignableRooms' => $assignableRooms,
             'roomTypes' => $roomTypes,
+            'guests' => $guests,
             'suggestedFolioNumber' => $this->generateFolioNumber(),
             'defaults' => [
                 'arrival_date' => $today,
@@ -43,14 +53,13 @@ class RegistrationController extends Controller
         ]);
     }
 
+    /**
+     * Store a new check-in booking/folio for an existing guest.
+     */
     public function store(Request $request): RedirectResponse
     {
         $validated = $request->validate([
-            'first_name' => ['required', 'string', 'max:50'],
-            'last_name' => ['required', 'string', 'max:50'],
-            'contact_number' => ['nullable', 'string', 'max:20'],
-            'address_line1' => ['nullable', 'string', 'max:100'],
-            'address_line2' => ['nullable', 'string', 'max:100'],
+            'guest_id' => ['required', 'integer', 'exists:guests,guest_id'],
             'folio_number' => ['nullable', 'string', 'max:20', 'unique:folios,folio_number'],
             'registration_number' => ['nullable', 'string', 'max:20', 'unique:folios,registration_number'],
             'account_number' => ['nullable', 'string', 'max:20'],
@@ -85,17 +94,10 @@ class RegistrationController extends Controller
                 ->withErrors(['room_id' => 'Selected room already has a booking for these dates.']);
         }
 
-        $guestName = trim($validated['first_name'].' '.$validated['last_name']);
+        $guest = Guest::findOrFail($validated['guest_id']);
+        $guestName = trim($guest->first_name.' '.$guest->last_name);
 
-        DB::transaction(function () use ($validated, $room) {
-            $guest = Guest::create([
-                'first_name' => $validated['first_name'],
-                'last_name' => $validated['last_name'],
-                'contact_number' => $validated['contact_number'] ?? null,
-                'address_line1' => $validated['address_line1'] ?? null,
-                'address_line2' => $validated['address_line2'] ?? null,
-            ]);
-
+        DB::transaction(function () use ($validated, $room, $guest) {
             $folio = Folio::create([
                 'folio_number' => ! empty($validated['folio_number'])
                     ? $validated['folio_number']
@@ -114,6 +116,7 @@ class RegistrationController extends Controller
                 'folio_type' => 'GUEST',
                 'status' => 'OPEN',
                 'payment_method' => $validated['payment_method'] ?? 'Cash',
+                'net_rate' => $room->base_rate,
             ]);
 
             Booking::create([
@@ -132,10 +135,12 @@ class RegistrationController extends Controller
 
         return redirect()
             ->route('frontdesk.dashboard')
-            ->with('success', "{$guestName} registered successfully. Room {$room->room_number} is now occupied.");
+            ->with('success', "{$guestName} checked in successfully. Room {$room->room_number} is now occupied.");
     }
 
     /**
+     * Get available rooms for assignment.
+     *
      * @return Collection<int, Room>
      */
     private function assignableRooms(string $today)
@@ -152,6 +157,9 @@ class RegistrationController extends Controller
             ->get(['room_id', 'room_number', 'room_type', 'base_rate']);
     }
 
+    /**
+     * Check if a room can be assigned today.
+     */
     private function isRoomAssignable(Room $room, string $today): bool
     {
         if (! $room->is_active) {
@@ -168,6 +176,9 @@ class RegistrationController extends Controller
             ->exists();
     }
 
+    /**
+     * Check if room has conflict for selected dates.
+     */
     private function roomHasConflict(int $roomId, string $arrivalDate, string $departureDate): bool
     {
         return Booking::query()
@@ -178,6 +189,9 @@ class RegistrationController extends Controller
             ->exists();
     }
 
+    /**
+     * Generate standard folio number.
+     */
     private function generateFolioNumber(): string
     {
         $year = now()->year;

@@ -16,7 +16,7 @@ return new class extends Migration
             $table->string('room_number', 10)->unique();
             $table->string('room_type', 50);
             $table->decimal('base_rate', 10, 2);
-            $table->enum('status', ['AVAILABLE', 'OCCUPIED', 'RESERVED', 'MAINTENANCE'])->default('AVAILABLE');
+            $table->enum('status', ['AVAILABLE', 'OCCUPIED', 'RESERVED', 'CLEANING', 'MAINTENANCE'])->default('AVAILABLE');
         });
     }
 

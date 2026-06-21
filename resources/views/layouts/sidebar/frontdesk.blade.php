@@ -55,6 +55,15 @@
         </a>
         @endcan
 
+        <!-- CHECK IN -->
+        @can('manage-reservations')
+        <a href="{{ route('frontdesk.checkin') }}"
+           class="nav-link {{ request()->routeIs('frontdesk.checkin') ? 'active' : '' }}">
+            <i class="fa-solid fa-key me-2"></i>
+            Check In
+        </a>
+        @endcan
+
         <!-- GUEST LIST -->
         @can('view-folio')
         <a href="{{ route('frontdesk.guest-list') }}"

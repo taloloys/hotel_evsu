@@ -2,229 +2,636 @@
 
 @section('title', 'Guest Folio - Don Felipe Hotel')
 @section('pageTitle', 'Guest Folio')
-@section('pageSubtitle', 'Manage guest folios, billing, transfers and checkout.')
+@section('pageSubtitle', 'View, search and manage all guest folios.')
 
 @section('content')
 
-<div class="card border-0 shadow-sm">
+<div class="container-fluid">
 
-    <div class="card-body">
-
-        <!-- Header -->
-
-        <div class="d-flex justify-content-between align-items-center mb-4">
-
-            <div>
-
-                <h5 class="fw-bold mb-1">
-                    Guest Folios
-                </h5>
-
-                <small class="text-muted">
-                    View guest folios, balances, room transfers and checkout records.
-                </small>
-
-            </div>
-
+    @if(session('success'))
+        <div class="alert alert-success alert-dismissible fade show border-0 shadow-sm mb-4" role="alert">
+            <i class="fa-solid fa-circle-check me-2"></i>{{ session('success') }}
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
         </div>
+    @endif
 
-        <!-- Filters -->
+    @if($errors->any())
+        <div class="alert alert-danger alert-dismissible fade show border-0 shadow-sm mb-4" role="alert">
+            <i class="fa-solid fa-triangle-exclamation me-2"></i>
+            <span class="fw-semibold">Please correct the following errors:</span>
+            <ul class="mb-0 mt-1 ps-3 small">
+                @foreach($errors->all() as $error)
+                    <li>{{ $error }}</li>
+                @endforeach
+            </ul>
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    @endif
 
-        <div class="card bg-light border-0 mb-4">
+    {{-- Filters --}}
+    <div class="card border-0 shadow-sm mb-4">
+        <div class="card-body">
+            <form method="GET" action="{{ route('frontdesk.guest-folio') }}" id="filterForm">
+                <div class="row g-3 align-items-end">
 
-            <div class="card-body">
-
-                <div class="row g-3">
-
-                    <div class="col-lg-3">
-
-                        <label class="form-label fw-semibold">
-                            View Options
-                        </label>
-
-                        <select class="form-select">
-                            <option>All Folios</option>
-                            <option>Checked In</option>
-                            <option>Checked Out</option>
-                            <option>Open Folios</option>
-                        </select>
-
+                    <div class="col-md-4">
+                        <label class="form-label fw-semibold" for="search">Search</label>
+                        <div class="input-group">
+                            <span class="input-group-text bg-white">
+                                <i class="fa-solid fa-magnifying-glass text-muted"></i>
+                            </span>
+                            <input
+                                type="text"
+                                class="form-control"
+                                id="search"
+                                name="search"
+                                value="{{ $search }}"
+                                placeholder="Guest name, folio #, or room #"
+                                autocomplete="off"
+                            >
+                        </div>
                     </div>
 
-                    <div class="col-lg-3">
-
-                        <label class="form-label fw-semibold">
-                            Search Options
-                        </label>
-
-                        <select class="form-select">
-                            <option>Guest Name</option>
-                            <option>Folio Number</option>
-                            <option>Room Number</option>
+                    <div class="col-md-2">
+                        <label class="form-label fw-semibold" for="folio_type">Folio Type</label>
+                        <select class="form-select" id="folio_type" name="folio_type">
+                            <option value="ALL" @selected($folioType === 'ALL')>All Types</option>
+                            <option value="GUEST" @selected($folioType === 'GUEST')>Guest</option>
+                            <option value="HOUSE" @selected($folioType === 'HOUSE')>House</option>
                         </select>
-
                     </div>
 
-                    <div class="col-lg-4">
+                    <div class="col-md-2">
+                        <label class="form-label fw-semibold" for="status">Folio Status</label>
+                        <select class="form-select" id="status" name="status">
+                            <option value="ALL" @selected($statusFilter === 'ALL')>All</option>
+                            <option value="OPEN" @selected($statusFilter === 'OPEN')>Open</option>
+                            <option value="CLOSED" @selected($statusFilter === 'CLOSED')>Closed</option>
+                        </select>
+                    </div>
 
-                        <label class="form-label fw-semibold">
-                            Search Text
-                        </label>
+                    <div class="col-md-2">
+                        <button type="submit" class="btn btn-primary w-100">
+                            <i class="fa-solid fa-filter me-1"></i> Filter
+                        </button>
+                    </div>
 
-                        <input type="text"
-                               class="form-control"
-                               placeholder="Enter search value">
-
+                    <div class="col-md-2">
+                        @if($search || $folioType !== 'ALL' || $statusFilter !== 'ALL')
+                            <a href="{{ route('frontdesk.guest-folio') }}" class="btn btn-outline-secondary w-100">
+                                <i class="fa-solid fa-xmark me-1"></i> Clear
+                            </a>
+                        @else
+                            <button type="button" class="btn btn-outline-secondary w-100" onclick="window.print()">
+                                <i class="fa-solid fa-print me-1"></i> Print
+                            </button>
+                        @endif
                     </div>
 
                 </div>
+            </form>
+        </div>
+    </div>
 
+    {{-- Results Summary --}}
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <p class="text-muted mb-0">
+            Showing <strong>{{ $folios->total() }}</strong> folio(s)
+            @if($search) for "<strong>{{ $search }}</strong>" @endif
+        </p>
+        @if($folios->hasPages())
+            <span class="badge bg-primary-subtle text-primary border border-primary-subtle px-3 py-2">
+                Page {{ $folios->currentPage() }} of {{ $folios->lastPage() }}
+            </span>
+        @endif
+    </div>
+
+    {{-- Folio Table --}}
+    <div class="card border-0 shadow-sm">
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0" id="folioTable">
+                    <thead class="table-light">
+                        <tr>
+                            <th class="px-4 py-3">Folio No.</th>
+                            <th class="py-3">Guest Name</th>
+                            <th class="py-3">Room</th>
+                            <th class="py-3 text-center">Type</th>
+                            <th class="py-3">Arrival</th>
+                            <th class="py-3">Departure</th>
+                            <th class="py-3 text-end">Base Rate</th>
+                            <th class="py-3 text-end">Net Rate</th>
+                            <th class="py-3 text-center">Payment</th>
+                            <th class="py-3 text-center">Status</th>
+                            <th class="py-3 text-center">Action</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @forelse($folios as $folio)
+                            @php
+                                $booking     = $folio->bookings->sortByDesc('booking_id')->first();
+                                $room        = $booking?->room;
+                                $totalCharge = $folio->transactions->sum('charge_amount');
+                                $totalCredit = $folio->transactions->sum('credit_amount');
+                                $balance     = $totalCharge - $totalCredit;
+                            @endphp
+                            <tr>
+                                <td class="px-4">
+                                    <span class="fw-semibold text-primary">{{ $folio->folio_number }}</span>
+                                </td>
+                                <td>
+                                    @if($folio->guest)
+                                        <div class="fw-semibold">{{ $folio->guest->last_name }}, {{ $folio->guest->first_name }}</div>
+                                        <div class="text-muted small">{{ $folio->guest->contact_number ?: '' }}</div>
+                                    @else
+                                        <span class="text-muted">—</span>
+                                    @endif
+                                </td>
+                                <td>
+                                    @if($room)
+                                        <span class="fw-semibold">{{ $room->room_number }}</span>
+                                        <div class="text-muted small">{{ $room->room_type }}</div>
+                                    @else
+                                        <span class="text-muted">—</span>
+                                    @endif
+                                </td>
+                                <td class="text-center">
+                                    <span class="badge bg-light text-secondary border">{{ $folio->folio_type }}</span>
+                                </td>
+                                <td class="small">
+                                    {{ $booking?->arrival_date?->format('M d, Y') ?? '—' }}
+                                </td>
+                                <td class="small">
+                                    {{ $booking?->departure_date?->format('M d, Y') ?? '—' }}
+                                </td>
+                                <td class="text-end small">
+                                    @if($room)
+                                        ₱{{ number_format($room->base_rate, 2) }}
+                                    @else
+                                        —
+                                    @endif
+                                </td>
+                                <td class="text-end small">
+                                    @if($folio->net_rate !== null)
+                                        <span class="text-success fw-semibold">₱{{ number_format($folio->net_rate, 2) }}</span>
+                                    @else
+                                        <span class="text-muted">—</span>
+                                    @endif
+                                </td>
+                                <td class="text-center small">
+                                    @if($folio->payment_method)
+                                        {{ $folio->payment_method === 'Cash' ? '💵' : '💳' }}
+                                        {{ $folio->payment_method }}
+                                    @else
+                                        <span class="text-muted">—</span>
+                                    @endif
+                                </td>
+                                <td class="text-center">
+                                    @if($folio->status === 'OPEN')
+                                        <span class="badge bg-success-subtle text-success border border-success-subtle">Open</span>
+                                    @else
+                                        <span class="badge bg-secondary-subtle text-secondary border border-secondary-subtle">Closed</span>
+                                    @endif
+                                </td>
+                                <td class="text-center">
+                                    <button
+                                        type="button"
+                                        class="btn btn-sm btn-outline-primary"
+                                        data-bs-toggle="modal"
+                                        data-bs-target="#folioModal{{ $folio->folio_id }}"
+                                        title="View folio details"
+                                    >
+                                        <i class="fa-solid fa-eye me-1"></i> Details
+                                    </button>
+                                </td>
+                            </tr>
+                        @empty
+                            <tr>
+                                <td colspan="11" class="text-center py-5 text-muted">
+                                    <i class="fa-solid fa-folder-open fa-2x mb-3 d-block"></i>
+                                    @if($search)
+                                        No folios found matching "<strong>{{ $search }}</strong>".
+                                    @else
+                                        No folios found.
+                                    @endif
+                                </td>
+                            </tr>
+                        @endforelse
+                    </tbody>
+                </table>
             </div>
-
         </div>
 
-        <!-- Table -->
-
-        <div class="table-responsive">
-
-            <table class="table table-hover align-middle">
-
-                <thead class="table-light">
-
-                    <tr>
-
-                        <th>Room No.</th>
-                        <th>Type</th>
-                        <th>Folio No.</th>
-                        <th>Last Name</th>
-                        <th>First Name</th>
-                        <th>Arrival</th>
-                        <th>Departure</th>
-                        <th>Net Rate</th>
-                        <th>Symbol</th>
-                        <th>Status</th>
-                        <th width="170">Action</th>
-
-                    </tr>
-
-                </thead>
-
-                <tbody>
-
-                    <tr>
-
-                        <td>201</td>
-                        <td>ECA</td>
-                        <td>20102411</td>
-                        <td>Albor</td>
-                        <td>Clifford</td>
-                        <td>06/15/2026</td>
-                        <td>06/16/2026</td>
-                        <td>950.00</td>
-                        <td>CBO</td>
-
-                        <td>
-                            <span class="badge bg-success">
-                                Checked In
-                            </span>
-                        </td>
-
-                        <td>
-
-                            <div class="btn-group btn-group-sm">
-
-                                <button class="btn btn-outline-primary">
-                                    Details
-                                </button>
-
-                                <button class="btn btn-outline-warning">
-                                    Transfer
-                                </button>
-
-                            </div>
-
-                        </td>
-
-                    </tr>
-
-                    <tr>
-
-                        <td>329</td>
-                        <td>ECA</td>
-                        <td>20102414</td>
-                        <td>Alipin</td>
-                        <td>Evangeline</td>
-                        <td>06/13/2026</td>
-                        <td>06/12/2026</td>
-                        <td>950.00</td>
-                        <td>CBO</td>
-
-                        <td>
-                            <span class="badge bg-secondary">
-                                Open
-                            </span>
-                        </td>
-
-                        <td>
-
-                            <div class="btn-group btn-group-sm">
-
-                                <button class="btn btn-outline-primary">
-                                    Details
-                                </button>
-
-                                <button class="btn btn-outline-warning">
-                                    Transfer
-                                </button>
-
-                            </div>
-
-                        </td>
-
-                    </tr>
-
-                </tbody>
-
-            </table>
-
-        </div>
-
-        <!-- Footer Actions -->
-
-        <div class="d-flex justify-content-between align-items-center mt-4">
-
-            <small class="text-muted">
-                Showing 1 - 2 of 10 folio records
-            </small>
-
-            <div class="d-flex gap-2">
-
-                <button class="btn btn-outline-info">
-                    <i class="fa-solid fa-circle-info me-1"></i>
-                    Details
-                </button>
-
-                <button class="btn btn-outline-warning">
-                    <i class="fa-solid fa-right-left me-1"></i>
-                    Room Transfer
-                </button>
-
-                <button class="btn btn-outline-secondary">
-                    <i class="fa-solid fa-print me-1"></i>
-                    Print Folio
-                </button>
-
-                <button class="btn btn-success">
-                    <i class="fa-solid fa-door-open me-1"></i>
-                    Checkout
-                </button>
-
+        @if($folios->hasPages())
+            <div class="card-footer bg-white border-top">
+                {{ $folios->links() }}
             </div>
-
-        </div>
-
+        @endif
     </div>
 
 </div>
 
+{{-- Folio Detail Modals --}}
+@foreach($folios as $folio)
+    @php
+        $booking     = $folio->bookings->sortByDesc('booking_id')->first();
+        $room        = $booking?->room;
+        $totalCharge = $folio->transactions->sum('charge_amount');
+        $totalCredit = $folio->transactions->sum('credit_amount');
+        $balance     = $totalCharge - $totalCredit;
+    @endphp
+    <div class="modal fade" id="folioModal{{ $folio->folio_id }}" tabindex="-1" aria-labelledby="folioModalLabel{{ $folio->folio_id }}" aria-hidden="true">
+        <div class="modal-dialog modal-xl modal-dialog-scrollable">
+            <div class="modal-content">
+
+                {{-- Modal Header --}}
+                <div class="modal-header">
+                    <div>
+                        <h5 class="modal-title fw-bold" id="folioModalLabel{{ $folio->folio_id }}">
+                            <i class="fa-solid fa-file-invoice me-2 text-primary"></i>
+                            Folio {{ $folio->folio_number }}
+                        </h5>
+                        <small class="text-muted">
+                            {{ $folio->status === 'OPEN' ? '🟢 Open' : '⚫ Closed' }}
+                            &bull; {{ $folio->folio_type }} Folio
+                        </small>
+                    </div>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+
+                <div class="modal-body">
+
+                    {{-- Guest & Stay Info --}}
+                    <div class="row g-3 mb-4">
+                        <div class="col-md-3">
+                            <p class="mb-1 text-muted small fw-semibold">GUEST</p>
+                            <p class="mb-0 fw-semibold">
+                                @if($folio->guest)
+                                    {{ $folio->guest->last_name }}, {{ $folio->guest->first_name }}
+                                @else
+                                    —
+                                @endif
+                            </p>
+                        </div>
+                        <div class="col-md-3">
+                            <p class="mb-1 text-muted small fw-semibold">MOBILE</p>
+                            <p class="mb-0">{{ $folio->guest?->contact_number ?: '—' }}</p>
+                        </div>
+                        <div class="col-md-3">
+                            <p class="mb-1 text-muted small fw-semibold">ADDRESS</p>
+                            <p class="mb-0">{{ $folio->guest?->address_line1 ?: '—' }}</p>
+                        </div>
+                        <div class="col-md-3">
+                            <p class="mb-1 text-muted small fw-semibold">PAYMENT METHOD</p>
+                            <p class="mb-0">
+                                @if($folio->payment_method)
+                                    {{ $folio->payment_method === 'Cash' ? '💵' : '💳' }} {{ $folio->payment_method }}
+                                @else
+                                    —
+                                @endif
+                            </p>
+                        </div>
+                        <div class="col-md-3">
+                            <p class="mb-1 text-muted small fw-semibold">ROOM</p>
+                            <p class="mb-0 fw-semibold">
+                                @if($room)
+                                    {{ $room->room_number }}
+                                    <span class="text-muted fw-normal small">{{ $room->room_type }}</span>
+                                @else
+                                    —
+                                @endif
+                            </p>
+                        </div>
+                        <div class="col-md-3">
+                            <p class="mb-1 text-muted small fw-semibold">ARRIVAL</p>
+                            <p class="mb-0">{{ $booking?->arrival_date?->format('M d, Y') ?? '—' }}</p>
+                        </div>
+                        <div class="col-md-3">
+                            <p class="mb-1 text-muted small fw-semibold">DEPARTURE</p>
+                            <p class="mb-0">{{ $booking?->departure_date?->format('M d, Y') ?? '—' }}</p>
+                        </div>
+                        <div class="col-md-3">
+                            <p class="mb-1 text-muted small fw-semibold">NO. OF PAX</p>
+                            <p class="mb-0">{{ $folio->num_pax }}</p>
+                        </div>
+                        <div class="col-md-3">
+                            <p class="mb-1 text-muted small fw-semibold">ROOM BASE RATE</p>
+                            <p class="mb-0">
+                                @if($room)
+                                    ₱{{ number_format($room->base_rate, 2) }} / night
+                                @else
+                                    —
+                                @endif
+                            </p>
+                        </div>
+                        <div class="col-md-3">
+                            <p class="mb-1 text-muted small fw-semibold">NET RATE (AGREED)</p>
+                            <p class="mb-0">
+                                @if($folio->net_rate !== null)
+                                    <span class="text-success fw-semibold">₱{{ number_format($folio->net_rate, 2) }} / night</span>
+                                @else
+                                    <span class="text-muted">Not set</span>
+                                @endif
+                            </p>
+                        </div>
+                        <div class="col-md-3">
+                            <p class="mb-1 text-muted small fw-semibold">MARKET SEGMENT</p>
+                            <p class="mb-0">{{ $folio->market_segment }}</p>
+                        </div>
+                        <div class="col-md-3">
+                            <p class="mb-1 text-muted small fw-semibold">JOINER</p>
+                            <p class="mb-0">{{ $folio->has_joiner ? 'Yes' : 'No' }}</p>
+                        </div>
+                        @if($folio->special_arrangements)
+                            <div class="col-md-12">
+                                <p class="mb-1 text-muted small fw-semibold">SPECIAL ARRANGEMENTS</p>
+                                <p class="mb-0">{{ $folio->special_arrangements }}</p>
+                            </div>
+                        @endif
+                    </div>
+
+                    {{-- Front Desk Controls Panel --}}
+                    <div class="card border-0 bg-light mb-4 shadow-sm">
+                        <div class="card-body">
+                            <h6 class="fw-bold text-dark mb-3"><i class="fa-solid fa-sliders text-primary me-2"></i>Front Desk Controls</h6>
+                            <div class="row g-3">
+
+                                {{-- Left Column: Stay Operations --}}
+                                <div class="col-lg-6 border-end">
+                                    <div class="d-flex flex-column gap-3 pe-lg-3">
+
+                                        {{-- Booking Status Banner --}}
+                                        @if($booking)
+                                            <div class="d-flex align-items-center gap-2 mb-1">
+                                                <span class="text-muted small fw-semibold">BOOKING STATUS:</span>
+                                                @if($booking->status === 'CHECKED_IN')
+                                                    <span class="badge bg-success">🛏 Checked In — Room {{ $room?->room_number }}</span>
+                                                @elseif($booking->status === 'RESERVED')
+                                                    <span class="badge bg-warning text-dark">📋 Reserved — Room {{ $room?->room_number }}</span>
+                                                @elseif($booking->status === 'CHECKED_OUT')
+                                                    <span class="badge bg-secondary">✅ Checked Out</span>
+                                                @elseif($booking->status === 'CANCELLED')
+                                                    <span class="badge bg-danger">❌ Cancelled</span>
+                                                @endif
+                                            </div>
+                                        @endif
+
+                                        {{-- Folio Status & Stay Operations --}}
+                                        <div>
+                                            <label class="form-label small fw-semibold text-muted mb-2 d-block">FOLIO & STAY OPERATIONS</label>
+                                            <div class="d-flex flex-wrap gap-2">
+                                                @if($folio->status === 'OPEN')
+                                                    <form method="POST" action="{{ route('frontdesk.guest-folio.close', $folio->folio_id) }}" class="d-inline">
+                                                        @csrf
+                                                        <button type="submit" class="btn btn-sm btn-danger" onclick="return confirm('Are you sure you want to close this folio?')">
+                                                            <i class="fa-solid fa-lock me-1"></i> Close Folio
+                                                        </button>
+                                                    </form>
+                                                @else
+                                                    <form method="POST" action="{{ route('frontdesk.guest-folio.reopen', $folio->folio_id) }}" class="d-inline">
+                                                        @csrf
+                                                        <button type="submit" class="btn btn-sm btn-success">
+                                                            <i class="fa-solid fa-lock-open me-1"></i> Reopen Folio
+                                                        </button>
+                                                    </form>
+                                                @endif
+
+                                                {{-- CHECK IN button — shown for RESERVED bookings --}}
+                                                @if($folio->status === 'OPEN' && $booking && $booking->status === 'RESERVED')
+                                                    <form method="POST" action="{{ route('frontdesk.guest-folio.checkin', $booking->booking_id) }}" class="d-inline">
+                                                        @csrf
+                                                        <button type="submit" class="btn btn-sm btn-success fw-semibold" onclick="return confirm('Check in {{ $folio->guest?->first_name }} to Room {{ $room?->room_number }}?')">
+                                                            <i class="fa-solid fa-plane-arrival me-1"></i> Check In Guest
+                                                        </button>
+                                                    </form>
+                                                @endif
+
+                                                {{-- CHECKOUT button — shown for CHECKED_IN bookings --}}
+                                                @if($folio->status === 'OPEN' && $booking && $booking->status === 'CHECKED_IN')
+                                                    <button type="button" class="btn btn-sm btn-warning text-dark fw-semibold" data-bs-toggle="collapse" data-bs-target="#checkoutFormCollapse{{ $folio->folio_id }}">
+                                                        <i class="fa-solid fa-plane-departure me-1"></i> Checkout Guest
+                                                    </button>
+                                                @endif
+                                            </div>
+
+                                            {{-- Checkout Collapse Form --}}
+                                            @if($booking && $booking->status === 'CHECKED_IN')
+                                                <div class="collapse mt-3 p-3 bg-white rounded border border-warning-subtle" id="checkoutFormCollapse{{ $folio->folio_id }}">
+                                                    <h6 class="small fw-bold text-warning mb-2">Check Out Time Reconcile</h6>
+                                                    <form method="POST" action="{{ route('frontdesk.guest-folio.checkout', $booking->booking_id) }}">
+                                                        @csrf
+                                                        <div class="row g-2">
+                                                            <div class="col-7">
+                                                                <input type="text" name="checkout_time" class="form-control form-control-sm" placeholder="e.g. 11:30" required value="{{ now()->format('g:i') }}" maxlength="5">
+                                                            </div>
+                                                            <div class="col-5">
+                                                                <select name="checkout_period" class="form-select form-select-sm" required>
+                                                                    <option value="AM" @selected(now()->format('A') === 'AM')>AM</option>
+                                                                    <option value="PM" @selected(now()->format('A') === 'PM')>PM</option>
+                                                                </select>
+                                                            </div>
+                                                            <div class="col-12 text-end mt-2">
+                                                                <button type="submit" class="btn btn-sm btn-danger px-3">
+                                                                    Confirm Checkout
+                                                                </button>
+                                                            </div>
+                                                        </div>
+                                                    </form>
+                                                </div>
+                                            @endif
+                                        </div>
+
+                                        {{-- Room Transfer — only for CHECKED_IN --}}
+                                        @if($folio->status === 'OPEN' && $booking && $booking->status === 'CHECKED_IN')
+                                            <div>
+                                                <label class="form-label small fw-semibold text-muted mb-2 d-block">ROOM TRANSFER</label>
+                                                @if($availableRooms->isEmpty())
+                                                    <div class="alert alert-warning py-2 px-3 small mb-0 border-0">
+                                                        <i class="fa-solid fa-triangle-exclamation me-1"></i>
+                                                        No available rooms to transfer to right now.
+                                                    </div>
+                                                @else
+                                                    <form method="POST" action="{{ route('frontdesk.guest-folio.transfer', $booking->booking_id) }}">
+                                                        @csrf
+                                                        <div class="row g-2">
+                                                            <div class="col-md-7">
+                                                                <select name="new_room_id" class="form-select form-select-sm" required
+                                                                    onchange="document.getElementById('roomTransferRate{{ $booking->booking_id }}').value = this.options[this.selectedIndex].getAttribute('data-rate')">
+                                                                    <option value="" disabled selected>Select new room...</option>
+                                                                    @foreach($availableRooms as $availRoom)
+                                                                        <option value="{{ $availRoom->room_id }}" data-rate="{{ $availRoom->base_rate }}">
+                                                                            Room {{ $availRoom->room_number }} — {{ $availRoom->room_type }}
+                                                                            (₱{{ number_format($availRoom->base_rate, 2) }}/night)
+                                                                        </option>
+                                                                    @endforeach
+                                                                </select>
+                                                            </div>
+                                                            <div class="col-md-5">
+                                                                <div class="input-group input-group-sm">
+                                                                    <span class="input-group-text">₱</span>
+                                                                    <input type="number" name="net_rate"
+                                                                        id="roomTransferRate{{ $booking->booking_id }}"
+                                                                        class="form-control form-control-sm text-end"
+                                                                        min="0.00" step="0.01" placeholder="Net rate"
+                                                                        value="{{ $folio->net_rate ?? '' }}">
+                                                                </div>
+                                                                <div class="form-text small text-muted">Leave as-is or adjust agreed rate</div>
+                                                            </div>
+                                                            <div class="col-12 text-end">
+                                                                <button type="submit" class="btn btn-sm btn-primary px-3" onclick="return confirm('Transfer guest to selected room?')">
+                                                                    <i class="fa-solid fa-right-left me-1"></i> Transfer Guest
+                                                                </button>
+                                                            </div>
+                                                        </div>
+                                                    </form>
+                                                @endif
+                                            </div>
+                                        @endif
+
+                                    </div>
+                                </div>
+
+                                {{-- Right Column: Post Transaction --}}
+                                <div class="col-lg-6">
+                                    <div class="ps-lg-3">
+                                        <label class="form-label small fw-semibold text-muted mb-2 d-block">POST CHARGE OR PAYMENT</label>
+                                        
+                                        @if($folio->status === 'OPEN')
+                                            <form method="POST" action="{{ route('frontdesk.guest-folio.transaction', $folio->folio_id) }}">
+                                                @csrf
+                                                <div class="row g-2">
+                                                    <div class="col-md-6">
+                                                        <select name="charge_code" class="form-select form-select-sm" required>
+                                                            <option value="" disabled selected>Select charge code...</option>
+                                                            @foreach($chargeCodes as $code)
+                                                                <option value="{{ $code->charge_code }}">
+                                                                    {{ $code->charge_code }} - {{ $code->description }} ({{ $code->category }})
+                                                                </option>
+                                                            @endforeach
+                                                        </select>
+                                                    </div>
+                                                    <div class="col-md-3">
+                                                        <select name="type" class="form-select form-select-sm" required>
+                                                            <option value="CHARGE">Charge</option>
+                                                            <option value="PAYMENT">Payment</option>
+                                                        </select>
+                                                    </div>
+                                                    <div class="col-md-3">
+                                                        <div class="input-group input-group-sm">
+                                                            <span class="input-group-text">₱</span>
+                                                            <input type="number" name="amount" class="form-control form-control-sm text-end" min="0.01" step="0.01" placeholder="0.00" required>
+                                                        </div>
+                                                    </div>
+                                                    <div class="col-md-9">
+                                                        <input type="text" name="reference_notes" class="form-control form-control-sm" placeholder="Ref notes (e.g. receipt #, cleaning surcharge, discount details)...">
+                                                    </div>
+                                                    <div class="col-md-3">
+                                                        <button type="submit" class="btn btn-sm btn-primary w-100">
+                                                            <i class="fa-solid fa-plus me-1"></i> Post
+                                                        </button>
+                                                    </div>
+                                                </div>
+                                            </form>
+                                        @else
+                                            <div class="alert alert-secondary py-2 px-3 small mb-0 border-0">
+                                                <i class="fa-solid fa-circle-info me-2 text-secondary"></i>
+                                                This folio is closed. Reopen the folio to post new transactions.
+                                            </div>
+                                        @endif
+                                    </div>
+                                </div>
+
+                            </div>
+                        </div>
+                    </div>
+
+                    <hr>
+
+                    {{-- Transactions --}}
+                    <h6 class="fw-bold mb-3">Transaction Ledger</h6>
+
+                    @if($folio->transactions->isEmpty())
+                        <p class="text-muted small">No transactions recorded for this folio.</p>
+                    @else
+                        <div class="table-responsive">
+                            <table class="table table-sm align-middle">
+                                <thead class="table-light">
+                                    <tr>
+                                        <th>Date</th>
+                                        <th>Description</th>
+                                        <th>Ref. Notes</th>
+                                        <th class="text-end">Charges</th>
+                                        <th class="text-end">Credits</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach($folio->transactions->sortBy('timestamp') as $txn)
+                                        <tr>
+                                            <td class="small text-muted">{{ $txn->transaction_date->format('M d, Y') }}</td>
+                                            <td class="small">{{ $txn->chargeCode?->description ?? "Code #{$txn->charge_code}" }}</td>
+                                            <td class="small text-muted">{{ $txn->reference_notes ?: '—' }}</td>
+                                            <td class="text-end small">
+                                                @if($txn->charge_amount > 0)
+                                                    <span class="text-danger">₱{{ number_format($txn->charge_amount, 2) }}</span>
+                                                @else
+                                                    —
+                                                @endif
+                                            </td>
+                                            <td class="text-end small">
+                                                @if($txn->credit_amount > 0)
+                                                    <span class="text-success">₱{{ number_format($txn->credit_amount, 2) }}</span>
+                                                @else
+                                                    —
+                                                @endif
+                                            </td>
+                                        </tr>
+                                    @endforeach
+                                </tbody>
+                                <tfoot class="table-light fw-bold">
+                                    <tr>
+                                        <td colspan="3" class="text-end">Total</td>
+                                        <td class="text-end text-danger">₱{{ number_format($totalCharge, 2) }}</td>
+                                        <td class="text-end text-success">₱{{ number_format($totalCredit, 2) }}</td>
+                                    </tr>
+                                    <tr>
+                                        <td colspan="4" class="text-end">
+                                            Balance Due
+                                        </td>
+                                        <td class="text-end {{ $balance > 0 ? 'text-danger' : 'text-success' }}">
+                                            ₱{{ number_format(abs($balance), 2) }}
+                                            {{ $balance > 0 ? '(Unpaid)' : ($balance < 0 ? '(Overpaid)' : '(Settled)') }}
+                                        </td>
+                                    </tr>
+                                </tfoot>
+                            </table>
+                        </div>
+                    @endif
+
+                </div>
+
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-outline-secondary" onclick="window.print()">
+                        <i class="fa-solid fa-print me-1"></i> Print Folio
+                    </button>
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                </div>
+
+            </div>
+        </div>
+    </div>
+@endforeach
+
 @endsection
+
+@push('styles')
+<style>
+    @media print {
+        .btn, form, nav, aside, .modal-footer, [data-bs-toggle], .card-footer,
+        #filterForm, .d-flex.justify-content-between { display: none !important; }
+        .modal { display: block !important; position: static !important; }
+        .modal-dialog { max-width: 100% !important; }
+        .modal-backdrop { display: none !important; }
+        #folioTable thead { background-color: #f8f9fa !important; -webkit-print-color-adjust: exact; }
+    }
+</style>
+@endpush
