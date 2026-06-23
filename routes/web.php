@@ -119,6 +119,9 @@ Route::middleware('auth')->group(function () {
 
             Route::get('/shift-sales', [ShiftSalesController::class, 'index'])
                 ->name('frontdesk.shift-sales');
+
+            Route::get('/shift-sales/{shift}', [ShiftSalesController::class, 'show'])
+                ->name('frontdesk.shift-sales.show');
         });
 
     });
@@ -269,6 +272,9 @@ Route::middleware('auth')->group(function () {
 
             Route::get('/shift-sales', [ShiftSalesController::class, 'index'])
                 ->name('admin.shift-sales');
+
+            Route::get('/shift-sales/{shift}', [ShiftSalesController::class, 'show'])
+                ->name('admin.shift-sales.show');
         });
     });
 });

@@ -21,6 +21,7 @@ class Booking extends Model
         'actual_check_in',
         'actual_check_out',
         'status',
+        'checked_in_by',
     ];
 
     protected function casts(): array
@@ -41,5 +42,10 @@ class Booking extends Model
     public function room(): BelongsTo
     {
         return $this->belongsTo(Room::class, 'room_id', 'room_id');
+    }
+
+    public function checkedInBy(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'checked_in_by', 'user_id');
     }
 }

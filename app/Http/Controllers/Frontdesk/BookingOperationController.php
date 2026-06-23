@@ -47,6 +47,7 @@ class BookingOperationController extends Controller
         $booking->update([
             'actual_check_in' => Carbon::now(),
             'status' => 'CHECKED_IN',
+            'checked_in_by' => auth()->id(),
         ]);
 
         $booking->room->update(['status' => 'OCCUPIED']);
