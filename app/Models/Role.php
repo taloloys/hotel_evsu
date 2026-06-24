@@ -23,6 +23,7 @@ class Role extends Model
         'role_name',
         'description',
         'is_active',
+        'is_system_admin',
     ];
 
     /**
@@ -32,6 +33,7 @@ class Role extends Model
     {
         return [
             'is_active' => 'boolean',
+            'is_system_admin' => 'boolean',
         ];
     }
 

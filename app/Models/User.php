@@ -6,6 +6,7 @@ namespace App\Models;
 use Database\Factories\UserFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
@@ -54,20 +55,53 @@ class User extends Authenticatable
         return $this->hasMany(Shift::class, 'user_id', 'user_id');
     }
 
+    /**
+     * Get direct permissions assigned to this user.
+     *
+     * @return BelongsToMany<Permission, $this>
+     */
+    public function permissions(): BelongsToMany
+    {
+        return $this->belongsToMany(
+            Permission::class,
+            'userpermissions',
+            'user_id',
+            'permission_id'
+        );
+    }
+
+    /**
+     * Cache permissions list for the user during the request lifecycle.
+     *
+     * @var array<string>|null
+     */
+    protected ?array $resolvedPermissions = null;
+
     public function hasPermission(string $permissionKey): bool
     {
         if (! $this->role?->is_active) {
             return false;
         }
 
-        if ($this->role->role_name === 'ADMIN') {
+        if ($this->role->is_system_admin || $this->role->role_name === 'ADMIN') {
             return true;
         }
 
-        return (bool) $this->role->permissions()
-            ->where('permissions.permission_key', $permissionKey)
-            ->where('permissions.is_active', true)
-            ->exists();
+        if ($this->resolvedPermissions === null) {
+            $rolePerms = $this->role->permissions()
+                ->where('permissions.is_active', true)
+                ->pluck('permissions.permission_key')
+                ->toArray();
+
+            $directPerms = $this->permissions()
+                ->where('permissions.is_active', true)
+                ->pluck('permissions.permission_key')
+                ->toArray();
+
+            $this->resolvedPermissions = array_unique(array_merge($rolePerms, $directPerms));
+        }
+
+        return in_array($permissionKey, $this->resolvedPermissions, true);
     }
 
     /**
@@ -90,6 +124,20 @@ class User extends Authenticatable
             'password_hash' => 'hashed',
             'is_active' => 'boolean',
         ];
+    }
+
+    public function refresh()
+    {
+        $this->resolvedPermissions = null;
+
+        return parent::refresh();
+    }
+
+    public function fresh($with = [])
+    {
+        $this->resolvedPermissions = null;
+
+        return parent::fresh($with);
     }
 
     public function getAuthPassword(): string

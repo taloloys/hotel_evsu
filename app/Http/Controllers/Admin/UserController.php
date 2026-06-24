@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\ActivityLog;
+use App\Models\Permission;
 use App\Models\Role;
 use App\Models\User;
 use Illuminate\Http\RedirectResponse;
@@ -18,14 +19,18 @@ class UserController extends Controller
      */
     public function index(): View
     {
-        $users = User::with('role')->get();
+        $users = User::with(['role', 'permissions'])->get();
         $roles = Role::all();
+        $permissions = Permission::where('is_active', true)
+            ->orderBy('module')
+            ->orderBy('permission_key')
+            ->get();
 
         $totalCount = $users->count();
         $activeCount = $users->where('is_active', true)->count();
         $inactiveCount = $users->where('is_active', false)->count();
 
-        return view('admin.users.index', compact('users', 'roles', 'totalCount', 'activeCount', 'inactiveCount'));
+        return view('admin.users.index', compact('users', 'roles', 'permissions', 'totalCount', 'activeCount', 'inactiveCount'));
     }
 
     /**
@@ -38,15 +43,19 @@ class UserController extends Controller
             'username' => ['required', 'string', 'max:50', 'unique:users,username'],
             'role_id' => ['required', 'integer', 'exists:roles,role_id'],
             'password' => ['required', 'string', 'min:6'],
+            'permissions' => ['nullable', 'array'],
+            'permissions.*' => ['integer', 'exists:permissions,permission_id'],
         ]);
 
-        User::create([
+        $user = User::create([
             'username' => $validated['username'],
             'full_name' => $validated['full_name'],
             'password_hash' => Hash::make($validated['password']),
             'role_id' => $validated['role_id'],
             'is_active' => true,
         ]);
+
+        $user->permissions()->sync($request->input('permissions', []));
 
         ActivityLog::log(
             'ROOM_MODIFIED',
@@ -95,6 +104,8 @@ class UserController extends Controller
             'username' => ['required', 'string', 'max:50', 'unique:users,username,'.$user->user_id.',user_id'],
             'role_id' => ['required', 'integer', 'exists:roles,role_id'],
             'password' => ['nullable', 'string', 'min:6'],
+            'permissions' => ['nullable', 'array'],
+            'permissions.*' => ['integer', 'exists:permissions,permission_id'],
         ]);
 
         $updateData = [
@@ -108,6 +119,9 @@ class UserController extends Controller
         }
 
         $user->update($updateData);
+
+        $user->permissions()->sync($request->input('permissions', []));
+        $user->refresh(); // Clear the resolvedPermissions cache
 
         ActivityLog::log(
             'ROOM_MODIFIED',

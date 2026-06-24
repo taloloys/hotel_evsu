@@ -64,7 +64,10 @@ class UserSeeder extends Seeder
         foreach ($roles as $roleName => $data) {
             $role = Role::updateOrCreate(
                 ['role_name' => $roleName],
-                ['description' => $data['description']]
+                [
+                    'description' => $data['description'],
+                    'is_system_admin' => $roleName === 'ADMIN',
+                ]
             );
 
             // Sync permissions for this role

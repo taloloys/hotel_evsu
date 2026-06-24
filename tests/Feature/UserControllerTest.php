@@ -1,5 +1,6 @@
 <?php
 
+use App\Models\Permission;
 use App\Models\Role;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -160,4 +161,61 @@ test('disabled user cannot login', function (): void {
 
     $response->assertSessionHasErrors(['username']);
     $this->assertGuest();
+});
+
+test('admin can create a new user with direct permissions', function (): void {
+    $permission = Permission::create([
+        'permission_key' => 'manage-reservations',
+        'description' => 'Test',
+        'module' => 'Test',
+        'is_active' => true,
+    ]);
+
+    $userData = [
+        'full_name' => 'Jane Smith',
+        'username' => 'janesmith',
+        'password' => 'secret123',
+        'role_id' => $this->staffRole->role_id,
+        'permissions' => [$permission->permission_id],
+    ];
+
+    $response = $this->actingAs($this->adminUser)
+        ->post(route('admin.users.store'), $userData);
+
+    $response->assertRedirect(route('admin.users'));
+    $response->assertSessionHas('success', 'User created successfully.');
+
+    $createdUser = User::where('username', 'janesmith')->first();
+    expect($createdUser->permissions)->toHaveCount(1);
+    expect($createdUser->permissions->first()->permission_id)->toBe($permission->permission_id);
+});
+
+test('admin can update a user and sync direct permissions', function (): void {
+    $permission = Permission::create([
+        'permission_key' => 'manage-reservations',
+        'description' => 'Test',
+        'module' => 'Test',
+        'is_active' => true,
+    ]);
+
+    $staffUser = User::factory()->create([
+        'username' => 'staff_update_test',
+        'role_id' => $this->staffRole->role_id,
+    ]);
+
+    $updateData = [
+        'full_name' => 'Jane Updated',
+        'username' => 'staff_update_test',
+        'role_id' => $this->staffRole->role_id,
+        'permissions' => [$permission->permission_id],
+    ];
+
+    $response = $this->actingAs($this->adminUser)
+        ->patch(route('admin.users.update', $staffUser), $updateData);
+
+    $response->assertRedirect(route('admin.users'));
+    $response->assertSessionHas('success', 'User updated successfully.');
+
+    expect($staffUser->fresh()->permissions)->toHaveCount(1);
+    expect($staffUser->fresh()->permissions->first()->permission_id)->toBe($permission->permission_id);
 });

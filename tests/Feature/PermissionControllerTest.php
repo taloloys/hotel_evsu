@@ -151,6 +151,7 @@ test('disabled permission is not considered active for users', function (): void
 
     // Deactivate permission
     $this->staffPermission->update(['is_active' => false]);
+    $staffUser->refresh();
     expect($staffUser->hasPermission('manage-reservations'))->toBeFalse();
 });
 
