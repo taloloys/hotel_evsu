@@ -180,6 +180,9 @@ class GuestFolioController extends Controller
                 ? ($booking->folio->guest->first_name.' '.$booking->folio->guest->last_name)
                 : 'Guest';
 
+            // Post room charges night-by-night automatically
+            $booking->postRoomCharges();
+
             ActivityLog::log(
                 'CHECK_IN',
                 "Checked in guest {$guestName} to Room {$room->room_number} (Booking #{$booking->booking_id}) via Folio."

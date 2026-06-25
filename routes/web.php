@@ -79,6 +79,9 @@ Route::middleware('auth')->group(function () {
             Route::post('/registration', [RegistrationController::class, 'store'])
                 ->name('frontdesk.registration.store');
 
+            Route::get('/guests/search', [GuestListController::class, 'searchJson'])
+                ->name('frontdesk.guests.search');
+
             Route::get('/check-in', [CheckInController::class, 'index'])
                 ->name('frontdesk.checkin');
 

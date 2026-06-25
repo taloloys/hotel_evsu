@@ -54,6 +54,10 @@ class BookingOperationController extends Controller
         $booking->load('folio.guest');
         $guestName = $booking->folio?->guest ? ($booking->folio->guest->first_name.' '.$booking->folio->guest->last_name) : 'Guest';
         $roomNumber = $booking->room?->room_number ?? 'N/A';
+
+        // Post room charges night-by-night automatically
+        $booking->postRoomCharges();
+
         ActivityLog::log(
             'CHECK_IN',
             "Checked in guest {$guestName} to Room {$roomNumber} (Booking #{$booking->booking_id})."

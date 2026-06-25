@@ -227,6 +227,17 @@
             <div class="modal-body">
 
                     <h6 class="fw-bold text-primary mb-3"><i class="fa-solid fa-user me-2"></i>Guest (guests table)</h6>
+                    <div class="row g-3 mb-3 border-bottom pb-3">
+                        <div class="col-md-12 position-relative">
+                            <label class="form-label" for="guest_search">Search Existing Guest (Optional)</label>
+                            <div class="input-group">
+                                <span class="input-group-text"><i class="fa-solid fa-magnifying-glass"></i></span>
+                                <input type="text" class="form-control" id="guest_search" placeholder="Type guest name to search..." autocomplete="off">
+                            </div>
+                            <div id="guest_search_results" class="dropdown-menu w-100 shadow-sm mt-1" style="display: none; max-height: 250px; overflow-y: auto; z-index: 1050;"></div>
+                            <div class="form-text">If there is no existing guest, simply type the guest details directly below.</div>
+                        </div>
+                    </div>
                     <div class="row g-3 mb-4">
                         <div class="col-md-6">
                             <label class="form-label" for="first_name">First Name <span class="text-danger">*</span></label>
@@ -305,7 +316,7 @@
                         </div>
                         <div class="col-md-6">
                             <label class="form-label" for="arrival_time">Arrival Time <span class="text-danger">*</span></label>
-                            <input type="time" class="form-control @error('arrival_time') is-invalid @enderror" id="arrival_time" name="arrival_time" value="{{ old('arrival_time', '14:00') }}" required>
+                            <input type="time" class="form-control @error('arrival_time') is-invalid @enderror" id="arrival_time" name="arrival_time" value="{{ old('arrival_time', '12:00') }}" required>
                         </div>
                         <div class="col-md-6">
                             <label class="form-label" for="departure_date">Departure Date <span class="text-danger">*</span></label>
@@ -313,7 +324,7 @@
                         </div>
                         <div class="col-md-6">
                             <label class="form-label" for="departure_time">Departure Time <span class="text-danger">*</span></label>
-                            <input type="time" class="form-control @error('departure_time') is-invalid @enderror" id="departure_time" name="departure_time" value="{{ old('departure_time', '11:00') }}" required>
+                            <input type="time" class="form-control @error('departure_time') is-invalid @enderror" id="departure_time" name="departure_time" value="{{ old('departure_time', '12:00') }}" required>
                         </div>
                         <div class="col-md-12">
                             <div class="alert alert-light border mb-0">
@@ -377,6 +388,79 @@
             const modal = new bootstrap.Modal(document.getElementById('newReservationModal'));
             modal.show();
         @endif
+
+        const guestSearchInput = document.getElementById('guest_search');
+        const guestSearchResults = document.getElementById('guest_search_results');
+
+        if (guestSearchInput && guestSearchResults) {
+            let debounceTimer;
+
+            guestSearchInput.addEventListener('input', function() {
+                clearTimeout(debounceTimer);
+                const query = this.value.trim();
+
+                if (query.length < 2) {
+                    guestSearchResults.innerHTML = '';
+                    guestSearchResults.style.display = 'none';
+                    return;
+                }
+
+                debounceTimer = setTimeout(() => {
+                    fetch(`{{ route('frontdesk.guests.search') }}?q=${encodeURIComponent(query)}`, {
+                        headers: {
+                            'X-Requested-With': 'XMLHttpRequest'
+                        }
+                    })
+                    .then(response => response.json())
+                    .then(guests => {
+                        guestSearchResults.innerHTML = '';
+                        if (guests.length === 0) {
+                            const item = document.createElement('div');
+                            item.className = 'dropdown-item text-muted';
+                            item.textContent = 'No matching guests found';
+                            guestSearchResults.appendChild(item);
+                        } else {
+                            guests.forEach(guest => {
+                                const item = document.createElement('a');
+                                item.className = 'dropdown-item';
+                                item.href = 'javascript:void(0);';
+                                item.style.cursor = 'pointer';
+                                
+                                const folioNum = guest.folios && guest.folios.length > 0 
+                                    ? guest.folios[0].folio_number 
+                                    : '';
+
+                                item.textContent = `${guest.last_name}, ${guest.first_name} ${guest.contact_number ? '('+guest.contact_number+')' : ''}`;
+                                
+                                item.addEventListener('click', function(e) {
+                                    e.preventDefault();
+                                    
+                                    document.getElementById('first_name').value = guest.first_name;
+                                    document.getElementById('last_name').value = guest.last_name;
+                                    document.getElementById('contact_number').value = guest.contact_number || '';
+                                    document.getElementById('address_line1').value = guest.address_line1 || '';
+                                    document.getElementById('address_line2').value = guest.address_line2 || '';
+                                    
+                                    document.getElementById('folio_number').value = "{{ $suggestedFolioNumber }}";
+
+                                    guestSearchInput.value = `${guest.last_name}, ${guest.first_name}`;
+                                    guestSearchResults.innerHTML = '';
+                                    guestSearchResults.style.display = 'none';
+                                });
+                                guestSearchResults.appendChild(item);
+                            });
+                        }
+                        guestSearchResults.style.display = 'block';
+                    });
+                }, 300);
+            });
+
+            document.addEventListener('click', function(e) {
+                if (!guestSearchInput.contains(e.target) && !guestSearchResults.contains(e.target)) {
+                    guestSearchResults.style.display = 'none';
+                }
+            });
+        }
 
         const roomTypeFilter = document.getElementById('room_type_filter');
         const roomSelect = document.getElementById('room_id');

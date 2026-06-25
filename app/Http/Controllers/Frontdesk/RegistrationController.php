@@ -34,8 +34,8 @@ class RegistrationController extends Controller
             'suggestedFolioNumber' => $this->generateFolioNumber(),
             'defaults' => [
                 'arrival_date' => $today,
-                'arrival_time' => now()->format('H:i'),
-                'departure_time' => '11:00',
+                'arrival_time' => '12:00',
+                'departure_time' => '12:00',
                 'market_segment' => 'Walk-in',
                 'num_pax' => 1,
                 'symbol' => 'CBO',
@@ -114,9 +114,10 @@ class RegistrationController extends Controller
                 'folio_type' => 'GUEST',
                 'status' => 'OPEN',
                 'payment_method' => $validated['payment_method'] ?? 'Cash',
+                'net_rate' => $room->base_rate,
             ]);
 
-            Booking::create([
+            $booking = Booking::create([
                 'folio_id' => $folio->folio_id,
                 'room_id' => $room->room_id,
                 'arrival_date' => $validated['arrival_date'],
@@ -128,6 +129,9 @@ class RegistrationController extends Controller
             ]);
 
             $room->update(['status' => 'OCCUPIED']);
+
+            // Post room charges night-by-night automatically
+            $booking->postRoomCharges();
         });
 
         return redirect()
