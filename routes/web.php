@@ -15,15 +15,6 @@ use App\Http\Controllers\Admin\RoomController;
 use App\Http\Controllers\Admin\ShiftScheduleController;
 use App\Http\Controllers\Admin\UserController;
 use App\Http\Controllers\Auth\LoginController;
-use App\Http\Controllers\Frontdesk\BookingOperationController;
-use App\Http\Controllers\Frontdesk\CheckInController;
-use App\Http\Controllers\Frontdesk\DashboardController as FrontdeskDashboardController;
-use App\Http\Controllers\Frontdesk\GuestFolioController;
-use App\Http\Controllers\Frontdesk\GuestListController;
-use App\Http\Controllers\Frontdesk\RegistrationController;
-use App\Http\Controllers\Frontdesk\ReservationController;
-use App\Http\Controllers\Frontdesk\ShiftController as FrontdeskShiftController;
-use App\Http\Controllers\Frontdesk\ShiftSalesController;
 use App\Http\Controllers\Coffeeshop\CustomerController as CoffeeshopCustomerController;
 use App\Http\Controllers\Coffeeshop\DashboardController as CoffeeshopDashboardController;
 use App\Http\Controllers\Coffeeshop\InventoryController as CoffeeshopInventoryController;
@@ -34,6 +25,16 @@ use App\Http\Controllers\Coffeeshop\ReportController as CoffeeshopReportControll
 use App\Http\Controllers\Coffeeshop\SettingsController as CoffeeshopSettingsController;
 use App\Http\Controllers\Coffeeshop\StatisticsController as CoffeeshopStatisticsController;
 use App\Http\Controllers\Coffeeshop\TabController as CoffeeshopTabController;
+use App\Http\Controllers\Frontdesk\BookingOperationController;
+use App\Http\Controllers\Frontdesk\CheckInController;
+use App\Http\Controllers\Frontdesk\DashboardController as FrontdeskDashboardController;
+use App\Http\Controllers\Frontdesk\GuestFolioController;
+use App\Http\Controllers\Frontdesk\GuestListController;
+use App\Http\Controllers\Frontdesk\RegistrationController;
+use App\Http\Controllers\Frontdesk\ReservationController;
+use App\Http\Controllers\Frontdesk\ShiftController as FrontdeskShiftController;
+use App\Http\Controllers\Frontdesk\ShiftSalesController;
+use App\Http\Controllers\LayoutDataController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', [LoginController::class, 'create'])
@@ -49,6 +50,9 @@ Route::post('/logout', [LoginController::class, 'logout'])
     ->name('logout');
 
 Route::middleware('auth')->group(function () {
+
+    Route::get('/api/layout-data', [LayoutDataController::class, 'getLayoutData'])
+        ->name('api.layout-data');
 
     Route::prefix('frontdesk')->group(function () {
 

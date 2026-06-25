@@ -548,62 +548,66 @@
 
 @push('scripts')
 <script>
-    // ── Auto-show any pending toasts ──────────────────────────────────────
-    document.addEventListener('DOMContentLoaded', function () {
+    (function () {
+        // ── Auto-show any pending toasts ──────────────────────────────────────
         document.querySelectorAll('.toast').forEach(function (el) {
             new bootstrap.Toast(el).show();
         });
-    });
 
-    // ── View Details modal population ─────────────────────────────────────
-    document.getElementById('viewUserModal').addEventListener('show.bs.modal', function (event) {
-        const btn = event.relatedTarget;
-        document.getElementById('view-user-id').textContent   = 'U-' + String(btn.dataset.userId).padStart(3, '0');
-        document.getElementById('view-full-name').textContent = btn.dataset.fullName;
-        document.getElementById('view-username').textContent  = btn.dataset.username;
-        document.getElementById('view-role').textContent      = btn.dataset.role;
+        // ── View Details modal population ─────────────────────────────────────
+        const viewUserModal = document.getElementById('viewUserModal');
+        if (viewUserModal) {
+            viewUserModal.addEventListener('show.bs.modal', function (event) {
+                const btn = event.relatedTarget;
+                document.getElementById('view-user-id').textContent   = 'U-' + String(btn.dataset.userId).padStart(3, '0');
+                document.getElementById('view-full-name').textContent = btn.dataset.fullName;
+                document.getElementById('view-username').textContent  = btn.dataset.username;
+                document.getElementById('view-role').textContent      = btn.dataset.role;
 
-        const roleBadge = document.getElementById('view-role-badge');
-        roleBadge.textContent = btn.dataset.role;
-        roleBadge.className   = 'badge ' + btn.dataset.roleBadge;
+                const roleBadge = document.getElementById('view-role-badge');
+                roleBadge.textContent = btn.dataset.role;
+                roleBadge.className   = 'badge ' + btn.dataset.roleBadge;
 
-        const statusBadge = document.getElementById('view-status');
-        statusBadge.textContent = btn.dataset.status;
-        statusBadge.className   = 'badge ' + btn.dataset.statusClass;
+                const statusBadge = document.getElementById('view-status');
+                statusBadge.textContent = btn.dataset.status;
+                statusBadge.className   = 'badge ' + btn.dataset.statusClass;
 
-        const directPermissions = JSON.parse(btn.dataset.permissionsNames || '[]');
-        const container = document.getElementById('view-direct-permissions');
-        container.innerHTML = '';
-        if (directPermissions.length === 0) {
-            container.innerHTML = '<span class="text-muted small">None</span>';
-        } else {
-            directPermissions.forEach(name => {
-                const badge = document.createElement('span');
-                badge.className = 'badge bg-success-subtle text-success border border-success-subtle';
-                badge.textContent = name;
-                container.appendChild(badge);
+                const directPermissions = JSON.parse(btn.dataset.permissionsNames || '[]');
+                const container = document.getElementById('view-direct-permissions');
+                container.innerHTML = '';
+                if (directPermissions.length === 0) {
+                    container.innerHTML = '<span class="text-muted small">None</span>';
+                } else {
+                    directPermissions.forEach(name => {
+                        const badge = document.createElement('span');
+                        badge.className = 'badge bg-success-subtle text-success border border-success-subtle';
+                        badge.textContent = name;
+                        container.appendChild(badge);
+                    });
+                }
             });
         }
-    });
 
-    // ── Edit User modal population ────────────────────────────────────────
-    document.getElementById('editUserModal').addEventListener('show.bs.modal', function (event) {
-        const btn = event.relatedTarget;
-        document.getElementById('edit_full_name').value = btn.dataset.fullName;
-        document.getElementById('edit_username').value  = btn.dataset.username;
-        document.getElementById('edit_password').value  = '';
-        document.getElementById('edit_role_id').value   = btn.dataset.roleId;
-        document.getElementById('editUserForm').action  = btn.dataset.updateUrl;
+        // ── Edit User modal population ────────────────────────────────────────
+        const editUserModal = document.getElementById('editUserModal');
+        if (editUserModal) {
+            editUserModal.addEventListener('show.bs.modal', function (event) {
+                const btn = event.relatedTarget;
+                document.getElementById('edit_full_name').value = btn.dataset.fullName;
+                document.getElementById('edit_username').value  = btn.dataset.username;
+                document.getElementById('edit_password').value  = '';
+                document.getElementById('edit_role_id').value   = btn.dataset.roleId;
+                document.getElementById('editUserForm').action  = btn.dataset.updateUrl;
 
-        // Populate checkboxes
-        const userPermissions = JSON.parse(btn.dataset.permissions || '[]');
-        document.querySelectorAll('.permission-checkbox').forEach(cb => {
-            cb.checked = userPermissions.includes(parseInt(cb.value));
-        });
-    });
+                // Populate checkboxes
+                const userPermissions = JSON.parse(btn.dataset.permissions || '[]');
+                document.querySelectorAll('.permission-checkbox').forEach(cb => {
+                    cb.checked = userPermissions.includes(parseInt(cb.value));
+                });
+            });
+        }
 
-    // ── Search & Filter logic ─────────────────────────────────────────────
-    (function () {
+        // ── Search & Filter logic ─────────────────────────────────────────────
         const searchInput      = document.getElementById('userSearchInput');
         const roleSelect       = document.getElementById('filterRoleSelect');
         const applyBtn         = document.getElementById('filterApplyBtn');
@@ -632,32 +636,34 @@
                 if (show) visible++;
             });
 
-            // Show "no match" row only when users exist but all are filtered out
             if (noFilterRow) {
                 noFilterRow.style.display = (rows.length > 0 && visible === 0) ? '' : 'none';
             }
         }
 
-        // Real-time search as user types
-        searchInput.addEventListener('input', applyFilters);
+        if (searchInput) {
+            searchInput.addEventListener('input', applyFilters);
+        }
 
-        // Apply role filter and close the dropdown
-        applyBtn.addEventListener('click', function () {
-            activeRole = roleSelect.value;
-            applyFilters();
-            if (dropdownToggleEl) {
-                const dropdown = bootstrap.Dropdown.getInstance(dropdownToggleEl);
-                if (dropdown) { dropdown.hide(); }
-            }
-        });
+        if (applyBtn) {
+            applyBtn.addEventListener('click', function () {
+                activeRole = roleSelect.value;
+                applyFilters();
+                if (dropdownToggleEl) {
+                    const dropdown = bootstrap.Dropdown.getInstance(dropdownToggleEl);
+                    if (dropdown) { dropdown.hide(); }
+                }
+            });
+        }
 
-        // Reset everything
-        resetBtn.addEventListener('click', function () {
-            searchInput.value = '';
-            roleSelect.value  = '';
-            activeRole        = '';
-            applyFilters();
-        });
+        if (resetBtn) {
+            resetBtn.addEventListener('click', function () {
+                searchInput.value = '';
+                roleSelect.value  = '';
+                activeRole        = '';
+                applyFilters();
+            });
+        }
     })();
 </script>
 @endpush

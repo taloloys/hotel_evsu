@@ -233,7 +233,7 @@
 
 @push('scripts')
 <script>
-    document.addEventListener('DOMContentLoaded', function() {
+    (function() {
         const roomTypeFilter = document.getElementById('room_type_filter');
         const roomSelect = document.getElementById('room_id');
         const rateDisplay = document.getElementById('room_base_rate_display');
@@ -284,6 +284,6 @@
                 }
             });
         }
-    });
+    })();
 </script>
 @endpush

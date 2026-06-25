@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Frontdesk;
 
 use App\Http\Controllers\Controller;
 use App\Models\ChargeCode;
+use App\Models\Shift;
 use App\Models\Transaction;
 use App\Models\User;
 use Illuminate\Http\Request;
@@ -65,19 +66,53 @@ class ShiftSalesController extends Controller
             $query->where('charge_code', '<=', $request->charge_code_until);
         }
 
+        if ($request->filled('shift_id')) {
+            $query->where('shift_id', $request->shift_id);
+        }
+
         $transactions = collect();
         $totals = [
             'charges' => 0.00,
             'payments' => 0.00,
+            'total_charges' => 0.00,
+            'room_charges' => 0.00,
+            'additional_charges' => 0.00,
+            'checkin_count' => 0,
+            'net_income' => 0.00,
         ];
 
         // Only run report if form has been submitted
-        $hasSearched = $request->has('report_type') || $request->has('date_from');
+        $hasSearched = $request->has('report_type') || $request->has('date_from') || $request->has('shift_id');
 
         if ($hasSearched) {
             $transactions = $query->orderBy('timestamp')->get();
             $totals['charges'] = $transactions->sum('charge_amount');
             $totals['payments'] = $transactions->sum('credit_amount');
+            $totals['total_charges'] = $transactions->sum('charge_amount');
+            $totals['room_charges'] = $transactions->filter(fn ($tx) => in_array($tx->chargeCode?->category, ['HOTEL', 'TAX_SERVICE']))
+                ->sum('charge_amount');
+            $totals['additional_charges'] = $transactions->filter(fn ($tx) => ! in_array($tx->chargeCode?->category, ['HOTEL', 'TAX_SERVICE']))
+                ->sum('charge_amount');
+            $totals['checkin_count'] = $transactions->pluck('folio_id')->filter()->unique()->count();
+            $totals['net_income'] = $totals['payments'] - $totals['total_charges'];
+        }
+
+        $activeShift = Shift::where('user_id', auth()->id())
+            ->whereNull('end_time')
+            ->first();
+
+        $shiftsQuery = Shift::with(['user', 'schedule'])
+            ->orderByDesc('shift_id');
+
+        if (! $isAdmin) {
+            $shiftsQuery->where('user_id', auth()->id());
+        }
+
+        $shiftsForSelector = $shiftsQuery->get();
+
+        $selectedShift = null;
+        if ($request->filled('shift_id')) {
+            $selectedShift = Shift::with(['user', 'schedule'])->find($request->shift_id);
         }
 
         return view('frontdesk.shift-sales.index', [
@@ -87,6 +122,10 @@ class ShiftSalesController extends Controller
             'totals' => $totals,
             'hasSearched' => $hasSearched,
             'filters' => $request->all(),
+            'activeShift' => $activeShift,
+            'isAdmin' => $isAdmin,
+            'shiftsForSelector' => $shiftsForSelector,
+            'selectedShift' => $selectedShift,
         ]);
     }
 }

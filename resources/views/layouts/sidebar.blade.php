@@ -166,14 +166,7 @@
                    class="nav-link {{ request()->routeIs('coffeeshop.inventory*') ? 'active' : '' }}">
                     <i class="fa-solid fa-box-open me-2"></i>
                     Inventory
-                    @php
-                        $lowStockCount = \Illuminate\Support\Facades\Schema::hasTable('pos_products')
-                            ? \App\Models\PosProduct::lowStock()->count()
-                            : 0;
-                    @endphp
-                    @if($lowStockCount > 0)
-                        <span class="badge bg-danger ms-1">{{ $lowStockCount }}</span>
-                    @endif
+                    <span id="sidebar-low-stock-badge" class="badge bg-danger ms-1 d-none"></span>
                 </a>
                 <a href="{{ route('coffeeshop.tabs') }}"
                    class="nav-link {{ request()->routeIs('coffeeshop.tabs*') ? 'active' : '' }}">

@@ -437,10 +437,10 @@
 
 @push('scripts')
 <script>
-    document.addEventListener('DOMContentLoaded', function () {
+    (function () {
         document.querySelectorAll('.toast').forEach(function (el) {
             new bootstrap.Toast(el).show();
         });
-    });
+    })();
 </script>
 @endpush

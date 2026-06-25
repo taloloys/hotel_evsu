@@ -245,7 +245,7 @@
 
 @push('scripts')
 <script>
-    document.addEventListener('DOMContentLoaded', function() {
+    (function() {
         const guestSearchInput = document.getElementById('guest_search');
         const guestSearchResults = document.getElementById('guest_search_results');
         const guestIdInput = document.getElementById('guest_id');
@@ -339,11 +339,17 @@
                 }, 300);
             });
 
-            document.addEventListener('click', function(e) {
+            const documentClickHandler = function(e) {
+                // Self-clean if elements are no longer in the DOM
+                if (!document.body.contains(guestSearchInput)) {
+                    document.removeEventListener('click', documentClickHandler);
+                    return;
+                }
                 if (!guestSearchInput.contains(e.target) && !guestSearchResults.contains(e.target)) {
                     guestSearchResults.style.display = 'none';
                 }
-            });
+            };
+            document.addEventListener('click', documentClickHandler);
         }
 
         // Room rate and filtering
@@ -391,6 +397,6 @@
                 }
             });
         }
-    });
+    })();
 </script>
 @endpush

@@ -526,8 +526,8 @@
 
 @push('scripts')
 <script>
-    // ── Auto-show any pending toasts & initialize tooltips ────────────────
-    document.addEventListener('DOMContentLoaded', function () {
+    (function () {
+        // ── Auto-show any pending toasts & initialize tooltips ────────────────
         document.querySelectorAll('.toast').forEach(function (el) {
             new bootstrap.Toast(el).show();
         });
@@ -537,37 +537,41 @@
         tooltipTriggerList.map(function (tooltipTriggerEl) {
             return new bootstrap.Tooltip(tooltipTriggerEl);
         });
-    });
 
-    // ── View Details modal population ─────────────────────────────────────
-    document.getElementById('viewRoomModal').addEventListener('show.bs.modal', function (event) {
-        const btn = event.relatedTarget;
-        document.getElementById('view-room-number').textContent = 'Room ' + btn.dataset.roomNumber;
-        document.getElementById('view-room-type').textContent   = btn.dataset.roomType;
-        document.getElementById('view-floor').textContent       = btn.dataset.floor;
-        document.getElementById('view-base-rate').textContent   = '₱' + Number(btn.dataset.baseRate).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+        // ── View Details modal population ─────────────────────────────────────
+        const viewRoomModal = document.getElementById('viewRoomModal');
+        if (viewRoomModal) {
+            viewRoomModal.addEventListener('show.bs.modal', function (event) {
+                const btn = event.relatedTarget;
+                document.getElementById('view-room-number').textContent = 'Room ' + btn.dataset.roomNumber;
+                document.getElementById('view-room-type').textContent   = btn.dataset.roomType;
+                document.getElementById('view-floor').textContent       = btn.dataset.floor;
+                document.getElementById('view-base-rate').textContent   = '₱' + Number(btn.dataset.baseRate).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 
-        const statusBadge = document.getElementById('view-status-badge');
-        statusBadge.textContent = btn.dataset.statusLabel;
-        statusBadge.className   = 'badge ' + btn.dataset.statusClass;
+                const statusBadge = document.getElementById('view-status-badge');
+                statusBadge.textContent = btn.dataset.statusLabel;
+                statusBadge.className   = 'badge ' + btn.dataset.statusClass;
 
-        const activeBadge = document.getElementById('view-active-badge');
-        activeBadge.textContent = btn.dataset.active;
-        activeBadge.className   = 'badge ' + btn.dataset.activeClass;
-    });
+                const activeBadge = document.getElementById('view-active-badge');
+                activeBadge.textContent = btn.dataset.active;
+                activeBadge.className   = 'badge ' + btn.dataset.activeClass;
+            });
+        }
 
-    // ── Edit Room modal population ────────────────────────────────────────
-    document.getElementById('editRoomModal').addEventListener('show.bs.modal', function (event) {
-        const btn = event.relatedTarget;
-        document.getElementById('edit_room_number').value = btn.dataset.roomNumber;
-        document.getElementById('edit_room_type').value   = btn.dataset.roomType;
-        document.getElementById('edit_base_rate').value   = btn.dataset.baseRate;
-        document.getElementById('edit_status').value      = btn.dataset.status;
-        document.getElementById('editRoomForm').action    = btn.dataset.updateUrl;
-    });
+        // ── Edit Room modal population ────────────────────────────────────────
+        const editRoomModal = document.getElementById('editRoomModal');
+        if (editRoomModal) {
+            editRoomModal.addEventListener('show.bs.modal', function (event) {
+                const btn = event.relatedTarget;
+                document.getElementById('edit_room_number').value = btn.dataset.roomNumber;
+                document.getElementById('edit_room_type').value   = btn.dataset.roomType;
+                document.getElementById('edit_base_rate').value   = btn.dataset.baseRate;
+                document.getElementById('edit_status').value      = btn.dataset.status;
+                document.getElementById('editRoomForm').action    = btn.dataset.updateUrl;
+            });
+        }
 
-    // ── Search & Filter logic ─────────────────────────────────────────────
-    (function () {
+        // ── Search & Filter logic ─────────────────────────────────────────────
         const searchInput      = document.getElementById('roomSearchInput');
         const typeSelect       = document.getElementById('filterTypeSelect');
         const statusSelect     = document.getElementById('filterStatusSelect');
@@ -598,38 +602,40 @@
                 if (show) visible++;
             });
 
-            // Show "no match" row only when rooms exist but all are filtered out
             if (noFilterRow) {
                 noFilterRow.style.display = (rows.length > 0 && visible === 0) ? '' : 'none';
             }
         }
 
-        // Real-time search as user types
-        searchInput.addEventListener('input', applyFilters);
+        if (searchInput) {
+            searchInput.addEventListener('input', applyFilters);
+        }
 
-        // Apply filters and close the dropdown
-        applyBtn.addEventListener('click', function () {
-            activeType   = typeSelect.value;
-            activeStatus = statusSelect.value;
-            activeActive = activeSelect.value;
-            applyFilters();
-            if (dropdownToggleEl) {
-                const dropdown = bootstrap.Dropdown.getInstance(dropdownToggleEl);
-                if (dropdown) { dropdown.hide(); }
-            }
-        });
+        if (applyBtn) {
+            applyBtn.addEventListener('click', function () {
+                activeType   = typeSelect.value;
+                activeStatus = statusSelect.value;
+                activeActive = activeSelect.value;
+                applyFilters();
+                if (dropdownToggleEl) {
+                    const dropdown = bootstrap.Dropdown.getInstance(dropdownToggleEl);
+                    if (dropdown) { dropdown.hide(); }
+                }
+            });
+        }
 
-        // Reset everything
-        resetBtn.addEventListener('click', function () {
-            searchInput.value  = '';
-            typeSelect.value   = '';
-            statusSelect.value = '';
-            activeSelect.value = '';
-            activeType         = '';
-            activeStatus       = '';
-            activeActive       = '';
-            applyFilters();
-        });
+        if (resetBtn) {
+            resetBtn.addEventListener('click', function () {
+                searchInput.value  = '';
+                typeSelect.value   = '';
+                statusSelect.value = '';
+                activeSelect.value = '';
+                activeType         = '';
+                activeStatus       = '';
+                activeActive       = '';
+                applyFilters();
+            });
+        }
     })();
 </script>
 @endpush

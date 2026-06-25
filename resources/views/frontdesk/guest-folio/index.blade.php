@@ -846,22 +846,22 @@
 
 @push('scripts')
 <script>
-    function printFolio(folioId) {
-        // Remove active class from all print containers
-        document.querySelectorAll('.print-only-folio').forEach(function(el) {
-            el.classList.remove('active-print-folio');
-        });
-        
-        // Add active class to selected print container
-        var printContainer = document.getElementById('print-folio-' + folioId);
-        if (printContainer) {
-            printContainer.classList.add('active-print-folio');
-            window.print();
-        }
-    }
+    (function() {
+        window.printFolio = function(folioId) {
+            // Remove active class from all print containers
+            document.querySelectorAll('.print-only-folio').forEach(function(el) {
+                el.classList.remove('active-print-folio');
+            });
+            
+            // Add active class to selected print container
+            var printContainer = document.getElementById('print-folio-' + folioId);
+            if (printContainer) {
+                printContainer.classList.add('active-print-folio');
+                window.print();
+            }
+        };
 
-    // Keep the active folio modal open after page submits/reloads
-    document.addEventListener('DOMContentLoaded', function() {
+        // Keep the active folio modal open after page submits/reloads
         var openModalId = sessionStorage.getItem('openModalId');
         if (openModalId) {
             var modalEl = document.getElementById(openModalId);
@@ -880,6 +880,6 @@
                 }
             });
         });
-    });
+    })();
 </script>
 @endpush

@@ -385,7 +385,7 @@
 
 @push('scripts')
 <script>
-    document.addEventListener('DOMContentLoaded', function () {
+    (function () {
         // Auto show toasts
         document.querySelectorAll('.toast').forEach(function (el) {
             new bootstrap.Toast(el).show();
@@ -405,6 +405,6 @@
                 document.getElementById('editScheduleForm').action = btn.dataset.updateUrl;
             });
         }
-    });
+    })();
 </script>
 @endpush

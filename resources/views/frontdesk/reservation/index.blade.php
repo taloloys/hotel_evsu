@@ -383,7 +383,7 @@
 
 @push('scripts')
 <script>
-    document.addEventListener('DOMContentLoaded', function() {
+    (function() {
         @if($errors->any() || old('first_name'))
             const modal = new bootstrap.Modal(document.getElementById('newReservationModal'));
             modal.show();
@@ -455,11 +455,17 @@
                 }, 300);
             });
 
-            document.addEventListener('click', function(e) {
+            const documentClickHandler = function(e) {
+                // Self-clean if elements are no longer in the DOM
+                if (!document.body.contains(guestSearchInput)) {
+                    document.removeEventListener('click', documentClickHandler);
+                    return;
+                }
                 if (!guestSearchInput.contains(e.target) && !guestSearchResults.contains(e.target)) {
                     guestSearchResults.style.display = 'none';
                 }
-            });
+            };
+            document.addEventListener('click', documentClickHandler);
         }
 
         const roomTypeFilter = document.getElementById('room_type_filter');
@@ -511,6 +517,6 @@
                 }
             });
         }
-    });
+    })();
 </script>
 @endpush

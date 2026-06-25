@@ -719,13 +719,13 @@
 
 @push('scripts')
 <script>
-    const roomsData = @json($roomsByType);
-    let roomActionModal = null;
-    let checkOutModal = null;
-    let selectedRoom = null;
-    let pendingCheckOutBookingId = null;
+    (function() {
+        const roomsData = @json($roomsByType);
+        let roomActionModal = null;
+        let checkOutModal = null;
+        let selectedRoom = null;
+        let pendingCheckOutBookingId = null;
 
-    document.addEventListener('DOMContentLoaded', function() {
         roomActionModal = new bootstrap.Modal(document.getElementById('roomActionModal'));
         checkOutModal = new bootstrap.Modal(document.getElementById('checkOutModal'));
 
@@ -793,8 +793,8 @@
         }
         if (occupiedRoomSort) {
             occupiedRoomSort.addEventListener('change', filterAndSortOccupiedRooms);
-        }
-    });
+
+
 
     function getRoomStatusClass(status) {
         const normalized = status.toUpperCase();
@@ -1305,5 +1305,6 @@
         document.body.appendChild(alert);
         setTimeout(() => alert.remove(), 5000);
     }
+    })();
 </script>
 @endpush

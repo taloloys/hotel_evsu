@@ -346,24 +346,25 @@
 
 @push('scripts')
 <script>
-    // Show toast notifications
-    document.addEventListener('DOMContentLoaded', function () {
+    (function () {
+        // Show toast notifications
         document.querySelectorAll('.toast').forEach(function (el) {
             new bootstrap.Toast(el).show();
         });
-    });
 
-    // Populate Edit Charge Modal
-    document.getElementById('editChargeModal').addEventListener('show.bs.modal', function (event) {
-        const btn = event.relatedTarget;
-        document.getElementById('edit_charge_code').value = btn.dataset.chargeCode;
-        document.getElementById('edit_description').value = btn.dataset.description;
-        document.getElementById('edit_category').value    = btn.dataset.category;
-        document.getElementById('editChargeForm').action  = btn.dataset.updateUrl;
-    });
+        // Populate Edit Charge Modal
+        const editChargeModal = document.getElementById('editChargeModal');
+        if (editChargeModal) {
+            editChargeModal.addEventListener('show.bs.modal', function (event) {
+                const btn = event.relatedTarget;
+                document.getElementById('edit_charge_code').value = btn.dataset.chargeCode;
+                document.getElementById('edit_description').value = btn.dataset.description;
+                document.getElementById('edit_category').value    = btn.dataset.category;
+                document.getElementById('editChargeForm').action  = btn.dataset.updateUrl;
+            });
+        }
 
-    // Client-side search and filtering
-    (function () {
+        // Client-side search and filtering
         const searchInput      = document.getElementById('chargeSearchInput');
         const categorySelect   = document.getElementById('filterCategorySelect');
         const statusSelect     = document.getElementById('filterStatusSelect');
@@ -398,29 +399,32 @@
             }
         }
 
-        // Search bar typing real-time filter
-        searchInput.addEventListener('input', applyFilters);
+        if (searchInput) {
+            searchInput.addEventListener('input', applyFilters);
+        }
 
-        // Apply dropdown filters
-        applyBtn.addEventListener('click', function () {
-            activeCategory = categorySelect.value;
-            activeStatus   = statusSelect.value;
-            applyFilters();
-            if (dropdownToggleEl) {
-                const dropdown = bootstrap.Dropdown.getInstance(dropdownToggleEl);
-                if (dropdown) { dropdown.hide(); }
-            }
-        });
+        if (applyBtn) {
+            applyBtn.addEventListener('click', function () {
+                activeCategory = categorySelect.value;
+                activeStatus   = statusSelect.value;
+                applyFilters();
+                if (dropdownToggleEl) {
+                    const dropdown = bootstrap.Dropdown.getInstance(dropdownToggleEl);
+                    if (dropdown) { dropdown.hide(); }
+                }
+            });
+        }
 
-        // Reset dropdown filters
-        resetBtn.addEventListener('click', function () {
-            searchInput.value     = '';
-            categorySelect.value  = '';
-            statusSelect.value    = '';
-            activeCategory        = '';
-            activeStatus          = '';
-            applyFilters();
-        });
+        if (resetBtn) {
+            resetBtn.addEventListener('click', function () {
+                searchInput.value     = '';
+                categorySelect.value  = '';
+                statusSelect.value    = '';
+                activeCategory        = '';
+                activeStatus          = '';
+                applyFilters();
+            });
+        }
     })();
 </script>
 @endpush
