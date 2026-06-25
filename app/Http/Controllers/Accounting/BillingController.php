@@ -17,7 +17,7 @@ class BillingController extends Controller
         $statusFilter = $request->input('status', 'ALL');
         $search = $request->input('search');
 
-        $query = Folio::with(['guest', 'bookings.room', 'transactions']);
+        $query = Folio::withBalances()->with(['guest', 'bookings.room']);
 
         // Search filter (folio number, guest first/last name)
         if ($search) {
@@ -43,9 +43,9 @@ class BillingController extends Controller
 
         // Map computed fields
         $folios = $folios->map(function ($folio) {
-            $totalCharges = $folio->transactions->sum('charge_amount');
-            $totalCredits = $folio->transactions->sum('credit_amount');
-            $balance = $totalCharges - $totalCredits;
+            $totalCharges = $folio->total_charges;
+            $totalCredits = $folio->total_credits;
+            $balance = $folio->balance;
 
             // Determine display status
             if ($folio->status === 'CLOSED') {
@@ -105,15 +105,11 @@ class BillingController extends Controller
 
         $folio->load(['guest', 'bookings.room', 'transactions.chargeCode', 'transactions.user']);
 
-        $totalCharges = $folio->transactions->sum('charge_amount');
-        $totalCredits = $folio->transactions->sum('credit_amount');
-        $balance = $totalCharges - $totalCredits;
-
         return view('accounting.billing.show', [
             'folio' => $folio,
-            'totalCharges' => $totalCharges,
-            'totalCredits' => $totalCredits,
-            'balance' => $balance,
+            'totalCharges' => $folio->total_charges,
+            'totalCredits' => $folio->total_credits,
+            'balance' => $folio->balance,
         ]);
     }
 }

@@ -8,6 +8,7 @@ use App\Models\Permission;
 use App\Models\Role;
 use App\Models\Room;
 use App\Models\Shift;
+use App\Models\Transaction;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 
@@ -386,4 +387,126 @@ test('user cannot cancel a reservation when status is CHECKED_IN', function (): 
         'booking_id' => $booking->booking_id,
         'status' => 'CHECKED_IN',
     ]);
+});
+
+test('checkout fails via guest folio redirect endpoint when there is an outstanding balance', function (): void {
+    $guest = Guest::create(['last_name' => 'Cruz', 'first_name' => 'Juan']);
+    $folio = Folio::create(['folio_number' => 'REG-2026001', 'guest_id' => $guest->guest_id, 'status' => 'OPEN']);
+    $booking = Booking::create([
+        'folio_id' => $folio->folio_id,
+        'room_id' => $this->roomA->room_id,
+        'arrival_date' => now()->toDateString(),
+        'arrival_time' => '14:00',
+        'departure_date' => now()->addDays(2)->toDateString(),
+        'departure_time' => '12:00',
+        'actual_check_in' => now(),
+        'status' => 'CHECKED_IN',
+    ]);
+
+    // Create an unpaid charge transaction on the folio
+    Transaction::create([
+        'folio_id' => $folio->folio_id,
+        'charge_code' => $this->cleaningChargeCode->charge_code,
+        'shift_id' => $this->shift->shift_id,
+        'user_id' => $this->frontdeskUser->user_id,
+        'transaction_date' => now()->toDateString(),
+        'charge_number' => 'TXN-TEST',
+        'payment_method' => 'NONE',
+        'reference_notes' => 'Test unpaid charge',
+        'charge_amount' => 150.00,
+        'credit_amount' => 0.00,
+    ]);
+
+    $response = $this->actingAs($this->frontdeskUser)
+        ->post(route('frontdesk.guest-folio.checkout', $booking->booking_id), [
+            'checkout_time' => '11:45',
+            'checkout_period' => 'AM',
+        ]);
+
+    $response->assertRedirect();
+    $response->assertSessionHasErrors(['checkout']);
+
+    $this->assertDatabaseHas('bookings', [
+        'booking_id' => $booking->booking_id,
+        'status' => 'CHECKED_IN',
+    ]);
+});
+
+test('checkout fails via dashboard JSON endpoint when there is an outstanding balance', function (): void {
+    $manageReservations = Permission::create([
+        'permission_key' => 'manage-reservations',
+        'description' => 'Manage reservations',
+        'module' => 'Front Desk',
+        'is_active' => true,
+    ]);
+    $this->frontdeskRole->permissions()->attach($manageReservations->permission_id);
+
+    $guest = Guest::create(['last_name' => 'Cruz', 'first_name' => 'Juan']);
+    $folio = Folio::create(['folio_number' => 'REG-2026001', 'guest_id' => $guest->guest_id, 'status' => 'OPEN']);
+    $booking = Booking::create([
+        'folio_id' => $folio->folio_id,
+        'room_id' => $this->roomA->room_id,
+        'arrival_date' => now()->toDateString(),
+        'arrival_time' => '14:00',
+        'departure_date' => now()->addDays(2)->toDateString(),
+        'departure_time' => '12:00',
+        'actual_check_in' => now(),
+        'status' => 'CHECKED_IN',
+    ]);
+
+    // Create an unpaid charge transaction on the folio
+    Transaction::create([
+        'folio_id' => $folio->folio_id,
+        'charge_code' => $this->cleaningChargeCode->charge_code,
+        'shift_id' => $this->shift->shift_id,
+        'user_id' => $this->frontdeskUser->user_id,
+        'transaction_date' => now()->toDateString(),
+        'charge_number' => 'TXN-TEST-JSON',
+        'payment_method' => 'NONE',
+        'reference_notes' => 'Test unpaid charge',
+        'charge_amount' => 150.00,
+        'credit_amount' => 0.00,
+    ]);
+
+    $response = $this->actingAs($this->frontdeskUser)
+        ->postJson(route('frontdesk.booking.check-out'), [
+            'booking_id' => $booking->booking_id,
+            'checkout_time' => '11:45',
+            'checkout_period' => 'AM',
+        ]);
+
+    $response->assertStatus(422);
+    $response->assertJsonPath('success', false);
+
+    $this->assertDatabaseHas('bookings', [
+        'booking_id' => $booking->booking_id,
+        'status' => 'CHECKED_IN',
+    ]);
+});
+
+test('closing a guest folio fails when there is an outstanding balance', function (): void {
+    $guest = Guest::create(['last_name' => 'Cruz', 'first_name' => 'Juan']);
+    $folio = Folio::create(['folio_number' => 'REG-2026001', 'guest_id' => $guest->guest_id, 'status' => 'OPEN']);
+
+    // Create an unpaid charge transaction on the folio
+    Transaction::create([
+        'folio_id' => $folio->folio_id,
+        'charge_code' => $this->cleaningChargeCode->charge_code,
+        'shift_id' => $this->shift->shift_id,
+        'user_id' => $this->frontdeskUser->user_id,
+        'transaction_date' => now()->toDateString(),
+        'charge_number' => 'TXN-TEST-CLOSE',
+        'payment_method' => 'NONE',
+        'reference_notes' => 'Test unpaid charge',
+        'charge_amount' => 150.00,
+        'credit_amount' => 0.00,
+    ]);
+
+    $response = $this->actingAs($this->frontdeskUser)
+        ->post(route('frontdesk.guest-folio.close', $folio->folio_id));
+
+    $response->assertRedirect();
+    $response->assertSessionHasErrors(['close']);
+
+    $this->assertEquals('OPEN', $folio->refresh()->status);
 });

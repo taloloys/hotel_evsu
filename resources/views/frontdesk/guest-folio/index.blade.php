@@ -131,9 +131,9 @@
                             @php
                                 $booking     = $folio->bookings->sortByDesc('booking_id')->first();
                                 $room        = $booking?->room;
-                                $totalCharge = $folio->transactions->sum('charge_amount');
-                                $totalCredit = $folio->transactions->sum('credit_amount');
-                                $balance     = $totalCharge - $totalCredit;
+                                $totalCharge = $folio->total_charges;
+                                $totalCredit = $folio->total_credits;
+                                $balance     = $folio->balance;
                             @endphp
                             <tr>
                                 <td class="px-4">
@@ -236,9 +236,9 @@
     @php
         $booking     = $folio->bookings->sortByDesc('booking_id')->first();
         $room        = $booking?->room;
-        $totalCharge = $folio->transactions->sum('charge_amount');
-        $totalCredit = $folio->transactions->sum('credit_amount');
-        $balance     = $totalCharge - $totalCredit;
+        $totalCharge = $folio->total_charges;
+        $totalCredit = $folio->total_credits;
+        $balance     = $folio->balance;
     @endphp
     <div class="modal fade" id="folioModal{{ $folio->folio_id }}" tabindex="-1" aria-labelledby="folioModalLabel{{ $folio->folio_id }}" aria-hidden="true">
         <div class="modal-dialog modal-xl modal-dialog-scrollable">

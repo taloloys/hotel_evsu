@@ -273,6 +273,17 @@ class GuestFolioController extends Controller
             return back()->withErrors(['checkout' => 'Only checked-in guests can be checked out.']);
         }
 
+        $booking->load(['room', 'folio']);
+
+        if ($booking->folio && ! $booking->folio->isSettled()) {
+            $balance = $booking->folio->balance;
+            $message = $balance > 0
+                ? 'Cannot check out guest. Folio has an outstanding balance of ₱'.number_format($balance, 2).'.'
+                : 'Cannot check out guest. Folio has an overpayment of ₱'.number_format(abs($balance), 2).'. Please refund the guest first.';
+
+            return back()->withErrors(['checkout' => $message]);
+        }
+
         $room = $booking->room;
 
         $actualCheckOut = Carbon::createFromFormat(
@@ -315,6 +326,15 @@ class GuestFolioController extends Controller
      */
     public function closeFolio(Request $request, Folio $folio): RedirectResponse
     {
+        if (! $folio->isSettled()) {
+            $balance = $folio->balance;
+            $message = $balance > 0
+                ? 'Cannot close folio. Folio has an outstanding balance of ₱'.number_format($balance, 2).'.'
+                : 'Cannot close folio. Folio has an overpayment of ₱'.number_format(abs($balance), 2).'. Please refund it first.';
+
+            return back()->withErrors(['close' => $message]);
+        }
+
         $folio->update(['status' => 'CLOSED']);
 
         ActivityLog::log(

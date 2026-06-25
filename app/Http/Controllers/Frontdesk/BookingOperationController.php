@@ -99,6 +99,18 @@ class BookingOperationController extends Controller
             ], 422);
         }
 
+        if ($booking->folio && ! $booking->folio->isSettled()) {
+            $balance = $booking->folio->balance;
+            $message = $balance > 0
+                ? 'Cannot check out guest. Folio has an outstanding balance of ₱'.number_format($balance, 2).'.'
+                : 'Cannot check out guest. Folio has an overpayment of ₱'.number_format(abs($balance), 2).'. Please refund it first.';
+
+            return response()->json([
+                'success' => false,
+                'message' => $message,
+            ], 422);
+        }
+
         if (! $booking->room) {
             return response()->json([
                 'success' => false,
