@@ -13,8 +13,9 @@ class GuestListController extends Controller
     public function index(Request $request): View
     {
         $search = $request->input('search');
+        $status = $request->input('status');
 
-        $guests = Guest::query()
+        $query = Guest::query()
             ->with([
                 'folios.bookings.room',
             ])
@@ -33,14 +34,50 @@ class GuestListController extends Controller
                     }
                 });
             })
+            ->when($status === 'checked_in', function ($query) {
+                $query->whereExists(function ($subQuery) {
+                    $subQuery->selectRaw(1)
+                        ->from('bookings')
+                        ->join('folios', 'bookings.folio_id', '=', 'folios.folio_id')
+                        ->whereColumn('folios.guest_id', 'guests.guest_id')
+                        ->where('bookings.status', 'CHECKED_IN')
+                        ->whereNotExists(function ($nested) {
+                            $nested->selectRaw(1)
+                                ->from('bookings as b2')
+                                ->join('folios as f2', 'b2.folio_id', '=', 'f2.folio_id')
+                                ->whereColumn('f2.guest_id', 'guests.guest_id')
+                                ->whereColumn('b2.booking_id', '>', 'bookings.booking_id');
+                        });
+                });
+            })
+            ->when($status === 'checked_out', function ($query) {
+                $query->whereExists(function ($subQuery) {
+                    $subQuery->selectRaw(1)
+                        ->from('bookings')
+                        ->join('folios', 'bookings.folio_id', '=', 'folios.folio_id')
+                        ->whereColumn('folios.guest_id', 'guests.guest_id')
+                        ->where('bookings.status', 'CHECKED_OUT')
+                        ->whereNotExists(function ($nested) {
+                            $nested->selectRaw(1)
+                                ->from('bookings as b2')
+                                ->join('folios as f2', 'b2.folio_id', '=', 'f2.folio_id')
+                                ->whereColumn('f2.guest_id', 'guests.guest_id')
+                                ->whereColumn('b2.booking_id', '>', 'bookings.booking_id');
+                        });
+                });
+            })
             ->orderBy('last_name')
-            ->orderBy('first_name')
-            ->paginate(20)
-            ->withQueryString();
+            ->orderBy('first_name');
+
+        $printGuests = (clone $query)->get();
+
+        $guests = $query->paginate(20)->withQueryString();
 
         return view('frontdesk.guest-list.index', [
             'guests' => $guests,
+            'printGuests' => $printGuests,
             'search' => $search,
+            'status' => $status,
         ]);
     }
 

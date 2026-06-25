@@ -312,3 +312,70 @@ test('user can check out a guest via the dashboard check-out json endpoint', fun
 
     $this->assertEquals('CLOSED', $folio->refresh()->status);
 });
+
+test('user can cancel a reservation when status is RESERVED', function (): void {
+    $manageReservations = Permission::create([
+        'permission_key' => 'manage-reservations',
+        'description' => 'Manage reservations',
+        'module' => 'Front Desk',
+        'is_active' => true,
+    ]);
+    $this->frontdeskRole->permissions()->attach($manageReservations->permission_id);
+
+    $guest = Guest::create(['last_name' => 'Cruz', 'first_name' => 'Juan']);
+    $folio = Folio::create(['folio_number' => 'REG-2026001', 'guest_id' => $guest->guest_id, 'status' => 'OPEN']);
+    $booking = Booking::create([
+        'folio_id' => $folio->folio_id,
+        'room_id' => $this->roomA->room_id,
+        'arrival_date' => now()->toDateString(),
+        'arrival_time' => '14:00',
+        'departure_date' => now()->addDays(2)->toDateString(),
+        'departure_time' => '12:00',
+        'status' => 'RESERVED',
+    ]);
+
+    $response = $this->actingAs($this->frontdeskUser)
+        ->patch(route('frontdesk.reservation.cancel', $booking->booking_id));
+
+    $response->assertRedirect();
+    $response->assertSessionHas('success');
+
+    $this->assertDatabaseHas('bookings', [
+        'booking_id' => $booking->booking_id,
+        'status' => 'CANCELLED',
+    ]);
+});
+
+test('user cannot cancel a reservation when status is CHECKED_IN', function (): void {
+    $manageReservations = Permission::create([
+        'permission_key' => 'manage-reservations',
+        'description' => 'Manage reservations',
+        'module' => 'Front Desk',
+        'is_active' => true,
+    ]);
+    $this->frontdeskRole->permissions()->attach($manageReservations->permission_id);
+
+    $guest = Guest::create(['last_name' => 'Cruz', 'first_name' => 'Juan']);
+    $folio = Folio::create(['folio_number' => 'REG-2026001', 'guest_id' => $guest->guest_id, 'status' => 'OPEN']);
+    $booking = Booking::create([
+        'folio_id' => $folio->folio_id,
+        'room_id' => $this->roomA->room_id,
+        'arrival_date' => now()->toDateString(),
+        'arrival_time' => '14:00',
+        'departure_date' => now()->addDays(2)->toDateString(),
+        'departure_time' => '12:00',
+        'actual_check_in' => now(),
+        'status' => 'CHECKED_IN',
+    ]);
+
+    $response = $this->actingAs($this->frontdeskUser)
+        ->patch(route('frontdesk.reservation.cancel', $booking->booking_id));
+
+    $response->assertRedirect();
+    $response->assertSessionHasErrors(['cancel']);
+
+    $this->assertDatabaseHas('bookings', [
+        'booking_id' => $booking->booking_id,
+        'status' => 'CHECKED_IN',
+    ]);
+});

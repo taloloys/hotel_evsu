@@ -169,7 +169,7 @@
                                         <i class="fa-solid fa-eye"></i>
                                     </button>
 
-                                    @if(in_array($reservation->status, ['RESERVED', 'CHECKED_IN']))
+                                    @if($reservation->status === 'RESERVED')
                                         <form method="POST" action="{{ route('frontdesk.reservation.cancel', $reservation) }}" class="d-inline" onsubmit="return confirm('Cancel this reservation?');">
                                             @csrf
                                             @method('PATCH')

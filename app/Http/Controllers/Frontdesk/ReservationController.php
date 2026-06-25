@@ -195,10 +195,10 @@ class ReservationController extends Controller
 
     public function cancel(Booking $booking): RedirectResponse
     {
-        if (! in_array($booking->status, ['RESERVED', 'CHECKED_IN'], true)) {
+        if ($booking->status !== 'RESERVED') {
             return redirect()
                 ->route('frontdesk.reservation')
-                ->withErrors(['cancel' => 'Only active reservations can be cancelled.']);
+                ->withErrors(['cancel' => 'Only reserved bookings can be cancelled.']);
         }
 
         DB::transaction(function () use ($booking) {
