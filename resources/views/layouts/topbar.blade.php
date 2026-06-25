@@ -394,15 +394,15 @@
                     
                     item.innerHTML = `
                         <div class="mt-1 flex-shrink-0">
-                            <i class="fa-solid \${n.icon} fa-fw fs-5"></i>
+                            <i class="fa-solid ${n.icon} fa-fw fs-5"></i>
                         </div>
-                        <div class="flex-grow-1 pe-3" onclick="window.location.href='\${n.link}'">
-                            <div class="small text-dark mb-1">\${n.message}</div>
-                            <small class="text-muted text-xs">\${n.time}</small>
+                        <div class="flex-grow-1 pe-3" onclick="window.location.href='${n.link}'">
+                            <div class="small text-dark mb-1">${n.message}</div>
+                            <small class="text-muted text-xs">${n.time}</small>
                         </div>
                         <button class="btn btn-sm btn-link text-muted p-0 position-absolute dismiss-btn" 
                                 style="top: 10px; right: 10px;" 
-                                data-dismiss-id="\${n.id}"
+                                data-dismiss-id="${n.id}"
                                 title="Dismiss">
                             <i class="fa-solid fa-xmark fs-6"></i>
                         </button>
