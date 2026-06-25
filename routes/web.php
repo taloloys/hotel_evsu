@@ -24,6 +24,16 @@ use App\Http\Controllers\Frontdesk\RegistrationController;
 use App\Http\Controllers\Frontdesk\ReservationController;
 use App\Http\Controllers\Frontdesk\ShiftController as FrontdeskShiftController;
 use App\Http\Controllers\Frontdesk\ShiftSalesController;
+use App\Http\Controllers\Coffeeshop\CustomerController as CoffeeshopCustomerController;
+use App\Http\Controllers\Coffeeshop\DashboardController as CoffeeshopDashboardController;
+use App\Http\Controllers\Coffeeshop\InventoryController as CoffeeshopInventoryController;
+use App\Http\Controllers\Coffeeshop\OrderController as CoffeeshopOrderController;
+use App\Http\Controllers\Coffeeshop\PosController as CoffeeshopPosController;
+use App\Http\Controllers\Coffeeshop\ProductController as CoffeeshopProductController;
+use App\Http\Controllers\Coffeeshop\ReportController as CoffeeshopReportController;
+use App\Http\Controllers\Coffeeshop\SettingsController as CoffeeshopSettingsController;
+use App\Http\Controllers\Coffeeshop\StatisticsController as CoffeeshopStatisticsController;
+use App\Http\Controllers\Coffeeshop\TabController as CoffeeshopTabController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', [LoginController::class, 'create'])
@@ -180,20 +190,86 @@ Route::middleware('auth')->group(function () {
 
     Route::prefix('coffeeshop')->middleware('can:manage-inventory')->group(function () {
 
-        Route::view('/dashboard', 'coffeeshop.dashboard.index')
+        Route::get('/dashboard', [CoffeeshopDashboardController::class, 'index'])
             ->name('coffeeshop.dashboard');
 
-        Route::view('/pos', 'coffeeshop.pos.index')
+        Route::get('/pos', [CoffeeshopPosController::class, 'index'])
             ->name('coffeeshop.pos');
 
-        Route::view('/orders', 'coffeeshop.orders.index')
-            ->name('coffeeshop.orders');
+        Route::get('/products', [CoffeeshopProductController::class, 'index'])
+            ->name('coffeeshop.products');
+        Route::get('/products/create', [CoffeeshopProductController::class, 'create'])
+            ->name('coffeeshop.products.create');
+        Route::post('/products', [CoffeeshopProductController::class, 'store'])
+            ->name('coffeeshop.products.store');
+        Route::get('/products/{product}/edit', [CoffeeshopProductController::class, 'edit'])
+            ->name('coffeeshop.products.edit');
+        Route::put('/products/{product}', [CoffeeshopProductController::class, 'update'])
+            ->name('coffeeshop.products.update');
+        Route::delete('/products/{product}', [CoffeeshopProductController::class, 'destroy'])
+            ->name('coffeeshop.products.destroy');
 
-        Route::view('/sales', 'coffeeshop.sales.index')
+        Route::get('/inventory', [CoffeeshopInventoryController::class, 'index'])
+            ->name('coffeeshop.inventory');
+        Route::post('/inventory/{product}/adjust', [CoffeeshopInventoryController::class, 'adjust'])
+            ->name('coffeeshop.inventory.adjust');
+
+        Route::get('/tabs', [CoffeeshopTabController::class, 'index'])
+            ->name('coffeeshop.tabs');
+        Route::post('/tabs/{tab}/reopen', [CoffeeshopTabController::class, 'reopen'])
+            ->name('coffeeshop.tabs.reopen');
+
+        Route::get('/orders', [CoffeeshopOrderController::class, 'index'])
+            ->name('coffeeshop.orders');
+        Route::get('/orders/{order}', [CoffeeshopOrderController::class, 'show'])
+            ->name('coffeeshop.orders.show');
+        Route::post('/orders/{order}/refund', [CoffeeshopOrderController::class, 'refund'])
+            ->name('coffeeshop.orders.refund');
+        Route::post('/orders/{order}/cancel', [CoffeeshopOrderController::class, 'cancel'])
+            ->name('coffeeshop.orders.cancel');
+
+        Route::get('/customers', [CoffeeshopCustomerController::class, 'index'])
+            ->name('coffeeshop.customers');
+
+        Route::get('/statistics', [CoffeeshopStatisticsController::class, 'index'])
+            ->name('coffeeshop.statistics');
+
+        Route::get('/reports', [CoffeeshopReportController::class, 'index'])
+            ->name('coffeeshop.reports');
+        Route::get('/reports/export', [CoffeeshopReportController::class, 'export'])
+            ->name('coffeeshop.reports.export');
+        Route::redirect('/sales', '/coffeeshop/reports')
             ->name('coffeeshop.sales');
 
-        Route::view('/inventory', 'coffeeshop.inventory.index')
-            ->name('coffeeshop.inventory');
+        Route::get('/settings', [CoffeeshopSettingsController::class, 'index'])
+            ->name('coffeeshop.settings');
+        Route::put('/settings', [CoffeeshopSettingsController::class, 'update'])
+            ->name('coffeeshop.settings.update');
+        Route::post('/settings/categories', [CoffeeshopSettingsController::class, 'storeCategory'])
+            ->name('coffeeshop.settings.categories.store');
+        Route::patch('/settings/categories/{category}/toggle', [CoffeeshopSettingsController::class, 'toggleCategory'])
+            ->name('coffeeshop.settings.categories.toggle');
+
+        Route::prefix('api')->name('coffeeshop.api.')->group(function () {
+            Route::get('/products/search', [CoffeeshopPosController::class, 'searchProducts'])
+                ->name('products.search');
+            Route::get('/guests/checked-in', [CoffeeshopPosController::class, 'checkedInGuests'])
+                ->name('guests.checked-in');
+            Route::get('/tabs', [CoffeeshopPosController::class, 'listTabs'])
+                ->name('tabs.index');
+            Route::post('/tabs', [CoffeeshopPosController::class, 'storeTab'])
+                ->name('tabs.store');
+            Route::post('/tabs/{tab}/items', [CoffeeshopPosController::class, 'addTabItem'])
+                ->name('tabs.items.store');
+            Route::patch('/tabs/{tab}/items/{item}', [CoffeeshopPosController::class, 'updateTabItem'])
+                ->name('tabs.items.update');
+            Route::delete('/tabs/{tab}/items/{item}', [CoffeeshopPosController::class, 'removeTabItem'])
+                ->name('tabs.items.destroy');
+            Route::post('/tabs/{tab}/close', [CoffeeshopPosController::class, 'closeTab'])
+                ->name('tabs.close');
+            Route::post('/tabs/{tab}/cancel', [CoffeeshopPosController::class, 'cancelTab'])
+                ->name('tabs.cancel');
+        });
     });
 
     Route::prefix('admin')->group(function () {

@@ -1,262 +1,144 @@
 @extends('layouts.app')
 
-@section('title', 'Dashboard')
+@section('title', 'Coffee Shop Dashboard')
 @section('pageTitle', 'Coffee Shop Dashboard')
-@section('pageSubtitle', 'Coffee shop operations overview')
+@section('pageSubtitle', 'Operations overview, alerts, and quick insights')
 
 @section('content')
+@include('coffeeshop.partials.alerts')
 
-<style>
-    .coffee-dashboard {
-        background: #f5f5f5;
-        border-radius: 20px;
-        padding: 20px;
-    }
-
-    .product-type-btn {
-        width: 100%;
-        border: none;
-        background: #ffffff;
-        padding: 14px;
-        border-radius: 12px;
-        margin-bottom: 10px;
-        font-weight: 500;
-        transition: .3s;
-        text-align: left;
-    }
-
-    .product-type-btn.active {
-        background: #6f4e37;
-        color: white;
-    }
-
-    .legend-dot {
-        width: 10px;
-        height: 10px;
-        border-radius: 50%;
-        display: inline-block;
-        margin-right: 6px;
-    }
-
-    .product-grid {
-        display: grid;
-        grid-template-columns: repeat(auto-fill, minmax(90px, 1fr));
-        gap: 18px;
-    }
-
-    .product-box {
-        height: 85px;
-        border-radius: 14px;
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        font-size: 22px;
-        cursor: pointer;
-        transition: .3s;
-        box-shadow: 0 2px 10px rgba(0,0,0,.08);
-        position: relative;
-        background: white;
-    }
-
-    .product-box:hover {
-        transform: translateY(-3px);
-    }
-
-    .available {
-        background: #d1fae5;
-        color: #065f46;
-    }
-
-    .low-stock {
-        background: #fef3c7;
-        color: #92400e;
-    }
-
-    .out-stock {
-        background: #fee2e2;
-        color: #991b1b;
-    }
-
-    .item-number {
-        position: absolute;
-        bottom: 5px;
-        font-size: 11px;
-        font-weight: 600;
-    }
-
-    .product-wrapper {
-        position: relative;
-    }
-</style>
-
-<!-- KPI CARDS -->
-<div class="row g-4 mb-4">
-
-    <div class="col-lg-3 col-md-6">
-        <div class="card border-0 shadow-sm">
+<div class="row g-3 mb-4">
+    <div class="col-md-3">
+        <div class="card border-0 shadow-sm h-100">
             <div class="card-body">
-                <div class="d-flex justify-content-between">
-                    <div>
-                        <small class="text-muted">Today's Sales</small>
-                        <h2 class="fw-bold mt-2">₱ 5,200</h2>
-                    </div>
-                    <i class="fa-solid fa-coins fa-2x text-warning"></i>
-                </div>
+                <div class="text-muted small">Today's Sales</div>
+                <h3 class="fw-bold mb-0">₱{{ number_format($stats['today_sales'], 2) }}</h3>
             </div>
         </div>
     </div>
-
-    <div class="col-lg-3 col-md-6">
-        <div class="card border-0 shadow-sm">
+    <div class="col-md-3">
+        <div class="card border-0 shadow-sm h-100">
             <div class="card-body">
-                <div class="d-flex justify-content-between">
-                    <div>
-                        <small class="text-muted">Orders</small>
-                        <h2 class="fw-bold mt-2">48</h2>
-                    </div>
-                    <i class="fa-solid fa-receipt fa-2x text-primary"></i>
-                </div>
+                <div class="text-muted small">Today's Orders</div>
+                <h3 class="fw-bold mb-0">{{ $stats['today_orders'] }}</h3>
             </div>
         </div>
     </div>
-
-    <div class="col-lg-3 col-md-6">
-        <div class="card border-0 shadow-sm">
+    <div class="col-md-3">
+        <div class="card border-0 shadow-sm h-100">
             <div class="card-body">
-                <div class="d-flex justify-content-between">
-                    <div>
-                        <small class="text-muted">Products</small>
-                        <h2 class="fw-bold mt-2">24</h2>
-                    </div>
-                    <i class="fa-solid fa-mug-hot fa-2x text-danger"></i>
-                </div>
+                <div class="text-muted small">Open Tabs</div>
+                <h3 class="fw-bold mb-0">{{ $stats['open_tabs'] }}</h3>
             </div>
         </div>
     </div>
-
-    <div class="col-lg-3 col-md-6">
-        <div class="card border-0 shadow-sm">
+    <div class="col-md-3">
+        <div class="card border-0 shadow-sm h-100">
             <div class="card-body">
-                <div class="d-flex justify-content-between">
-                    <div>
-                        <small class="text-muted">Low Stock Items</small>
-                        <h2 class="fw-bold mt-2">5</h2>
-                    </div>
-                    <i class="fa-solid fa-triangle-exclamation fa-2x text-warning"></i>
-                </div>
+                <div class="text-muted small">Low Stock Items</div>
+                <h3 class="fw-bold mb-0 text-danger">{{ $stats['low_stock_count'] }}</h3>
             </div>
         </div>
     </div>
-
 </div>
 
-<!-- MAIN SECTION -->
-<div class="card border-0 shadow-sm">
-
-    <div class="card-body coffee-dashboard">
-
-        <!-- LEGEND -->
-        <div class="d-flex flex-wrap gap-4 mb-4">
-
-            <div>
-                <span class="legend-dot bg-success"></span>
-                Available
+<div class="row g-3">
+    <div class="col-lg-8">
+        <div class="card border-0 shadow-sm mb-3">
+            <div class="card-header bg-white fw-semibold d-flex justify-content-between">
+                <span>Products</span>
+                <a href="{{ route('coffeeshop.pos') }}" class="btn btn-sm btn-primary">Open POS</a>
             </div>
-
-            <div>
-                <span class="legend-dot bg-warning"></span>
-                Low Stock
-            </div>
-
-            <div>
-                <span class="legend-dot bg-danger"></span>
-                Out of Stock
-            </div>
-
-        </div>
-
-        <div class="row">
-
-            <!-- LEFT CATEGORY MENU -->
-            <div class="col-lg-2 mb-3">
-
-                <button class="product-type-btn active">
-                    Coffee
-                </button>
-
-                <button class="product-type-btn">
-                    Milk Tea
-                </button>
-
-                <button class="product-type-btn">
-                    Frappes
-                </button>
-
-                <button class="product-type-btn">
-                    Pastries
-                </button>
-
-                <button class="product-type-btn">
-                    Snacks
-                </button>
-
-            </div>
-
-            <!-- PRODUCT GRID -->
-            <div class="col-lg-10">
-
-                <div class="product-grid">
-
-                    <div class="product-wrapper">
-                        <div class="product-box available">
-                            <i class="fa-solid fa-mug-hot"></i>
-                            <div class="item-number">Latte</div>
+            <div class="card-body">
+                <div class="row g-3">
+                    @forelse($featuredProducts as $product)
+                    <div class="col-md-3 col-6">
+                        <div class="border rounded p-3 text-center h-100 {{ $product->isLowStock() ? 'border-danger' : '' }}">
+                            @if($product->image_url)
+                                <img src="{{ $product->image_url }}" alt="{{ $product->name }}" class="img-fluid rounded mb-2" style="max-height:60px;">
+                            @else
+                                <i class="fa-solid fa-mug-hot fa-2x text-warning mb-2"></i>
+                            @endif
+                            <div class="fw-semibold small">{{ $product->name }}</div>
+                            <small class="text-muted d-block">{{ Str::limit($product->description, 30) }}</small>
+                            <div class="fw-bold text-primary mt-1">₱{{ number_format($product->price, 2) }}</div>
+                            <small class="{{ $product->isLowStock() ? 'text-danger' : 'text-muted' }}">Stock: {{ $product->stock_quantity }}</small>
                         </div>
                     </div>
-
-                    <div class="product-wrapper">
-                        <div class="product-box low-stock">
-                            <i class="fa-solid fa-mug-saucer"></i>
-                            <div class="item-number">Mocha</div>
-                        </div>
-                    </div>
-
-                    <div class="product-wrapper">
-                        <div class="product-box available">
-                            <i class="fa-solid fa-ice-cream"></i>
-                            <div class="item-number">Frappe</div>
-                        </div>
-                    </div>
-
-                    <div class="product-wrapper">
-                        <div class="product-box out-stock">
-                            <i class="fa-solid fa-cookie"></i>
-                            <div class="item-number">Cookie</div>
-                        </div>
-                    </div>
-
-                    <div class="product-wrapper">
-                        <div class="product-box available">
-                            <i class="fa-solid fa-bread-slice"></i>
-                            <div class="item-number">Bread</div>
-                        </div>
-                    </div>
-
-                    <div class="product-wrapper">
-                        <div class="product-box low-stock">
-                            <i class="fa-solid fa-bottle-water"></i>
-                            <div class="item-number">Milk</div>
-                        </div>
-                    </div>
-
+                    @empty
+                    <div class="col-12 text-muted">No products yet. <a href="{{ route('coffeeshop.products.create') }}">Add products</a>.</div>
+                    @endforelse
                 </div>
-
             </div>
-
         </div>
 
+        <div class="card border-0 shadow-sm">
+            <div class="card-header bg-white fw-semibold">Recent Orders</div>
+            <div class="table-responsive">
+                <table class="table mb-0">
+                    <thead><tr><th>Order</th><th>Customer</th><th>Total</th><th>Status</th></tr></thead>
+                    <tbody>
+                    @forelse($recentOrders as $order)
+                        <tr>
+                            <td><a href="{{ route('coffeeshop.orders.show', $order) }}">{{ $order->order_number }}</a></td>
+                            <td>{{ $order->customer_name }}</td>
+                            <td>₱{{ number_format($order->total, 2) }}</td>
+                            <td><span class="badge bg-secondary">{{ strtoupper($order->status) }}</span></td>
+                        </tr>
+                    @empty
+                        <tr><td colspan="4" class="text-muted">No orders yet.</td></tr>
+                    @endforelse
+                    </tbody>
+                </table>
+            </div>
+        </div>
     </div>
 
-</div>
+    <div class="col-lg-4">
+        <div class="card border-0 shadow-sm mb-3">
+            <div class="card-header bg-white fw-semibold text-danger">Needs Restocking</div>
+            <div class="list-group list-group-flush">
+                @forelse($lowStockProducts as $product)
+                <div class="list-group-item d-flex justify-content-between">
+                    <div>
+                        <div class="fw-semibold">{{ $product->name }}</div>
+                        <small class="text-muted">{{ $product->category?->name }}</small>
+                    </div>
+                    <span class="badge bg-danger">{{ $product->stock_quantity }}</span>
+                </div>
+                @empty
+                <div class="list-group-item text-muted">All stock levels are healthy.</div>
+                @endforelse
+            </div>
+        </div>
 
+        <div class="card border-0 shadow-sm mb-3">
+            <div class="card-header bg-white fw-semibold">Open Tabs</div>
+            <div class="list-group list-group-flush">
+                @forelse($openTabs as $tab)
+                <a href="{{ route('coffeeshop.pos') }}" class="list-group-item list-group-item-action d-flex justify-content-between">
+                    <span>{{ $tab->tab_name }}</span>
+                    <span class="fw-bold">₱{{ number_format($tab->total, 2) }}</span>
+                </a>
+                @empty
+                <div class="list-group-item text-muted">No open tabs.</div>
+                @endforelse
+            </div>
+        </div>
+
+        @if($topToday->isNotEmpty())
+        <div class="card border-0 shadow-sm">
+            <div class="card-header bg-white fw-semibold">Top Sellers Today</div>
+            <div class="list-group list-group-flush">
+                @foreach($topToday as $name => $qty)
+                <div class="list-group-item d-flex justify-content-between">
+                    <span>{{ $name }}</span>
+                    <span class="badge bg-primary">{{ $qty }}</span>
+                </div>
+                @endforeach
+            </div>
+        </div>
+        @endif
+    </div>
+</div>
 @endsection

@@ -1,0 +1,81 @@
+<?php
+
+namespace App\Models;
+
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
+
+class PosProduct extends Model
+{
+    protected $primaryKey = 'product_id';
+
+    protected $fillable = [
+        'category_id',
+        'name',
+        'description',
+        'price',
+        'image_path',
+        'stock_quantity',
+        'low_stock_threshold',
+        'is_active',
+    ];
+
+    protected function casts(): array
+    {
+        return [
+            'price' => 'decimal:2',
+            'is_active' => 'boolean',
+        ];
+    }
+
+    public function category(): BelongsTo
+    {
+        return $this->belongsTo(PosCategory::class, 'category_id', 'category_id');
+    }
+
+    public function inventoryLogs(): HasMany
+    {
+        return $this->hasMany(PosInventoryLog::class, 'product_id', 'product_id');
+    }
+
+    public function scopeActive($query)
+    {
+        return $query->where('is_active', true);
+    }
+
+    public function scopeInStock($query)
+    {
+        return $query->where('stock_quantity', '>', 0);
+    }
+
+    public function scopeLowStock($query)
+    {
+        $defaultThreshold = PosSetting::defaultLowStockThreshold();
+
+        return $query->where('is_active', true)
+            ->whereRaw(
+                'stock_quantity <= COALESCE(low_stock_threshold, ?)',
+                [$defaultThreshold]
+            );
+    }
+
+    public function effectiveLowStockThreshold(): int
+    {
+        return $this->low_stock_threshold ?? PosSetting::defaultLowStockThreshold();
+    }
+
+    public function isLowStock(): bool
+    {
+        return $this->stock_quantity <= $this->effectiveLowStockThreshold();
+    }
+
+    public function getImageUrlAttribute(): ?string
+    {
+        if (! $this->image_path) {
+            return null;
+        }
+
+        return asset('storage/'.$this->image_path);
+    }
+}

@@ -114,23 +114,20 @@
         }
 
         // 3. Manage Inventory notifications
-        if ($user->hasPermission('manage-inventory')) {
-            $notifications[] = [
-                'id' => 'inventory-low-beans',
-                'type' => 'inventory',
-                'icon' => 'fa-box-open text-danger',
-                'message' => "Low Stock: 'Coffee Beans' is below 5kg (Current: 1.2kg).",
-                'link' => route('coffeeshop.inventory'),
-                'time' => 'Low Stock',
-            ];
-            $notifications[] = [
-                'id' => 'inventory-low-milk',
-                'type' => 'inventory',
-                'icon' => 'fa-box-open text-danger',
-                'message' => "Low Stock: 'Fresh Milk' is below 10 liters (Current: 3.0L).",
-                'link' => route('coffeeshop.inventory'),
-                'time' => 'Low Stock',
-            ];
+        if ($user->hasPermission('manage-inventory') && \Illuminate\Support\Facades\Schema::hasTable('pos_products')) {
+            $lowStockProducts = \App\Models\PosProduct::with('category')->lowStock()->orderBy('stock_quantity')->limit(10)->get();
+
+            foreach ($lowStockProducts as $product) {
+                $threshold = $product->effectiveLowStockThreshold();
+                $notifications[] = [
+                    'id' => 'inventory-low-' . $product->product_id,
+                    'type' => 'inventory',
+                    'icon' => 'fa-box-open text-danger',
+                    'message' => "Low Stock: '{$product->name}' is below {$threshold} (Current: {$product->stock_quantity}).",
+                    'link' => route('coffeeshop.inventory', ['filter' => 'low_stock']),
+                    'time' => 'Low Stock',
+                ];
+            }
         }
 
         // 4. Manage Shifts notifications

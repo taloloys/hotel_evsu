@@ -25,6 +25,8 @@ class DatabaseSeeder extends Seeder
             BookingSeeder::class,
             TransactionSeeder::class,
             ExpenseSeeder::class,
+            PosCategorySeeder::class,
+            PosProductSeeder::class,
         ]);
     }
 }

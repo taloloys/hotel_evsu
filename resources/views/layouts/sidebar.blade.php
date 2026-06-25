@@ -157,20 +157,53 @@
                     <i class="fa-solid fa-cash-register me-2"></i>
                     POS
                 </a>
+                <a href="{{ route('coffeeshop.products') }}"
+                   class="nav-link {{ request()->routeIs('coffeeshop.products*') ? 'active' : '' }}">
+                    <i class="fa-solid fa-mug-hot me-2"></i>
+                    Products
+                </a>
+                <a href="{{ route('coffeeshop.inventory') }}"
+                   class="nav-link {{ request()->routeIs('coffeeshop.inventory*') ? 'active' : '' }}">
+                    <i class="fa-solid fa-box-open me-2"></i>
+                    Inventory
+                    @php
+                        $lowStockCount = \Illuminate\Support\Facades\Schema::hasTable('pos_products')
+                            ? \App\Models\PosProduct::lowStock()->count()
+                            : 0;
+                    @endphp
+                    @if($lowStockCount > 0)
+                        <span class="badge bg-danger ms-1">{{ $lowStockCount }}</span>
+                    @endif
+                </a>
+                <a href="{{ route('coffeeshop.tabs') }}"
+                   class="nav-link {{ request()->routeIs('coffeeshop.tabs*') ? 'active' : '' }}">
+                    <i class="fa-solid fa-bookmark me-2"></i>
+                    Tabs
+                </a>
                 <a href="{{ route('coffeeshop.orders') }}"
-                   class="nav-link {{ request()->routeIs('coffeeshop.orders') ? 'active' : '' }}">
+                   class="nav-link {{ request()->routeIs('coffeeshop.orders*') ? 'active' : '' }}">
                     <i class="fa-solid fa-receipt me-2"></i>
                     Orders
                 </a>
-                <a href="{{ route('coffeeshop.sales') }}"
-                   class="nav-link {{ request()->routeIs('coffeeshop.sales') ? 'active' : '' }}">
-                    <i class="fa-solid fa-chart-line me-2"></i>
-                    Sales
+                <a href="{{ route('coffeeshop.customers') }}"
+                   class="nav-link {{ request()->routeIs('coffeeshop.customers*') ? 'active' : '' }}">
+                    <i class="fa-solid fa-users me-2"></i>
+                    Customers
                 </a>
-                <a href="{{ route('coffeeshop.inventory') }}"
-                   class="nav-link {{ request()->routeIs('coffeeshop.inventory') ? 'active' : '' }}">
-                    <i class="fa-solid fa-box-open me-2"></i>
-                    Inventory
+                <a href="{{ route('coffeeshop.statistics') }}"
+                   class="nav-link {{ request()->routeIs('coffeeshop.statistics*') ? 'active' : '' }}">
+                    <i class="fa-solid fa-chart-pie me-2"></i>
+                    Statistics
+                </a>
+                <a href="{{ route('coffeeshop.reports') }}"
+                   class="nav-link {{ request()->routeIs('coffeeshop.reports*') || request()->routeIs('coffeeshop.sales*') ? 'active' : '' }}">
+                    <i class="fa-solid fa-chart-line me-2"></i>
+                    Reports
+                </a>
+                <a href="{{ route('coffeeshop.settings') }}"
+                   class="nav-link {{ request()->routeIs('coffeeshop.settings*') ? 'active' : '' }}">
+                    <i class="fa-solid fa-gear me-2"></i>
+                    Settings
                 </a>
             </nav>
         </div>
