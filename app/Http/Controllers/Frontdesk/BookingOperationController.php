@@ -9,6 +9,7 @@ use App\Models\Room;
 use Carbon\Carbon;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 
 class BookingOperationController extends Controller
 {
@@ -21,7 +22,7 @@ class BookingOperationController extends Controller
             'booking_id' => ['required', 'exists:bookings,booking_id'],
         ]);
 
-        $booking = Booking::with('room')->findOrFail($request->booking_id);
+        $booking = Booking::with(['room', 'folio'])->findOrFail($request->booking_id);
 
         if ($booking->status !== 'RESERVED') {
             return response()->json([
@@ -44,12 +45,20 @@ class BookingOperationController extends Controller
             ], 422);
         }
 
-        $booking->update([
-            'actual_check_in' => Carbon::now(),
-            'status' => 'CHECKED_IN',
-        ]);
+        DB::transaction(function () use ($booking) {
+            $booking->update([
+                'actual_check_in' => Carbon::now(),
+                'status' => 'CHECKED_IN',
+            ]);
 
-        $booking->room->update(['status' => 'OCCUPIED']);
+            if ($booking->room) {
+                $booking->room->update(['status' => 'OCCUPIED']);
+            }
+
+            if ($booking->folio && $booking->folio->net_rate === null) {
+                $booking->folio->update(['net_rate' => $booking->room?->base_rate]);
+            }
+        });
 
         $booking->load('folio.guest');
         $guestName = $booking->folio?->guest ? ($booking->folio->guest->first_name.' '.$booking->folio->guest->last_name) : 'Guest';
@@ -81,7 +90,7 @@ class BookingOperationController extends Controller
             'checkout_period' => ['required', 'in:AM,PM'],
         ]);
 
-        $booking = Booking::with('room')->findOrFail($request->booking_id);
+        $booking = Booking::with(['room', 'folio'])->findOrFail($request->booking_id);
 
         if ($booking->status !== 'CHECKED_IN') {
             return response()->json([
@@ -102,13 +111,21 @@ class BookingOperationController extends Controller
             Carbon::today()->format('Y-m-d').' '.$request->checkout_time.' '.$request->checkout_period
         );
 
-        $booking->update([
-            'actual_check_in' => $booking->actual_check_in, // preserve check-in time
-            'actual_check_out' => $actualCheckOut,
-            'status' => 'CHECKED_OUT',
-        ]);
+        DB::transaction(function () use ($booking, $actualCheckOut) {
+            $booking->update([
+                'actual_check_in' => $booking->actual_check_in, // preserve check-in time
+                'actual_check_out' => $actualCheckOut,
+                'status' => 'CHECKED_OUT',
+            ]);
 
-        $booking->room->update(['status' => 'CLEANING']);
+            if ($booking->room) {
+                $booking->room->update(['status' => 'CLEANING']);
+            }
+
+            if ($booking->folio) {
+                $booking->folio->update(['status' => 'CLOSED']);
+            }
+        });
 
         $booking->load('folio.guest');
         $guestName = $booking->folio?->guest ? ($booking->folio->guest->first_name.' '.$booking->folio->guest->last_name) : 'Guest';

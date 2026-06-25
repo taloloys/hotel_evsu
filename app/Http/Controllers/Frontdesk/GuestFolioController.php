@@ -175,6 +175,10 @@ class GuestFolioController extends Controller
 
             $room->update(['status' => 'OCCUPIED']);
 
+            if ($booking->folio && $booking->folio->net_rate === null) {
+                $booking->folio->update(['net_rate' => $room->base_rate]);
+            }
+
             $booking->load('folio.guest');
             $guestName = $booking->folio?->guest
                 ? ($booking->folio->guest->first_name.' '.$booking->folio->guest->last_name)
@@ -285,6 +289,10 @@ class GuestFolioController extends Controller
 
             if ($room) {
                 $room->update(['status' => 'CLEANING']);
+            }
+
+            if ($booking->folio) {
+                $booking->folio->update(['status' => 'CLOSED']);
             }
 
             $booking->load('folio.guest');

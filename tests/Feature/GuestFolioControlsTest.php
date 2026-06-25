@@ -213,6 +213,8 @@ test('user can check out a guest via the folio check-out redirect endpoint', fun
         'room_id' => $this->roomA->room_id,
         'status' => 'CLEANING',
     ]);
+
+    $this->assertEquals('CLOSED', $folio->refresh()->status);
 });
 
 test('user can close and reopen folio', function (): void {
@@ -264,4 +266,49 @@ test('user can check in a reserved guest via the folio check-in endpoint', funct
         'room_id' => $this->roomB->room_id,
         'status' => 'OCCUPIED',
     ]);
+});
+
+test('user can check out a guest via the dashboard check-out json endpoint', function (): void {
+    $manageReservations = Permission::create([
+        'permission_key' => 'manage-reservations',
+        'description' => 'Manage reservations',
+        'module' => 'Front Desk',
+        'is_active' => true,
+    ]);
+    $this->frontdeskRole->permissions()->attach($manageReservations->permission_id);
+
+    $guest = Guest::create(['last_name' => 'Cruz', 'first_name' => 'Juan']);
+    $folio = Folio::create(['folio_number' => 'REG-2026001', 'guest_id' => $guest->guest_id, 'status' => 'OPEN']);
+    $booking = Booking::create([
+        'folio_id' => $folio->folio_id,
+        'room_id' => $this->roomA->room_id,
+        'arrival_date' => now()->toDateString(),
+        'arrival_time' => '14:00',
+        'departure_date' => now()->addDays(2)->toDateString(),
+        'departure_time' => '12:00',
+        'actual_check_in' => now(),
+        'status' => 'CHECKED_IN',
+    ]);
+
+    $response = $this->actingAs($this->frontdeskUser)
+        ->postJson(route('frontdesk.booking.check-out'), [
+            'booking_id' => $booking->booking_id,
+            'checkout_time' => '11:45',
+            'checkout_period' => 'AM',
+        ]);
+
+    $response->assertOk();
+    $response->assertJsonPath('success', true);
+
+    $this->assertDatabaseHas('bookings', [
+        'booking_id' => $booking->booking_id,
+        'status' => 'CHECKED_OUT',
+    ]);
+
+    $this->assertDatabaseHas('rooms', [
+        'room_id' => $this->roomA->room_id,
+        'status' => 'CLEANING',
+    ]);
+
+    $this->assertEquals('CLOSED', $folio->refresh()->status);
 });

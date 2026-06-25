@@ -167,6 +167,7 @@ class ReservationController extends Controller
                 'symbol' => 'CBO',
                 'folio_type' => 'GUEST',
                 'status' => 'OPEN',
+                'net_rate' => $room->base_rate,
             ]);
 
             Booking::create([

@@ -238,6 +238,7 @@ test('creating a reservation for an existing guest reuses their guest record and
     $newFolio = Folio::where('folio_number', 'REG-2026998')->first();
     $this->assertNotNull($newFolio);
     $this->assertEquals('OPEN', $newFolio->status);
+    $this->assertEquals(2000.00, $newFolio->net_rate);
 
     // Old folio remains CLOSED
     $this->assertEquals('CLOSED', $folio->refresh()->status);
