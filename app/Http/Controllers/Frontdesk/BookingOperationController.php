@@ -37,10 +37,10 @@ class BookingOperationController extends Controller
             ], 422);
         }
 
-        if ($booking->room->status !== 'AVAILABLE') {
+        if (! in_array($booking->room->status, ['AVAILABLE', 'RESERVED'], true)) {
             return response()->json([
                 'success' => false,
-                'message' => 'Room must be available before check-in.',
+                'message' => 'Room must be available or reserved before check-in.',
             ], 422);
         }
 

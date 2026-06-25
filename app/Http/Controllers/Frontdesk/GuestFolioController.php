@@ -163,7 +163,7 @@ class GuestFolioController extends Controller
             return back()->withErrors(['checkin' => 'Booking has no assigned room.']);
         }
 
-        if ($room->status !== 'AVAILABLE') {
+        if (! in_array($room->status, ['AVAILABLE', 'RESERVED'], true)) {
             return back()->withErrors(['checkin' => "Room {$room->room_number} is not available for check-in (status: {$room->status})."]);
         }
 
