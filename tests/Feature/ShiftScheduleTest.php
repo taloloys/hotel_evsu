@@ -36,9 +36,9 @@ beforeEach(function (): void {
     ]);
 
     $viewFolio = Permission::create([
-        'permission_key' => 'view-folio',
-        'description' => 'View folio',
-        'module' => 'Accounting',
+        'permission_key' => 'view-shift-sales',
+        'description' => 'View shift sales',
+        'module' => 'Front Desk',
         'is_active' => true,
     ]);
 

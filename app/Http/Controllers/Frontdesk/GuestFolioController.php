@@ -163,7 +163,7 @@ class GuestFolioController extends Controller
             return back()->withErrors(['checkin' => 'Booking has no assigned room.']);
         }
 
-        if ($room->status !== 'AVAILABLE') {
+        if (! in_array($room->status, ['AVAILABLE', 'RESERVED'], true)) {
             return back()->withErrors(['checkin' => "Room {$room->room_number} is not available for check-in (status: {$room->status})."]);
         }
 
@@ -176,10 +176,17 @@ class GuestFolioController extends Controller
 
             $room->update(['status' => 'OCCUPIED']);
 
+            if ($booking->folio && $booking->folio->net_rate === null) {
+                $booking->folio->update(['net_rate' => $room->base_rate]);
+            }
+
             $booking->load('folio.guest');
             $guestName = $booking->folio?->guest
                 ? ($booking->folio->guest->first_name.' '.$booking->folio->guest->last_name)
                 : 'Guest';
+
+            // Post room charges night-by-night automatically
+            $booking->postRoomCharges();
 
             ActivityLog::log(
                 'CHECK_IN',
@@ -267,6 +274,17 @@ class GuestFolioController extends Controller
             return back()->withErrors(['checkout' => 'Only checked-in guests can be checked out.']);
         }
 
+        $booking->load(['room', 'folio']);
+
+        if ($booking->folio && ! $booking->folio->isSettled()) {
+            $balance = $booking->folio->balance;
+            $message = $balance > 0
+                ? 'Cannot check out guest. Folio has an outstanding balance of ₱'.number_format($balance, 2).'.'
+                : 'Cannot check out guest. Folio has an overpayment of ₱'.number_format(abs($balance), 2).'. Please refund the guest first.';
+
+            return back()->withErrors(['checkout' => $message]);
+        }
+
         $room = $booking->room;
 
         $actualCheckOut = Carbon::createFromFormat(
@@ -283,6 +301,10 @@ class GuestFolioController extends Controller
 
             if ($room) {
                 $room->update(['status' => 'CLEANING']);
+            }
+
+            if ($booking->folio) {
+                $booking->folio->update(['status' => 'CLOSED']);
             }
 
             $booking->load('folio.guest');
@@ -305,6 +327,15 @@ class GuestFolioController extends Controller
      */
     public function closeFolio(Request $request, Folio $folio): RedirectResponse
     {
+        if (! $folio->isSettled()) {
+            $balance = $folio->balance;
+            $message = $balance > 0
+                ? 'Cannot close folio. Folio has an outstanding balance of ₱'.number_format($balance, 2).'.'
+                : 'Cannot close folio. Folio has an overpayment of ₱'.number_format(abs($balance), 2).'. Please refund it first.';
+
+            return back()->withErrors(['close' => $message]);
+        }
+
         $folio->update(['status' => 'CLOSED']);
 
         ActivityLog::log(

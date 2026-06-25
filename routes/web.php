@@ -79,6 +79,9 @@ Route::middleware('auth')->group(function () {
             Route::post('/registration', [RegistrationController::class, 'store'])
                 ->name('frontdesk.registration.store');
 
+            Route::get('/guests/search', [GuestListController::class, 'searchJson'])
+                ->name('frontdesk.guests.search');
+
             Route::get('/check-in', [CheckInController::class, 'index'])
                 ->name('frontdesk.checkin');
 
@@ -92,31 +95,37 @@ Route::middleware('auth')->group(function () {
                 ->name('frontdesk.shift.close');
         });
 
-        Route::middleware('can:view-folio')->group(function () {
+        Route::middleware('can:view-guest-list')->group(function () {
             Route::get('/guest-list', [GuestListController::class, 'index'])
                 ->name('frontdesk.guest-list');
+        });
 
+        Route::middleware('can:view-guest-folio')->group(function () {
             Route::get('/guest-folio', [GuestFolioController::class, 'index'])
                 ->name('frontdesk.guest-folio');
 
-            Route::post('/guest-folio/{folio}/transaction', [GuestFolioController::class, 'postTransaction'])
-                ->name('frontdesk.guest-folio.transaction');
+            Route::middleware('can:manage-guest-folio')->group(function () {
+                Route::post('/guest-folio/{folio}/transaction', [GuestFolioController::class, 'postTransaction'])
+                    ->name('frontdesk.guest-folio.transaction');
 
-            Route::post('/guest-folio/booking/{booking}/transfer', [GuestFolioController::class, 'transferRoom'])
-                ->name('frontdesk.guest-folio.transfer');
+                Route::post('/guest-folio/booking/{booking}/transfer', [GuestFolioController::class, 'transferRoom'])
+                    ->name('frontdesk.guest-folio.transfer');
 
-            Route::post('/guest-folio/booking/{booking}/check-in', [GuestFolioController::class, 'checkInBooking'])
-                ->name('frontdesk.guest-folio.checkin');
+                Route::post('/guest-folio/booking/{booking}/check-in', [GuestFolioController::class, 'checkInBooking'])
+                    ->name('frontdesk.guest-folio.checkin');
 
-            Route::post('/guest-folio/booking/{booking}/check-out', [GuestFolioController::class, 'checkOutBooking'])
-                ->name('frontdesk.guest-folio.checkout');
+                Route::post('/guest-folio/booking/{booking}/check-out', [GuestFolioController::class, 'checkOutBooking'])
+                    ->name('frontdesk.guest-folio.checkout');
 
-            Route::post('/guest-folio/{folio}/close', [GuestFolioController::class, 'closeFolio'])
-                ->name('frontdesk.guest-folio.close');
+                Route::post('/guest-folio/{folio}/close', [GuestFolioController::class, 'closeFolio'])
+                    ->name('frontdesk.guest-folio.close');
 
-            Route::post('/guest-folio/{folio}/reopen', [GuestFolioController::class, 'reopenFolio'])
-                ->name('frontdesk.guest-folio.reopen');
+                Route::post('/guest-folio/{folio}/reopen', [GuestFolioController::class, 'reopenFolio'])
+                    ->name('frontdesk.guest-folio.reopen');
+            });
+        });
 
+        Route::middleware('can:view-shift-sales')->group(function () {
             Route::get('/shift-sales', [ShiftSalesController::class, 'index'])
                 ->name('frontdesk.shift-sales');
 
@@ -126,39 +135,45 @@ Route::middleware('auth')->group(function () {
 
     });
 
-    Route::prefix('accounting')->middleware('can:view-folio')->group(function () {
+    Route::prefix('accounting')->group(function () {
 
-        Route::get('/dashboard', [App\Http\Controllers\Accounting\DashboardController::class, 'index'])
+        Route::middleware('can:view-accounting-dashboard')->get('/dashboard', [App\Http\Controllers\Accounting\DashboardController::class, 'index'])
             ->name('accounting.dashboard');
 
-        Route::get('/billing', [BillingController::class, 'index'])
-            ->name('accounting.billing');
+        Route::middleware('can:manage-accounting-billing')->group(function () {
+            Route::get('/billing', [BillingController::class, 'index'])
+                ->name('accounting.billing');
 
-        Route::get('/billing/{folio}', [BillingController::class, 'show'])
-            ->name('accounting.billing.show');
+            Route::get('/billing/{folio}', [BillingController::class, 'show'])
+                ->name('accounting.billing.show');
+        });
 
-        Route::get('/payments', [PaymentController::class, 'index'])
-            ->name('accounting.payments');
+        Route::middleware('can:manage-accounting-payments')->group(function () {
+            Route::get('/payments', [PaymentController::class, 'index'])
+                ->name('accounting.payments');
 
-        Route::post('/payments', [PaymentController::class, 'store'])
-            ->name('accounting.payments.store');
+            Route::post('/payments', [PaymentController::class, 'store'])
+                ->name('accounting.payments.store');
+        });
 
-        Route::get('/receivables', [ReceivableController::class, 'index'])
+        Route::middleware('can:manage-accounting-receivables')->get('/receivables', [ReceivableController::class, 'index'])
             ->name('accounting.receivables');
 
-        Route::get('/expenses', [ExpenseController::class, 'index'])
-            ->name('accounting.expenses');
+        Route::middleware('can:manage-accounting-expenses')->group(function () {
+            Route::get('/expenses', [ExpenseController::class, 'index'])
+                ->name('accounting.expenses');
 
-        Route::post('/expenses', [ExpenseController::class, 'store'])
-            ->name('accounting.expenses.store');
+            Route::post('/expenses', [ExpenseController::class, 'store'])
+                ->name('accounting.expenses.store');
 
-        Route::patch('/expenses/{expense}/approve', [ExpenseController::class, 'approve'])
-            ->name('accounting.expenses.approve');
+            Route::patch('/expenses/{expense}/approve', [ExpenseController::class, 'approve'])
+                ->name('accounting.expenses.approve');
+        });
 
-        Route::get('/reports', [ReportController::class, 'index'])
+        Route::middleware('can:view-accounting-reports')->get('/reports', [ReportController::class, 'index'])
             ->name('accounting.reports');
 
-        Route::get('/audit', [AuditController::class, 'index'])
+        Route::middleware('can:view-accounting-audit')->get('/audit', [AuditController::class, 'index'])
             ->name('accounting.audit');
 
     });

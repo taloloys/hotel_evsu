@@ -6,14 +6,14 @@
 
 @section('content')
 
-<div class="container-fluid">
+<div class="container-fluid d-print-none">
 
     {{-- Search Bar --}}
     <div class="card border-0 shadow-sm mb-4">
         <div class="card-body">
             <form method="GET" action="{{ route('frontdesk.guest-list') }}" id="searchForm">
                 <div class="row g-3 align-items-end">
-                    <div class="col-md-8">
+                    <div class="col-md-5">
                         <label class="form-label fw-semibold" for="search">Search Guest</label>
                         <div class="input-group">
                             <span class="input-group-text bg-white">
@@ -25,15 +25,23 @@
                                 id="search"
                                 name="search"
                                 value="{{ $search }}"
-                                placeholder="Search by first name, last name..."
+                                placeholder="Search by name..."
                                 autocomplete="off"
                             >
                             @if($search)
-                                <a href="{{ route('frontdesk.guest-list') }}" class="btn btn-outline-secondary">
+                                <a href="{{ route('frontdesk.guest-list', ['status' => $status]) }}" class="btn btn-outline-secondary">
                                     <i class="fa-solid fa-xmark"></i> Clear
                                 </a>
                             @endif
                         </div>
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label fw-semibold" for="status">Status</label>
+                        <select class="form-select" id="status" name="status" onchange="document.getElementById('searchForm').submit()">
+                            <option value="" {{ $status === '' || $status === null ? 'selected' : '' }}>All Statuses</option>
+                            <option value="checked_in" {{ $status === 'checked_in' ? 'selected' : '' }}>Checked In (In-House)</option>
+                            <option value="checked_out" {{ $status === 'checked_out' ? 'selected' : '' }}>Checked Out</option>
+                        </select>
                     </div>
                     <div class="col-md-2">
                         <button type="submit" class="btn btn-primary w-100">
@@ -41,8 +49,19 @@
                         </button>
                     </div>
                     <div class="col-md-2">
-                        <button type="button" class="btn btn-outline-secondary w-100" onclick="window.print()">
-                            <i class="fa-solid fa-print me-1"></i> Print
+                        @php
+                            $printText = 'Print Guest List';
+                            $printBtnClass = 'btn-outline-secondary';
+                            if ($status === 'checked_in') {
+                                $printText = 'Print Checked In';
+                                $printBtnClass = 'btn-outline-success';
+                            } elseif ($status === 'checked_out') {
+                                $printText = 'Print Checked Out';
+                                $printBtnClass = 'btn-outline-primary';
+                            }
+                        @endphp
+                        <button type="button" class="btn {{ $printBtnClass }} w-100" onclick="window.print()">
+                            <i class="fa-solid fa-print me-1"></i> {{ $printText }}
                         </button>
                     </div>
                 </div>
@@ -133,9 +152,12 @@
                                 </td>
                                 <td class="text-center">
                                     @if($isCurrentlyIn)
-                                        <span class="badge bg-success-subtle text-success border border-success-subtle">
+                                        <span class="badge bg-success-subtle text-success border border-success-subtle mb-1">
                                             <i class="fa-solid fa-circle-dot me-1"></i> In-House
                                         </span>
+                                        @if($lastFolio)
+                                            <div class="text-muted small">Folio: <strong>{{ $lastFolio->folio_number }}</strong></div>
+                                        @endif
                                     @elseif($lastBooking?->status === 'CHECKED_OUT')
                                         <span class="badge bg-secondary-subtle text-secondary border border-secondary-subtle">
                                             Checked Out
@@ -180,6 +202,131 @@
         @endif
     </div>
 
+</div>
+
+<!-- High-fidelity printable guest list view -->
+<div class="d-none d-print-block print-only-guest-list" style="font-family: Arial, sans-serif; color: #000000; background: #ffffff; padding: 20px; line-height: 1.4; width: 100%;">
+    
+    {{-- Header block --}}
+    <table style="width: 100%; border-collapse: collapse; margin-bottom: 20px; border-bottom: 1px solid #000; padding-bottom: 15px;">
+        <tr>
+            <!-- Left Logo -->
+            <td style="width: 20%; vertical-align: top;">
+                <img src="{{ asset('images/logo.png') }}" alt="Logo" style="width: 75px; height: auto; object-fit: contain;">
+            </td>
+            <!-- Center Hotel Info -->
+            <td style="width: 60%; text-align: center; vertical-align: top;">
+                <h3 style="font-size: 18px; font-weight: bold; margin: 0; text-transform: uppercase; letter-spacing: 0.5px;">Hotel Don Felipe</h3>
+                <div style="font-size: 10px; margin-top: 3px; line-height: 1.3;">
+                    Bonifacio Street, Ormoc City<br>
+                    Tel. Nos. 255-3580 &bull; Fax No. 561-9620<br>
+                    Email: hdfelipe@yahoo.com
+                </div>
+                <h4 style="font-size: 13px; font-weight: bold; margin: 12px 0 0 0; text-transform: uppercase; letter-spacing: 1px;">
+                    @if($status === 'checked_in')
+                        In-House Guest List
+                    @elseif($status === 'checked_out')
+                        Checked-Out Guest List
+                    @else
+                        Registered Guest List
+                    @endif
+                </h4>
+            </td>
+            <!-- Right Info -->
+            <td style="width: 20%; text-align: right; font-size: 10px; font-weight: bold; line-height: 1.4; vertical-align: top; padding-top: 5px;">
+                <div>DATE: {{ now()->format('m/d/Y') }}</div>
+                <div>TIME: {{ now()->format('h:i A') }}</div>
+            </td>
+        </tr>
+    </table>
+
+    {{-- Metadata grid --}}
+    <table style="width: 100%; font-size: 11px; margin-bottom: 20px; line-height: 1.5; border-collapse: collapse;">
+        <tr>
+            <td style="width: 15%; font-weight: bold; vertical-align: top;">REPORT TYPE</td>
+            <td style="width: 35%; vertical-align: top;">: 
+                @if($status === 'checked_in')
+                    IN-HOUSE GUESTS ONLY
+                @elseif($status === 'checked_out')
+                    CHECKED-OUT GUESTS ONLY
+                @else
+                    ALL REGISTERED GUESTS
+                @endif
+            </td>
+            <td style="width: 15%; font-weight: bold; vertical-align: top;">TOTAL RECORDS</td>
+            <td style="width: 35%; vertical-align: top;">: {{ count($printGuests) }}</td>
+        </tr>
+        <tr>
+            <td style="font-weight: bold; vertical-align: top;">GENERATED BY</td>
+            <td style="vertical-align: top;">: {{ strtoupper(auth()->user()?->full_name ?? auth()->user()?->username ?? 'SYSTEM') }}</td>
+            <td style="font-weight: bold; vertical-align: top;">SEARCH QUERY</td>
+            <td style="vertical-align: top;">: {{ $search ? strtoupper($search) : 'NONE' }}</td>
+        </tr>
+    </table>
+
+    {{-- Guests table --}}
+    <table style="width: 100%; font-size: 11px; border-collapse: collapse; margin-bottom: 20px;">
+        <thead>
+            <tr style="border-top: 1px solid #000; border-bottom: 1px solid #000; font-weight: bold;">
+                <th style="padding: 5px 0; text-align: left; width: 5%;">#</th>
+                <th style="padding: 5px 0; text-align: left; width: 25%;">GUEST NAME</th>
+                <th style="padding: 5px 0; text-align: left; width: 15%;">MOBILE NO.</th>
+                <th style="padding: 5px 0; text-align: left; width: 20%;">ADDRESS</th>
+                <th style="padding: 5px 0; text-align: center; width: 10%;">STATUS</th>
+                <th style="padding: 5px 0; text-align: center; width: 10%;">ROOM</th>
+                <th style="padding: 5px 0; text-align: center; width: 15%;">FOLIO NO.</th>
+            </tr>
+        </thead>
+        <tbody>
+            @forelse($printGuests as $index => $guest)
+                @php
+                    $lastFolio      = $guest->folios->sortByDesc('folio_id')->first();
+                    $lastBooking    = $lastFolio?->bookings->sortByDesc('booking_id')->first();
+                    $lastRoom       = $lastBooking?->room;
+                    $isCurrentlyIn  = $lastBooking && $lastBooking->status === 'CHECKED_IN';
+                @endphp
+                <tr>
+                    <td style="padding: 6px 0; vertical-align: top;">{{ $index + 1 }}</td>
+                    <td style="padding: 6px 0; vertical-align: top; font-weight: bold;">
+                        {{ strtoupper($guest->last_name) }}, {{ strtoupper($guest->first_name) }}
+                    </td>
+                    <td style="padding: 6px 0; vertical-align: top;">{{ $guest->contact_number ?: '—' }}</td>
+                    <td style="padding: 6px 0; vertical-align: top;">{{ strtoupper($guest->address_line1 ?: '') }}</td>
+                    <td style="padding: 6px 0; vertical-align: top; text-align: center;">
+                        @if($isCurrentlyIn)
+                            IN-HOUSE
+                        @elseif($lastBooking?->status === 'CHECKED_OUT')
+                            CHECKED OUT
+                        @else
+                            NO STAY
+                        @endif
+                    </td>
+                    <td style="padding: 6px 0; vertical-align: top; text-align: center;">
+                        {{ $lastRoom?->room_number ?? '—' }}
+                    </td>
+                    <td style="padding: 6px 0; vertical-align: top; text-align: center;">
+                        @if($isCurrentlyIn)
+                            {{ $lastFolio->folio_number }}
+                        @else
+                            —
+                        @endif
+                    </td>
+                </tr>
+            @empty
+                <tr>
+                    <td colspan="7" style="padding: 20px 0; text-align: center; font-style: italic;">No guests found.</td>
+                </tr>
+            @endforelse
+            <tr style="border-top: 1px solid #000; border-bottom: 3px double #000;">
+                <td colspan="7" style="padding: 4px 0;"></td>
+            </tr>
+        </tbody>
+    </table>
+
+    {{-- Nothing follows centered --}}
+    <div style="text-align: center; font-size: 10px; font-weight: bold; font-style: italic; margin-top: 15px;">
+        *** Nothing follows ***
+    </div>
 </div>
 
 {{-- Guest Detail Modals --}}
@@ -285,12 +432,20 @@
 @push('styles')
 <style>
     @media print {
-        .btn, form, nav, aside, .modal, [data-bs-toggle], .card-footer {
+        .sidebar, .main-content > .card, .container-fluid, .modal-backdrop, .modal, .d-print-none {
             display: none !important;
         }
-        #guestTable thead {
-            background-color: #f8f9fa !important;
-            -webkit-print-color-adjust: exact;
+        .main-content {
+            margin-left: 0 !important;
+            padding: 0 !important;
+        }
+        body {
+            background: #ffffff !important;
+            color: #000000 !important;
+        }
+        .print-only-guest-list {
+            display: block !important;
+            width: 100% !important;
         }
     }
 </style>

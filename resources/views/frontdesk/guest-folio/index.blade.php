@@ -131,9 +131,9 @@
                             @php
                                 $booking     = $folio->bookings->sortByDesc('booking_id')->first();
                                 $room        = $booking?->room;
-                                $totalCharge = $folio->transactions->sum('charge_amount');
-                                $totalCredit = $folio->transactions->sum('credit_amount');
-                                $balance     = $totalCharge - $totalCredit;
+                                $totalCharge = $folio->total_charges;
+                                $totalCredit = $folio->total_credits;
+                                $balance     = $folio->balance;
                             @endphp
                             <tr>
                                 <td class="px-4">
@@ -236,9 +236,9 @@
     @php
         $booking     = $folio->bookings->sortByDesc('booking_id')->first();
         $room        = $booking?->room;
-        $totalCharge = $folio->transactions->sum('charge_amount');
-        $totalCredit = $folio->transactions->sum('credit_amount');
-        $balance     = $totalCharge - $totalCredit;
+        $totalCharge = $folio->total_charges;
+        $totalCredit = $folio->total_credits;
+        $balance     = $folio->balance;
     @endphp
     <div class="modal fade" id="folioModal{{ $folio->folio_id }}" tabindex="-1" aria-labelledby="folioModalLabel{{ $folio->folio_id }}" aria-hidden="true">
         <div class="modal-dialog modal-xl modal-dialog-scrollable">
@@ -610,14 +610,199 @@
                 </div>
 
                 <div class="modal-footer">
-                    <button type="button" class="btn btn-outline-secondary" onclick="window.print()">
+                    <button type="button" class="btn btn-outline-secondary d-print-none" onclick="printFolio({{ $folio->folio_id }})">
                         <i class="fa-solid fa-print me-1"></i> Print Folio
                     </button>
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                    <button type="button" class="btn btn-secondary d-print-none" data-bs-dismiss="modal">Close</button>
                 </div>
 
             </div>
         </div>
+    </div>
+
+    {{-- High-fidelity printable folio view --}}
+    <div class="d-none d-print-block print-only-folio" id="print-folio-{{ $folio->folio_id }}" style="font-family: Arial, sans-serif; color: #000000; background: #ffffff; padding: 20px; line-height: 1.4; width: 100%;">
+        
+        {{-- Header block --}}
+        <table style="width: 100%; border-collapse: collapse; margin-bottom: 20px; border-bottom: 1px solid #000; padding-bottom: 15px;">
+            <tr>
+                <!-- Left Logo -->
+                <td style="width: 20%; vertical-align: top;">
+                    <img src="{{ asset('images/logo.png') }}" alt="Logo" style="width: 75px; height: auto; object-fit: contain;">
+                </td>
+                <!-- Center Hotel Info -->
+                <td style="width: 60%; text-align: center; vertical-align: top;">
+                    <h3 style="font-size: 18px; font-weight: bold; margin: 0; text-transform: uppercase; letter-spacing: 0.5px;">Hotel Don Felipe</h3>
+                    <div style="font-size: 10px; margin-top: 3px; line-height: 1.3;">
+                        Bonifacio Street, Ormoc City<br>
+                        Tel. Nos. 255-3580 &bull; Fax No. 561-9620<br>
+                        Email: hdfelipe@yahoo.com
+                    </div>
+                    <h4 style="font-size: 13px; font-weight: bold; margin: 12px 0 0 0; text-transform: uppercase; letter-spacing: 1px;">Guest Folio</h4>
+                </td>
+                <!-- Right Registration/Folio Numbers -->
+                <td style="width: 20%; text-align: right; font-size: 10px; font-weight: bold; line-height: 1.4; vertical-align: top; padding-top: 5px;">
+                    <div>REG. NO. &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;: {{ $folio->registration_number ?? '—' }}</div>
+                    <div>FOLIO NO. : {{ $folio->folio_number }}</div>
+                </td>
+            </tr>
+        </table>
+
+        {{-- Metadata grid --}}
+        <table style="width: 100%; font-size: 11px; margin-bottom: 20px; line-height: 1.5; border-collapse: collapse;">
+            <tr>
+                <td style="width: 13%; font-weight: bold; vertical-align: top;">DATE</td>
+                <td style="width: 45%; vertical-align: top;">: {{ now()->format('m/d/Y') }}</td>
+                <td style="width: 13%; font-weight: bold; vertical-align: top;">ROOM</td>
+                <td style="width: 29%; vertical-align: top;">: {{ $booking?->room?->room_number ?? 'N/A' }}</td>
+            </tr>
+            <tr>
+                <td style="font-weight: bold; vertical-align: top;">GUEST NAME</td>
+                <td style="vertical-align: top;">: {{ strtoupper($folio->guest?->last_name ?? '') }}, {{ strtoupper($folio->guest?->first_name ?? '') }} @if($folio->registration_number) ({{ $folio->registration_number }}) @endif</td>
+                <td style="vertical-align: top;">&nbsp;</td>
+                <td style="vertical-align: top; font-weight: bold; padding-left: 8px;">{{ number_format($folio->net_rate ?? ($booking?->room?->base_rate ?? 0), 2) }}</td>
+            </tr>
+            <tr>
+                <td style="font-weight: bold; vertical-align: top;">ADDRESS</td>
+                <td style="vertical-align: top;">: {{ strtoupper($folio->guest?->address_line1 ?? '') }} {{ strtoupper($folio->guest?->address_line2 ?? '') }}</td>
+                <td style="vertical-align: top;">&nbsp;</td>
+                <td style="vertical-align: top;">&nbsp;</td>
+            </tr>
+            <tr>
+                <td style="font-weight: bold; vertical-align: top;">CHECK-IN</td>
+                <td style="vertical-align: top;">: {{ $booking?->arrival_date?->format('m/d/Y') ?? 'N/A' }}</td>
+                <td style="font-weight: bold; vertical-align: top;">CHECK-OUT</td>
+                <td style="vertical-align: top;">: {{ $booking?->departure_date?->format('m/d/Y') ?? 'N/A' }}</td>
+                <td style="font-weight: bold; vertical-align: top; width: 10%;">PERSON/S</td>
+                <td style="width: 10%;">: {{ $folio->num_pax }}</td>
+            </tr>
+            <tr>
+                <td style="font-weight: bold; vertical-align: top;">TIME</td>
+                <td style="vertical-align: top;">: {{ $booking?->arrival_time ? \Carbon\Carbon::parse($booking->arrival_time)->format('h:i A') : 'N/A' }}</td>
+                <td style="font-weight: bold; vertical-align: top;">TIME</td>
+                <td style="vertical-align: top;">: {{ $booking?->departure_time ? \Carbon\Carbon::parse($booking->departure_time)->format('h:i A') : 'N/A' }}</td>
+                <td>&nbsp;</td>
+                <td>&nbsp;</td>
+            </tr>
+            <tr>
+                <td style="font-weight: bold; vertical-align: top;">PAYMENT MODE</td>
+                <td style="vertical-align: top;">: {{ strtoupper($folio->payment_method ?? 'NONE') }}</td>
+                <td style="font-weight: bold; vertical-align: top;">F/DESK</td>
+                <td style="vertical-align: top;">: {{ strtoupper(auth()->user()?->full_name ?? auth()->user()?->username ?? 'SYSTEM') }}</td>
+                <td style="font-weight: bold; vertical-align: top;">SYMBOL</td>
+                <td style="vertical-align: top;">: {{ $folio->symbol }}</td>
+            </tr>
+        </table>
+
+        {{-- Transactions table --}}
+        <table style="width: 100%; font-size: 11px; border-collapse: collapse; margin-bottom: 20px;">
+            <thead>
+                <tr style="border-top: 1px solid #000; border-bottom: 1px solid #000; font-weight: bold;">
+                    <th style="padding: 5px 0; text-align: left; width: 15%;">DATE</th>
+                    <th style="padding: 5px 0; text-align: left; width: 45%;">REFERENCE</th>
+                    <th style="padding: 5px 0; text-align: right; width: 13%;">CHARGE</th>
+                    <th style="padding: 5px 0; text-align: right; width: 13%;">CREDIT</th>
+                    <th style="padding: 5px 0; text-align: right; width: 14%;">BALANCE</th>
+                </tr>
+            </thead>
+            <tbody>
+                @php 
+                    $runningBal = 0.00;
+                    $roomSalesSum = 0.00;
+                    $govTaxSum = 0.00;
+                    $laundrySum = 0.00;
+                    $otherChargesSum = 0.00;
+                @endphp
+                @foreach($folio->transactions->sortBy('timestamp') as $txn)
+                    @php
+                        $runningBal += ($txn->charge_amount - $txn->credit_amount);
+                        
+                        // Summary classification
+                        if ($txn->charge_amount > 0) {
+                            $code = (int)$txn->charge_code;
+                            if ($code === 100 || $code === 103) {
+                                $roomSalesSum += $txn->charge_amount;
+                            } elseif ($code === 101 || $code === 102) {
+                                $govTaxSum += $txn->charge_amount;
+                            } elseif ($code === 104 || $code === 105) {
+                                $laundrySum += $txn->charge_amount;
+                            } else {
+                                $otherChargesSum += $txn->charge_amount;
+                            }
+                        }
+                    @endphp
+                    <tr>
+                        <td style="padding: 4px 0;">{{ $txn->transaction_date->format('m/d/Y') }}</td>
+                        <td style="padding: 4px 0;">
+                            {{ $txn->chargeCode?->description ?? 'CHARGE' }}
+                            @if($txn->reference_notes) — {{ $txn->reference_notes }} @endif
+                            @if($txn->charge_number) ({{ $txn->charge_number }}) @endif
+                        </td>
+                        <td style="padding: 4px 0; text-align: right;">
+                            {{ $txn->charge_amount > 0 ? number_format($txn->charge_amount, 2) : '' }}
+                        </td>
+                        <td style="padding: 4px 0; text-align: right;">
+                            {{ $txn->credit_amount > 0 ? number_format($txn->credit_amount, 2) : '' }}
+                        </td>
+                        <td style="padding: 4px 0; text-align: right;">{{ number_format($runningBal, 2) }}</td>
+                    </tr>
+                @endforeach
+                {{-- Total balance row --}}
+                <tr style="border-top: 1px solid #000; border-bottom: 3px double #000; font-weight: bold;">
+                    <td colspan="2" style="padding: 8px 0;">Total Balance - P</td>
+                    <td colspan="3" style="padding: 8px 0; text-align: right;">{{ number_format($runningBal, 2) }}</td>
+                </tr>
+            </tbody>
+        </table>
+
+        {{-- Nothing follows centered --}}
+        <div style="text-align: center; font-size: 10px; font-weight: bold; font-style: italic; margin-bottom: 25px;">
+            *** Nothing follows ***
+        </div>
+
+        {{-- Summary & Remarks --}}
+        <div style="display: flex; justify-content: space-between; align-items: flex-start; font-size: 11px;">
+            <!-- Left Remarks -->
+            <div style="width: 50%;">
+                <div style="font-weight: bold; margin-bottom: 5px;">Remarks :</div>
+                <div style="border-bottom: 1px dashed #ccc; height: 40px; width: 90%;"></div>
+            </div>
+            <!-- Right Summary -->
+            <div style="width: 45%;">
+                <div style="font-weight: bold; font-style: italic; margin-bottom: 8px;">SUMMARY :</div>
+                <table style="width: 100%; border-collapse: collapse; line-height: 1.5;">
+                    @if($roomSalesSum > 0)
+                        <tr>
+                            <td>ROOM SALES</td>
+                            <td style="text-align: right;">{{ number_format($roomSalesSum, 2) }}</td>
+                        </tr>
+                    @endif
+                    @if($govTaxSum > 0)
+                        <tr>
+                            <td>GOVERNMENT TAX</td>
+                            <td style="text-align: right;">{{ number_format($govTaxSum, 2) }}</td>
+                        </tr>
+                    @endif
+                    @if($laundrySum > 0)
+                        <tr>
+                            <td>LAUNDRY SERVICE AND PRESSING</td>
+                            <td style="text-align: right;">{{ number_format($laundrySum, 2) }}</td>
+                        </tr>
+                    @endif
+                    @if($otherChargesSum > 0)
+                        <tr>
+                            <td>OTHER CHARGES</td>
+                            <td style="text-align: right;">{{ number_format($otherChargesSum, 2) }}</td>
+                        </tr>
+                    @endif
+                    <tr style="border-top: 1px solid #000; border-bottom: 3px double #000; font-weight: bold;">
+                        <td style="padding: 5px 0;">Total</td>
+                        <td style="padding: 5px 0; text-align: right;">{{ number_format($roomSalesSum + $govTaxSum + $laundrySum + $otherChargesSum, 2) }}</td>
+                    </tr>
+                </table>
+            </div>
+        </div>
+
     </div>
 @endforeach
 
@@ -626,12 +811,75 @@
 @push('styles')
 <style>
     @media print {
-        .btn, form, nav, aside, .modal-footer, [data-bs-toggle], .card-footer,
-        #filterForm, .d-flex.justify-content-between { display: none !important; }
-        .modal { display: block !important; position: static !important; }
-        .modal-dialog { max-width: 100% !important; }
-        .modal-backdrop { display: none !important; }
-        #folioTable thead { background-color: #f8f9fa !important; -webkit-print-color-adjust: exact; }
+        body {
+            background-color: #ffffff !important;
+            color: #000000 !important;
+            margin: 0 !important;
+            padding: 0 !important;
+        }
+        .sidebar, .navbar, header, footer, .modal-backdrop, .modal, .d-print-none, .main-content > .card, .container-fluid, #filterForm {
+            display: none !important;
+        }
+        .main-content {
+            margin: 0 !important;
+            padding: 0 !important;
+        }
+        /* Hide all print folios by default */
+        .print-only-folio {
+            display: none !important;
+        }
+        /* Show only the active print folio */
+        .print-only-folio.active-print-folio {
+            display: block !important;
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            margin: 0 !important;
+            padding: 10px !important;
+            background: #ffffff !important;
+            color: #000000 !important;
+        }
     }
 </style>
+@endpush
+
+@push('scripts')
+<script>
+    function printFolio(folioId) {
+        // Remove active class from all print containers
+        document.querySelectorAll('.print-only-folio').forEach(function(el) {
+            el.classList.remove('active-print-folio');
+        });
+        
+        // Add active class to selected print container
+        var printContainer = document.getElementById('print-folio-' + folioId);
+        if (printContainer) {
+            printContainer.classList.add('active-print-folio');
+            window.print();
+        }
+    }
+
+    // Keep the active folio modal open after page submits/reloads
+    document.addEventListener('DOMContentLoaded', function() {
+        var openModalId = sessionStorage.getItem('openModalId');
+        if (openModalId) {
+            var modalEl = document.getElementById(openModalId);
+            if (modalEl) {
+                var modal = new bootstrap.Modal(modalEl);
+                modal.show();
+            }
+            sessionStorage.removeItem('openModalId');
+        }
+
+        document.querySelectorAll('.modal form').forEach(function(form) {
+            form.addEventListener('submit', function() {
+                var modal = form.closest('.modal');
+                if (modal && modal.id) {
+                    sessionStorage.setItem('openModalId', modal.id);
+                }
+            });
+        });
+    });
+</script>
 @endpush

@@ -31,21 +31,21 @@ class CheckInController extends Controller
             ->orderBy('room_type')
             ->pluck('room_type');
 
-        // Fetch all existing guests, ordered by last name, then first name
-        $guests = Guest::query()
-            ->orderBy('last_name')
-            ->orderBy('first_name')
-            ->get();
+        // Fetch selected guest on validation failure fallback
+        $selectedGuest = null;
+        if (old('guest_id')) {
+            $selectedGuest = Guest::with(['folios'])->find(old('guest_id'));
+        }
 
         return view('frontdesk.check-in.index', [
             'assignableRooms' => $assignableRooms,
             'roomTypes' => $roomTypes,
-            'guests' => $guests,
+            'selectedGuest' => $selectedGuest,
             'suggestedFolioNumber' => $this->generateFolioNumber(),
             'defaults' => [
                 'arrival_date' => $today,
-                'arrival_time' => now()->format('H:i'),
-                'departure_time' => '11:00',
+                'arrival_time' => '12:00',
+                'departure_time' => '12:00',
                 'market_segment' => 'Walk-in',
                 'num_pax' => 1,
                 'symbol' => 'CBO',
@@ -60,8 +60,18 @@ class CheckInController extends Controller
     {
         $validated = $request->validate([
             'guest_id' => ['required', 'integer', 'exists:guests,guest_id'],
-            'folio_number' => ['nullable', 'string', 'max:20', 'unique:folios,folio_number'],
-            'registration_number' => ['nullable', 'string', 'max:20', 'unique:folios,registration_number'],
+            'folio_number' => [
+                'nullable',
+                'string',
+                'max:20',
+                'unique:folios,folio_number',
+            ],
+            'registration_number' => [
+                'nullable',
+                'string',
+                'max:20',
+                'unique:folios,registration_number',
+            ],
             'account_number' => ['nullable', 'string', 'max:20'],
             'market_segment' => ['nullable', 'string', 'max:50'],
             'num_pax' => ['nullable', 'integer', 'min:1', 'max:20'],
@@ -119,7 +129,7 @@ class CheckInController extends Controller
                 'net_rate' => $room->base_rate,
             ]);
 
-            Booking::create([
+            $booking = Booking::create([
                 'folio_id' => $folio->folio_id,
                 'room_id' => $room->room_id,
                 'arrival_date' => $validated['arrival_date'],
@@ -132,6 +142,9 @@ class CheckInController extends Controller
             ]);
 
             $room->update(['status' => 'OCCUPIED']);
+
+            // Post room charges night-by-night automatically
+            $booking->postRoomCharges();
         });
 
         return redirect()

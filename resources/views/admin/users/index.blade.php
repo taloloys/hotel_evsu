@@ -235,7 +235,8 @@
                                             data-role="{{ $roleLabel }}"
                                             data-role-badge="{{ $badgeClass }}"
                                             data-status="{{ $user->is_active ? 'Active' : 'Disabled' }}"
-                                            data-status-class="{{ $user->is_active ? 'bg-success' : 'bg-danger' }}">
+                                            data-status-class="{{ $user->is_active ? 'bg-success' : 'bg-danger' }}"
+                                            data-permissions-names="{{ json_encode($user->permissions->pluck('permission_key')->toArray()) }}">
                                         <i class="fa-solid fa-eye"></i>
                                     </button>
 
@@ -249,6 +250,7 @@
                                             data-full-name="{{ $user->full_name }}"
                                             data-username="{{ $user->username }}"
                                             data-role-id="{{ $user->role_id }}"
+                                            data-permissions="{{ json_encode($user->permissions->pluck('permission_id')->toArray()) }}"
                                             data-update-url="{{ route('admin.users.update', $user) }}">
                                         <i class="fa-solid fa-user-gear"></i>
                                     </button>
@@ -363,6 +365,26 @@
                         </select>
                     </div>
 
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold">Direct Permission Overrides</label>
+                        <div class="p-3 border rounded bg-light" style="max-height: 180px; overflow-y: auto;">
+                            @foreach($permissions as $perm)
+                                <div class="form-check mb-2">
+                                    <input class="form-check-input" 
+                                           type="checkbox" 
+                                           name="permissions[]" 
+                                           value="{{ $perm->permission_id }}" 
+                                           id="add_perm_{{ $perm->permission_id }}">
+                                    <label class="form-check-label" for="add_perm_{{ $perm->permission_id }}">
+                                        <span class="fw-semibold text-dark">{{ $perm->permission_key }}</span>
+                                        <span class="text-muted small d-block" style="font-size: 0.75rem;">{{ $perm->description }} ({{ $perm->module }})</span>
+                                    </label>
+                                </div>
+                            @endforeach
+                        </div>
+                        <div class="form-text small text-muted">Explicitly grant these permissions regardless of the user's role.</div>
+                    </div>
+
                 </div>
 
                 <div class="modal-footer">
@@ -413,9 +435,15 @@
                         <span class="text-muted small">Role</span>
                         <span class="fw-semibold small" id="view-role">—</span>
                     </div>
-                    <div class="list-group-item d-flex justify-content-between px-0 border-0">
+                    <div class="list-group-item d-flex justify-content-between px-0 border-0 pb-1">
                         <span class="text-muted small">Status</span>
                         <span id="view-status" class="badge">—</span>
+                    </div>
+                    <div class="list-group-item px-0 border-0">
+                        <span class="text-muted small d-block mb-2">Direct Permission Overrides</span>
+                        <div id="view-direct-permissions" class="d-flex flex-wrap gap-1">
+                            <!-- Populated dynamically -->
+                        </div>
                     </div>
                 </div>
 
@@ -484,6 +512,26 @@
                         </select>
                     </div>
 
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold">Direct Permission Overrides</label>
+                        <div class="p-3 border rounded bg-light" style="max-height: 180px; overflow-y: auto;">
+                            @foreach($permissions as $perm)
+                                <div class="form-check mb-2">
+                                    <input class="form-check-input permission-checkbox" 
+                                           type="checkbox" 
+                                           name="permissions[]" 
+                                           value="{{ $perm->permission_id }}" 
+                                           id="edit_perm_{{ $perm->permission_id }}">
+                                    <label class="form-check-label" for="edit_perm_{{ $perm->permission_id }}">
+                                        <span class="fw-semibold text-dark">{{ $perm->permission_key }}</span>
+                                        <span class="text-muted small d-block" style="font-size: 0.75rem;">{{ $perm->description }} ({{ $perm->module }})</span>
+                                    </label>
+                                </div>
+                            @endforeach
+                        </div>
+                        <div class="form-text small text-muted">Explicitly grant these permissions regardless of the user's role.</div>
+                    </div>
+
                 </div>
 
                 <div class="modal-footer">
@@ -522,6 +570,20 @@
         const statusBadge = document.getElementById('view-status');
         statusBadge.textContent = btn.dataset.status;
         statusBadge.className   = 'badge ' + btn.dataset.statusClass;
+
+        const directPermissions = JSON.parse(btn.dataset.permissionsNames || '[]');
+        const container = document.getElementById('view-direct-permissions');
+        container.innerHTML = '';
+        if (directPermissions.length === 0) {
+            container.innerHTML = '<span class="text-muted small">None</span>';
+        } else {
+            directPermissions.forEach(name => {
+                const badge = document.createElement('span');
+                badge.className = 'badge bg-success-subtle text-success border border-success-subtle';
+                badge.textContent = name;
+                container.appendChild(badge);
+            });
+        }
     });
 
     // ── Edit User modal population ────────────────────────────────────────
@@ -532,6 +594,12 @@
         document.getElementById('edit_password').value  = '';
         document.getElementById('edit_role_id').value   = btn.dataset.roleId;
         document.getElementById('editUserForm').action  = btn.dataset.updateUrl;
+
+        // Populate checkboxes
+        const userPermissions = JSON.parse(btn.dataset.permissions || '[]');
+        document.querySelectorAll('.permission-checkbox').forEach(cb => {
+            cb.checked = userPermissions.includes(parseInt(cb.value));
+        });
     });
 
     // ── Search & Filter logic ─────────────────────────────────────────────

@@ -17,12 +17,29 @@ class UserSeeder extends Seeder
     {
         // 1. Create permissions
         $permissions = [
+            // System Module
             'manage-users' => ['desc' => 'Manage system users and roles', 'module' => 'System'],
-            'manage-reservations' => ['desc' => 'Manage reservations and guest registrations', 'module' => 'Front Desk'],
-            'view-folio' => ['desc' => 'View guest folio and billing status', 'module' => 'Accounting'],
-            'process-checkout' => ['desc' => 'Process guest checkout and record payments', 'module' => 'Front Desk'],
-            'manage-inventory' => ['desc' => 'Manage coffeeshop inventory and sales orders', 'module' => 'Inventory'],
             'manage-shifts' => ['desc' => 'Manage shift schedules and view sales reports', 'module' => 'System'],
+
+            // Front Desk Module
+            'manage-reservations' => ['desc' => 'Manage reservations and guest registrations', 'module' => 'Front Desk'],
+            'process-checkout' => ['desc' => 'Process guest checkout and record payments', 'module' => 'Front Desk'],
+            'view-guest-list' => ['desc' => 'View guest list details', 'module' => 'Front Desk'],
+            'view-guest-folio' => ['desc' => 'View guest folio details', 'module' => 'Front Desk'],
+            'manage-guest-folio' => ['desc' => 'Open, close, reopen folios and post charges', 'module' => 'Front Desk'],
+            'view-shift-sales' => ['desc' => 'View individual or shared shift sales', 'module' => 'Front Desk'],
+
+            // Accounting Module
+            'view-accounting-dashboard' => ['desc' => 'Access financial overview charts and statistics', 'module' => 'Accounting'],
+            'manage-accounting-billing' => ['desc' => 'Access billing details and view billing lists', 'module' => 'Accounting'],
+            'manage-accounting-payments' => ['desc' => 'Register payments and view payment history', 'module' => 'Accounting'],
+            'manage-accounting-receivables' => ['desc' => 'View receivables ledger and accounts', 'module' => 'Accounting'],
+            'manage-accounting-expenses' => ['desc' => 'Track, create, and approve expenses', 'module' => 'Accounting'],
+            'view-accounting-reports' => ['desc' => 'Generate system financial reports', 'module' => 'Accounting'],
+            'view-accounting-audit' => ['desc' => 'Access log changes and trace operations', 'module' => 'Accounting'],
+
+            // Inventory Module
+            'manage-inventory' => ['desc' => 'Manage coffeeshop inventory and sales orders', 'module' => 'Inventory'],
         ];
 
         $permissionModels = [];
@@ -42,17 +59,49 @@ class UserSeeder extends Seeder
             'ADMIN' => [
                 'label' => 'Administrator',
                 'description' => 'Full system administrator with all access privileges',
-                'permissions' => ['manage-users', 'manage-reservations', 'view-folio', 'process-checkout', 'manage-inventory', 'manage-shifts'],
+                'permissions' => [
+                    'manage-users',
+                    'manage-shifts',
+                    'manage-reservations',
+                    'process-checkout',
+                    'view-guest-list',
+                    'view-guest-folio',
+                    'manage-guest-folio',
+                    'view-shift-sales',
+                    'view-accounting-dashboard',
+                    'manage-accounting-billing',
+                    'manage-accounting-payments',
+                    'manage-accounting-receivables',
+                    'manage-accounting-expenses',
+                    'view-accounting-reports',
+                    'view-accounting-audit',
+                    'manage-inventory',
+                ],
             ],
             'FRONT_DESK' => [
                 'label' => 'Front Desk Operations',
                 'description' => 'Front desk receptionist handling bookings, check-ins, and folios',
-                'permissions' => ['manage-reservations', 'view-folio', 'process-checkout'],
+                'permissions' => [
+                    'manage-reservations',
+                    'process-checkout',
+                    'view-guest-list',
+                    'view-guest-folio',
+                    'manage-guest-folio',
+                    'view-shift-sales',
+                ],
             ],
             'ACCOUNTING' => [
                 'label' => 'Accounting & Finance',
                 'description' => 'Finance staff auditing invoices, payments, and sales reports',
-                'permissions' => ['view-folio', 'process-checkout'],
+                'permissions' => [
+                    'view-accounting-dashboard',
+                    'manage-accounting-billing',
+                    'manage-accounting-payments',
+                    'manage-accounting-receivables',
+                    'manage-accounting-expenses',
+                    'view-accounting-reports',
+                    'view-accounting-audit',
+                ],
             ],
             'CAFETERIA' => [
                 'label' => 'Cafeteria / POS',
@@ -64,7 +113,10 @@ class UserSeeder extends Seeder
         foreach ($roles as $roleName => $data) {
             $role = Role::updateOrCreate(
                 ['role_name' => $roleName],
-                ['description' => $data['description']]
+                [
+                    'description' => $data['description'],
+                    'is_system_admin' => $roleName === 'ADMIN',
+                ]
             );
 
             // Sync permissions for this role

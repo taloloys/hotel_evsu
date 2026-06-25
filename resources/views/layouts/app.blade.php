@@ -69,6 +69,7 @@
             color:white;
         }
     </style>
+    @stack('styles')
 </head>
 
 <body>

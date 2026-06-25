@@ -15,9 +15,10 @@ class ReceivableController extends Controller
         $search = $request->input('search');
         $statusFilter = $request->input('status', 'ALL'); // ALL, CURRENT, OVERDUE, CRITICAL
 
-        // We fetch open folios with bookings and transactions
+        // We fetch open folios with bookings
         $query = Folio::where('status', 'OPEN')
-            ->with(['guest', 'bookings.room', 'transactions']);
+            ->withBalances()
+            ->with(['guest', 'bookings.room']);
 
         if ($search) {
             $query->where(function ($q) use ($search) {
@@ -38,9 +39,9 @@ class ReceivableController extends Controller
 
         // Map and compute balances and age
         $receivables = $folios->map(function ($folio) use ($now) {
-            $totalCharges = $folio->transactions->sum('charge_amount');
-            $totalCredits = $folio->transactions->sum('credit_amount');
-            $balance = $totalCharges - $totalCredits;
+            $totalCharges = $folio->total_charges;
+            $totalCredits = $folio->total_credits;
+            $balance = $folio->balance;
 
             // Age is based on the arrival date of the first booking or the creation date
             $arrivalDate = $folio->bookings->first() ? Carbon::parse($folio->bookings->first()->arrival_date) : $now;

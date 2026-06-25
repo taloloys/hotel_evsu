@@ -5,16 +5,19 @@ namespace App\Http\Controllers\Accounting;
 use App\Http\Controllers\Controller;
 use App\Models\Folio;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Gate;
 use Illuminate\View\View;
 
 class BillingController extends Controller
 {
     public function index(Request $request): View
     {
+        Gate::authorize('manage-accounting-billing');
+
         $statusFilter = $request->input('status', 'ALL');
         $search = $request->input('search');
 
-        $query = Folio::with(['guest', 'bookings.room', 'transactions']);
+        $query = Folio::withBalances()->with(['guest', 'bookings.room']);
 
         // Search filter (folio number, guest first/last name)
         if ($search) {
@@ -40,9 +43,9 @@ class BillingController extends Controller
 
         // Map computed fields
         $folios = $folios->map(function ($folio) {
-            $totalCharges = $folio->transactions->sum('charge_amount');
-            $totalCredits = $folio->transactions->sum('credit_amount');
-            $balance = $totalCharges - $totalCredits;
+            $totalCharges = $folio->total_charges;
+            $totalCredits = $folio->total_credits;
+            $balance = $folio->balance;
 
             // Determine display status
             if ($folio->status === 'CLOSED') {
@@ -98,17 +101,15 @@ class BillingController extends Controller
 
     public function show(Folio $folio): View
     {
-        $folio->load(['guest', 'bookings.room', 'transactions.chargeCode', 'transactions.user']);
+        Gate::authorize('manage-accounting-billing');
 
-        $totalCharges = $folio->transactions->sum('charge_amount');
-        $totalCredits = $folio->transactions->sum('credit_amount');
-        $balance = $totalCharges - $totalCredits;
+        $folio->load(['guest', 'bookings.room', 'transactions.chargeCode', 'transactions.user']);
 
         return view('accounting.billing.show', [
             'folio' => $folio,
-            'totalCharges' => $totalCharges,
-            'totalCredits' => $totalCredits,
-            'balance' => $balance,
+            'totalCharges' => $folio->total_charges,
+            'totalCredits' => $folio->total_credits,
+            'balance' => $folio->balance,
         ]);
     }
 }

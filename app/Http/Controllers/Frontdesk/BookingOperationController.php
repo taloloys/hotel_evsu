@@ -9,6 +9,7 @@ use App\Models\Room;
 use Carbon\Carbon;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 
 class BookingOperationController extends Controller
 {
@@ -21,7 +22,7 @@ class BookingOperationController extends Controller
             'booking_id' => ['required', 'exists:bookings,booking_id'],
         ]);
 
-        $booking = Booking::with('room')->findOrFail($request->booking_id);
+        $booking = Booking::with(['room', 'folio'])->findOrFail($request->booking_id);
 
         if ($booking->status !== 'RESERVED') {
             return response()->json([
@@ -37,24 +38,35 @@ class BookingOperationController extends Controller
             ], 422);
         }
 
-        if ($booking->room->status !== 'AVAILABLE') {
+        if (! in_array($booking->room->status, ['AVAILABLE', 'RESERVED'], true)) {
             return response()->json([
                 'success' => false,
-                'message' => 'Room must be available before check-in.',
+                'message' => 'Room must be available or reserved before check-in.',
             ], 422);
         }
 
-        $booking->update([
-            'actual_check_in' => Carbon::now(),
-            'status' => 'CHECKED_IN',
-            'checked_in_by' => auth()->id(),
-        ]);
+        DB::transaction(function () use ($booking) {
+            $booking->update([
+                'actual_check_in' => Carbon::now(),
+                'status' => 'CHECKED_IN',
+            ]);
 
-        $booking->room->update(['status' => 'OCCUPIED']);
+            if ($booking->room) {
+                $booking->room->update(['status' => 'OCCUPIED']);
+            }
+
+            if ($booking->folio && $booking->folio->net_rate === null) {
+                $booking->folio->update(['net_rate' => $booking->room?->base_rate]);
+            }
+        });
 
         $booking->load('folio.guest');
         $guestName = $booking->folio?->guest ? ($booking->folio->guest->first_name.' '.$booking->folio->guest->last_name) : 'Guest';
         $roomNumber = $booking->room?->room_number ?? 'N/A';
+
+        // Post room charges night-by-night automatically
+        $booking->postRoomCharges();
+
         ActivityLog::log(
             'CHECK_IN',
             "Checked in guest {$guestName} to Room {$roomNumber} (Booking #{$booking->booking_id})."
@@ -78,12 +90,24 @@ class BookingOperationController extends Controller
             'checkout_period' => ['required', 'in:AM,PM'],
         ]);
 
-        $booking = Booking::with('room')->findOrFail($request->booking_id);
+        $booking = Booking::with(['room', 'folio'])->findOrFail($request->booking_id);
 
         if ($booking->status !== 'CHECKED_IN') {
             return response()->json([
                 'success' => false,
                 'message' => 'Only checked-in guests can be checked out.',
+            ], 422);
+        }
+
+        if ($booking->folio && ! $booking->folio->isSettled()) {
+            $balance = $booking->folio->balance;
+            $message = $balance > 0
+                ? 'Cannot check out guest. Folio has an outstanding balance of ₱'.number_format($balance, 2).'.'
+                : 'Cannot check out guest. Folio has an overpayment of ₱'.number_format(abs($balance), 2).'. Please refund it first.';
+
+            return response()->json([
+                'success' => false,
+                'message' => $message,
             ], 422);
         }
 
@@ -99,13 +123,21 @@ class BookingOperationController extends Controller
             Carbon::today()->format('Y-m-d').' '.$request->checkout_time.' '.$request->checkout_period
         );
 
-        $booking->update([
-            'actual_check_in' => $booking->actual_check_in, // preserve check-in time
-            'actual_check_out' => $actualCheckOut,
-            'status' => 'CHECKED_OUT',
-        ]);
+        DB::transaction(function () use ($booking, $actualCheckOut) {
+            $booking->update([
+                'actual_check_in' => $booking->actual_check_in, // preserve check-in time
+                'actual_check_out' => $actualCheckOut,
+                'status' => 'CHECKED_OUT',
+            ]);
 
-        $booking->room->update(['status' => 'CLEANING']);
+            if ($booking->room) {
+                $booking->room->update(['status' => 'CLEANING']);
+            }
+
+            if ($booking->folio) {
+                $booking->folio->update(['status' => 'CLOSED']);
+            }
+        });
 
         $booking->load('folio.guest');
         $guestName = $booking->folio?->guest ? ($booking->folio->guest->first_name.' '.$booking->folio->guest->last_name) : 'Guest';

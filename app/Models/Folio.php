@@ -53,4 +53,53 @@ class Folio extends Model
     {
         return $this->hasMany(Transaction::class, 'folio_id', 'folio_id');
     }
+
+    /**
+     * Get the total charges for this folio.
+     */
+    public function getTotalChargesAttribute(): float
+    {
+        if (array_key_exists('transactions_sum_charge_amount', $this->attributes)) {
+            return (float) ($this->attributes['transactions_sum_charge_amount'] ?? 0.00);
+        }
+
+        return (float) $this->transactions->sum('charge_amount');
+    }
+
+    /**
+     * Get the total credits (payments/refunds) for this folio.
+     */
+    public function getTotalCreditsAttribute(): float
+    {
+        if (array_key_exists('transactions_sum_credit_amount', $this->attributes)) {
+            return (float) ($this->attributes['transactions_sum_credit_amount'] ?? 0.00);
+        }
+
+        return (float) $this->transactions->sum('credit_amount');
+    }
+
+    /**
+     * Get the outstanding balance of this folio.
+     */
+    public function getBalanceAttribute(): float
+    {
+        return $this->total_charges - $this->total_credits;
+    }
+
+    /**
+     * Check if the folio has been settled (balance is zero).
+     */
+    public function isSettled(): bool
+    {
+        return abs($this->balance) < 0.01;
+    }
+
+    /**
+     * Scope query to eager load balances using DB sums.
+     */
+    public function scopeWithBalances($query)
+    {
+        return $query->withSum('transactions', 'charge_amount')
+            ->withSum('transactions', 'credit_amount');
+    }
 }

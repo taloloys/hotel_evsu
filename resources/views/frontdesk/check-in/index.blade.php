@@ -70,32 +70,17 @@
 
             <div class="card-body">
                 <div class="row g-3">
-                    <div class="col-md-12">
-                        <label class="form-label" for="guest_search">Search Existing Guest</label>
+                    <div class="col-md-12 position-relative">
+                        <label class="form-label" for="guest_search">Search Existing Guest <span class="text-danger">*</span></label>
                         <div class="input-group">
                             <span class="input-group-text"><i class="fa-solid fa-magnifying-glass"></i></span>
-                            <input type="text" class="form-control" id="guest_search" placeholder="Type guest's first or last name to search...">
+                            <input type="text" class="form-control @error('guest_id') is-invalid @enderror" id="guest_search" placeholder="Type guest's first or last name to search..." value="{{ old('guest_id') && isset($selectedGuest) ? $selectedGuest->last_name . ', ' . $selectedGuest->first_name : '' }}" autocomplete="off" required>
+                            @error('guest_id')
+                                <div class="invalid-feedback">{{ $message }}</div>
+                            @enderror
                         </div>
-                    </div>
-
-                    <div class="col-md-12">
-                        <label class="form-label" for="guest_id">Select Guest <span class="text-danger">*</span></label>
-                        <select class="form-select @error('guest_id') is-invalid @enderror" id="guest_id" name="guest_id" required>
-                            <option value="">Choose a guest...</option>
-                            @foreach($guests as $guest)
-                                <option
-                                    value="{{ $guest->guest_id }}"
-                                    data-contact="{{ $guest->contact_number ?? 'N/A' }}"
-                                    data-address="{{ trim(($guest->address_line1 ?? '') . ' ' . ($guest->address_line2 ?? '')) ?: 'N/A' }}"
-                                    @selected(old('guest_id') == $guest->guest_id)
-                                >
-                                    {{ $guest->last_name }}, {{ $guest->first_name }}
-                                </option>
-                            @endforeach
-                        </select>
-                        @error('guest_id')
-                            <div class="invalid-feedback">{{ $message }}</div>
-                        @enderror
+                        <div id="guest_search_results" class="dropdown-menu w-100 shadow-sm mt-1" style="display: none; max-height: 250px; overflow-y: auto; z-index: 1050;"></div>
+                        <input type="hidden" id="guest_id" name="guest_id" value="{{ old('guest_id', $selectedGuest->guest_id ?? '') }}" required>
                     </div>
                 </div>
 
@@ -261,62 +246,104 @@
 @push('scripts')
 <script>
     document.addEventListener('DOMContentLoaded', function() {
-        const guestSearch = document.getElementById('guest_search');
-        const guestSelect = document.getElementById('guest_id');
+        const guestSearchInput = document.getElementById('guest_search');
+        const guestSearchResults = document.getElementById('guest_search_results');
+        const guestIdInput = document.getElementById('guest_id');
         const guestInfoCard = document.getElementById('guest_info_card');
         const displayGuestName = document.getElementById('display_guest_name');
         const displayGuestContact = document.getElementById('display_guest_contact');
         const displayGuestAddress = document.getElementById('display_guest_address');
-
         const roomTypeFilter = document.getElementById('room_type_filter');
         const roomSelect = document.getElementById('room_id');
         const rateDisplay = document.getElementById('room_base_rate_display');
         const arrivalDate = document.getElementById('arrival_date');
         const departureDate = document.getElementById('departure_date');
 
-        // Search Guest Filtering
-        if (guestSearch && guestSelect) {
-            const allGuestOptions = Array.from(guestSelect.querySelectorAll('option[value]'));
+        function setGuestDetails(guest, folioNum) {
+            displayGuestName.textContent = `${guest.last_name}, ${guest.first_name}`;
+            displayGuestContact.textContent = guest.contact_number || 'N/A';
+            displayGuestAddress.textContent = [guest.address_line1, guest.address_line2].filter(Boolean).join(' ') || 'N/A';
+            guestInfoCard.classList.remove('d-none');
 
-            guestSearch.addEventListener('input', function() {
-                const query = this.value.toLowerCase().trim();
-
-                allGuestOptions.forEach(option => {
-                    if (option.value === "") {
-                        return;
-                    }
-                    const text = option.textContent.toLowerCase();
-                    const matches = text.includes(query);
-                    option.hidden = !matches;
-                    option.disabled = !matches;
-                });
-
-                // If currently selected option is now hidden, reset selection
-                const current = guestSelect.options[guestSelect.selectedIndex];
-                if (current && current.disabled) {
-                    guestSelect.value = '';
-                    guestInfoCard.classList.add('d-none');
-                }
-            });
+            document.getElementById('folio_number').value = "{{ $suggestedFolioNumber }}";
         }
 
-        // Selected Guest details card updater
-        if (guestSelect) {
-            function updateGuestDetails() {
-                const selected = guestSelect.options[guestSelect.selectedIndex];
-                if (!selected || !selected.value) {
+        @if(isset($selectedGuest))
+            setGuestDetails(
+                {!! json_encode($selectedGuest) !!},
+                ""
+            );
+        @endif
+
+        if (guestSearchInput && guestSearchResults && guestIdInput) {
+            let debounceTimer;
+
+            guestSearchInput.addEventListener('input', function() {
+                clearTimeout(debounceTimer);
+                const query = this.value.trim();
+
+                if (query.length === 0) {
+                    guestIdInput.value = '';
                     guestInfoCard.classList.add('d-none');
+                    document.getElementById('folio_number').value = "{{ $suggestedFolioNumber }}";
+                }
+
+                if (query.length < 2) {
+                    guestSearchResults.innerHTML = '';
+                    guestSearchResults.style.display = 'none';
                     return;
                 }
 
-                displayGuestName.textContent = selected.textContent.trim();
-                displayGuestContact.textContent = selected.getAttribute('data-contact') || 'N/A';
-                displayGuestAddress.textContent = selected.getAttribute('data-address') || 'N/A';
-                guestInfoCard.classList.remove('d-none');
-            }
+                debounceTimer = setTimeout(() => {
+                    fetch(`{{ route('frontdesk.guests.search') }}?q=${encodeURIComponent(query)}`, {
+                        headers: {
+                            'X-Requested-With': 'XMLHttpRequest'
+                        }
+                    })
+                    .then(response => response.json())
+                    .then(guests => {
+                        guestSearchResults.innerHTML = '';
+                        if (guests.length === 0) {
+                            const item = document.createElement('div');
+                            item.className = 'dropdown-item text-muted';
+                            item.textContent = 'No matching guests found';
+                            guestSearchResults.appendChild(item);
+                        } else {
+                            guests.forEach(guest => {
+                                const item = document.createElement('a');
+                                item.className = 'dropdown-item';
+                                item.href = 'javascript:void(0);';
+                                item.style.cursor = 'pointer';
+                                
+                                const folioNum = guest.folios && guest.folios.length > 0 
+                                    ? guest.folios[0].folio_number 
+                                    : '';
 
-            guestSelect.addEventListener('change', updateGuestDetails);
-            updateGuestDetails(); // Run on initial load to handle old inputs
+                                item.textContent = `${guest.last_name}, ${guest.first_name} ${guest.contact_number ? '('+guest.contact_number+')' : ''}`;
+                                
+                                item.addEventListener('click', function(e) {
+                                    e.preventDefault();
+                                    
+                                    guestIdInput.value = guest.guest_id;
+                                    setGuestDetails(guest, folioNum);
+
+                                    guestSearchInput.value = `${guest.last_name}, ${guest.first_name}`;
+                                    guestSearchResults.innerHTML = '';
+                                    guestSearchResults.style.display = 'none';
+                                });
+                                guestSearchResults.appendChild(item);
+                            });
+                        }
+                        guestSearchResults.style.display = 'block';
+                    });
+                }, 300);
+            });
+
+            document.addEventListener('click', function(e) {
+                if (!guestSearchInput.contains(e.target) && !guestSearchResults.contains(e.target)) {
+                    guestSearchResults.style.display = 'none';
+                }
+            });
         }
 
         // Room rate and filtering

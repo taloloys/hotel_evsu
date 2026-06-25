@@ -61,10 +61,17 @@ class ReservationController extends Controller
             ->orderBy('room_number')
             ->get(['room_id', 'room_number', 'room_type', 'base_rate']);
 
+        $guests = Guest::query()
+            ->with(['folios'])
+            ->orderBy('last_name')
+            ->orderBy('first_name')
+            ->get();
+
         return view('frontdesk.reservation.index', [
             'reservations' => $reservations,
             'roomTypes' => $roomTypes,
             'assignableRooms' => $assignableRooms,
+            'guests' => $guests,
             'suggestedFolioNumber' => $this->generateFolioNumber(),
             'filters' => [
                 'date_from' => $request->date_from,
@@ -77,14 +84,34 @@ class ReservationController extends Controller
 
     public function store(Request $request): RedirectResponse
     {
+        $firstName = $request->input('first_name');
+        $lastName = $request->input('last_name');
+        $existingGuest = null;
+
+        if ($firstName && $lastName) {
+            $existingGuest = Guest::whereRaw('LOWER(first_name) = ?', [strtolower(trim($firstName))])
+                ->whereRaw('LOWER(last_name) = ?', [strtolower(trim($lastName))])
+                ->first();
+        }
+
         $validated = $request->validate([
             'first_name' => ['required', 'string', 'max:50'],
             'last_name' => ['required', 'string', 'max:50'],
             'contact_number' => ['nullable', 'string', 'max:20'],
             'address_line1' => ['nullable', 'string', 'max:100'],
             'address_line2' => ['nullable', 'string', 'max:100'],
-            'folio_number' => ['nullable', 'string', 'max:20', 'unique:folios,folio_number'],
-            'registration_number' => ['nullable', 'string', 'max:20', 'unique:folios,registration_number'],
+            'folio_number' => [
+                'nullable',
+                'string',
+                'max:20',
+                'unique:folios,folio_number',
+            ],
+            'registration_number' => [
+                'nullable',
+                'string',
+                'max:20',
+                'unique:folios,registration_number',
+            ],
             'account_number' => ['nullable', 'string', 'max:20'],
             'num_pax' => ['nullable', 'integer', 'min:1', 'max:20'],
             'room_id' => ['required', 'integer', 'exists:rooms,room_id'],
@@ -108,14 +135,23 @@ class ReservationController extends Controller
                 ->withErrors(['room_id' => 'Selected room already has a reservation for these dates.']);
         }
 
-        DB::transaction(function () use ($validated, $room) {
-            $guest = Guest::create([
-                'first_name' => $validated['first_name'],
-                'last_name' => $validated['last_name'],
-                'contact_number' => $validated['contact_number'] ?? null,
-                'address_line1' => $validated['address_line1'] ?? null,
-                'address_line2' => $validated['address_line2'] ?? null,
-            ]);
+        DB::transaction(function () use ($validated, $room, $existingGuest) {
+            if ($existingGuest) {
+                $guest = $existingGuest;
+                $guest->update([
+                    'contact_number' => $validated['contact_number'] ?? $guest->contact_number,
+                    'address_line1' => $validated['address_line1'] ?? $guest->address_line1,
+                    'address_line2' => $validated['address_line2'] ?? $guest->address_line2,
+                ]);
+            } else {
+                $guest = Guest::create([
+                    'first_name' => $validated['first_name'],
+                    'last_name' => $validated['last_name'],
+                    'contact_number' => $validated['contact_number'] ?? null,
+                    'address_line1' => $validated['address_line1'] ?? null,
+                    'address_line2' => $validated['address_line2'] ?? null,
+                ]);
+            }
 
             $folio = Folio::create([
                 'folio_number' => ! empty($validated['folio_number'])
@@ -131,6 +167,7 @@ class ReservationController extends Controller
                 'symbol' => 'CBO',
                 'folio_type' => 'GUEST',
                 'status' => 'OPEN',
+                'net_rate' => $room->base_rate,
             ]);
 
             Booking::create([
@@ -158,10 +195,10 @@ class ReservationController extends Controller
 
     public function cancel(Booking $booking): RedirectResponse
     {
-        if (! in_array($booking->status, ['RESERVED', 'CHECKED_IN'], true)) {
+        if ($booking->status !== 'RESERVED') {
             return redirect()
                 ->route('frontdesk.reservation')
-                ->withErrors(['cancel' => 'Only active reservations can be cancelled.']);
+                ->withErrors(['cancel' => 'Only reserved bookings can be cancelled.']);
         }
 
         DB::transaction(function () use ($booking) {
