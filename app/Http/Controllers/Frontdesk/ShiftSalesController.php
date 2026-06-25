@@ -7,11 +7,14 @@ use App\Models\ChargeCode;
 use App\Models\Transaction;
 use App\Models\User;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Gate;
 
 class ShiftSalesController extends Controller
 {
     public function index(Request $request)
     {
+        Gate::authorize('view-shift-sales');
+
         $isAdmin = auth()->user()?->role?->role_name === 'ADMIN';
 
         if ($isAdmin) {

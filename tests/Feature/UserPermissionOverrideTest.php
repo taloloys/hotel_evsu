@@ -25,9 +25,9 @@ beforeEach(function (): void {
     ]);
 
     $this->viewFolioPermission = Permission::create([
-        'permission_key' => 'view-folio',
-        'description' => 'View folio',
-        'module' => 'Accounting',
+        'permission_key' => 'view-guest-folio',
+        'description' => 'View guest folio',
+        'module' => 'Front Desk',
         'is_active' => true,
     ]);
 
@@ -41,16 +41,16 @@ beforeEach(function (): void {
 
 test('user without permissions is denied access', function (): void {
     expect($this->testUser->hasPermission('manage-reservations'))->toBeFalse();
-    expect($this->testUser->hasPermission('view-folio'))->toBeFalse();
+    expect($this->testUser->hasPermission('view-guest-folio'))->toBeFalse();
 });
 
 test('user can get access via role permissions', function (): void {
-    // Sync view-folio permission to the role
+    // Sync view-guest-folio permission to the role
     $this->limitedRole->permissions()->sync([
         $this->viewFolioPermission->permission_id,
     ]);
 
-    expect($this->testUser->hasPermission('view-folio'))->toBeTrue();
+    expect($this->testUser->hasPermission('view-guest-folio'))->toBeTrue();
     expect($this->testUser->hasPermission('manage-reservations'))->toBeFalse();
 });
 
@@ -61,7 +61,7 @@ test('user can get access via direct permission overrides', function (): void {
     ]);
 
     expect($this->testUser->hasPermission('manage-reservations'))->toBeTrue();
-    expect($this->testUser->hasPermission('view-folio'))->toBeFalse();
+    expect($this->testUser->hasPermission('view-guest-folio'))->toBeFalse();
 });
 
 test('system admin bypasses all permission checks', function (): void {
@@ -80,5 +80,5 @@ test('system admin bypasses all permission checks', function (): void {
     ]);
 
     expect($adminUser->hasPermission('manage-reservations'))->toBeTrue();
-    expect($adminUser->hasPermission('view-folio'))->toBeTrue();
+    expect($adminUser->hasPermission('view-guest-folio'))->toBeTrue();
 });

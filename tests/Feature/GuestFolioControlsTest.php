@@ -23,14 +23,22 @@ beforeEach(function (): void {
 
     // 2. Setup Permissions
     $this->viewFolioPermission = Permission::create([
-        'permission_key' => 'view-folio',
-        'description' => 'View folio',
-        'module' => 'Accounting',
+        'permission_key' => 'view-guest-folio',
+        'description' => 'View guest folio',
+        'module' => 'Front Desk',
+        'is_active' => true,
+    ]);
+
+    $this->manageFolioPermission = Permission::create([
+        'permission_key' => 'manage-guest-folio',
+        'description' => 'Manage guest folio',
+        'module' => 'Front Desk',
         'is_active' => true,
     ]);
 
     $this->frontdeskRole->permissions()->sync([
         $this->viewFolioPermission->permission_id,
+        $this->manageFolioPermission->permission_id,
     ]);
 
     // 3. Create User

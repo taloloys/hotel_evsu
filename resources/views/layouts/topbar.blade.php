@@ -76,8 +76,8 @@
             }
         }
 
-        // 2. View Folio / Process Checkout notifications
-        if ($user->hasPermission('view-folio') || $user->hasPermission('process-checkout')) {
+        // 2. View Guest Folio / Process Checkout notifications
+        if ($user->hasPermission('view-guest-folio') || $user->hasPermission('process-checkout')) {
             $today = \Carbon\Carbon::today();
             $pendingCheckouts = \App\Models\Booking::where('status', 'CHECKED_IN')
                 ->whereDate('departure_date', '<=', $today)

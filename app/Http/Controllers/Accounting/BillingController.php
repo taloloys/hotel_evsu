@@ -5,12 +5,15 @@ namespace App\Http\Controllers\Accounting;
 use App\Http\Controllers\Controller;
 use App\Models\Folio;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Gate;
 use Illuminate\View\View;
 
 class BillingController extends Controller
 {
     public function index(Request $request): View
     {
+        Gate::authorize('manage-accounting-billing');
+
         $statusFilter = $request->input('status', 'ALL');
         $search = $request->input('search');
 
@@ -98,6 +101,8 @@ class BillingController extends Controller
 
     public function show(Folio $folio): View
     {
+        Gate::authorize('manage-accounting-billing');
+
         $folio->load(['guest', 'bookings.room', 'transactions.chargeCode', 'transactions.user']);
 
         $totalCharges = $folio->transactions->sum('charge_amount');

@@ -21,9 +21,9 @@ beforeEach(function (): void {
 
     // 2. Setup Permissions
     $this->viewFolioPermission = Permission::create([
-        'permission_key' => 'view-folio',
-        'description' => 'View folio',
-        'module' => 'Accounting',
+        'permission_key' => 'view-guest-list',
+        'description' => 'View guest list',
+        'module' => 'Front Desk',
         'is_active' => true,
     ]);
 
@@ -118,7 +118,7 @@ test('unauthenticated users are redirected to login from guest list', function (
         ->assertRedirect(route('login'));
 });
 
-test('users without view-folio permission cannot view guest list page', function (): void {
+test('users without view-guest-list permission cannot view guest list page', function (): void {
     $nonPrivilegedRole = Role::create([
         'role_name' => 'OTHER',
         'description' => 'Other Role',

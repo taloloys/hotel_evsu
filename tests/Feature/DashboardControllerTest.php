@@ -129,16 +129,32 @@ test('sidebar renders dynamic links for user with custom multiple permissions', 
         'is_active' => true,
     ]);
 
-    $viewFolio = Permission::create([
-        'permission_key' => 'view-folio',
+    $viewGuestList = Permission::create([
+        'permission_key' => 'view-guest-list',
+        'description' => 'View guest list',
+        'module' => 'Front Desk',
+        'is_active' => true,
+    ]);
+
+    $viewGuestFolio = Permission::create([
+        'permission_key' => 'view-guest-folio',
         'description' => 'View guest folio',
-        'module' => 'Accounting',
+        'module' => 'Front Desk',
+        'is_active' => true,
+    ]);
+
+    $viewShiftSales = Permission::create([
+        'permission_key' => 'view-shift-sales',
+        'description' => 'View shift sales',
+        'module' => 'Front Desk',
         'is_active' => true,
     ]);
 
     $customRole->permissions()->sync([
         $this->reservationsPermission->permission_id,
-        $viewFolio->permission_id,
+        $viewGuestList->permission_id,
+        $viewGuestFolio->permission_id,
+        $viewShiftSales->permission_id,
     ]);
 
     $customUser = User::factory()->create([

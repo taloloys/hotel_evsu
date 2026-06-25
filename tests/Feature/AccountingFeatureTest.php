@@ -22,15 +22,39 @@ beforeEach(function (): void {
     ]);
 
     // 2. Setup Permissions
-    $this->viewFolioPermission = Permission::create([
-        'permission_key' => 'view-folio',
-        'description' => 'View folio',
+    $viewDashboard = Permission::create([
+        'permission_key' => 'view-accounting-dashboard',
+        'description' => 'View accounting dashboard',
+        'module' => 'Accounting',
+        'is_active' => true,
+    ]);
+
+    $manageBilling = Permission::create([
+        'permission_key' => 'manage-accounting-billing',
+        'description' => 'Manage accounting billing',
+        'module' => 'Accounting',
+        'is_active' => true,
+    ]);
+
+    $managePayments = Permission::create([
+        'permission_key' => 'manage-accounting-payments',
+        'description' => 'Manage accounting payments',
+        'module' => 'Accounting',
+        'is_active' => true,
+    ]);
+
+    $manageExpenses = Permission::create([
+        'permission_key' => 'manage-accounting-expenses',
+        'description' => 'Manage accounting expenses',
         'module' => 'Accounting',
         'is_active' => true,
     ]);
 
     $this->accountingRole->permissions()->sync([
-        $this->viewFolioPermission->permission_id,
+        $viewDashboard->permission_id,
+        $manageBilling->permission_id,
+        $managePayments->permission_id,
+        $manageExpenses->permission_id,
     ]);
 
     // 3. Create User
