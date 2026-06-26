@@ -117,6 +117,48 @@
         <div class="card-header bg-white border-0 py-3">
             <h5 class="fw-bold mb-0 text-dark"><i class="fa-solid fa-history text-muted me-2"></i>Authorization Log</h5>
         </div>
+        <div class="card-body bg-light border-bottom py-3">
+            <form action="{{ route('admin.pos-approvals') }}" method="GET" class="row g-2 align-items-end">
+                <div class="col-lg-3 col-md-6">
+                    <label for="search" class="form-label small fw-semibold text-muted mb-1">Search</label>
+                    <div class="input-group input-group-sm">
+                        <span class="input-group-text bg-white"><i class="fa-solid fa-magnifying-glass text-muted"></i></span>
+                        <input type="text" name="search" id="search" class="form-control border-start-0" placeholder="Search order, tab, user, reason..." value="{{ request('search') }}">
+                    </div>
+                </div>
+                <div class="col-lg-2 col-md-3 col-sm-6">
+                    <label for="request_type" class="form-label small fw-semibold text-muted mb-1">Request Type</label>
+                    <select name="request_type" id="request_type" class="form-select form-select-sm">
+                        <option value="all" {{ request('request_type') === 'all' || !request('request_type') ? 'selected' : '' }}>All Types</option>
+                        <option value="cancel_tab" {{ request('request_type') === 'cancel_tab' ? 'selected' : '' }}>Void Tab</option>
+                        <option value="refund" {{ request('request_type') === 'refund' ? 'selected' : '' }}>Refund Order</option>
+                        <option value="cancel_order" {{ request('request_type') === 'cancel_order' ? 'selected' : '' }}>Cancel Order</option>
+                    </select>
+                </div>
+                <div class="col-lg-2 col-md-3 col-sm-6">
+                    <label for="status" class="form-label small fw-semibold text-muted mb-1">Status</label>
+                    <select name="status" id="status" class="form-select form-select-sm">
+                        <option value="all" {{ request('status') === 'all' || !request('status') ? 'selected' : '' }}>All Statuses</option>
+                        <option value="approved" {{ request('status') === 'approved' ? 'selected' : '' }}>Approved</option>
+                        <option value="rejected" {{ request('status') === 'rejected' ? 'selected' : '' }}>Rejected</option>
+                    </select>
+                </div>
+                <div class="col-lg-2 col-md-6 col-sm-6">
+                    <label for="date_from" class="form-label small fw-semibold text-muted mb-1">Date From</label>
+                    <input type="date" name="date_from" id="date_from" class="form-control form-control-sm" value="{{ request('date_from') }}">
+                </div>
+                <div class="col-lg-2 col-md-6 col-sm-6">
+                    <label for="date_until" class="form-label small fw-semibold text-muted mb-1">Date Until</label>
+                    <input type="date" name="date_until" id="date_until" class="form-control form-control-sm" value="{{ request('date_until') }}">
+                </div>
+                <div class="col-lg-1 col-md-12 d-flex gap-1 justify-content-end">
+                    <button type="submit" class="btn btn-sm btn-primary w-100"><i class="fa-solid fa-filter me-1"></i>Filter</button>
+                    @if(request()->anyFilled(['search', 'request_type', 'status', 'date_from', 'date_until']))
+                        <a href="{{ route('admin.pos-approvals') }}" class="btn btn-sm btn-outline-secondary" title="Clear Filters"><i class="fa-solid fa-rotate-left"></i></a>
+                    @endif
+                </div>
+            </form>
+        </div>
         <div class="table-responsive">
             <table class="table align-middle mb-0">
                 <thead class="table-light">

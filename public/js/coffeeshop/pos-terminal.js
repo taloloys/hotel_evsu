@@ -1,4 +1,10 @@
 (() => {
+    const openTabBtn = document.getElementById('open-tab-btn');
+    if (!openTabBtn || openTabBtn.dataset.initialized) {
+        return;
+    }
+    openTabBtn.dataset.initialized = 'true';
+
     const config = window.posConfig;
     let tabs = [...(config.initialTabs || [])];
     let activeTabId = tabs.length ? tabs[0].tab_id : null;
@@ -366,6 +372,9 @@
     });
 
     document.getElementById('open-tab-btn').addEventListener('click', async () => {
+        const btn = document.getElementById('open-tab-btn');
+        if (btn.disabled) return;
+
         const tabType = document.querySelector('input[name="new-tab-type"]:checked').value;
         const payload = { tab_type: tabType };
 
@@ -391,6 +400,7 @@
         }
 
         try {
+            btn.disabled = true;
             const data = await request(config.routes.storeTab, {
                 method: 'POST',
                 body: JSON.stringify(payload),
@@ -402,6 +412,8 @@
             showAlert(data.message);
         } catch (error) {
             showAlert(error.message, 'danger');
+        } finally {
+            btn.disabled = false;
         }
     });
 
@@ -430,6 +442,9 @@
 
     // Confirm Cancellation from Modal
     document.getElementById('confirm-cancel-tab-btn').addEventListener('click', async () => {
+        const btn = document.getElementById('confirm-cancel-tab-btn');
+        if (btn.disabled) return;
+
         const tab = getActiveTab();
         if (!tab) return;
 
@@ -446,9 +461,9 @@
             payload.reason = reason;
         }
 
-        cancelTabModal.hide();
-
         try {
+            btn.disabled = true;
+            cancelTabModal.hide();
             const data = await request(`${config.routes.cancelTab}/${activeTabId}/cancel`, {
                 method: 'POST',
                 body: JSON.stringify(payload)
@@ -464,6 +479,8 @@
             }
         } catch (error) {
             showAlert(error.message, 'danger');
+        } finally {
+            btn.disabled = false;
         }
     });
 
@@ -525,10 +542,19 @@
     });
 
     document.getElementById('confirm-room-charge-submit-btn').addEventListener('click', async () => {
-        confirmRoomChargeModal.hide();
-        if (roomChargeCallback) {
-            await roomChargeCallback();
-            roomChargeCallback = null;
+        const btn = document.getElementById('confirm-room-charge-submit-btn');
+        if (btn.disabled) return;
+
+        try {
+            btn.disabled = true;
+            confirmRoomChargeModal.hide();
+            if (roomChargeCallback) {
+                const cb = roomChargeCallback;
+                roomChargeCallback = null;
+                await cb();
+            }
+        } finally {
+            btn.disabled = false;
         }
     });
 

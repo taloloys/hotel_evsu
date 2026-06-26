@@ -8,6 +8,7 @@ use App\Services\Coffeeshop\PosOrderService;
 use App\Services\Coffeeshop\PosTabService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\View\View;
 
@@ -18,17 +19,57 @@ class PosApprovalController extends Controller
         private PosTabService $tabService
     ) {}
 
-    public function index(): View
+    public function index(Request $request): View
     {
         $pendingRequests = PosApprovalRequest::with(['order', 'tab', 'requestedBy'])
             ->where('status', 'pending')
             ->orderByDesc('created_at')
             ->get();
 
-        $resolvedRequests = PosApprovalRequest::with(['order', 'tab', 'requestedBy', 'resolvedBy'])
-            ->where('status', '!=', 'pending')
-            ->orderByDesc('resolved_at')
-            ->paginate(15);
+        $query = PosApprovalRequest::with(['order', 'tab', 'requestedBy', 'resolvedBy'])
+            ->where('status', '!=', 'pending');
+
+        if ($request->filled('search')) {
+            $search = $request->input('search');
+            $query->where(function ($q) use ($search) {
+                $q->where('reason', 'like', "%{$search}%")
+                    ->orWhereHas('order', function ($oq) use ($search) {
+                        $oq->where('order_number', 'like', "%{$search}%")
+                            ->orWhere('customer_name', 'like', "%{$search}%");
+                    })
+                    ->orWhereHas('tab', function ($tq) use ($search) {
+                        $tq->where('tab_name', 'like', "%{$search}%");
+                    })
+                    ->orWhereHas('requestedBy', function ($uq) use ($search) {
+                        $uq->where('first_name', 'like', "%{$search}%")
+                            ->orWhere('last_name', 'like', "%{$search}%");
+                    })
+                    ->orWhereHas('resolvedBy', function ($uq) use ($search) {
+                        $uq->where('first_name', 'like', "%{$search}%")
+                            ->orWhere('last_name', 'like', "%{$search}%");
+                    });
+            });
+        }
+
+        if ($request->filled('request_type') && $request->input('request_type') !== 'all') {
+            $query->where('request_type', $request->input('request_type'));
+        }
+
+        if ($request->filled('status') && $request->input('status') !== 'all') {
+            $query->where('status', $request->input('status'));
+        }
+
+        if ($request->filled('date_from')) {
+            $query->whereDate('resolved_at', '>=', $request->input('date_from'));
+        }
+
+        if ($request->filled('date_until')) {
+            $query->whereDate('resolved_at', '<=', $request->input('date_until'));
+        }
+
+        $resolvedRequests = $query->orderByDesc('resolved_at')
+            ->paginate(15)
+            ->withQueryString();
 
         return view('admin.pos-approvals.index', compact('pendingRequests', 'resolvedRequests'));
     }
