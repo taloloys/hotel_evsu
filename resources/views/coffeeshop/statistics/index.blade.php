@@ -106,25 +106,46 @@
 @endsection
 
 @push('scripts')
-<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js" onload="initCharts()"></script>
 <script>
-const dailyData = @json($dailySales);
-const monthlyData = @json($monthlySales);
-
-new Chart(document.getElementById('dailySalesChart'), {
-    type: 'line',
-    data: {
-        labels: dailyData.map(row => row.label),
-        datasets: [{ label: 'Sales', data: dailyData.map(row => row.total), borderColor: '#2563eb', tension: 0.3 }]
+function initCharts() {
+    if (typeof Chart === 'undefined') return;
+    
+    const dailyCanvas = document.getElementById('dailySalesChart');
+    const monthlyCanvas = document.getElementById('monthlySalesChart');
+    
+    if (!dailyCanvas || !monthlyCanvas) return;
+    
+    const existingDaily = Chart.getChart(dailyCanvas);
+    if (existingDaily) {
+        existingDaily.destroy();
     }
-});
-
-new Chart(document.getElementById('monthlySalesChart'), {
-    type: 'bar',
-    data: {
-        labels: monthlyData.map(row => row.label),
-        datasets: [{ label: 'Sales', data: monthlyData.map(row => row.total), backgroundColor: '#6f4e37' }]
+    const existingMonthly = Chart.getChart(monthlyCanvas);
+    if (existingMonthly) {
+        existingMonthly.destroy();
     }
-});
+    
+    const dailyData = @json($dailySales);
+    const monthlyData = @json($monthlySales);
+
+    new Chart(dailyCanvas, {
+        type: 'line',
+        data: {
+            labels: dailyData.map(row => row.label),
+            datasets: [{ label: 'Sales', data: dailyData.map(row => row.total), borderColor: '#2563eb', tension: 0.3 }]
+        }
+    });
+
+    new Chart(monthlyCanvas, {
+        type: 'bar',
+        data: {
+            labels: monthlyData.map(row => row.label),
+            datasets: [{ label: 'Sales', data: monthlyData.map(row => row.total), backgroundColor: '#6f4e37' }]
+        }
+    });
+}
+
+// Call on turbo:load for sub-sequent page navigations
+document.addEventListener('turbo:load', initCharts);
 </script>
 @endpush

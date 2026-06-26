@@ -304,8 +304,10 @@
         previouslyPendingCancelTabIds.forEach(oldTab => {
             const match = newTabs.find(t => t.tab_id === oldTab.tab_id);
             if (!match) {
-                showAlert(`Cancellation request for "${oldTab.tab_name}" was APPROVED by the Admin.`, 'success');
-                loadProducts();
+                if (oldTab.pending_cancel_request) {
+                    showAlert(`Cancellation request for "${oldTab.tab_name}" was APPROVED by the Admin.`, 'success');
+                    loadProducts();
+                }
             } else if (oldTab.pending_cancel_request && !match.pending_cancel_request) {
                 showAlert(`Cancellation request for "${oldTab.tab_name}" was REJECTED by the Admin.`, 'danger');
             }
