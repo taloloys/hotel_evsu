@@ -2,14 +2,12 @@
 
 namespace Tests\Feature;
 
-use App\Models\Booking;
-use App\Models\Folio;
-use App\Models\Guest;
 use App\Models\PosProduct;
-use App\Models\PosSetting;
-use App\Models\PosTab;
-use App\Models\Room;
 use App\Models\User;
+use Database\Seeders\ChargeCodeSeeder;
+use Database\Seeders\PosCategorySeeder;
+use Database\Seeders\PosProductSeeder;
+use Database\Seeders\UserSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
@@ -19,10 +17,10 @@ class CoffeeshopPosTest extends TestCase
 
     public function test_cafeteria_can_access_pos_dashboard(): void
     {
-        $this->seed(\Database\Seeders\UserSeeder::class);
-        $this->seed(\Database\Seeders\ChargeCodeSeeder::class);
-        $this->seed(\Database\Seeders\PosCategorySeeder::class);
-        $this->seed(\Database\Seeders\PosProductSeeder::class);
+        $this->seed(UserSeeder::class);
+        $this->seed(ChargeCodeSeeder::class);
+        $this->seed(PosCategorySeeder::class);
+        $this->seed(PosProductSeeder::class);
 
         $cafeteria = User::whereHas('role', fn ($q) => $q->where('role_name', 'CAFETERIA'))->firstOrFail();
 
@@ -34,10 +32,10 @@ class CoffeeshopPosTest extends TestCase
 
     public function test_tab_checkout_decrements_inventory_and_creates_order(): void
     {
-        $this->seed(\Database\Seeders\UserSeeder::class);
-        $this->seed(\Database\Seeders\ChargeCodeSeeder::class);
-        $this->seed(\Database\Seeders\PosCategorySeeder::class);
-        $this->seed(\Database\Seeders\PosProductSeeder::class);
+        $this->seed(UserSeeder::class);
+        $this->seed(ChargeCodeSeeder::class);
+        $this->seed(PosCategorySeeder::class);
+        $this->seed(PosProductSeeder::class);
 
         $user = User::whereHas('role', fn ($q) => $q->where('role_name', 'CAFETERIA'))->firstOrFail();
         $product = PosProduct::where('name', 'Beer')->firstOrFail();
@@ -72,9 +70,9 @@ class CoffeeshopPosTest extends TestCase
 
     public function test_product_search_returns_matching_items(): void
     {
-        $this->seed(\Database\Seeders\UserSeeder::class);
-        $this->seed(\Database\Seeders\PosCategorySeeder::class);
-        $this->seed(\Database\Seeders\PosProductSeeder::class);
+        $this->seed(UserSeeder::class);
+        $this->seed(PosCategorySeeder::class);
+        $this->seed(PosProductSeeder::class);
 
         $user = User::whereHas('role', fn ($q) => $q->where('role_name', 'CAFETERIA'))->firstOrFail();
 

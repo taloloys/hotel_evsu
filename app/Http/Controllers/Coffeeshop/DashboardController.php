@@ -3,11 +3,11 @@
 namespace App\Http\Controllers\Coffeeshop;
 
 use App\Http\Controllers\Controller;
-use App\Services\Coffeeshop\PosAnalyticsService;
-use App\Services\Coffeeshop\PosInventoryService;
 use App\Models\PosOrder;
 use App\Models\PosProduct;
 use App\Models\PosTab;
+use App\Services\Coffeeshop\PosAnalyticsService;
+use App\Services\Coffeeshop\PosInventoryService;
 use Illuminate\View\View;
 
 class DashboardController extends Controller
