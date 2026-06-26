@@ -14,6 +14,8 @@
         <select name="payment_method" class="form-select">
             <option value="all" @selected($paymentMethod === 'all')>All Payments</option>
             <option value="cash" @selected($paymentMethod === 'cash')>Cash</option>
+            <option value="gcash" @selected($paymentMethod === 'gcash')>GCash</option>
+            <option value="card" @selected($paymentMethod === 'card')>Card</option>
             <option value="room_charge" @selected($paymentMethod === 'room_charge')>Room Charge</option>
         </select>
     </div>
@@ -22,10 +24,12 @@
 </form>
 
 <div class="row g-3 mb-4">
-    <div class="col-md-3"><div class="card border-0 shadow-sm"><div class="card-body"><div class="text-muted small">Total Sales</div><h4>₱{{ number_format($summary['total_sales'], 2) }}</h4></div></div></div>
-    <div class="col-md-3"><div class="card border-0 shadow-sm"><div class="card-body"><div class="text-muted small">Orders</div><h4>{{ $summary['order_count'] }}</h4></div></div></div>
-    <div class="col-md-3"><div class="card border-0 shadow-sm"><div class="card-body"><div class="text-muted small">Cash Sales</div><h4>₱{{ number_format($summary['cash_total'], 2) }}</h4></div></div></div>
-    <div class="col-md-3"><div class="card border-0 shadow-sm"><div class="card-body"><div class="text-muted small">Room Charges</div><h4>₱{{ number_format($summary['room_total'], 2) }}</h4></div></div></div>
+    <div class="col-md-2"><div class="card border-0 shadow-sm h-100"><div class="card-body p-3"><div class="text-muted small">Total Sales</div><h5 class="mb-0">₱{{ number_format($summary['total_sales'], 2) }}</h5></div></div></div>
+    <div class="col-md-2"><div class="card border-0 shadow-sm h-100"><div class="card-body p-3"><div class="text-muted small">Orders</div><h5 class="mb-0">{{ $summary['order_count'] }}</h5></div></div></div>
+    <div class="col-md-2"><div class="card border-0 shadow-sm h-100"><div class="card-body p-3"><div class="text-muted small">Cash</div><h5 class="mb-0">₱{{ number_format($summary['cash_total'], 2) }}</h5></div></div></div>
+    <div class="col-md-2"><div class="card border-0 shadow-sm h-100"><div class="card-body p-3"><div class="text-muted small">GCash</div><h5 class="mb-0">₱{{ number_format($summary['gcash_total'], 2) }}</h5></div></div></div>
+    <div class="col-md-2"><div class="card border-0 shadow-sm h-100"><div class="card-body p-3"><div class="text-muted small">Card</div><h5 class="mb-0">₱{{ number_format($summary['card_total'], 2) }}</h5></div></div></div>
+    <div class="col-md-2"><div class="card border-0 shadow-sm h-100"><div class="card-body p-3"><div class="text-muted small">Room Charge</div><h5 class="mb-0">₱{{ number_format($summary['room_total'], 2) }}</h5></div></div></div>
 </div>
 
 <div class="card border-0 shadow-sm">

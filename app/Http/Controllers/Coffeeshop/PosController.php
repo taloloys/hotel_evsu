@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Coffeeshop;
 
 use App\Http\Controllers\Controller;
+use App\Models\PosApprovalRequest;
 use App\Models\PosCategory;
 use App\Models\PosProduct;
 use App\Models\PosTab;
@@ -11,6 +12,7 @@ use App\Services\Coffeeshop\PosOrderService;
 use App\Services\Coffeeshop\PosTabService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\View\View;
 
 class PosController extends Controller
@@ -140,7 +142,7 @@ class PosController extends Controller
     public function closeTab(Request $request, PosTab $tab, PosOrderService $orderService, PosTabService $tabService): JsonResponse
     {
         $validated = $request->validate([
-            'payment_method' => ['required', 'in:cash,room_charge'],
+            'payment_method' => ['required', 'in:cash,gcash,card,room_charge'],
             'booking_id' => ['nullable', 'exists:bookings,booking_id'],
             'folio_id' => ['nullable', 'exists:folios,folio_id'],
         ]);
@@ -163,16 +165,46 @@ class PosController extends Controller
         ]);
     }
 
-    public function cancelTab(PosTab $tab, PosTabService $tabService): JsonResponse
+    public function cancelTab(Request $request, PosTab $tab, PosTabService $tabService): JsonResponse
     {
-        try {
-            $tab = $tabService->cancelTab($tab);
-        } catch (\RuntimeException $e) {
-            return response()->json(['message' => $e->getMessage()], 422);
+        $user = auth()->user();
+        $isAdmin = $user && ($user->role?->is_system_admin || $user->role?->role_name === 'ADMIN');
+        $isEmpty = $tab->items()->count() === 0;
+
+        if ($isAdmin || $isEmpty) {
+            try {
+                $tab = $tabService->cancelTab($tab);
+            } catch (\RuntimeException $e) {
+                return response()->json(['message' => $e->getMessage()], 422);
+            }
+
+            return response()->json([
+                'message' => 'Tab cancelled.',
+                'tab' => $tabService->formatTab($tab),
+            ]);
         }
 
+        $existing = PosApprovalRequest::where('tab_id', $tab->tab_id)
+            ->where('request_type', 'cancel_tab')
+            ->where('status', 'pending')
+            ->exists();
+
+        if ($existing) {
+            return response()->json(['message' => 'A cancellation request is already pending for this tab.'], 422);
+        }
+
+        PosApprovalRequest::create([
+            'tab_id' => $tab->tab_id,
+            'request_type' => 'cancel_tab',
+            'status' => 'pending',
+            'requested_by' => $user->user_id,
+            'reason' => $request->input('reason', 'Cashier requested cancellation'),
+        ]);
+
+        Cache::flush();
+
         return response()->json([
-            'message' => 'Tab cancelled.',
+            'message' => 'Cancellation request submitted to Admin for authorization.',
             'tab' => $tabService->formatTab($tab),
         ]);
     }

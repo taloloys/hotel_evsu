@@ -76,6 +76,11 @@ class PosTab extends Model
         return $this->belongsTo(User::class, 'opened_by', 'user_id');
     }
 
+    public function approvalRequests(): HasMany
+    {
+        return $this->hasMany(PosApprovalRequest::class, 'tab_id', 'tab_id');
+    }
+
     public function scopeOpen($query)
     {
         return $query->where('status', 'open');

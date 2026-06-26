@@ -10,6 +10,7 @@ use App\Http\Controllers\Admin\ActivityLogController;
 use App\Http\Controllers\Admin\ChargeCodeController;
 use App\Http\Controllers\Admin\DashboardController;
 use App\Http\Controllers\Admin\PermissionController;
+use App\Http\Controllers\Admin\PosApprovalController;
 use App\Http\Controllers\Admin\RoleController;
 use App\Http\Controllers\Admin\RoomController;
 use App\Http\Controllers\Admin\ShiftScheduleController;
@@ -227,6 +228,8 @@ Route::middleware('auth')->group(function () {
             ->name('coffeeshop.orders');
         Route::get('/orders/{order}', [CoffeeshopOrderController::class, 'show'])
             ->name('coffeeshop.orders.show');
+        Route::get('/orders/{order}/status-json', [CoffeeshopOrderController::class, 'statusJson'])
+            ->name('coffeeshop.orders.status-json');
         Route::post('/orders/{order}/refund', [CoffeeshopOrderController::class, 'refund'])
             ->name('coffeeshop.orders.refund');
         Route::post('/orders/{order}/cancel', [CoffeeshopOrderController::class, 'cancel'])
@@ -346,6 +349,13 @@ Route::middleware('auth')->group(function () {
 
             Route::get('/activitylogs/export', [ActivityLogController::class, 'export'])
                 ->name('admin.activitylogs.export');
+
+            Route::get('/pos-approvals', [PosApprovalController::class, 'index'])
+                ->name('admin.pos-approvals');
+            Route::post('/pos-approvals/{request}/approve', [PosApprovalController::class, 'approve'])
+                ->name('admin.pos-approvals.approve');
+            Route::post('/pos-approvals/{request}/reject', [PosApprovalController::class, 'reject'])
+                ->name('admin.pos-approvals.reject');
         });
 
         Route::middleware('can:manage-shifts')->group(function () {

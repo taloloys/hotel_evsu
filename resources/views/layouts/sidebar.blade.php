@@ -78,6 +78,11 @@
                     <i class="fa-solid fa-clock-rotate-left me-2"></i>
                     Activity Logs
                 </a>
+                <a href="{{ route('admin.pos-approvals') }}"
+                   class="nav-link {{ request()->routeIs('admin.pos-approvals*') ? 'active' : '' }}">
+                    <i class="fa-solid fa-check-double me-2"></i>
+                    POS Approvals
+                </a>
                 @endcan
             </nav>
         </div>

@@ -10,6 +10,10 @@ use RuntimeException;
 
 class PosTabService
 {
+    public function __construct(
+        private PosInventoryService $inventoryService
+    ) {}
+
     public function openTab(array $data): PosTab
     {
         return PosTab::create([
@@ -41,17 +45,14 @@ class PosTabService
         }
 
         return DB::transaction(function () use ($tab, $product, $quantity) {
+            $this->inventoryService->adjustStock($product, -$quantity, 'sale', 'pos_tab', $tab->tab_id, "Added to tab {$tab->tab_name}");
+
             $existing = PosTabItem::where('tab_id', $tab->tab_id)
                 ->where('product_id', $product->product_id)
                 ->first();
 
             if ($existing) {
                 $newQty = $existing->quantity + $quantity;
-
-                if ($product->stock_quantity < $newQty) {
-                    throw new RuntimeException("Insufficient stock for {$product->name}. Available: {$product->stock_quantity}.");
-                }
-
                 $existing->update([
                     'quantity' => $newQty,
                     'line_total' => $newQty * $existing->unit_price,
@@ -87,19 +88,27 @@ class PosTabService
         }
 
         $product = PosProduct::findOrFail($item->product_id);
+        $diff = $quantity - $item->quantity;
 
-        if ($product->stock_quantity < $quantity) {
-            throw new RuntimeException("Insufficient stock for {$product->name}. Available: {$product->stock_quantity}.");
-        }
+        return DB::transaction(function () use ($tab, $item, $quantity, $product, $diff) {
+            if ($diff > 0) {
+                if ($product->stock_quantity < $diff) {
+                    throw new RuntimeException("Insufficient stock for {$product->name}. Available: {$product->stock_quantity}.");
+                }
+                $this->inventoryService->adjustStock($product, -$diff, 'sale', 'pos_tab', $tab->tab_id, 'Increased tab item quantity');
+            } elseif ($diff < 0) {
+                $this->inventoryService->adjustStock($product, abs($diff), 'cancel', 'pos_tab', $tab->tab_id, 'Decreased tab item quantity');
+            }
 
-        $item->update([
-            'quantity' => $quantity,
-            'line_total' => $quantity * $item->unit_price,
-        ]);
+            $item->update([
+                'quantity' => $quantity,
+                'line_total' => $quantity * $item->unit_price,
+            ]);
 
-        $tab->recalculateTotals();
+            $tab->recalculateTotals();
 
-        return $tab->fresh(['items.product.category', 'room', 'guest', 'folio']);
+            return $tab->fresh(['items.product.category', 'room', 'guest', 'folio']);
+        });
     }
 
     public function removeItem(PosTab $tab, PosTabItem $item): PosTab
@@ -108,10 +117,16 @@ class PosTabService
             throw new RuntimeException('Cannot modify a closed or cancelled tab.');
         }
 
-        $item->delete();
-        $tab->recalculateTotals();
+        $product = PosProduct::findOrFail($item->product_id);
 
-        return $tab->fresh(['items.product.category', 'room', 'guest', 'folio']);
+        return DB::transaction(function () use ($tab, $item, $product) {
+            $this->inventoryService->adjustStock($product, $item->quantity, 'cancel', 'pos_tab', $tab->tab_id, 'Removed tab item');
+
+            $item->delete();
+            $tab->recalculateTotals();
+
+            return $tab->fresh(['items.product.category', 'room', 'guest', 'folio']);
+        });
     }
 
     public function cancelTab(PosTab $tab): PosTab
@@ -120,13 +135,23 @@ class PosTabService
             throw new RuntimeException('Only open tabs can be cancelled.');
         }
 
-        $tab->update([
-            'status' => 'cancelled',
-            'closed_by' => auth()->id(),
-            'closed_at' => now(),
-        ]);
+        return DB::transaction(function () use ($tab) {
+            $tab->load('items');
+            foreach ($tab->items as $item) {
+                $product = PosProduct::find($item->product_id);
+                if ($product) {
+                    $this->inventoryService->adjustStock($product, $item->quantity, 'cancel', 'pos_tab', $tab->tab_id, 'Tab cancelled');
+                }
+            }
 
-        return $tab->fresh(['items.product']);
+            $tab->update([
+                'status' => 'cancelled',
+                'closed_by' => auth()->id(),
+                'closed_at' => now(),
+            ]);
+
+            return $tab->fresh(['items.product']);
+        });
     }
 
     public function reopenTab(PosTab $tab): PosTab
@@ -162,6 +187,7 @@ class PosTabService
             'subtotal' => (float) $tab->subtotal,
             'total' => (float) $tab->total,
             'item_count' => $tab->items->sum('quantity'),
+            'pending_cancel_request' => $tab->approvalRequests()->where('status', 'pending')->exists(),
             'items' => $tab->items->map(fn (PosTabItem $item) => [
                 'tab_item_id' => $item->tab_item_id,
                 'product_id' => $item->product_id,

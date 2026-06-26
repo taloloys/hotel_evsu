@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Booking;
 use App\Models\Expense;
+use App\Models\PosApprovalRequest;
 use App\Models\PosProduct;
 use App\Models\Room;
 use App\Models\Shift;
@@ -86,6 +87,39 @@ class LayoutDataController extends Controller
                         'message' => "Room {$room->room_number} is under maintenance.",
                         'link' => route('frontdesk.dashboard'),
                         'time' => 'In progress',
+                    ];
+                }
+            }
+
+            // 1b. POS Approval notifications (Admin only)
+            if ($user->hasPermission('manage-users')) {
+                $pendingApprovals = PosApprovalRequest::where('status', 'pending')
+                    ->with(['requestedBy', 'order', 'tab'])
+                    ->get();
+
+                foreach ($pendingApprovals as $req) {
+                    $typeLabel = match ($req->request_type) {
+                        'refund' => 'Refund',
+                        'cancel_tab' => 'Cancel Tab',
+                        'cancel_order' => 'Cancel Order',
+                        default => 'Approval',
+                    };
+                    $detail = '';
+                    if ($req->order) {
+                        $detail = "Order {$req->order->order_number} (₱".number_format($req->order->total, 2).')';
+                    } elseif ($req->tab) {
+                        $detail = "Tab '{$req->tab->tab_name}' (₱".number_format($req->tab->total, 2).')';
+                    } else {
+                        $detail = "Request #{$req->request_id}";
+                    }
+
+                    $notifications[] = [
+                        'id' => 'pos-approval-'.$req->request_id,
+                        'type' => 'pos_approval',
+                        'icon' => 'fa-check-double text-danger',
+                        'message' => "POS {$typeLabel}: {$detail} requires authorization.",
+                        'link' => route('admin.pos-approvals'),
+                        'time' => $req->created_at->diffForHumans(),
                     ];
                 }
             }

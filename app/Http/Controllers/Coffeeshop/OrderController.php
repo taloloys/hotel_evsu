@@ -3,11 +3,14 @@
 namespace App\Http\Controllers\Coffeeshop;
 
 use App\Http\Controllers\Controller;
+use App\Models\PosApprovalRequest;
 use App\Models\PosOrder;
 use App\Models\PosTab;
 use App\Services\Coffeeshop\PosOrderService;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\View\View;
 
 class OrderController extends Controller
@@ -53,25 +56,104 @@ class OrderController extends Controller
         return view('coffeeshop.orders.show', compact('order'));
     }
 
-    public function refund(PosOrder $order, PosOrderService $orderService): RedirectResponse
+    public function statusJson(PosOrder $order): JsonResponse
     {
-        try {
-            $orderService->refundOrder($order);
-        } catch (\RuntimeException $e) {
-            return back()->withErrors(['order' => $e->getMessage()]);
-        }
+        $pendingRefund = PosApprovalRequest::where('order_id', $order->order_id)
+            ->where('request_type', 'refund')
+            ->where('status', 'pending')
+            ->first();
 
-        return back()->with('success', 'Order refunded and inventory restored.');
+        $pendingCancel = PosApprovalRequest::where('order_id', $order->order_id)
+            ->where('request_type', 'cancel_order')
+            ->where('status', 'pending')
+            ->first();
+
+        return response()->json([
+            'order_id' => $order->order_id,
+            'status' => $order->status,
+            'payment_method' => $order->payment_method,
+            'pending_refund' => $pendingRefund ? [
+                'request_id' => $pendingRefund->request_id,
+                'reason' => $pendingRefund->reason,
+            ] : null,
+            'pending_cancel' => $pendingCancel ? [
+                'request_id' => $pendingCancel->request_id,
+                'reason' => $pendingCancel->reason,
+            ] : null,
+        ]);
     }
 
-    public function cancel(PosOrder $order, PosOrderService $orderService): RedirectResponse
+    public function refund(Request $request, PosOrder $order, PosOrderService $orderService): RedirectResponse
     {
-        try {
-            $orderService->cancelOrder($order);
-        } catch (\RuntimeException $e) {
-            return back()->withErrors(['order' => $e->getMessage()]);
+        $user = auth()->user();
+        $isAdmin = $user && ($user->role?->is_system_admin || $user->role?->role_name === 'ADMIN');
+
+        if ($isAdmin) {
+            try {
+                $orderService->refundOrder($order);
+            } catch (\RuntimeException $e) {
+                return back()->withErrors(['order' => $e->getMessage()]);
+            }
+
+            return back()->with('success', 'Order refunded and inventory restored.');
         }
 
-        return back()->with('success', 'Order cancelled.');
+        $existing = PosApprovalRequest::where('order_id', $order->order_id)
+            ->where('request_type', 'refund')
+            ->where('status', 'pending')
+            ->exists();
+
+        if ($existing) {
+            return back()->withErrors(['order' => 'A refund request is already pending for this order.']);
+        }
+
+        PosApprovalRequest::create([
+            'order_id' => $order->order_id,
+            'request_type' => 'refund',
+            'status' => 'pending',
+            'requested_by' => $user->user_id,
+            'reason' => $request->input('reason', 'Cashier requested refund'),
+        ]);
+
+        Cache::flush();
+
+        return back()->with('success', 'Refund request submitted to Admin for authorization.');
+    }
+
+    public function cancel(Request $request, PosOrder $order, PosOrderService $orderService): RedirectResponse
+    {
+        $user = auth()->user();
+        $isAdmin = $user && ($user->role?->is_system_admin || $user->role?->role_name === 'ADMIN');
+
+        if ($isAdmin) {
+            try {
+                $orderService->cancelOrder($order);
+            } catch (\RuntimeException $e) {
+                return back()->withErrors(['order' => $e->getMessage()]);
+            }
+
+            return back()->with('success', 'Order cancelled.');
+        }
+
+        $existing = PosApprovalRequest::where('order_id', $order->order_id)
+            ->where('request_type', 'cancel_order')
+            ->where('status', 'pending')
+            ->exists();
+
+        if ($existing) {
+            return back()->withErrors(['order' => 'A cancellation request is already pending for this order.']);
+        }
+
+        PosApprovalRequest::create([
+            'order_id' => $order->order_id,
+            'request_type' => 'cancel_order',
+            'status' => 'pending',
+            'requested_by' => $user->user_id,
+            'reason' => $request->input('reason', 'Cashier requested cancellation'),
+        ]);
+
+        Cache::flush();
+
+        return back()->with('success', 'Cancellation request submitted to Admin for authorization.');
     }
 }

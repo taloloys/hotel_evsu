@@ -60,13 +60,13 @@ class PosGuestChargeService
 
         ActivityLog::log(
             'ADD_CHARGE',
-            "POS room charge of ₱".number_format((float) $order->total, 2)." posted on Folio via Order {$order->order_number}."
+            'POS room charge of ₱'.number_format((float) $order->total, 2)." posted on Folio via Order {$order->order_number}."
         );
 
         return $transaction;
     }
 
-    public function postCashSale(PosOrder $order, string $itemSummary): Transaction
+    public function postWalkInSale(PosOrder $order, string $paymentMethod, string $itemSummary): Transaction
     {
         $folioId = PosSetting::walkInFolioId();
 
@@ -76,9 +76,10 @@ class PosGuestChargeService
 
         $userId = auth()->id() ?? $order->user_id;
         $shift = $this->resolveActiveShift($userId);
-        $chargeNumber = 'POS-CASH-'.$order->order_id;
+        $methodLabel = strtoupper($paymentMethod);
+        $chargeNumber = 'POS-'.$methodLabel.'-'.$order->order_id;
         $today = Carbon::now()->toDateString();
-        $notes = "POS Cash Order {$order->order_number}: {$itemSummary}";
+        $notes = "POS {$methodLabel} Order {$order->order_number}: {$itemSummary}";
 
         Transaction::create([
             'folio_id' => $folioId,
@@ -93,6 +94,8 @@ class PosGuestChargeService
             'credit_amount' => 0.00,
         ]);
 
+        $txPaymentMethod = ($paymentMethod === 'card') ? 'CREDIT_CARD' : 'CASH';
+
         $payment = Transaction::create([
             'folio_id' => $folioId,
             'charge_code' => 403,
@@ -100,15 +103,15 @@ class PosGuestChargeService
             'user_id' => $userId,
             'transaction_date' => $today,
             'charge_number' => $chargeNumber.'-PAY',
-            'payment_method' => 'CASH',
-            'reference_notes' => "Cash payment for {$order->order_number}",
+            'payment_method' => $txPaymentMethod,
+            'reference_notes' => "{$methodLabel} payment for {$order->order_number}",
             'charge_amount' => 0.00,
             'credit_amount' => $order->total,
         ]);
 
         ActivityLog::log(
             'ADD_CHARGE',
-            "POS cash sale of ₱".number_format((float) $order->total, 2)." recorded via Order {$order->order_number}."
+            "POS {$paymentMethod} sale of ₱".number_format((float) $order->total, 2)." recorded via Order {$order->order_number}."
         );
 
         return $payment;

@@ -3,6 +3,7 @@
 namespace App\Services\Coffeeshop;
 
 use App\Models\ActivityLog;
+use App\Models\PosInventoryLog;
 use App\Models\PosOrder;
 use App\Models\PosOrderItem;
 use App\Models\PosProduct;
@@ -28,13 +29,6 @@ class PosOrderService
 
         if ($tab->items->isEmpty()) {
             throw new RuntimeException('Tab has no items.');
-        }
-
-        foreach ($tab->items as $item) {
-            $product = $item->product ?? PosProduct::find($item->product_id);
-            if ($product && $product->stock_quantity < $item->quantity) {
-                throw new RuntimeException("Insufficient stock for {$product->name}. Available: {$product->stock_quantity}.");
-            }
         }
 
         return DB::transaction(function () use ($tab, $paymentMethod, $bookingId, $folioId) {
@@ -80,7 +74,14 @@ class PosOrderService
                     'line_total' => $item->line_total,
                 ]);
 
-                $this->inventoryService->decrementForSale($product, $item->quantity, $order->order_id);
+                // Since stock was dynamically deducted during tab edits, we update the log reference from tab to order
+                PosInventoryLog::where('reference_type', 'pos_tab')
+                    ->where('reference_id', $tab->tab_id)
+                    ->where('product_id', $product->product_id)
+                    ->update([
+                        'reference_type' => 'pos_order',
+                        'reference_id' => $order->order_id,
+                    ]);
                 $itemSummaryParts[] = "{$product->name} x{$item->quantity}";
             }
 
@@ -93,7 +94,7 @@ class PosOrderService
                 $transaction = $this->chargeService->postRoomCharge($order, (int) $folioIdToUse, $itemSummary);
                 $order->update(['transaction_id' => $transaction->transaction_id, 'folio_id' => $folioIdToUse]);
             } else {
-                $this->chargeService->postCashSale($order, $itemSummary);
+                $this->chargeService->postWalkInSale($order, $paymentMethod, $itemSummary);
             }
 
             $tab->update([

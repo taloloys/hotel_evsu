@@ -62,26 +62,74 @@
             <div class="card-body">
                 <div class="d-flex gap-2 mb-3 flex-wrap" id="tab-switcher"></div>
 
-                <div class="input-group mb-3">
-                    <input type="text" id="new-tab-name" class="form-control form-control-sm" placeholder="Customer name or Room 205">
-                    <button type="button" class="btn btn-outline-primary btn-sm" id="open-tab-btn">Open Tab</button>
+                <div class="card bg-light border-0 p-3 mb-3">
+                    <div class="mb-2">
+                        <label class="form-label small fw-semibold text-muted mb-1">Tab Type</label>
+                        <div class="btn-group btn-group-sm w-100 mb-2" role="group">
+                            <input type="radio" class="btn-check" name="new-tab-type" id="type-walkin" value="walk_in" checked>
+                            <label class="btn btn-outline-secondary" for="type-walkin">Walk-in</label>
+
+                            <input type="radio" class="btn-check" name="new-tab-type" id="type-room" value="room">
+                            <label class="btn btn-outline-secondary" for="type-room">Room Charge</label>
+                        </div>
+                    </div>
+
+                    <!-- Walk-in input panel -->
+                    <div id="new-tab-walkin-panel" class="mb-2">
+                        <input type="text" id="new-tab-name" class="form-control form-control-sm" placeholder="Customer name (e.g. John Doe)">
+                    </div>
+
+                    <!-- Checked-in Room input panel (hidden by default) -->
+                    <div id="new-tab-room-panel" class="mb-2 d-none">
+                        <select id="new-tab-guest" class="form-select form-select-sm">
+                            <option value="">Select occupied room...</option>
+                        </select>
+                    </div>
+
+                    <button type="button" class="btn btn-primary btn-sm w-100" id="open-tab-btn">
+                        <i class="fa-solid fa-folder-open me-1"></i> Open Tab
+                    </button>
                 </div>
 
                 <div id="active-tab-panel" class="d-none">
                     <div class="d-flex justify-content-between align-items-center mb-2">
-                        <strong id="active-tab-name"></strong>
+                        <div>
+                            <strong id="active-tab-name"></strong>
+                            <div id="active-tab-badge" class="mt-1"></div>
+                        </div>
                         <span class="badge bg-primary" id="active-tab-total">₱0.00</span>
                     </div>
+
+                    <!-- Alert message if there is a pending cancel request -->
+                    <div id="active-tab-pending-alert" class="alert alert-warning py-2 px-3 small d-none my-2">
+                        <i class="fa-solid fa-clock me-1"></i> Cancellation Pending Authorization
+                    </div>
+
                     <div id="cart-items" class="small mb-3"></div>
                     <hr>
                     <div class="d-flex justify-content-between fw-bold fs-5 mb-3">
                         <span>Total</span>
                         <span id="cart-total">₱0.00</span>
                     </div>
-                    <button type="button" class="btn btn-success w-100 mb-2" id="close-tab-btn">
-                        <i class="fa-solid fa-cash-register me-1"></i> Close Tab / Pay
-                    </button>
-                    <button type="button" class="btn btn-outline-danger w-100" id="cancel-tab-btn">Cancel Tab</button>
+
+                    <!-- Walk-in actions -->
+                    <div id="walkin-checkout-actions" class="d-none">
+                        <button type="button" class="btn btn-success w-100 mb-2 checkout-action-btn" id="pay-walkin-btn">
+                            <i class="fa-solid fa-cash-register me-1"></i> Pay / Close Tab
+                        </button>
+                    </div>
+
+                    <!-- Room charge actions -->
+                    <div id="room-checkout-actions" class="d-none">
+                        <button type="button" class="btn btn-success w-100 mb-2 checkout-action-btn" id="charge-room-btn">
+                            <i class="fa-solid fa-hotel me-1"></i> Charge to Room
+                        </button>
+                        <button type="button" class="btn btn-outline-success w-100 mb-2 checkout-action-btn" id="pay-direct-btn">
+                            <i class="fa-solid fa-cash-register me-1"></i> Pay Directly
+                        </button>
+                    </div>
+
+                    <button type="button" class="btn btn-outline-danger w-100 checkout-action-btn" id="cancel-tab-btn">Cancel Tab</button>
                 </div>
 
                 <div id="no-tab-message" class="text-muted text-center py-4">
@@ -92,30 +140,86 @@
     </div>
 </div>
 
-<div class="modal fade" id="closeTabModal" tabindex="-1">
-    <div class="modal-dialog">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title">Close Tab & Checkout</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+<div class="modal fade" id="paymentModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow">
+            <div class="modal-header bg-dark text-white">
+                <h5 class="modal-title"><i class="fa-solid fa-wallet me-2 text-warning"></i>Settle Payment</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
             </div>
-            <div class="modal-body">
-                <label class="form-label">Payment Method</label>
-                <select id="payment-method" class="form-select mb-3">
-                    <option value="cash">Cash Payment</option>
-                    <option value="room_charge">Charge to Room</option>
-                </select>
-                <div id="room-charge-panel" class="d-none">
-                    <label class="form-label">Checked-in Guest</label>
-                    <select id="checked-in-guest" class="form-select">
-                        <option value="">Loading guests...</option>
-                    </select>
-                    <div id="guest-balance-info" class="small text-muted mt-2"></div>
+            <div class="modal-body p-4">
+                <p class="text-muted small text-center mb-3">Select the payment method to settle this order of <strong id="payment-modal-amount" class="text-primary">₱0.00</strong>.</p>
+                <div class="d-flex flex-column gap-3">
+                    <button type="button" class="btn btn-outline-secondary p-3 text-start d-flex align-items-center justify-content-between payment-method-opt" data-method="cash">
+                        <span class="fs-5 fw-semibold"><i class="fa-solid fa-money-bill-wave text-success me-3"></i>Cash</span>
+                        <i class="fa-solid fa-chevron-right text-muted"></i>
+                    </button>
+                    <button type="button" class="btn btn-outline-secondary p-3 text-start d-flex align-items-center justify-content-between payment-method-opt" data-method="gcash">
+                        <span class="fs-5 fw-semibold"><i class="fa-solid fa-mobile-screen text-info me-3"></i>GCash</span>
+                        <i class="fa-solid fa-chevron-right text-muted"></i>
+                    </button>
+                    <button type="button" class="btn btn-outline-secondary p-3 text-start d-flex align-items-center justify-content-between payment-method-opt" data-method="card">
+                        <span class="fs-5 fw-semibold"><i class="fa-solid fa-credit-card text-primary me-3"></i>Card</span>
+                        <i class="fa-solid fa-chevron-right text-muted"></i>
+                    </button>
                 </div>
             </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                <button type="button" class="btn btn-success" id="confirm-close-tab">Complete Payment</button>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="cancelTabModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow">
+            <div class="modal-header bg-danger text-white">
+                <h5 class="modal-title"><i class="fa-solid fa-triangle-exclamation me-2"></i>Cancel Tab</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body p-4">
+                <p id="cancel-tab-warning-text" class="text-muted small mb-3">Are you sure you want to cancel this tab? All added items will be returned to stock.</p>
+                <div id="cancel-reason-container" class="d-none">
+                    <label for="cancel-reason" class="form-label small fw-semibold text-danger">Reason for Cancellation (Admin Override Required)</label>
+                    <textarea id="cancel-reason" class="form-control" rows="3" placeholder="e.g. Wrong items entered, customer walked away, etc."></textarea>
+                </div>
+            </div>
+            <div class="modal-footer border-0">
+                <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Go Back</button>
+                <button type="button" class="btn btn-danger btn-sm" id="confirm-cancel-tab-btn">Confirm Cancellation</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="confirmRoomChargeModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow">
+            <div class="modal-header bg-success text-white">
+                <h5 class="modal-title"><i class="fa-solid fa-hotel me-2"></i>Charge to Room</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body p-4">
+                <p id="room-charge-warning-text" class="text-muted small mb-0">Are you sure you want to charge the total amount to the guest room folio?</p>
+            </div>
+            <div class="modal-footer border-0">
+                <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-success btn-sm text-white" id="confirm-room-charge-submit-btn">Confirm Charge</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="posAlertModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow">
+            <div class="modal-header bg-warning text-dark">
+                <h5 class="modal-title" id="posAlertModalLabel"><i class="fa-solid fa-triangle-exclamation me-2"></i>Notice</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body p-4">
+                <p id="pos-alert-modal-message" class="mb-0"></p>
+            </div>
+            <div class="modal-footer border-0">
+                <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Close</button>
             </div>
         </div>
     </div>
@@ -126,6 +230,7 @@
 <script>
 window.posConfig = {
     csrfToken: @json(csrf_token()),
+    isAdmin: @json(auth()->user()?->role?->role_name === 'ADMIN'),
     routes: {
         search: @json(route('coffeeshop.api.products.search')),
         tabs: @json(route('coffeeshop.api.tabs.index')),
