@@ -128,56 +128,63 @@
         </div>
 
         <div class="d-flex gap-2 align-items-center">
-            <!-- SEARCH -->
-            <div style="width: 200px;">
-                <input type="text"
-                    id="roomSearchInput"
-                    class="form-control form-control-sm"
-                    placeholder="Search room number..."
-                    autocomplete="off">
-            </div>
-
-            <!-- FILTER ICON DROPDOWN -->
-            <div class="dropdown">
-                <button class="btn btn-outline-secondary btn-sm" data-bs-toggle="dropdown">
-                    <i class="fa-solid fa-filter"></i>
-                </button>
-
-                <div class="dropdown-menu dropdown-menu-end p-3" style="min-width: 260px;">
-
-                    <label class="form-label small mb-1">Room Type</label>
-                    <select id="filterTypeSelect" class="form-select form-select-sm mb-2">
-                        <option value="">All Types</option>
-                        @foreach($roomTypes as $type)
-                            <option value="{{ $type }}">{{ $type }}</option>
-                        @endforeach
-                    </select>
-
-                    <label class="form-label small mb-1">Status</label>
-                    <select id="filterStatusSelect" class="form-select form-select-sm mb-2">
-                        <option value="">All Statuses</option>
-                        <option value="AVAILABLE">Available</option>
-                        <option value="OCCUPIED">Occupied</option>
-                        <option value="RESERVED">Reserved</option>
-                        <option value="CLEANING">Cleaning</option>
-                        <option value="MAINTENANCE">Maintenance</option>
-                    </select>
-
-                    <label class="form-label small mb-1">Active/Disabled Status</label>
-                    <select id="filterActiveSelect" class="form-select form-select-sm mb-3">
-                        <option value="">All Statuses</option>
-                        <option value="active">Active</option>
-                        <option value="disabled">Disabled</option>
-                    </select>
-
-                    <div class="d-flex gap-2">
-                        <button id="filterApplyBtn" class="btn btn-primary btn-sm w-50">Apply</button>
-                        <button id="filterResetBtn" class="btn btn-light btn-sm w-50">Reset</button>
-                    </div>
-
+            <form action="{{ route('admin.rooms') }}" method="GET" class="d-flex gap-2 align-items-center m-0">
+                <!-- SEARCH -->
+                <div style="width: 200px;">
+                    <input type="text"
+                        id="roomSearchInput"
+                        name="search"
+                        class="form-control form-control-sm"
+                        placeholder="Search room number..."
+                        value="{{ $filters['search'] }}"
+                        autocomplete="off">
                 </div>
-            </div>
-
+ 
+                <!-- FILTER ICON DROPDOWN -->
+                <div class="dropdown">
+                    <button type="button" class="btn btn-outline-secondary btn-sm position-relative" data-bs-toggle="dropdown">
+                        <i class="fa-solid fa-filter"></i>
+                        @if($filters['room_type'] !== 'all' || $filters['status'] !== 'all' || $filters['is_active'] !== 'all')
+                            <span class="position-absolute top-0 start-100 translate-middle p-1 bg-danger border border-light rounded-circle"></span>
+                        @endif
+                    </button>
+ 
+                    <div class="dropdown-menu dropdown-menu-end p-3" style="min-width: 260px;">
+ 
+                        <label class="form-label small mb-1">Room Type</label>
+                        <select id="filterTypeSelect" name="room_type" class="form-select form-select-sm mb-2">
+                            <option value="all" @selected($filters['room_type'] === 'all')>All Types</option>
+                            @foreach($roomTypes as $type)
+                                <option value="{{ $type }}" @selected($filters['room_type'] === $type)>{{ $type }}</option>
+                            @endforeach
+                        </select>
+ 
+                        <label class="form-label small mb-1">Status</label>
+                        <select id="filterStatusSelect" name="status" class="form-select form-select-sm mb-2">
+                            <option value="all" @selected($filters['status'] === 'all')>All Statuses</option>
+                            <option value="AVAILABLE" @selected($filters['status'] === 'AVAILABLE')>Available</option>
+                            <option value="OCCUPIED" @selected($filters['status'] === 'OCCUPIED')>Occupied</option>
+                            <option value="RESERVED" @selected($filters['status'] === 'RESERVED')>Reserved</option>
+                            <option value="CLEANING" @selected($filters['status'] === 'CLEANING')>Cleaning</option>
+                            <option value="MAINTENANCE" @selected($filters['status'] === 'MAINTENANCE')>Maintenance</option>
+                        </select>
+ 
+                        <label class="form-label small mb-1">Active/Disabled Status</label>
+                        <select id="filterActiveSelect" name="is_active" class="form-select form-select-sm mb-3">
+                            <option value="all" @selected($filters['is_active'] === 'all')>All Statuses</option>
+                            <option value="active" @selected($filters['is_active'] === 'active')>Active</option>
+                            <option value="disabled" @selected($filters['is_active'] === 'disabled')>Disabled</option>
+                        </select>
+ 
+                        <div class="d-flex gap-2">
+                            <button type="submit" class="btn btn-primary btn-sm w-50">Apply</button>
+                            <a href="{{ route('admin.rooms') }}" class="btn btn-light btn-sm w-50">Reset</a>
+                        </div>
+ 
+                    </div>
+                </div>
+            </form>
+ 
             <!-- ADD ROOM BUTTON -->
             <button class="btn btn-primary btn-sm px-3" data-bs-toggle="modal" data-bs-target="#addRoomModal">
                 <i class="fa-solid fa-plus me-1"></i>
@@ -339,7 +346,17 @@
                 </tbody>
 
             </table>
+        </div>
 
+        <div class="card-footer bg-white border-top d-flex flex-wrap justify-content-between align-items-center py-3 gap-2">
+            <div class="small text-muted">
+                Showing {{ $rooms->firstItem() ?? 0 }} to {{ $rooms->lastItem() ?? 0 }} of {{ $rooms->total() }} rooms
+            </div>
+            @if($rooms->hasPages())
+                <div class="m-0">
+                    {{ $rooms->appends(request()->query())->links('pagination::bootstrap-5') }}
+                </div>
+            @endif
         </div>
 
     </div>
@@ -568,72 +585,6 @@
                 document.getElementById('edit_base_rate').value   = btn.dataset.baseRate;
                 document.getElementById('edit_status').value      = btn.dataset.status;
                 document.getElementById('editRoomForm').action    = btn.dataset.updateUrl;
-            });
-        }
-
-        // ── Search & Filter logic ─────────────────────────────────────────────
-        const searchInput      = document.getElementById('roomSearchInput');
-        const typeSelect       = document.getElementById('filterTypeSelect');
-        const statusSelect     = document.getElementById('filterStatusSelect');
-        const activeSelect     = document.getElementById('filterActiveSelect');
-        const applyBtn         = document.getElementById('filterApplyBtn');
-        const resetBtn         = document.getElementById('filterResetBtn');
-        const tbody            = document.querySelector('#roomsTable tbody');
-        const noFilterRow      = document.getElementById('noFilterResultsRow');
-        const dropdownToggleEl = document.querySelector('.dropdown [data-bs-toggle="dropdown"]');
-
-        let activeType = '';
-        let activeStatus = '';
-        let activeActive = '';
-
-        function applyFilters() {
-            const query = searchInput.value.trim().toLowerCase();
-            const rows  = tbody.querySelectorAll('tr[data-roomnumber]');
-            let visible = 0;
-
-            rows.forEach(function (row) {
-                const matchSearch = !query || row.dataset.roomnumber.includes(query);
-                const matchType   = !activeType || row.dataset.type === activeType.toLowerCase();
-                const matchStatus = !activeStatus || row.dataset.status === activeStatus;
-                const matchActive = !activeActive || row.dataset.active === activeActive;
-
-                const show = matchSearch && matchType && matchStatus && matchActive;
-                row.style.display = show ? '' : 'none';
-                if (show) visible++;
-            });
-
-            if (noFilterRow) {
-                noFilterRow.style.display = (rows.length > 0 && visible === 0) ? '' : 'none';
-            }
-        }
-
-        if (searchInput) {
-            searchInput.addEventListener('input', applyFilters);
-        }
-
-        if (applyBtn) {
-            applyBtn.addEventListener('click', function () {
-                activeType   = typeSelect.value;
-                activeStatus = statusSelect.value;
-                activeActive = activeSelect.value;
-                applyFilters();
-                if (dropdownToggleEl) {
-                    const dropdown = bootstrap.Dropdown.getInstance(dropdownToggleEl);
-                    if (dropdown) { dropdown.hide(); }
-                }
-            });
-        }
-
-        if (resetBtn) {
-            resetBtn.addEventListener('click', function () {
-                searchInput.value  = '';
-                typeSelect.value   = '';
-                statusSelect.value = '';
-                activeSelect.value = '';
-                activeType         = '';
-                activeStatus       = '';
-                activeActive       = '';
-                applyFilters();
             });
         }
     })();

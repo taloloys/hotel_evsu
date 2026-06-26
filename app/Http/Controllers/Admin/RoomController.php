@@ -39,7 +39,7 @@ class RoomController extends Controller
             $query->where('is_active', $request->is_active === 'active');
         }
 
-        $rooms = $query->orderBy('room_number')->get();
+        $rooms = $query->orderBy('room_number')->paginate(15);
 
         // Statistics (based on all rooms)
         $allRooms = Room::all();
