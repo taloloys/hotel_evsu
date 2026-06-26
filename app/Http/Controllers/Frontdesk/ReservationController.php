@@ -61,7 +61,7 @@ class ReservationController extends Controller
             ->orderBy('room_number')
             ->get(['room_id', 'room_number', 'room_type', 'base_rate']);
 
-        $guests = Guest::query()
+        $guests = Guest::realGuests()
             ->with(['folios'])
             ->orderBy('last_name')
             ->orderBy('first_name')

@@ -15,7 +15,7 @@ class GuestListController extends Controller
         $search = $request->input('search');
         $status = $request->input('status');
 
-        $query = Guest::query()
+        $query = Guest::realGuests()
             ->with([
                 'folios.bookings.room',
             ])
@@ -89,7 +89,7 @@ class GuestListController extends Controller
             return response()->json([]);
         }
 
-        $guests = Guest::query()
+        $guests = Guest::realGuests()
             ->with(['folios'])
             ->where(function ($q) use ($search) {
                 if (config('database.default') === 'sqlite') {

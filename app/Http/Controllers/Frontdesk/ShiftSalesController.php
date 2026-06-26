@@ -113,6 +113,9 @@ class ShiftSalesController extends Controller
         $selectedShift = null;
         if ($request->filled('shift_id')) {
             $selectedShift = Shift::with(['user', 'schedule'])->find($request->shift_id);
+            if ($selectedShift && ! $isAdmin && $selectedShift->user_id !== auth()->id()) {
+                abort(403, 'Unauthorized action.');
+            }
         }
 
         return view('frontdesk.shift-sales.index', [
@@ -126,6 +129,40 @@ class ShiftSalesController extends Controller
             'isAdmin' => $isAdmin,
             'shiftsForSelector' => $shiftsForSelector,
             'selectedShift' => $selectedShift,
+        ]);
+    }
+
+    public function show(Shift $shift)
+    {
+        Gate::authorize('view-shift-sales');
+
+        $isAdmin = auth()->user()?->role?->role_name === 'ADMIN';
+
+        if (! $isAdmin && $shift->user_id !== auth()->id()) {
+            abort(403, 'Unauthorized action.');
+        }
+
+        $transactions = Transaction::where('shift_id', $shift->shift_id)
+            ->with(['user', 'chargeCode', 'folio.guest'])
+            ->orderBy('timestamp')
+            ->get();
+
+        $totals = [
+            'charges' => $transactions->sum('charge_amount'),
+            'payments' => $transactions->sum('credit_amount'),
+            'total_charges' => $transactions->sum('charge_amount'),
+            'room_charges' => $transactions->filter(fn ($tx) => in_array($tx->chargeCode?->category, ['HOTEL', 'TAX_SERVICE']))
+                ->sum('charge_amount'),
+            'additional_charges' => $transactions->filter(fn ($tx) => ! in_array($tx->chargeCode?->category, ['HOTEL', 'TAX_SERVICE']))
+                ->sum('charge_amount'),
+            'checkin_count' => $transactions->pluck('folio_id')->filter()->unique()->count(),
+            'net_income' => $transactions->sum('credit_amount') - $transactions->sum('charge_amount'),
+        ];
+
+        return view('frontdesk.shift-sales.show', [
+            'shift' => $shift,
+            'transactions' => $transactions,
+            'totals' => $totals,
         ]);
     }
 }

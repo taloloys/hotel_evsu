@@ -652,45 +652,50 @@
         <table style="width: 100%; font-size: 11px; margin-bottom: 20px; line-height: 1.5; border-collapse: collapse;">
             <tr>
                 <td style="width: 13%; font-weight: bold; vertical-align: top;">DATE</td>
-                <td style="width: 45%; vertical-align: top;">: {{ now()->format('m/d/Y') }}</td>
+                <td style="width: 37%; vertical-align: top;">: {{ now()->format('m/d/Y') }}</td>
                 <td style="width: 13%; font-weight: bold; vertical-align: top;">ROOM</td>
-                <td style="width: 29%; vertical-align: top;">: {{ $booking?->room?->room_number ?? 'N/A' }}</td>
+                <td style="width: 37%; vertical-align: top;" colspan="3">
+                    : {{ $booking?->room?->room_number ?? 'N/A' }}<br>
+                    &nbsp;&nbsp;<strong>{{ number_format($folio->net_rate ?? ($booking?->room?->base_rate ?? 0), 2) }}</strong>
+                </td>
             </tr>
             <tr>
                 <td style="font-weight: bold; vertical-align: top;">GUEST NAME</td>
-                <td style="vertical-align: top;">: {{ strtoupper($folio->guest?->last_name ?? '') }}, {{ strtoupper($folio->guest?->first_name ?? '') }} @if($folio->registration_number) ({{ $folio->registration_number }}) @endif</td>
-                <td style="vertical-align: top;">&nbsp;</td>
-                <td style="vertical-align: top; font-weight: bold; padding-left: 8px;">{{ number_format($folio->net_rate ?? ($booking?->room?->base_rate ?? 0), 2) }}</td>
+                <td style="vertical-align: top;">: {{ strtoupper($folio->guest?->last_name ?? '') }}, {{ strtoupper($folio->guest?->first_name ?? '') }}</td>
+                <td style="vertical-align: top;" colspan="4">&nbsp;</td>
             </tr>
             <tr>
                 <td style="font-weight: bold; vertical-align: top;">ADDRESS</td>
                 <td style="vertical-align: top;">: {{ strtoupper($folio->guest?->address_line1 ?? '') }} {{ strtoupper($folio->guest?->address_line2 ?? '') }}</td>
-                <td style="vertical-align: top;">&nbsp;</td>
-                <td style="vertical-align: top;">&nbsp;</td>
+                <td style="vertical-align: top;" colspan="4">&nbsp;</td>
             </tr>
             <tr>
                 <td style="font-weight: bold; vertical-align: top;">CHECK-IN</td>
                 <td style="vertical-align: top;">: {{ $booking?->arrival_date?->format('m/d/Y') ?? 'N/A' }}</td>
                 <td style="font-weight: bold; vertical-align: top;">CHECK-OUT</td>
                 <td style="vertical-align: top;">: {{ $booking?->departure_date?->format('m/d/Y') ?? 'N/A' }}</td>
-                <td style="font-weight: bold; vertical-align: top; width: 10%;">PERSON/S</td>
-                <td style="width: 10%;">: {{ $folio->num_pax }}</td>
+                <td style="font-weight: bold; vertical-align: top; width: 12%;">PERSON/S</td>
+                <td style="vertical-align: top; width: 8%;">: {{ $folio->num_pax }}</td>
             </tr>
             <tr>
                 <td style="font-weight: bold; vertical-align: top;">TIME</td>
                 <td style="vertical-align: top;">: {{ $booking?->arrival_time ? \Carbon\Carbon::parse($booking->arrival_time)->format('h:i A') : 'N/A' }}</td>
                 <td style="font-weight: bold; vertical-align: top;">TIME</td>
-                <td style="vertical-align: top;">: {{ $booking?->departure_time ? \Carbon\Carbon::parse($booking->departure_time)->format('h:i A') : 'N/A' }}</td>
-                <td>&nbsp;</td>
-                <td>&nbsp;</td>
+                <td style="vertical-align: top;" colspan="3">: {{ $booking?->departure_time ? \Carbon\Carbon::parse($booking->departure_time)->format('h:i A') : 'N/A' }}</td>
             </tr>
             <tr>
-                <td style="font-weight: bold; vertical-align: top;">PAYMENT MODE</td>
+                <td style="font-weight: bold; vertical-align: top;">PAYMENT</td>
                 <td style="vertical-align: top;">: {{ strtoupper($folio->payment_method ?? 'NONE') }}</td>
                 <td style="font-weight: bold; vertical-align: top;">F/DESK</td>
                 <td style="vertical-align: top;">: {{ strtoupper(auth()->user()?->full_name ?? auth()->user()?->username ?? 'SYSTEM') }}</td>
                 <td style="font-weight: bold; vertical-align: top;">SYMBOL</td>
-                <td style="vertical-align: top;">: {{ $folio->symbol }}</td>
+                <td style="vertical-align: top;">: </td>
+            </tr>
+            <tr>
+                <td style="font-weight: bold; vertical-align: top;">MODE</td>
+                <td style="vertical-align: top;">: </td>
+                <td style="vertical-align: top;" colspan="2">&nbsp;</td>
+                <td style="vertical-align: top;" colspan="2">&nbsp;&nbsp;{{ $folio->symbol }}</td>
             </tr>
         </table>
 
@@ -749,8 +754,8 @@
                 @endforeach
                 {{-- Total balance row --}}
                 <tr style="border-top: 1px solid #000; border-bottom: 3px double #000; font-weight: bold;">
-                    <td colspan="2" style="padding: 8px 0;">Total Balance - P</td>
-                    <td colspan="3" style="padding: 8px 0; text-align: right;">{{ number_format($runningBal, 2) }}</td>
+                    <td colspan="4" style="padding: 8px 0;">Total Balance - P</td>
+                    <td style="padding: 8px 0; text-align: right;">{{ number_format($runningBal, 2) }}</td>
                 </tr>
             </tbody>
         </table>

@@ -359,3 +359,71 @@ test('admin can view any employee sales in frontdesk/admin shift sales report', 
     $response->assertOk();
     $response->assertSee('CHG-111111');
 });
+
+test('staff user cannot query shift sales for a shift belonging to another user', function (): void {
+    $schedule2 = ShiftSchedule::create([
+        'user_id' => $this->staffUser2->user_id,
+        'shift_name' => 'Staff 2 Shift',
+        'shift_date' => Carbon::today()->toDateString(),
+        'scheduled_start_time' => '06:00:00',
+        'scheduled_end_time' => '14:00:00',
+        'status' => 'ACTIVE',
+    ]);
+
+    $shift2 = Shift::create([
+        'user_id' => $this->staffUser2->user_id,
+        'schedule_id' => $schedule2->id,
+        'start_time' => Carbon::now()->subHours(2),
+    ]);
+
+    $response = $this->actingAs($this->staffUser1)
+        ->get(route('frontdesk.shift-sales', [
+            'shift_id' => $shift2->shift_id,
+        ]));
+
+    $response->assertStatus(403);
+});
+
+test('staff user cannot view detail view for a shift belonging to another user', function (): void {
+    $schedule2 = ShiftSchedule::create([
+        'user_id' => $this->staffUser2->user_id,
+        'shift_name' => 'Staff 2 Shift',
+        'shift_date' => Carbon::today()->toDateString(),
+        'scheduled_start_time' => '06:00:00',
+        'scheduled_end_time' => '14:00:00',
+        'status' => 'ACTIVE',
+    ]);
+
+    $shift2 = Shift::create([
+        'user_id' => $this->staffUser2->user_id,
+        'schedule_id' => $schedule2->id,
+        'start_time' => Carbon::now()->subHours(2),
+    ]);
+
+    $response = $this->actingAs($this->staffUser1)
+        ->get(route('frontdesk.shift-sales.show', $shift2));
+
+    $response->assertStatus(403);
+});
+
+test('admin user can view detail view for a shift belonging to another user', function (): void {
+    $schedule1 = ShiftSchedule::create([
+        'user_id' => $this->staffUser1->user_id,
+        'shift_name' => 'Staff 1 Shift',
+        'shift_date' => Carbon::today()->toDateString(),
+        'scheduled_start_time' => '06:00:00',
+        'scheduled_end_time' => '14:00:00',
+        'status' => 'ACTIVE',
+    ]);
+
+    $shift1 = Shift::create([
+        'user_id' => $this->staffUser1->user_id,
+        'schedule_id' => $schedule1->id,
+        'start_time' => Carbon::now()->subHours(2),
+    ]);
+
+    $response = $this->actingAs($this->adminUser)
+        ->get(route('admin.shift-sales.show', $shift1));
+
+    $response->assertOk();
+});

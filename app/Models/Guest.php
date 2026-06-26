@@ -17,6 +17,7 @@ class Guest extends Model
         'address_line1',
         'address_line2',
         'contact_number',
+        'guest_type',
     ];
 
     protected function casts(): array
@@ -24,6 +25,16 @@ class Guest extends Model
         return [
             'created_at' => 'datetime',
         ];
+    }
+
+    public function scopeRealGuests($query)
+    {
+        return $query->where('guest_type', '!=', 'SYSTEM');
+    }
+
+    public function scopeSystemAccounts($query)
+    {
+        return $query->where('guest_type', 'SYSTEM');
     }
 
     public function folios(): HasMany

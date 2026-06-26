@@ -47,14 +47,14 @@ class PosProductSeeder extends Seeder
 
         $walkInGuest = Guest::firstOrCreate(
             ['last_name' => 'WALK-IN', 'first_name' => 'POS'],
-            ['contact_number' => 'N/A']
+            ['contact_number' => 'N/A', 'guest_type' => 'SYSTEM']
         );
 
         $walkInFolio = Folio::firstOrCreate(
             ['folio_number' => 'POS-WALKIN'],
             [
                 'guest_id' => $walkInGuest->guest_id,
-                'folio_type' => 'HOUSE',
+                'folio_type' => 'SYSTEM',
                 'status' => 'OPEN',
                 'market_segment' => 'NONE',
                 'symbol' => 'POS',

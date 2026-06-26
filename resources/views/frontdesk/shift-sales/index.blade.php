@@ -93,6 +93,7 @@
                     </div>
 
                     {{-- Filter Mode Tabs --}}
+                    @if($isAdmin)
                     <div class="d-flex gap-2 mb-4" id="modeTabs">
                         <button type="button" class="mode-tab {{ !isset($filters['shift_id']) ? 'active' : '' }}" onclick="switchMode('date')">
                             <i class="fa-solid fa-calendar-range me-1"></i> By Date Range
@@ -101,11 +102,12 @@
                             <i class="fa-solid fa-clock-rotate-left me-1"></i> By Shift
                         </button>
                     </div>
+                    @endif
 
                     <form action="{{ request()->routeIs('admin.*') ? route('admin.shift-sales') : route('frontdesk.shift-sales') }}" method="GET" id="reportForm">
 
                         {{-- ============ DATE RANGE MODE ============ --}}
-                        <div id="datePanel" class="filter-panel {{ !isset($filters['shift_id']) ? 'active' : '' }}">
+                        <div id="datePanel" class="filter-panel {{ !$isAdmin || !isset($filters['shift_id']) ? 'active' : '' }}">
 
                             {{-- Charge Code Range --}}
                             <div class="row mb-3 align-items-center">
@@ -144,12 +146,12 @@
                                 </div>
                                 <div class="col-md-4">
                                     <input type="date" class="form-control" name="date_from"
-                                        value="{{ $filters['date_from'] ?? '' }}">
+                                        value="{{ !empty($filters['date_from']) ? $filters['date_from'] : now()->toDateString() }}">
                                 </div>
                                 <div class="col-md-1 text-center text-muted">to</div>
                                 <div class="col-md-4">
                                     <input type="date" class="form-control" name="date_until"
-                                        value="{{ $filters['date_until'] ?? '' }}">
+                                        value="{{ !empty($filters['date_until']) ? $filters['date_until'] : now()->toDateString() }}">
                                 </div>
                             </div>
 
@@ -195,6 +197,7 @@
                         </div>
 
                         {{-- ============ SHIFT SELECTOR MODE ============ --}}
+                        @if($isAdmin)
                         <div id="shiftPanel" class="filter-panel {{ isset($filters['shift_id']) ? 'active' : '' }}">
                             <div class="row mb-2 align-items-center">
                                 <div class="col-md-3">
@@ -233,6 +236,7 @@
                                 </div>
                             @endif
                         </div>
+                        @endif
 
                         {{-- Action Buttons --}}
                         <div class="d-flex gap-2 justify-content-end mt-4 hide-on-print">
@@ -505,7 +509,9 @@
     @php
         $reportEmployee = null;
         $reportShift = $selectedShift;
-        if ($selectedShift) {
+        if (!$isAdmin) {
+            $reportEmployee = auth()->user();
+        } elseif ($selectedShift) {
             $reportEmployee = $selectedShift->user;
         } elseif (isset($filters['employee_id']) && $filters['employee_id']) {
             $reportEmployee = \App\Models\User::with('role')->find($filters['employee_id']);
@@ -669,9 +675,15 @@
 
     function switchMode(mode) {
         const isDate = mode === 'date';
-        datePanel.classList.toggle('active', isDate);
-        shiftPanel.classList.toggle('active', !isDate);
-        tabs.forEach((t, i) => t.classList.toggle('active', (i === 0) === isDate));
+        if (datePanel) {
+            datePanel.classList.toggle('active', isDate);
+        }
+        if (shiftPanel) {
+            shiftPanel.classList.toggle('active', !isDate);
+        }
+        if (tabs.length) {
+            tabs.forEach((t, i) => t.classList.toggle('active', (i === 0) === isDate));
+        }
 
         // Clear fields from the inactive panel
         if (isDate) {

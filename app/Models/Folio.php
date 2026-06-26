@@ -102,4 +102,14 @@ class Folio extends Model
         return $query->withSum('transactions', 'charge_amount')
             ->withSum('transactions', 'credit_amount');
     }
+
+    public function scopeGuestFolios($query)
+    {
+        return $query->where('folio_type', '!=', 'SYSTEM');
+    }
+
+    public function scopeSystemFolios($query)
+    {
+        return $query->where('folio_type', 'SYSTEM');
+    }
 }
