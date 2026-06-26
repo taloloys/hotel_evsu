@@ -36,12 +36,32 @@
         color: white;
     }
 
+    .legend-item {
+        font-size: 13px;
+        font-weight: 600;
+        display: inline-flex;
+        align-items: center;
+        padding: 6px 12px;
+        background: #ffffff;
+        border-radius: 20px;
+        box-shadow: 0 2px 5px rgba(0,0,0,0.04);
+        border: 1px solid #eaeaea;
+        transition: all 0.3s ease;
+    }
+
+    .legend-item:hover {
+        transform: translateY(-1px);
+        box-shadow: 0 4px 8px rgba(0,0,0,0.08);
+    }
+
     .legend-dot {
-        width: 10px;
-        height: 10px;
+        width: 14px;
+        height: 14px;
         border-radius: 50%;
         display: inline-block;
-        margin-right: 6px;
+        margin-right: 8px;
+        vertical-align: middle;
+        box-shadow: 0 1px 3px rgba(0,0,0,0.15);
     }
 
     .room-grid {
@@ -54,9 +74,10 @@
         height: 75px;
         border-radius: 14px;
         display: flex;
+        flex-direction: column;
         justify-content: center;
         align-items: center;
-        font-size: 22px;
+        font-size: 20px;
         cursor: pointer;
         transition: .3s;
         box-shadow: 0 2px 10px rgba(0,0,0,.08);
@@ -92,10 +113,10 @@
     }
 
     .room-number {
-        position: absolute;
-        bottom: 5px;
         font-size: 11px;
-        font-weight: 600;
+        font-weight: 700;
+        margin-top: 3px;
+        line-height: 1;
     }
 
     .vacant-room-badge {
@@ -282,7 +303,11 @@
                                 <td>{{ $booking->departure_date->format('M d') }} @ {{ $booking->departure_time }}</td>
                                 <td>
                                     @if($booking->status === 'RESERVED')
-                                        <button class="btn btn-sm btn-success check-in-btn" data-booking-id="{{ $booking->booking_id }}" title="Check in guest">
+                                        <button class="btn btn-sm btn-success check-in-btn" 
+                                                data-booking-id="{{ $booking->booking_id }}" 
+                                                data-guest-name="{{ $booking->folio->guest->first_name }} {{ $booking->folio->guest->last_name }}"
+                                                data-room-number="{{ $booking->room->room_number }}"
+                                                title="Check in guest">
                                             <i class="fa-solid fa-arrow-right-to-bracket"></i> Check In
                                         </button>
                                     @elseif($booking->status === 'CHECKED_IN' && $booking->actual_check_in)
@@ -518,29 +543,29 @@
     <div class="card-body room-dashboard">
 
         <!-- LEGEND -->
-        <div class="d-flex flex-wrap gap-4 mb-4">
+        <div class="d-flex flex-wrap gap-3 mb-4">
 
-            <div>
+            <div class="legend-item">
                 <span class="legend-dot bg-success"></span>
                 Available Room
             </div>
 
-            <div>
+            <div class="legend-item">
                 <span class="legend-dot" style="background-color: #7ea6ff;"></span>
                 Occupied Room
             </div>
 
-            <div>
+            <div class="legend-item">
                 <span class="legend-dot bg-warning"></span>
                 Reserved Room
             </div>
 
-            <div>
+            <div class="legend-item">
                 <span class="legend-dot" style="background-color: #fd7e14;"></span>
                 Needs Cleaning ({{ $needsCleaningRooms }})
             </div>
 
-            <div>
+            <div class="legend-item">
                 <span class="legend-dot bg-secondary"></span>
                 Under Maintenance ({{ $maintenanceRooms }})
             </div>
@@ -610,6 +635,30 @@
                 <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
                 <button type="button" class="btn btn-danger" id="confirmCheckOutBtn">
                     <i class="fa-solid fa-arrow-right-from-bracket"></i> Confirm Check Out
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Check-In Confirmation Modal -->
+<div class="modal fade" id="checkInConfirmModal" tabindex="-1" aria-labelledby="checkInConfirmModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow">
+            <div class="modal-header border-0 pb-0">
+                <h5 class="modal-title fw-bold" id="checkInConfirmModalLabel">
+                    <i class="fa-solid fa-plane-arrival text-success me-2"></i> Confirm Guest Check-In
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p class="mb-0">Are you sure you want to check in <strong id="checkInConfirmGuestName"></strong> to Room <span class="badge bg-secondary px-2 py-1 fs-6" id="checkInConfirmRoomNumber"></span>?</p>
+                <p class="text-muted small mt-2 mb-0">This will change the room status to <strong>OCCUPIED</strong> and automatically post the room charge for the first night.</p>
+            </div>
+            <div class="modal-footer border-0">
+                <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-success" id="confirmCheckInBtn">
+                    <i class="fa-solid fa-check me-1"></i> Proceed Check-In
                 </button>
             </div>
         </div>
@@ -723,41 +772,49 @@
         const roomsData = @json($roomsByType);
         let roomActionModal = null;
         let checkOutModal = null;
+        let checkInConfirmModal = null;
         let selectedRoom = null;
         let pendingCheckOutBookingId = null;
-
+        let pendingCheckInBookingId = null;
+ 
         roomActionModal = new bootstrap.Modal(document.getElementById('roomActionModal'));
         checkOutModal = new bootstrap.Modal(document.getElementById('checkOutModal'));
-
+        checkInConfirmModal = new bootstrap.Modal(document.getElementById('checkInConfirmModal'));
+ 
         const firstActiveBtn = document.querySelector('.room-filter-btn.active');
         if (firstActiveBtn) {
             renderRoomGrid(roomsData[firstActiveBtn.getAttribute('data-room-type')] || []);
         }
-
+ 
         document.querySelectorAll('.room-filter-btn').forEach(button => {
             button.addEventListener('click', function() {
                 const roomType = this.getAttribute('data-room-type');
-
+ 
                 document.querySelectorAll('.room-filter-btn').forEach(btn => btn.classList.remove('active'));
                 this.classList.add('active');
-
+ 
                 renderRoomGrid(roomsData[roomType] || []);
             });
         });
-
+ 
         document.querySelectorAll('.check-in-btn').forEach(btn => {
             btn.addEventListener('click', function() {
-                checkInGuest(this.getAttribute('data-booking-id'));
+                checkInGuest(
+                    this.getAttribute('data-booking-id'),
+                    this.getAttribute('data-guest-name'),
+                    this.getAttribute('data-room-number')
+                );
             });
         });
-
+ 
         document.querySelectorAll('.check-out-btn').forEach(btn => {
             btn.addEventListener('click', function() {
                 openCheckOutModal(this.getAttribute('data-booking-id'));
             });
         });
-
+ 
         document.getElementById('confirmCheckOutBtn')?.addEventListener('click', submitCheckOut);
+        document.getElementById('confirmCheckInBtn')?.addEventListener('click', submitCheckIn);
 
         const checkoutSearch = document.getElementById('checkoutSearch');
         const checkoutSort = document.getElementById('checkoutSort');
@@ -793,6 +850,7 @@
         }
         if (occupiedRoomSort) {
             occupiedRoomSort.addEventListener('change', filterAndSortOccupiedRooms);
+        }
 
 
 
@@ -848,8 +906,8 @@
             roomBox.innerHTML = `
                 <div class="room-box ${statusClass}" title="Room ${room.room_number} - ${getRoomStatusLabel(room.status)}" style="cursor: pointer;">
                     <i class="fa-solid ${iconClass}"></i>
+                    <div class="room-number">${room.room_number}</div>
                 </div>
-                <div class="room-number">${room.room_number}</div>
             `;
 
             roomBox.querySelector('.room-box').addEventListener('click', function() {
@@ -1148,12 +1206,18 @@
         }
     }
 
-    function checkInGuest(bookingId) {
-        if (!confirm('Proceed with check-in?')) {
-            return;
-        }
+    function checkInGuest(bookingId, guestName, roomNumber) {
+        pendingCheckInBookingId = bookingId;
+        document.getElementById('checkInConfirmGuestName').textContent = guestName || 'Guest';
+        document.getElementById('checkInConfirmRoomNumber').textContent = roomNumber || '—';
+        checkInConfirmModal.show();
+    }
 
-        postJson('{{ route("frontdesk.booking.check-in") }}', { booking_id: bookingId })
+    function submitCheckIn() {
+        if (!pendingCheckInBookingId) return;
+        checkInConfirmModal.hide();
+
+        postJson('{{ route("frontdesk.booking.check-in") }}', { booking_id: pendingCheckInBookingId })
             .then(data => {
                 showAlert('success', data.message);
                 setTimeout(() => location.reload(), 1200);
