@@ -429,6 +429,144 @@
         }
         renderTabs();
     }
+    function showReceipt(data) {
+        const receiptEl = document.getElementById('receipt-content');
+
+        const items = data.items || [];
+
+        const itemsHtml = items.length
+            ? items.map(item => `
+                <tr>
+                    <td>${item.name}</td>
+                    <td class="text-center">${item.qty}</td>
+                    <td class="text-end">₱${parseFloat(item.price).toFixed(2)}</td>
+                </tr>
+            `).join('')
+            : `<tr><td colspan="3" class="text-center text-muted">No items</td></tr>`;
+
+        receiptEl.innerHTML = `
+        <div class="receipt">
+
+            <!-- STORE HEADER -->
+            <div class="text-center mb-2">
+                <div style="font-size:18px; font-weight:bold; letter-spacing:1px;">
+                    COFFEE SHOP
+                </div>
+                <div style="font-size:12px;">POS RECEIPT</div>
+                <div style="font-size:11px; margin-top:4px;">
+                    ${new Date().toLocaleString()}
+                </div>
+            </div>
+
+            <div style="border-top:1px dashed #000; margin:8px 0;"></div>
+
+            <!-- CUSTOMER -->
+            <div style="font-size:12px;">
+                <strong>Customer:</strong> ${data.customer_name ?? 'Walk-in'}
+            </div>
+
+            <div style="border-top:1px dashed #000; margin:8px 0;"></div>
+
+            <!-- ITEMS -->
+            <div style="font-size:12px;">
+                ${items.map(item => `
+                    <div style="display:flex; justify-content:space-between; margin-bottom:4px;">
+                        <div style="width:55%;">
+                            ${item.name}
+                        </div>
+                        <div style="width:15%; text-align:center;">
+                            x${item.qty}
+                        </div>
+                        <div style="width:30%; text-align:right;">
+                            ₱${parseFloat(item.price).toFixed(2)}
+                        </div>
+                    </div>
+                `).join('')}
+            </div>
+
+            <div style="border-top:1px dashed #000; margin:8px 0;"></div>
+
+            <!-- TOTAL -->
+            <div style="display:flex; justify-content:space-between; font-weight:bold; font-size:14px;">
+                <div>TOTAL</div>
+                <div>₱${parseFloat(data.total).toFixed(2)}</div>
+            </div>
+
+            <div style="border-top:1px dashed #000; margin:8px 0;"></div>
+
+            <!-- FOOTER -->
+            <div class="text-center" style="font-size:11px;">
+                Thank you for your purchase!<br>
+                Please come again ☕
+            </div>
+
+        </div>
+        `;
+
+        const modal = new bootstrap.Modal(document.getElementById('receiptModal'));
+        setTimeout(() => {
+            window.printReceipt();
+        }, 300);
+        modal.show();
+        // AUTO PRINT RECEIPT (no button needed)
+        setTimeout(() => {
+            const printContent = document.getElementById('receipt-content').innerHTML;
+
+            const printWindow = window.open('', '', 'width=400,height=600');
+
+            printWindow.document.write(`
+                <html>
+                <head>
+                    <title>Receipt</title>
+                    <style>
+                        body {
+                            font-family: Arial;
+                            padding: 10px;
+                            font-size: 12px;
+                            width: 280px;
+                        }
+
+                        .receipt {
+                            width: 100%;
+                        }
+
+                        table {
+                            width: 100%;
+                            border-collapse: collapse;
+                            font-size: 12px;
+                        }
+
+                        td, th {
+                            padding: 4px 0;
+                        }
+
+                        .text-center {
+                            text-align: center;
+                        }
+
+                        .text-end {
+                            text-align: right;
+                        }
+                    </style>
+                </head>
+                <body>
+                    ${content}
+                    <script>
+                        window.onload = function() {
+                            window.print();
+                            window.onafterprint = window.close;
+                        }
+                    <\/script>
+                </body>
+                </html>
+            `);
+
+            printWindow.document.close();
+            printWindow.focus();
+            printWindow.print();
+            printWindow.close();
+        }, 500);
+    }
 
     async function updateItemQuantity(itemId, quantity) {
         try {
@@ -632,11 +770,23 @@
                 method: 'POST',
                 body: JSON.stringify(payload),
             });
+
+            showReceipt(data);
+
+            // AUTO OPEN PRINT
+           setTimeout(() => {
+                if (typeof window.printReceipt === 'function') {
+                    window.printReceipt();
+                }
+            }, 100);
+            
             tabs = tabs.filter(t => t.tab_id !== activeTabId);
             renderTabs();
             loadProducts();
+
             showAlert(`Order ${data.order.order_number} completed.`);
             return true;
+
         } catch (error) {
             showAlert(error.message, 'danger');
             return false;
@@ -674,9 +824,14 @@
 
             paymentModal.hide();
 
-            await executeClose({
-                payment_method: method
+            const result = await executeClose({
+                payment_method: 'cash'
             });
+
+            // ensure receipt prints even if modal timing delays it
+            setTimeout(() => {
+                window.printReceipt();
+            }, 200);
 
         });
     });
@@ -770,6 +925,37 @@
 
     // Auto-polling for live-sync (every 5 seconds)
     setInterval(refreshTabs, 5000);
+    window.printReceipt = function () {
+        const content = document.getElementById('receipt-content').innerHTML;
+
+        const win = window.open('', '', 'width=400,height=600');
+
+        win.document.write(`
+            <html>
+            <head>
+                <title>Receipt</title>
+                <style>
+                    body { font-family: Arial; padding: 20px; }
+                    table { width: 100%; border-collapse: collapse; }
+                    th, td { border-bottom: 1px solid #ddd; padding: 6px; }
+                    .text-end { text-align: right; }
+                    .text-center { text-align: center; }
+                </style>
+            </head>
+            <body>
+                ${content}
+                <script>
+                    window.onload = function() {
+                        window.print();
+                        window.onafterprint = window.close;
+                    }
+                <\/script>
+            </body>
+            </html>
+        `);
+
+        win.document.close();
+    };
 
     bindProductButtons();
     bindPairingButtons();

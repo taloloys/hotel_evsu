@@ -24,8 +24,22 @@ class InventoryController extends Controller
             });
         }
 
-        if ($request->input('filter') === 'low_stock') {
-            $query->lowStock();
+        $filter = $request->input('filter');
+
+        switch ($filter) {
+
+            case 'low_stock':
+                $query->whereColumn('stock_quantity', '<=', 'low_stock_threshold')
+                    ->where('stock_quantity', '>', 0);
+                break;
+
+            case 'out_of_stock':
+                $query->where('stock_quantity', 0);
+                break;
+
+            case 'well_stocked':
+                $query->whereColumn('stock_quantity', '>', 'low_stock_threshold');
+                break;
         }
 
         $products = $query->orderBy('stock_quantity')->paginate(20)->withQueryString();

@@ -47,7 +47,6 @@
         <div class="card border-0 shadow-sm mb-3">
             <div class="card-header bg-white fw-semibold d-flex justify-content-between">
                 <span>Products</span>
-                <a href="{{ route('coffeeshop.pos') }}" class="btn btn-sm btn-primary">Open POS</a>
             </div>
             <div class="card-body">
                 <div class="row g-3">
@@ -73,72 +72,183 @@
         </div>
 
         <div class="card border-0 shadow-sm">
-            <div class="card-header bg-white fw-semibold">Recent Orders</div>
+
+            {{-- HEADER --}}
+            <div class="card-header bg-white d-flex justify-content-between align-items-center">
+                <span class="fw-semibold">Recent Orders</span>
+                <small class="text-muted">Latest transactions</small>
+            </div>
+
+            {{-- TABLE --}}
             <div class="table-responsive">
-                <table class="table mb-0">
-                    <thead><tr><th>Order</th><th>Customer</th><th>Total</th><th>Status</th></tr></thead>
+
+                <table class="table align-middle mb-0">
+
+                    {{-- HEADER --}}
+                    <thead class="table-light">
+                        <tr class="text-muted small">
+                            <th class="ps-3">Order</th>
+                            <th>Customer</th>
+                            <th>Total</th>
+                            <th class="pe-3 text-end">Status</th>
+                        </tr>
+                    </thead>
+
+                    {{-- BODY --}}
                     <tbody>
+
                     @forelse($recentOrders as $order)
-                        <tr>
-                            <td><a href="{{ route('coffeeshop.orders.show', $order) }}">{{ $order->order_number }}</a></td>
-                            <td>{{ $order->customer_name }}</td>
-                            <td>₱{{ number_format($order->total, 2) }}</td>
-                            <td><span class="badge bg-secondary">{{ strtoupper($order->status) }}</span></td>
+                        <tr class="border-top">
+
+                            {{-- ORDER --}}
+                            <td class="ps-3">
+                                <a href="{{ route('coffeeshop.orders.show', $order) }}"
+                                class="fw-semibold text-decoration-none">
+                                    {{ $order->order_number }}
+                                </a>
+                            </td>
+
+                            {{-- CUSTOMER (kept, but cleaner) --}}
+                            <td>
+                                <div class="fw-semibold">{{ $order->customer_name }}</div>
+                            </td>
+
+                            {{-- TOTAL --}}
+                            <td class="fw-bold text-primary">
+                                ₱{{ number_format($order->total, 2) }}
+                            </td>
+
+                            {{-- STATUS --}}
+                            <td class="pe-3 text-end">
+                                @php
+                                    $status = strtolower($order->status);
+                                    $badge = match($status) {
+                                        'paid' => 'bg-success',
+                                        'pending' => 'bg-warning text-dark',
+                                        'cancelled' => 'bg-danger',
+                                        default => 'bg-secondary'
+                                    };
+                                @endphp
+
+                                <span class="badge {{ $badge }}">
+                                    {{ strtoupper($order->status) }}
+                                </span>
+                            </td>
+
                         </tr>
                     @empty
-                        <tr><td colspan="4" class="text-muted">No orders yet.</td></tr>
+                        <tr>
+                            <td colspan="4" class="text-center text-muted py-4">
+                                <i class="fa-solid fa-receipt d-block mb-2"></i>
+                                No recent orders
+                            </td>
+                        </tr>
                     @endforelse
+
                     </tbody>
                 </table>
+
             </div>
         </div>
     </div>
 
     <div class="col-lg-4">
+
+        {{-- 🔴 LOW STOCK --}}
         <div class="card border-0 shadow-sm mb-3">
-            <div class="card-header bg-white fw-semibold text-danger">Needs Restocking</div>
-            <div class="list-group list-group-flush">
+
+            <div class="card-header bg-white d-flex justify-content-between align-items-center">
+                <span class="fw-semibold text-danger">Needs Restocking</span>
+                <i class="fa-solid fa-triangle-exclamation text-danger"></i>
+            </div>
+
+            <div class="card-body p-0">
+
                 @forelse($lowStockProducts as $product)
-                <div class="list-group-item d-flex justify-content-between">
-                    <div>
-                        <div class="fw-semibold">{{ $product->name }}</div>
-                        <small class="text-muted">{{ $product->category?->name }}</small>
+                    <div class="d-flex justify-content-between align-items-center px-3 py-3 border-bottom">
+
+                        <div>
+                            <div class="fw-semibold">{{ $product->name }}</div>
+                            <small class="text-muted">{{ $product->category?->name }}</small>
+                        </div>
+
+                        <span class="badge bg-danger rounded-pill px-3">
+                            {{ $product->stock_quantity }}
+                        </span>
+
                     </div>
-                    <span class="badge bg-danger">{{ $product->stock_quantity }}</span>
-                </div>
                 @empty
-                <div class="list-group-item text-muted">All stock levels are healthy.</div>
+                    <div class="text-center text-muted py-4">
+                        All stock levels are healthy
+                    </div>
                 @endforelse
+
             </div>
         </div>
 
+
+        {{-- 🟦 OPEN TABS --}}
         <div class="card border-0 shadow-sm mb-3">
-            <div class="card-header bg-white fw-semibold">Open Tabs</div>
-            <div class="list-group list-group-flush">
+
+            <div class="card-header bg-white d-flex justify-content-between align-items-center">
+                <span class="fw-semibold">Open Tabs</span>
+                <i class="fa-solid fa-folder-open text-primary"></i>
+            </div>
+
+            <div class="card-body p-0">
+
                 @forelse($openTabs as $tab)
-                <a href="{{ route('coffeeshop.pos') }}" class="list-group-item list-group-item-action d-flex justify-content-between">
-                    <span>{{ $tab->tab_name }}</span>
-                    <span class="fw-bold">₱{{ number_format($tab->total, 2) }}</span>
-                </a>
+                    <a href="{{ route('coffeeshop.pos') }}"
+                    class="d-flex justify-content-between align-items-center px-3 py-3 border-bottom text-decoration-none">
+
+                        <span class="fw-semibold text-dark">
+                            {{ $tab->tab_name }}
+                        </span>
+
+                        <span class="fw-bold text-primary">
+                            ₱{{ number_format($tab->total, 2) }}
+                        </span>
+
+                    </a>
                 @empty
-                <div class="list-group-item text-muted">No open tabs.</div>
+                    <div class="text-center text-muted py-4">
+                        No open tabs
+                    </div>
                 @endforelse
+
             </div>
         </div>
 
+
+        {{-- ⭐ TOP SELLERS --}}
         @if($topToday->isNotEmpty())
         <div class="card border-0 shadow-sm">
-            <div class="card-header bg-white fw-semibold">Top Sellers Today</div>
-            <div class="list-group list-group-flush">
+
+            <div class="card-header bg-white d-flex justify-content-between align-items-center">
+                <span class="fw-semibold">Top Sellers Today</span>
+                <i class="fa-solid fa-star text-warning"></i>
+            </div>
+
+            <div class="card-body p-0">
+
                 @foreach($topToday as $name => $qty)
-                <div class="list-group-item d-flex justify-content-between">
-                    <span>{{ $name }}</span>
-                    <span class="badge bg-primary">{{ $qty }}</span>
-                </div>
+                    <div class="d-flex justify-content-between align-items-center px-3 py-3 border-bottom">
+
+                        <span class="text-dark fw-semibold">
+                            {{ $name }}
+                        </span>
+
+                        <span class="badge bg-primary rounded-pill px-3">
+                            {{ $qty }}
+                        </span>
+
+                    </div>
                 @endforeach
+
             </div>
         </div>
         @endif
+
     </div>
 </div>
 @endsection

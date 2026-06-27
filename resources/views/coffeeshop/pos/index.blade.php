@@ -122,6 +122,7 @@
                         </label>
                     </div>
                 </div>
+                
 
                     <!-- Walk-in input panel -->
                     <div id="new-tab-walkin-panel" class="mb-2">
@@ -359,6 +360,13 @@
             <div class="modal-footer border-0">
                 <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Close</button>
             </div>
+        </div>
+    </div>
+</div>
+<div class="modal fade" id="receiptModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content p-3">
+            <div id="receipt-content"></div>
         </div>
     </div>
 </div>
