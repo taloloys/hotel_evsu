@@ -16,6 +16,7 @@
         tab_name: t.tab_name,
         pending_cancel_request: t.pending_cancel_request
     }));
+    let currentProducts = [];
 
     const alertBox = document.getElementById('pos-alert');
     const productGrid = document.getElementById('product-grid');
@@ -172,38 +173,113 @@
         }
 
         if (!tab.items.length) {
-            cartItems.innerHTML = '<div class="text-muted">No items yet.</div>';
+            cartItems.innerHTML = `
+                <div class="text-center py-4 text-muted">
+                    <i class="fa-solid fa-cart-shopping fa-lg mb-2"></i>
+                    <div>No items yet</div>
+                </div>
+            `;
             return;
         }
 
         tab.items.forEach(item => {
             const row = document.createElement('div');
-            row.className = 'd-flex justify-content-between align-items-center mb-2 gap-2';
+            row.className = 'd-flex justify-content-between align-items-center mb-3 gap-2 py-1';
+
             row.innerHTML = `
                 <div>
-                    <div class="fw-semibold">${item.name}</div>
-                    <small class="text-muted">${formatMoney(item.unit_price)} each</small>
+                    <div class="fw-semibold fs-5">${item.name}</div>
+                    <small class="text-muted">
+                        ${formatMoney(item.unit_price)} each
+                    </small>
                 </div>
-                <div class="d-flex align-items-center gap-1">
-                    <button type="button" class="btn btn-outline-secondary btn-sm qty-btn" data-action="decrease" data-item-id="${item.tab_item_id}" ${tab.pending_cancel_request ? 'disabled' : ''}>-</button>
-                    <span>${item.quantity}</span>
-                    <button type="button" class="btn btn-outline-secondary btn-sm qty-btn" data-action="increase" data-item-id="${item.tab_item_id}" ${tab.pending_cancel_request ? 'disabled' : ''}>+</button>
-                    <span class="ms-2">${formatMoney(item.line_total)}</span>
-                    <button type="button" class="btn btn-link btn-sm text-danger remove-item-btn" data-item-id="${item.tab_item_id}" ${tab.pending_cancel_request ? 'disabled' : ''}><i class="fa-solid fa-trash"></i></button>
+
+                <div class="d-flex align-items-center gap-2">
+
+                    <button type="button"
+                        class="btn btn-outline-secondary btn-sm px-3 qty-btn"
+                        data-action="decrease"
+                        data-item-id="${item.tab_item_id}"
+                        ${tab.pending_cancel_request ? 'disabled' : ''}>
+                        -
+                    </button>
+
+                    <input type="number"
+                        class="form-control form-control-sm text-center qty-input"
+                        style="width: 60px;"
+                        value="${item.quantity}"
+                        min="1"
+                        data-item-id="${item.tab_item_id}"
+                        ${tab.pending_cancel_request ? 'disabled' : ''} />
+
+                    <button type="button"
+                        class="btn btn-outline-secondary btn-sm px-3 qty-btn"
+                        data-action="increase"
+                        data-item-id="${item.tab_item_id}"
+                        ${tab.pending_cancel_request ? 'disabled' : ''}>
+                        +
+                    </button>
+
+                    <span class="ms-2 fw-semibold">
+                        ${formatMoney(item.line_total)}
+                    </span>
+
+                    <button type="button"
+                        class="btn btn-link btn-sm text-danger p-1 remove-item-btn"
+                        data-item-id="${item.tab_item_id}"
+                        ${tab.pending_cancel_request ? 'disabled' : ''}>
+                        <i class="fa-solid fa-trash fs-5"></i>
+                    </button>
+
                 </div>
             `;
+
             cartItems.appendChild(row);
         });
+
+        async function updateQty(itemId, delta = 0, directValue = null) {
+            const item = tab.items.find(i => String(i.tab_item_id) === String(itemId));
+            if (!item) return;
+
+            let newQty;
+
+            if (directValue !== null) {
+                newQty = parseInt(directValue);
+            } else {
+                newQty = item.quantity + delta;
+            }
+
+            if (isNaN(newQty) || newQty < 1) newQty = 1;
+
+            await updateItemQuantity(itemId, newQty);
+        }
 
         cartItems.querySelectorAll('.qty-btn').forEach(btn => {
             btn.addEventListener('click', async () => {
                 const itemId = btn.dataset.itemId;
-                const item = tab.items.find(i => String(i.tab_item_id) === String(itemId));
                 const delta = btn.dataset.action === 'increase' ? 1 : -1;
-                const newQty = item.quantity + delta;
-                await updateItemQuantity(itemId, newQty);
+
+                await updateQty(itemId, delta);
             });
         });
+        cartItems.querySelectorAll('.qty-input').forEach(input => {
+
+            const apply = async () => {
+                const itemId = input.dataset.itemId;
+                await updateQty(itemId, 0, input.value);
+            };
+
+            input.addEventListener('keydown', (e) => {
+                if (e.key === 'Enter') {
+                    apply();
+                }
+            });
+
+            input.addEventListener('blur', () => {
+                apply();
+            });
+        });
+
 
         cartItems.querySelectorAll('.remove-item-btn').forEach(btn => {
             btn.addEventListener('click', async () => {
@@ -213,6 +289,7 @@
     }
 
     function renderProducts(products) {
+        currentProducts = products;
         productGrid.innerHTML = '';
         if (!products.length) {
             productGrid.innerHTML = '<div class="col-12 text-muted">No products found.</div>';
@@ -231,7 +308,7 @@
                         <small class="text-muted">${product.category || ''}</small>
                         <div class="fw-bold text-primary mt-2">${formatMoney(product.price)}</div>
                         <small class="${product.is_low_stock ? 'text-danger' : 'text-muted'}">Stock: ${product.stock_quantity}</small>
-                        <button type="button" class="btn btn-primary btn-sm w-100 mt-2 add-product-btn" data-product-id="${product.product_id}" ${product.stock_quantity <= 0 ? 'disabled' : ''}>ADD</button>
+                        <button type="button" class="btn btn-primary btn-sm w-100 mt-2 px-4 py-2 add-product-btn" data-product-id="${product.product_id}" ${product.stock_quantity <= 0 ? 'disabled' : ''}>ADD</button>
                     </div>
                 </div>
             `;
@@ -240,6 +317,7 @@
 
         bindProductButtons();
     }
+    
 
     async function loadProducts() {
         const params = new URLSearchParams();
@@ -277,7 +355,70 @@
             });
         });
     }
+    function bindPairingButtons() {
 
+        document.querySelectorAll('.pairing-btn').forEach(btn => {
+            btn.addEventListener('click', async () => {
+
+                if (!activeTabId) {
+                    showAlert('Open a tab first.', 'warning');
+                    return;
+                }
+
+                const tab = getActiveTab();
+                if (tab && tab.pending_cancel_request) {
+                    showAlert('Cannot add items to a tab with pending cancellation.', 'danger');
+                    return;
+                }
+
+                // ✅ USE DATA ATTRIBUTE (NOT TEXT)
+                const items = (btn.dataset.items || btn.textContent)
+                    .split(',')
+                    .map(i => i.trim().toLowerCase());
+
+                const productMap = new Map(
+                    currentProducts.map(p => [p.name.trim().toLowerCase(), p])
+                );
+
+                let added = [];
+                let failed = [];
+
+                for (const itemName of items) {
+
+                    const product = currentProducts.find(p =>
+                        p.name.trim().toLowerCase().includes(itemName)
+                    );
+
+                    if (!product) {
+                        failed.push(`${itemName} (not found)`);
+                        continue;
+                    }
+
+                    try {
+                        const data = await request(
+                            `${config.routes.tabItems}/${activeTabId}/items`,
+                            {
+                                method: 'POST',
+                                body: JSON.stringify({
+                                    product_id: product.product_id,
+                                    quantity: 1
+                                }),
+                            }
+                        );
+
+                        replaceTab(data.tab);
+                        added.push(product.name);
+
+                    } catch (error) {
+                        failed.push(`${product.name} (error)`);
+                    }
+                }
+
+                loadProducts();
+
+            });
+        });
+    }
     function replaceTab(updatedTab) {
         const index = tabs.findIndex(tab => tab.tab_id === updatedTab.tab_id);
         if (index >= 0) {
@@ -516,13 +657,82 @@
     // Modal Option Clicks
     document.querySelectorAll('.payment-method-opt').forEach(btn => {
         btn.addEventListener('click', async () => {
+
             const method = btn.dataset.method;
+
+            // CASH
+            if (method === 'cash') {
+                document.getElementById('cash-calculator')
+                    .classList.remove('d-none');
+
+                return;
+            }
+
+            // Hide calculator for Card & GCash
+            document.getElementById('cash-calculator')
+                .classList.add('d-none');
+
             paymentModal.hide();
-            await executeClose({ payment_method: method });
+
+            await executeClose({
+                payment_method: method
+            });
+
         });
+    });
+    const cashReceived = document.getElementById('cash-received');
+    const cashChange = document.getElementById('cash-change');
+
+    cashReceived.addEventListener('input', () => {
+
+        const tab = getActiveTab();
+
+        if (!tab) return;
+
+        const received = parseFloat(cashReceived.value) || 0;
+
+        const change = received - tab.total;
+
+        cashChange.textContent = formatMoney(
+            Math.max(change, 0)
+        );
+
     });
 
     // Charge to Room Click (Direct Post via Custom Modal)
+
+    document.getElementById('confirm-cash-payment')
+    .addEventListener('click', async () => {
+
+        const tab = getActiveTab();
+
+        if (!tab) return;
+
+        const received = parseFloat(
+            document.getElementById('cash-received').value
+        ) || 0;
+
+        if (received < tab.total) {
+
+            showAlert('Insufficient cash.', 'danger');
+
+            return;
+        }
+
+        paymentModal.hide();
+
+        document.getElementById('cash-calculator')
+            .classList.add('d-none');
+
+        document.getElementById('cash-received').value = '';
+
+        document.getElementById('cash-change').textContent = '₱0.00';
+
+        await executeClose({
+            payment_method: 'cash'
+        });
+
+    });
     let roomChargeCallback = null;
     document.getElementById('charge-room-btn').addEventListener('click', () => {
         const tab = getActiveTab();
@@ -562,5 +772,6 @@
     setInterval(refreshTabs, 5000);
 
     bindProductButtons();
+    bindPairingButtons();
     renderTabs();
 })();

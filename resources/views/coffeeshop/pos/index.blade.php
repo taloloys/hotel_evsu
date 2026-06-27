@@ -9,16 +9,51 @@
 
 <div class="row g-3">
     <div class="col-lg-8">
+
+        <!-- Suggested Pairings -->
+        <div class="card border-0 shadow-sm mb-3">
+            <div class="card-header bg-light">
+                <strong>
+                    <i class="fa-solid fa-lightbulb text-warning me-2"></i>
+                    Suggested Pairings
+                </strong>
+            </div>
+
+            <div class="card-body">
+
+                <div id="suggested-pairings" class="d-flex flex-wrap gap-2">
+
+                    <button class="btn btn-outline-success btn-sm pairing-btn"
+                        data-items="Americano,Cookies">
+                        Americano + Cookies
+                    </button>
+
+                    <button class="btn btn-outline-success pairing-btn" data-items="Cappuccino,Cookies">
+                        Cappuccino + Cookies
+                    </button>
+
+                    <button class="btn btn-outline-success btn-sm pairing-btn" data-items="Latte,Cookies">
+                        Latte + Cookies
+                    </button>
+
+                    <button class="btn btn-outline-success btn-sm pairing-btn" data-items="Americano,Fresh Milk">
+                        Americano + Fresh Milk
+                    </button>
+
+                </div>
+
+            </div>
+        </div>
         <div class="card border-0 shadow-sm mb-3">
             <div class="card-body">
                 <div class="d-flex flex-wrap gap-2 justify-content-between align-items-center">
                     <div class="d-flex gap-2 flex-wrap" id="category-filters">
-                        <button type="button" class="btn btn-dark btn-sm category-btn" data-category="all">All</button>
+                        <button type="button" class="btn btn-dark px-4 py-2 btn-sm category-btn" data-category="all">All</button>
                         @foreach($categories as $category)
                         <button type="button" class="btn btn-outline-secondary btn-sm category-btn" data-category="{{ $category->category_id }}">{{ $category->name }}</button>
                         @endforeach
                     </div>
-                    <div class="input-group" style="max-width: 280px;">
+                    <div class="input-group" style="max-width: 400px;">
                         <span class="input-group-text bg-white"><i class="fa-solid fa-search text-muted"></i></span>
                         <input type="text" id="product-search" class="form-control" placeholder="Search products..." autocomplete="off">
                     </div>
@@ -41,7 +76,7 @@
                         <small class="text-muted">{{ $product->category?->name }}</small>
                         <div class="fw-bold text-primary mt-2">₱{{ number_format($product->price, 2) }}</div>
                         <small class="{{ $product->isLowStock() ? 'text-danger' : 'text-muted' }}">Stock: {{ $product->stock_quantity }}</small>
-                        <button type="button" class="btn btn-primary btn-sm w-100 mt-2 add-product-btn"
+                        <button type="button" class="btn btn-primary btn-sm w-100 px-4 py-2 mt-2 add-product-btn"
                                 data-product-id="{{ $product->product_id }}"
                                 {{ $product->stock_quantity <= 0 ? 'disabled' : '' }}>
                             ADD
@@ -55,38 +90,52 @@
 
     <div class="col-lg-4">
         <div class="card border-0 shadow-sm sticky-top" style="top:15px;">
-            <div class="card-header bg-white">
-                <div class="fw-bold">Customer Tabs</div>
-                <small class="text-muted">Multiple open tabs supported</small>
+            <div class="card-header bg-white d-flex justify-content-between align-items-center">
+                <div>
+                    <div class="fw-bold">Customer Tabs</div>
+                    <small class="text-muted">Multiple open tabs supported</small>
+                </div>
+
+                <span class="badge bg-primary fs-6">
+                    <i class="fa-solid fa-folder-open me-1"></i>
+                    <span id="open-tabs-counter">{{ count($openTabs) }}</span> Open
+                </span>
             </div>
             <div class="card-body">
                 <div class="d-flex gap-2 mb-3 flex-wrap" id="tab-switcher"></div>
 
-                <div class="card bg-light border-0 p-3 mb-3">
-                    <div class="mb-2">
-                        <label class="form-label small fw-semibold text-muted mb-1">Tab Type</label>
-                        <div class="btn-group btn-group-sm w-100 mb-2" role="group">
-                            <input type="radio" class="btn-check" name="new-tab-type" id="type-walkin" value="walk_in" checked>
-                            <label class="btn btn-outline-secondary" for="type-walkin">Walk-in</label>
+                <div class="card bg-light border-0 p-3 mb-5 ">
+                    <div class="mb-3">
+                    <label class="form-label fw-semibold text-muted mb-2">
+                        Tab Type
+                    </label>
 
-                            <input type="radio" class="btn-check" name="new-tab-type" id="type-room" value="room">
-                            <label class="btn btn-outline-secondary" for="type-room">Room Charge</label>
-                        </div>
+                    <div class="btn-group w-100" role="group">
+                        <input type="radio" class="btn-check" name="new-tab-type" id="type-walkin" value="walk_in" checked>
+                        <label class="btn btn-outline-secondary py-2 px-3" for="type-walkin">
+                            Walk-in
+                        </label>
+
+                        <input type="radio" class="btn-check" name="new-tab-type" id="type-room" value="room">
+                        <label class="btn btn-outline-secondary py-2 px-3" for="type-room">
+                            Room Charge
+                        </label>
                     </div>
+                </div>
 
                     <!-- Walk-in input panel -->
                     <div id="new-tab-walkin-panel" class="mb-2">
-                        <input type="text" id="new-tab-name" class="form-control form-control-sm" placeholder="Customer name (e.g. John Doe)">
+                        <input type="text" id="new-tab-name" class="form-control py-3" placeholder="Customer name (e.g. John Doe)">
                     </div>
 
                     <!-- Checked-in Room input panel (hidden by default) -->
                     <div id="new-tab-room-panel" class="mb-2 d-none">
-                        <select id="new-tab-guest" class="form-select form-select-sm">
+                        <select id="new-tab-guest" class="form-select py-3">
                             <option value="">Select occupied room...</option>
                         </select>
                     </div>
 
-                    <button type="button" class="btn btn-primary btn-sm w-100" id="open-tab-btn">
+                    <button type="button" class="btn btn-primary w-100 py-2 fw-semibold" id="open-tab-btn">
                         <i class="fa-solid fa-folder-open me-1"></i> Open Tab
                     </button>
                 </div>
@@ -99,6 +148,7 @@
                         </div>
                         <span class="badge bg-primary" id="active-tab-total">₱0.00</span>
                     </div>
+                
 
                     <!-- Alert message if there is a pending cancel request -->
                     <div id="active-tab-pending-alert" class="alert alert-warning py-2 px-3 small d-none my-2">
@@ -106,6 +156,18 @@
                     </div>
 
                     <div id="cart-items" class="small mb-3"></div>
+                    <div class="mt-3">
+                        <label class="fw-semibold text-muted mb-1">
+                            Item Notes
+                        </label>
+
+                        <textarea
+                            id="item-notes"
+                            class="form-control"
+                            rows="2"
+                            placeholder="Less sugar, no ice, extra shot, etc.">
+                        </textarea>
+                    </div>
                     <hr>
                     <div class="d-flex justify-content-between fw-bold fs-5 mb-3">
                         <span>Total</span>
@@ -143,24 +205,100 @@
 <div class="modal fade" id="paymentModal" tabindex="-1">
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content border-0 shadow">
+
             <div class="modal-header bg-dark text-white">
-                <h5 class="modal-title"><i class="fa-solid fa-wallet me-2 text-warning"></i>Settle Payment</h5>
+                <h5 class="modal-title">
+                    <i class="fa-solid fa-wallet me-2 text-warning"></i>
+                    Settle Payment
+                </h5>
                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
             </div>
+
             <div class="modal-body p-4">
-                <p class="text-muted small text-center mb-3">Select the payment method to settle this order of <strong id="payment-modal-amount" class="text-primary">₱0.00</strong>.</p>
+
+                <p class="text-muted small text-center mb-3">
+                    Select the payment method to settle this order of
+                    <strong id="payment-modal-amount" class="text-primary">₱0.00</strong>.
+                </p>
+
+                <!-- Payment Methods -->
                 <div class="d-flex flex-column gap-3">
-                    <button type="button" class="btn btn-outline-secondary p-3 text-start d-flex align-items-center justify-content-between payment-method-opt" data-method="cash">
-                        <span class="fs-5 fw-semibold"><i class="fa-solid fa-money-bill-wave text-success me-3"></i>Cash</span>
+
+                    <button type="button"
+                            class="btn btn-outline-secondary p-3 text-start d-flex align-items-center justify-content-between payment-method-opt"
+                            data-method="cash">
+
+                        <span class="fs-5 fw-semibold">
+                            <i class="fa-solid fa-money-bill-wave text-success me-3"></i>
+                            Cash
+                        </span>
+
                         <i class="fa-solid fa-chevron-right text-muted"></i>
+
                     </button>
-                    <button type="button" class="btn btn-outline-secondary p-3 text-start d-flex align-items-center justify-content-between payment-method-opt" data-method="gcash">
-                        <span class="fs-5 fw-semibold"><i class="fa-solid fa-mobile-screen text-info me-3"></i>GCash</span>
+
+                    <button type="button"
+                            class="btn btn-outline-secondary p-3 text-start d-flex align-items-center justify-content-between payment-method-opt"
+                            data-method="gcash">
+
+                        <span class="fs-5 fw-semibold">
+                            <i class="fa-solid fa-mobile-screen text-info me-3"></i>
+                            GCash
+                        </span>
+
                         <i class="fa-solid fa-chevron-right text-muted"></i>
+
                     </button>
-                    <button type="button" class="btn btn-outline-secondary p-3 text-start d-flex align-items-center justify-content-between payment-method-opt" data-method="card">
-                        <span class="fs-5 fw-semibold"><i class="fa-solid fa-credit-card text-primary me-3"></i>Card</span>
+
+                    <button type="button"
+                            class="btn btn-outline-secondary p-3 text-start d-flex align-items-center justify-content-between payment-method-opt"
+                            data-method="card">
+
+                        <span class="fs-5 fw-semibold">
+                            <i class="fa-solid fa-credit-card text-primary me-3"></i>
+                            Card
+                        </span>
+
                         <i class="fa-solid fa-chevron-right text-muted"></i>
+
+                    </button>
+
+                </div>
+
+                <!-- Cash Calculator (Add Here) -->
+                <div id="cash-calculator" class="mt-4 d-none">
+
+                    <label class="form-label">
+                        Cash Received
+                    </label>
+
+                    <input
+                        type="number"
+                        id="cash-received"
+                        class="form-control"
+                        placeholder="Enter amount">
+
+                    <div class="mt-3">
+
+                        <h6>
+                            Change
+                            <span
+                                id="cash-change"
+                                class="float-end text-success">
+
+                                ₱0.00
+
+                            </span>
+                        </h6>
+
+                    </div>
+                    <button
+                        type="button"
+                        id="confirm-cash-payment"
+                        class="btn btn-success w-100 mt-3">
+
+                        Confirm Cash Payment
+
                     </button>
                 </div>
             </div>
