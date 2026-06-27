@@ -53,7 +53,7 @@
                         <button type="button" class="btn btn-outline-secondary btn-sm category-btn" data-category="{{ $category->category_id }}">{{ $category->name }}</button>
                         @endforeach
                     </div>
-                    <div class="input-group" style="max-width: 400px;">
+                    <div class="input-group" style="max-width: 360px; border: 1px solid">
                         <span class="input-group-text bg-white"><i class="fa-solid fa-search text-muted"></i></span>
                         <input type="text" id="product-search" class="form-control" placeholder="Search products..." autocomplete="off">
                     </div>

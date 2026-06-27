@@ -48,14 +48,13 @@ class PosAnalyticsService
             ->get();
     }
 
-    public function salesByPeriod(string $period = 'daily', int $days = 30): Collection
+    public function salesByPeriod(string $period, Carbon $from, Carbon $to): Collection
     {
-        $from = Carbon::today()->subDays($days - 1);
         $orders = PosOrder::closed()
-            ->whereDate('closed_at', '>=', $from)
+            ->whereBetween('closed_at', [$from, $to])
             ->get(['total', 'closed_at']);
 
-        $grouped = $orders->groupBy(function (PosOrder $order) use ($period) {
+        return $orders->groupBy(function ($order) use ($period) {
             $date = Carbon::parse($order->closed_at);
 
             return match ($period) {
@@ -63,13 +62,12 @@ class PosAnalyticsService
                 'monthly' => $date->format('Y-m'),
                 default => $date->format('Y-m-d'),
             };
-        });
-
-        return $grouped->map(fn ($items, $label) => [
-            'label' => $label,
-            'total' => (float) $items->sum('total'),
-            'orders' => $items->count(),
-        ])->sortKeys()->values();
+        })->map(function ($items, $key) {
+            return [
+                'label' => $key,
+                'total' => $items->sum('total'),
+            ];
+        })->values();
     }
 
     public function productTrend(int $productId, int $days = 14): Collection

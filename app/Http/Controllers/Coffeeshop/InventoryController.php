@@ -18,9 +18,10 @@ class InventoryController extends Controller
 
         if ($request->filled('search')) {
             $search = $request->search;
+
             $query->where(function ($q) use ($search) {
                 $q->where('name', 'like', "%{$search}%")
-                    ->orWhere('description', 'like', "%{$search}%");
+                ->orWhere('description', 'like', "%{$search}%");
             });
         }
 
@@ -28,9 +29,16 @@ class InventoryController extends Controller
 
         switch ($filter) {
 
+            case 'critical_stock':
+                $query->where('stock_quantity', '<', 50);
+                break;
+
             case 'low_stock':
-                $query->whereColumn('stock_quantity', '<=', 'low_stock_threshold')
-                    ->where('stock_quantity', '>', 0);
+                $query->whereBetween('stock_quantity', [50, 69]);
+                break;
+
+            case 'healthy_stock':
+                $query->whereBetween('stock_quantity', [70, 100]);
                 break;
 
             case 'out_of_stock':
@@ -38,15 +46,31 @@ class InventoryController extends Controller
                 break;
 
             case 'well_stocked':
-                $query->whereColumn('stock_quantity', '>', 'low_stock_threshold');
+                $query->where('stock_quantity', '>', 100);
                 break;
         }
 
-        $products = $query->orderBy('stock_quantity')->paginate(20)->withQueryString();
+        $products = $query->orderBy('stock_quantity', 'asc')
+            ->paginate(20)
+            ->withQueryString();
+
+        $allProducts = PosProduct::all();
+
+        $criticalCount = $allProducts->where('stock_quantity', '<', 50)->count();
+        $lowCount = $allProducts->whereBetween('stock_quantity', [50, 69])->count();
+        $healthyCount = $allProducts->whereBetween('stock_quantity', [70, 100])->count();
+
         $lowStockProducts = $inventoryService->lowStockProducts();
         $defaultThreshold = PosSetting::defaultLowStockThreshold();
 
-        return view('coffeeshop.inventory.index', compact('products', 'lowStockProducts', 'defaultThreshold'));
+        return view('coffeeshop.inventory.index', compact(
+            'products',
+            'lowStockProducts',
+            'defaultThreshold',
+            'criticalCount',
+            'lowCount',
+            'healthyCount'
+        ));
     }
 
     public function adjust(Request $request, PosProduct $product, PosInventoryService $inventoryService): RedirectResponse

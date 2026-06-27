@@ -15,7 +15,20 @@ class DashboardController extends Controller
     public function index(PosAnalyticsService $analytics, PosInventoryService $inventory): View
     {
         $stats = $analytics->dashboardStats();
-        $lowStockProducts = $inventory->lowStockProducts()->take(8);
+
+        $stats['out_stock_count'] = PosProduct::where('stock_quantity', 0)->count();
+
+        $stats['critical_stock_count'] = PosProduct::whereBetween('stock_quantity', [1, 20])->count();
+
+        $stats['low_stock_count'] = PosProduct::whereBetween('stock_quantity', [21, 50])->count();
+
+        $stats['healthy_stock_count'] = PosProduct::where('stock_quantity', '>', 50)->count();
+    $lowStockProducts = PosProduct::with('category')
+    ->where('stock_quantity', '>', 0)
+    ->where('stock_quantity', '<=', 50) 
+    ->orderBy('stock_quantity', 'asc')
+    ->limit(8)
+    ->get();
         $recentOrders = PosOrder::with('items')->orderByDesc('created_at')->limit(8)->get();
         $topToday = PosOrder::closed()
             ->whereDate('closed_at', today())

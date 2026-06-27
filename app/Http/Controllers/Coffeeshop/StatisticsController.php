@@ -13,19 +13,34 @@ class StatisticsController extends Controller
 {
     public function index(Request $request, PosAnalyticsService $analytics, PosInventoryService $inventory): View
     {
-        $from = $request->filled('date_from') ? Carbon::parse($request->date_from) : Carbon::today()->subDays(29);
-        $to = $request->filled('date_to') ? Carbon::parse($request->date_to) : Carbon::today();
+        $from = $request->filled('date_from')
+            ? Carbon::parse($request->date_from)
+            : Carbon::today()->subDays(29);
+
+        $to = $request->filled('date_to')
+            ? Carbon::parse($request->date_to)
+            : Carbon::today();
 
         return view('coffeeshop.statistics.index', [
-            'stats' => $analytics->dashboardStats(),
+            
+            // ✅ NOW FILTERED STATS (IMPORTANT FIX)
+            'stats' => $analytics->dashboardStats($from, $to),
+
+            // ✅ FILTERED REPORTS
             'mostSold' => $analytics->mostSoldProducts(10, $from, $to),
             'leastSold' => $analytics->leastSoldProducts(10, $from, $to),
             'topRevenue' => $analytics->topRevenueProducts(10, $from, $to),
-            'dailySales' => $analytics->salesByPeriod('daily', 14),
-            'weeklySales' => $analytics->salesByPeriod('weekly', 56),
-            'monthlySales' => $analytics->salesByPeriod('monthly', 365),
+
+            // ❗ FIXED: pass same date range instead of static data
+            'dailySales' => $analytics->salesByPeriod('daily', $from, $to),
+            'weeklySales' => $analytics->salesByPeriod('weekly', $from, $to),
+            'monthlySales' => $analytics->salesByPeriod('monthly', $from, $to),
+
+            // ⚠️ inventory still global unless service supports date range
             'suggestedRestock' => $inventory->lowStockProducts()->take(10),
-            'suggestedPromote' => $analytics->suggestedPromote(10),
+
+            'suggestedPromote' => $analytics->suggestedPromote(10, $from, $to),
+
             'filters' => [
                 'date_from' => $from->toDateString(),
                 'date_to' => $to->toDateString(),
