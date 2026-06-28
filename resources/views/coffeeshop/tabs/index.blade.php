@@ -7,6 +7,30 @@
 @section('content')
 @include('coffeeshop.partials.alerts')
 
+<style>
+#tabsNav .nav-link{
+    background:#e9ecef;
+    color:#495057;
+    border:1px solid #dee2e6;
+    font-weight:600;
+    box-shadow:0 .125rem .25rem rgba(0,0,0,.05);
+    transition:all .2s ease;
+}
+
+#tabsNav .nav-link:hover{
+    background:#dee2e6;
+    color:#212529;
+    border-color:#ced4da;
+}
+
+#tabsNav .nav-link.active{
+    background:#0d6efd;
+    color:#fff;
+    border-color:#0d6efd;
+    box-shadow:0 .25rem .5rem rgba(13,110,253,.25);
+}
+</style>
+
 <div class="card border-0 shadow-sm rounded-4 overflow-hidden mb-4">
 
     {{-- HEADER --}}
@@ -16,13 +40,13 @@
     </div>
 
     {{-- NAV PILLS --}}
-    <div class="bg-light px-3 pt-3">
+    <div class="px-3 pt-3 bg-white border-bottom">
 
-        <ul class="nav nav-pills nav-fill gap-2">
+        <ul class="nav nav-pills nav-fill gap-2 fw-semibold" id="tabsNav">
 
             <li class="nav-item">
                 <a href="{{ route('coffeeshop.tabs', ['status' => 'open']) }}"
-                   class="nav-link rounded-pill shadow-sm {{ $status == 'open' ? 'active' : '' }}">
+                class="nav-link rounded-pill {{ $status == 'open' ? 'active' : '' }}">
 
                     <i class="fa-solid fa-circle-play me-2"></i>
                     Open
@@ -31,7 +55,7 @@
 
             <li class="nav-item">
                 <a href="{{ route('coffeeshop.tabs', ['status' => 'closed']) }}"
-                   class="nav-link rounded-pill shadow-sm {{ $status == 'closed' ? 'active' : '' }}">
+                class="nav-link rounded-pill {{ $status == 'closed' ? 'active' : '' }}">
 
                     <i class="fa-solid fa-circle-check me-2"></i>
                     Closed
@@ -40,7 +64,7 @@
 
             <li class="nav-item">
                 <a href="{{ route('coffeeshop.tabs', ['status' => 'cancelled']) }}"
-                   class="nav-link rounded-pill shadow-sm {{ $status == 'cancelled' ? 'active' : '' }}">
+                class="nav-link rounded-pill {{ $status == 'cancelled' ? 'active' : '' }}">
 
                     <i class="fa-solid fa-ban me-2"></i>
                     Cancelled
@@ -49,7 +73,7 @@
 
             <li class="nav-item">
                 <a href="{{ route('coffeeshop.tabs', ['status' => 'all']) }}"
-                   class="nav-link rounded-pill shadow-sm {{ $status == 'all' ? 'active' : '' }}">
+                class="nav-link rounded-pill {{ $status == 'all' ? 'active' : '' }}">
 
                     <i class="fa-solid fa-table-list me-2"></i>
                     All Tabs

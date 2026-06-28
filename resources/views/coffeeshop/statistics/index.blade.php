@@ -8,6 +8,36 @@
 
 @include('coffeeshop.partials.alerts')
 
+<style>
+#statisticsTabs .nav-link{
+    background:#e9ecef;
+    color:#495057;
+    border:1px solid #dee2e6;
+    font-weight:600;
+    padding:.7rem 1rem;
+    box-shadow:0 .125rem .25rem rgba(0,0,0,.05);
+    transition:all .2s ease;
+}
+
+#statisticsTabs .nav-link:hover{
+    background:#dee2e6;
+    color:#212529;
+    border-color:#ced4da;
+    transform:translateY(-1px);
+}
+
+#statisticsTabs .nav-link.active{
+    background:#0d6efd;
+    color:#fff;
+    border-color:#0d6efd;
+    box-shadow:0 .25rem .5rem rgba(13,110,253,.25);
+}
+
+#statisticsTabs .nav-link i{
+    font-size:.9rem;
+}
+</style>
+
 {{-- ===================== MAIN DASHBOARD WRAPPER ===================== --}}
 <div class="card border-0 shadow-sm rounded-4 overflow-hidden">
 

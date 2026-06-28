@@ -7,6 +7,28 @@
 @section('content')
 @include('coffeeshop.partials.alerts')
 
+<style>
+#dashboardTabs .nav-link {
+    background-color: #e9ecef; 
+    color: #495057;
+    border: 1px solid #dee2e6;
+    font-weight: 600;
+    transition: all .2s ease;
+}
+
+#dashboardTabs .nav-link:hover {
+    background-color: #dee2e6;
+    color: #212529;
+}
+
+#dashboardTabs .nav-link.active {
+    background-color: #0d6efd;
+    color: #fff;
+    border-color: #0d6efd;
+    box-shadow: 0 .125rem .25rem rgba(0,0,0,.15);
+}
+</style>
+
 <div class="row g-3 mb-4">
 
     {{-- CARD 1 --}}
@@ -60,7 +82,7 @@
 
     <div class="col-12">
 
-        <div class="card border-0 shadow-sm rounded-4 overflow-hidden">
+        <div class="card border-1 shadow-sm rounded-4 overflow-hidden">
 
             {{-- HEADER --}}
             <div class="card-header bg-white fw-semibold d-flex justify-content-between align-items-center">
@@ -69,12 +91,12 @@
             </div>
 
             {{-- NAV PILLS --}}
-            <div class="bg-light px-3 pt-3">
+            <div class="px-3 pt-3 bg-white border-bottom fw-semibold">
 
                 <ul class="nav nav-pills nav-fill gap-2" id="dashboardTabs" role="tablist">
 
                     <li class="nav-item">
-                        <button class="nav-link active rounded-pill shadow-sm"
+                        <button class="nav-link active rounded-pill fw-bold shadow-sm border"
                                 data-bs-toggle="tab"
                                 data-bs-target="#tab-products">
                             Products
@@ -82,7 +104,7 @@
                     </li>
 
                     <li class="nav-item">
-                        <button class="nav-link rounded-pill shadow-sm"
+                        <button class="nav-link rounded-pill fw-semibold shadow-sm border"
                                 data-bs-toggle="tab"
                                 data-bs-target="#tab-orders">
                             Recent Orders
@@ -90,7 +112,7 @@
                     </li>
 
                     <li class="nav-item">
-                        <button class="nav-link rounded-pill shadow-sm"
+                        <button class="nav-link rounded-pill fw-semibold shadow-sm border"
                                 data-bs-toggle="tab"
                                 data-bs-target="#tab-overview">
                             Overview

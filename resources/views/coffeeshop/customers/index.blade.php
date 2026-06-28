@@ -7,7 +7,29 @@
 @section('content')
 @include('coffeeshop.partials.alerts')
 
+<style>
+    #customerNav .nav-link{
+    background:#e9ecef;
+    color:#495057;
+    border:1px solid #dee2e6;
+    font-weight:600;
+    box-shadow:0 .125rem .25rem rgba(0,0,0,.05);
+    transition:all .2s ease;
+}
 
+#customerNav .nav-link:hover{
+    background:#dee2e6;
+    color:#212529;
+    border-color:#ced4da;
+}
+
+#customerNav .nav-link.active{
+    background:#0d6efd;
+    color:#fff;
+    border-color:#0d6efd;
+    box-shadow:0 .25rem .5rem rgba(13,110,253,.25);
+}
+</style>
 <div class="card border-0 shadow-sm">
 
     <div class="card-body">
@@ -103,37 +125,41 @@
 
             <div class="card-body">
 
-                {{-- TAB NAVIGATION (MATCHING ORDERS STYLE) --}}
-                <ul class="nav nav-pills nav-fill gap-2 bg-light p-2 rounded-3 mb-3">
+                {{-- TAB NAVIGATION --}}
+                <div class="px-3 pt-3 bg-white border-bottom">
 
-                    <li class="nav-item">
-                        <button class="nav-link active rounded-pill"
-                            data-bs-toggle="tab"
-                            data-bs-target="#tab-customers"
-                            type="button">
-                            Frequent Customers
-                        </button>
-                    </li>
+                    <ul class="nav nav-pills nav-fill gap-2 fw-semibold" id="customerNav">
 
-                    <li class="nav-item">
-                        <button class="nav-link rounded-pill"
-                            data-bs-toggle="tab"
-                            data-bs-target="#tab-orders"
-                            type="button">
-                            Recent Orders
-                        </button>
-                    </li>
+                        <li class="nav-item">
+                            <button class="nav-link active rounded-pill"
+                                    data-bs-toggle="tab"
+                                    data-bs-target="#tab-customers"
+                                    type="button">
+                                Frequent Customers
+                            </button>
+                        </li>
 
-                    <li class="nav-item">
-                        <button class="nav-link rounded-pill"
-                            data-bs-toggle="tab"
-                            data-bs-target="#tab-tabs"
-                            type="button">
-                            Tabs
-                        </button>
-                    </li>
+                        <li class="nav-item">
+                            <button class="nav-link rounded-pill"
+                                    data-bs-toggle="tab"
+                                    data-bs-target="#tab-orders"
+                                    type="button">
+                                Recent Orders
+                            </button>
+                        </li>
 
-                </ul>
+                        <li class="nav-item">
+                            <button class="nav-link rounded-pill"
+                                    data-bs-toggle="tab"
+                                    data-bs-target="#tab-tabs"
+                                    type="button">
+                                Tabs
+                            </button>
+                        </li>
+
+                    </ul>
+
+                </div>
 
                 {{-- TAB CONTENT --}}
                 <div class="tab-content">
@@ -141,58 +167,113 @@
                     {{-- ===================== FREQUENT CUSTOMERS ===================== --}}
                     <div class="tab-pane fade show active" id="tab-customers">
 
-                        @forelse($frequentCustomers as $customer)
-                            <div class="d-flex justify-content-between py-2 border-bottom small">
+                        <div class="table-responsive border rounded-4 bg-white overflow-hidden shadow-sm">
 
-                                <div>
-                                    <div class="fw-semibold">{{ $customer->customer_name }}</div>
-                                    <div class="text-muted">{{ $customer->order_count }} orders</div>
-                                </div>
+                            <table class="table align-middle mb-0">
 
-                                <div class="fw-semibold">
-                                    ₱{{ number_format($customer->total_spent, 2) }}
-                                </div>
+                                <thead class="table-light">
+                                    <tr class="text-muted small">
+                                        <th class="ps-3">Customer</th>
+                                        <th>Orders</th>
+                                        <th class="pe-3 text-end">Total Spent</th>
+                                    </tr>
+                                </thead>
 
-                            </div>
-                        @empty
-                            <div class="text-muted small">No customer data yet.</div>
-                        @endforelse
+                                <tbody>
+
+                                    @forelse($frequentCustomers as $customer)
+
+                                        <tr>
+                                            <td class="ps-3 fw-semibold">
+                                                {{ $customer->customer_name }}
+                                            </td>
+
+                                            <td class="fw-semibold">
+                                                {{ $customer->order_count }}
+                                            </td>
+
+                                            <td class="pe-3 text-end fw-bold">
+                                                ₱{{ number_format($customer->total_spent, 2) }}
+                                            </td>
+                                        </tr>
+
+                                    @empty
+                                        <tr>
+                                            <td colspan="3" class="text-center text-muted py-5">
+                                                No customer data yet.
+                                            </td>
+                                        </tr>
+                                    @endforelse
+
+                                </tbody>
+
+                            </table>
+
+                        </div>
 
                     </div>
 
                     {{-- ===================== ORDERS ===================== --}}
                     <div class="tab-pane fade" id="tab-orders">
 
-                        <div class="table-responsive">
+                        <div class="table-responsive border rounded-4 bg-white overflow-hidden shadow-sm">
 
-                            <table class="table table-sm align-middle mb-0">
+                            <table class="table align-middle mb-0">
 
-                                <thead class="text-muted small bg-light">
-                                    <tr>
-                                        <th>Order</th>
+                                <thead class="table-light">
+                                    <tr class="text-muted small">
+                                        <th class="ps-3">Order</th>
                                         <th>Customer</th>
                                         <th>Total</th>
-                                        <th>Status</th>
+                                        <th class="pe-3 text-end">Status</th>
                                     </tr>
                                 </thead>
 
                                 <tbody>
 
                                     @forelse($orders as $order)
+
                                         <tr>
-                                            <td>
+
+                                            <td class="ps-3">
                                                 <a href="{{ route('coffeeshop.orders.show', $order) }}"
-                                                    class="fw-semibold text-decoration-none">
+                                                class="fw-semibold text-decoration-none">
                                                     {{ $order->order_number }}
                                                 </a>
                                             </td>
-                                            <td>{{ $order->customer_name }}</td>
-                                            <td>₱{{ number_format($order->total, 2) }}</td>
-                                            <td>{{ strtoupper($order->status) }}</td>
+
+                                            <td class="fw-semibold">
+                                                {{ $order->customer_name }}
+                                            </td>
+
+                                            <td class="fw-bold text-primary">
+                                                ₱{{ number_format($order->total, 2) }}
+                                            </td>
+
+                                            <td class="pe-3 text-end">
+                                                @php
+                                                    $status = strtoupper($order->status);
+
+                                                    $badge = match($order->status) {
+                                                        'open' => 'bg-success',
+                                                        'closed' => 'bg-primary',
+                                                        'cancelled' => 'bg-danger',
+                                                        'refunded' => 'bg-warning text-dark',
+                                                        default => 'bg-secondary'
+                                                    };
+                                                @endphp
+
+                                                <span class="badge {{ $badge }}">
+                                                    {{ $status }}
+                                                </span>
+                                            </td>
+
                                         </tr>
+
                                     @empty
                                         <tr>
-                                            <td colspan="4" class="text-muted text-center py-3">
+                                            <td colspan="4" class="text-center text-muted py-5">
+                                                <i class="fa-solid fa-file-circle-xmark d-block mb-2"></i>
                                                 No orders found.
                                             </td>
                                         </tr>
@@ -209,37 +290,66 @@
                     {{-- ===================== TABS ===================== --}}
                     <div class="tab-pane fade" id="tab-tabs">
 
-                        <div class="table-responsive">
+                        <div class="d-flex justify-content-center px-3 pb-4">
 
-                            <table class="table table-sm align-middle mb-0">
+                            <div class="w-100" style="max-width: 1100px;">
 
-                                <thead class="text-muted small bg-light">
-                                    <tr>
-                                        <th>Tab</th>
-                                        <th>Total</th>
-                                        <th>Status</th>
-                                    </tr>
-                                </thead>
+                                <div class="table-responsive border rounded-4 bg-white overflow-hidden shadow-sm">
 
-                                <tbody>
+                                    <table class="table align-middle mb-0">
 
-                                    @forelse($tabs as $tab)
-                                        <tr>
-                                            <td>{{ $tab->tab_name }}</td>
-                                            <td>₱{{ number_format($tab->total, 2) }}</td>
-                                            <td>{{ strtoupper($tab->status) }}</td>
-                                        </tr>
-                                    @empty
-                                        <tr>
-                                            <td colspan="3" class="text-muted text-center py-3">
-                                                No tabs found.
-                                            </td>
-                                        </tr>
-                                    @endforelse
+                                        <thead class="table-light">
+                                            <tr class="text-muted small">
+                                                <th class="ps-3">Tab</th>
+                                                <th>Total</th>
+                                                <th class="pe-3 text-end">Status</th>
+                                            </tr>
+                                        </thead>
 
-                                </tbody>
+                                        <tbody>
 
-                            </table>
+                                            @forelse($tabs as $tab)
+
+                                                <tr>
+
+                                                    <td class="ps-3 fw-semibold">
+                                                        {{ $tab->tab_name }}
+                                                    </td>
+
+                                                    <td class="fw-bold text-primary">
+                                                        ₱{{ number_format($tab->total, 2) }}
+                                                    </td>
+
+                                                    <td class="pe-3 text-end">
+                                                        @php
+                                                            $badge = match(strtolower($tab->status)) {
+                                                                'closed' => 'bg-secondary',
+                                                                'cancelled' => 'bg-danger',
+                                                                default => 'bg-primary'
+                                                            };
+                                                        @endphp
+
+                                                        <span class="badge {{ $badge }}">
+                                                            {{ strtoupper($tab->status) }}
+                                                        </span>
+                                                    </td>
+
+                                                </tr>
+
+                                            @empty
+                                                <tr>
+                                                    <td colspan="3" class="text-center text-muted py-5">
+                                                        No tabs found.
+                                                    </td>
+                                                </tr>
+                                            @endforelse
+
+                                        </tbody>
+
+                                    </table>
+
+                                </div>
+                            </div>
 
                         </div>
 
