@@ -154,6 +154,41 @@
 
 @stack('modals')
 
+<!-- SweetAlert2 -->
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script>
+    document.addEventListener('turbo:load', function() {
+        @if(session('success'))
+            Swal.fire({
+                icon: 'success',
+                title: 'Success!',
+                text: {!! json_encode(session('success')) !!},
+                confirmButtonColor: '#2563eb',
+                timer: 3000,
+                timerProgressBar: true
+            });
+        @endif
+
+        @if(session('error'))
+            Swal.fire({
+                icon: 'error',
+                title: 'Error!',
+                text: {!! json_encode(session('error')) !!},
+                confirmButtonColor: '#2563eb'
+            });
+        @endif
+
+        @if($errors->any())
+            Swal.fire({
+                icon: 'error',
+                title: 'Validation Error',
+                text: {!! json_encode($errors->first()) !!},
+                confirmButtonColor: '#2563eb'
+            });
+        @endif
+    });
+</script>
+
 
 
 @stack('scripts')

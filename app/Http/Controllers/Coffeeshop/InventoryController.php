@@ -21,24 +21,53 @@ class InventoryController extends Controller
 
             $query->where(function ($q) use ($search) {
                 $q->where('name', 'like', "%{$search}%")
-                ->orWhere('description', 'like', "%{$search}%");
+                    ->orWhere('description', 'like', "%{$search}%");
             });
         }
 
         $filter = $request->input('filter');
+        $defaultThreshold = PosSetting::defaultLowStockThreshold();
 
         switch ($filter) {
 
             case 'critical_stock':
-                $query->where('stock_quantity', '<', 50);
+                $query->where(function ($q) use ($defaultThreshold) {
+                    $q->where(function ($sub) use ($defaultThreshold) {
+                        $sub->whereNull('low_stock_threshold')
+                            ->where('stock_quantity', '<=', $defaultThreshold);
+                    })->orWhere(function ($sub) {
+                        $sub->whereNotNull('low_stock_threshold')
+                            ->whereColumn('stock_quantity', '<=', 'low_stock_threshold');
+                    });
+                });
                 break;
 
             case 'low_stock':
-                $query->whereBetween('stock_quantity', [50, 69]);
+                $query->where(function ($q) use ($defaultThreshold) {
+                    $q->where(function ($sub) use ($defaultThreshold) {
+                        $sub->whereNull('low_stock_threshold')
+                            ->where('stock_quantity', '>', $defaultThreshold)
+                            ->where('stock_quantity', '<=', (int) ($defaultThreshold * 1.4));
+                    })->orWhere(function ($sub) {
+                        $sub->whereNotNull('low_stock_threshold')
+                            ->whereColumn('stock_quantity', '>', 'low_stock_threshold')
+                            ->whereRaw('stock_quantity <= (low_stock_threshold * 1.4)');
+                    });
+                });
                 break;
 
             case 'healthy_stock':
-                $query->whereBetween('stock_quantity', [70, 100]);
+                $query->where(function ($q) use ($defaultThreshold) {
+                    $q->where(function ($sub) use ($defaultThreshold) {
+                        $sub->whereNull('low_stock_threshold')
+                            ->where('stock_quantity', '>', (int) ($defaultThreshold * 1.4))
+                            ->where('stock_quantity', '<=', (int) ($defaultThreshold * 2));
+                    })->orWhere(function ($sub) {
+                        $sub->whereNotNull('low_stock_threshold')
+                            ->whereRaw('stock_quantity > (low_stock_threshold * 1.4)')
+                            ->whereRaw('stock_quantity <= (low_stock_threshold * 2)');
+                    });
+                });
                 break;
 
             case 'out_of_stock':
@@ -46,7 +75,15 @@ class InventoryController extends Controller
                 break;
 
             case 'well_stocked':
-                $query->where('stock_quantity', '>', 100);
+                $query->where(function ($q) use ($defaultThreshold) {
+                    $q->where(function ($sub) use ($defaultThreshold) {
+                        $sub->whereNull('low_stock_threshold')
+                            ->where('stock_quantity', '>', (int) ($defaultThreshold * 2));
+                    })->orWhere(function ($sub) {
+                        $sub->whereNotNull('low_stock_threshold')
+                            ->whereRaw('stock_quantity > (low_stock_threshold * 2)');
+                    });
+                });
                 break;
         }
 
@@ -56,12 +93,12 @@ class InventoryController extends Controller
 
         $allProducts = PosProduct::all();
 
-        $criticalCount = $allProducts->where('stock_quantity', '<', 50)->count();
-        $lowCount = $allProducts->whereBetween('stock_quantity', [50, 69])->count();
-        $healthyCount = $allProducts->whereBetween('stock_quantity', [70, 100])->count();
+        $criticalCount = $allProducts->filter(fn ($p) => $p->stock_quantity <= $p->effectiveLowStockThreshold())->count();
+        $lowCount = $allProducts->filter(fn ($p) => $p->stock_quantity > $p->effectiveLowStockThreshold() && $p->stock_quantity <= (int) ($p->effectiveLowStockThreshold() * 1.4))->count();
+        $healthyCount = $allProducts->filter(fn ($p) => $p->stock_quantity > (int) ($p->effectiveLowStockThreshold() * 1.4) && $p->stock_quantity <= (int) ($p->effectiveLowStockThreshold() * 2))->count();
+        $outOfStockCount = $allProducts->where('stock_quantity', 0)->count();
 
         $lowStockProducts = $inventoryService->lowStockProducts();
-        $defaultThreshold = PosSetting::defaultLowStockThreshold();
 
         return view('coffeeshop.inventory.index', compact(
             'products',
@@ -69,7 +106,8 @@ class InventoryController extends Controller
             'defaultThreshold',
             'criticalCount',
             'lowCount',
-            'healthyCount'
+            'healthyCount',
+            'outOfStockCount'
         ));
     }
 

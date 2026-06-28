@@ -16,19 +16,22 @@ class DashboardController extends Controller
     {
         $stats = $analytics->dashboardStats();
 
-        $stats['out_stock_count'] = PosProduct::where('stock_quantity', 0)->count();
+        $allProducts = PosProduct::all();
 
-        $stats['critical_stock_count'] = PosProduct::whereBetween('stock_quantity', [1, 20])->count();
+        $stats['out_stock_count'] = $allProducts->where('stock_quantity', 0)->count();
 
-        $stats['low_stock_count'] = PosProduct::whereBetween('stock_quantity', [21, 50])->count();
+        $stats['critical_stock_count'] = $allProducts->filter(fn ($p) => $p->stock_quantity > 0 && $p->stock_quantity <= (int) ($p->effectiveLowStockThreshold() * 0.4))->count();
 
-        $stats['healthy_stock_count'] = PosProduct::where('stock_quantity', '>', 50)->count();
-    $lowStockProducts = PosProduct::with('category')
-    ->where('stock_quantity', '>', 0)
-    ->where('stock_quantity', '<=', 50) 
-    ->orderBy('stock_quantity', 'asc')
-    ->limit(8)
-    ->get();
+        $stats['low_stock_count'] = $allProducts->filter(fn ($p) => $p->stock_quantity > 0 && $p->stock_quantity <= $p->effectiveLowStockThreshold())->count();
+
+        $stats['healthy_stock_count'] = $allProducts->filter(fn ($p) => $p->stock_quantity > $p->effectiveLowStockThreshold())->count();
+
+        $lowStockProducts = PosProduct::with('category')
+            ->lowStock()
+            ->where('stock_quantity', '>', 0)
+            ->orderBy('stock_quantity', 'asc')
+            ->limit(8)
+            ->get();
         $recentOrders = PosOrder::with('items')->orderByDesc('created_at')->limit(8)->get();
         $topToday = PosOrder::closed()
             ->whereDate('closed_at', today())

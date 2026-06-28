@@ -8,11 +8,13 @@
 @include('coffeeshop.partials.alerts')
 
 @php
-    function stockStatus($qty) {
+    function stockStatus($product) {
+        $qty = $product->stock_quantity;
+        $threshold = $product->effectiveLowStockThreshold();
         if ($qty == 0) return ['Out of Stock', 'danger'];
-        if ($qty <= 50) return ['Low Stock', 'danger'];
-        if ($qty <= 70) return ['Semi Low', 'warning'];
-        if ($qty <= 100) return ['Well Stocked', 'success'];
+        if ($qty <= $threshold) return ['Low Stock', 'danger'];
+        if ($qty <= (int)($threshold * 1.4)) return ['Semi Low', 'warning'];
+        if ($qty <= (int)($threshold * 2)) return ['Well Stocked', 'success'];
         return ['Over Stocked', 'primary'];
     }
 @endphp
@@ -38,9 +40,9 @@
         <div class="card border-0 shadow-sm h-100">
             <div class="card-body d-flex justify-content-between align-items-center">
                 <div>
-                    <div class="text-muted small">Low Stock (≤50)</div>
+                    <div class="text-muted small">Low Stock</div>
                     <div class="fs-3 fw-bold text-danger">
-                        {{ $products->getCollection()->where('stock_quantity', '<=', 50)->count() }}
+                        {{ $lowStockProducts->count() }}
                     </div>
                 </div>
                 <i class="fa-solid fa-triangle-exclamation text-danger fs-3"></i>
@@ -54,7 +56,7 @@
                 <div>
                     <div class="text-muted small">Out of Stock</div>
                     <div class="fs-3 fw-bold text-dark">
-                        {{ $products->getCollection()->where('stock_quantity', 0)->count() }}
+                        {{ $outOfStockCount }}
                     </div>
                 </div>
                 <i class="fa-solid fa-circle-xmark text-dark fs-3"></i>
@@ -65,13 +67,12 @@
 </div>
 
 {{-- ALERT --}}
-@if($products->getCollection()->where('stock_quantity', '<=', 50)->count() > 0)
+@if($lowStockProducts->count() > 0)
 <div class="alert alert-danger d-flex align-items-center">
     <i class="fa-solid fa-bell me-2"></i>
     <strong>Low Stock Alert:</strong>
     <span class="ms-2">
-        {{ $products->getCollection()
-            ->where('stock_quantity', '<=', 50)
+        {{ $lowStockProducts
             ->pluck('name')
             ->take(5)
             ->join(', ') }}
@@ -108,19 +109,19 @@
             </option>
 
             <option value="critical_stock" @selected(request('filter')=='critical_stock')>
-                Low Stock (≤50)
+                Low Stock (≤ Threshold)
             </option>
 
             <option value="low_stock" @selected(request('filter')=='low_stock')>
-                Semi Low (51–69)
+                Semi Low
             </option>
 
             <option value="healthy_stock" @selected(request('filter')=='healthy_stock')>
-                Well Stocked (70–100)
+                Well Stocked
             </option>
 
             <option value="well_stocked" @selected(request('filter')=='well_stocked')>
-                Above 100
+                Over Stocked
             </option>
 
         </select>
@@ -146,7 +147,7 @@
             @foreach($products as $product)
 
                 @php
-                    [$label, $color] = stockStatus($product->stock_quantity);
+                    [$label, $color] = stockStatus($product);
                 @endphp
 
                 <tr class="{{ $product->stock_quantity == 0 ? 'table-danger' : '' }}">
