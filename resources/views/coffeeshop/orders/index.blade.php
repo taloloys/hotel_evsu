@@ -7,6 +7,30 @@
 @section('content')
 @include('coffeeshop.partials.alerts')
 
+<style>
+#ordersNav .nav-link{
+    background:#e9ecef;
+    color:#495057;
+    border:1px solid #dee2e6;
+    font-weight:600;
+    box-shadow:0 .125rem .25rem rgba(0,0,0,.05);
+    transition:all .2s ease;
+}
+
+#ordersNav .nav-link:hover{
+    background:#dee2e6;
+    color:#212529;
+    border-color:#ced4da;
+}
+
+#ordersNav .nav-link.active{
+    background:#0d6efd;
+    color:#fff;
+    border-color:#0d6efd;
+    box-shadow:0 .25rem .5rem rgba(13,110,253,.25);
+}
+</style>
+
 {{-- ===================== ORDERS FILTER (TAB STYLE UI ONLY) ===================== --}}
 <div class="card border-0 shadow-sm rounded-4 overflow-hidden mb-3">
 
@@ -15,9 +39,9 @@
         <small class="text-muted">All Orders • Active Tabs • Status Tracking</small>
     </div>
 
-    <div class="bg-light px-3 pt-3">
+    <div class="px-3 pt-3 bg-white border-bottom">
 
-        <ul class="nav nav-pills nav-fill gap-2">
+        <ul class="nav nav-pills nav-fill gap-2 fw-semibold" id="ordersNav">
 
             @foreach([
                 'all' => 'All Orders',
@@ -30,7 +54,7 @@
                 <li class="nav-item">
 
                     <a href="{{ route('coffeeshop.orders', ['status' => $key]) }}"
-                       class="nav-link rounded-pill shadow-sm {{ $status === $key ? 'active' : '' }}">
+                    class="nav-link rounded-pill {{ $status === $key ? 'active' : '' }}">
 
                         {{ $label }}
 
