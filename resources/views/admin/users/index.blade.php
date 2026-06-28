@@ -49,10 +49,10 @@
 <div class="row g-3 mb-3">
 
     <div class="col-lg-4">
-        <div class="card border-0 shadow-sm">
+        <div class="card border-1 shadow-sm">
             <div class="card-body d-flex justify-content-between align-items-center">
                 <div>
-                    <div class="text-muted small">Total Users</div>
+                    <div class="text-muted large">Total Users</div>
                     <h4 class="mb-0">{{ $totalCount }}</h4>
                 </div>
                 <i class="fa-solid fa-users fa-2x text-primary"></i>
@@ -61,10 +61,10 @@
     </div>
 
     <div class="col-lg-4">
-        <div class="card border-0 shadow-sm">
+        <div class="card border-1 shadow-sm">
             <div class="card-body d-flex justify-content-between align-items-center">
                 <div>
-                    <div class="text-muted small">Active Users</div>
+                    <div class="text-muted large">Active Users</div>
                     <h4 class="mb-0 text-success">{{ $activeCount }}</h4>
                 </div>
                 <i class="fa-solid fa-user-check fa-2x text-success"></i>
@@ -73,10 +73,10 @@
     </div>
 
     <div class="col-lg-4">
-        <div class="card border-0 shadow-sm">
+        <div class="card border-1 shadow-sm">
             <div class="card-body d-flex justify-content-between align-items-center">
                 <div>
-                    <div class="text-muted small">Inactive Users</div>
+                    <div class="text-muted large">Inactive Users</div>
                     <h4 class="mb-0 text-danger">{{ $inactiveCount }}</h4>
                 </div>
                 <i class="fa-solid fa-user-slash fa-2x text-danger"></i>
@@ -94,29 +94,46 @@
         <small class="text-muted">Create accounts and manage roles &amp; access</small>
     </div>
 
-    <!-- RIGHT ACTIONS (SEARCH + FILTER + ADD USER) -->
-    <div class="d-flex gap-2 align-items-center">
+    <!-- RIGHT ACTIONS WRAPPER -->
+    <div class="d-flex justify-content-end align-items-center gap-2">
 
         <!-- SEARCH -->
-        <div style="width: 220px;">
-            <input type="text"
-                id="userSearchInput"
-                class="form-control form-control-sm"
-                placeholder="Search users..."
-                autocomplete="off">
+        <div style="width: 340px;">
+            <div class="input-group"
+                style="border: 1px solid; border-radius: 6px; overflow: hidden; height: 38px;">
+
+                <span class="input-group-text bg-white border-0">
+                    <i class="fa-solid fa-magnifying-glass text-muted"></i>
+                </span>
+
+                <input type="text"
+                    id="userSearchInput"
+                    class="form-control border-0 shadow-none"
+                    placeholder="Search users..."
+                    autocomplete="off">
+            </div>
         </div>
 
-        <!-- FILTER ICON DROPDOWN -->
+        <!-- FILTER -->
         <div class="dropdown">
-            <button class="btn btn-outline-secondary btn-sm" data-bs-toggle="dropdown">
+
+            <button class="btn btn-outline-secondary d-flex align-items-center gap-1 px-3"
+                    data-bs-toggle="dropdown"
+                    style="height: 38px; border-radius: 6px; border: 1px solid;">
+
                 <i class="fa-solid fa-filter"></i>
+                <span>Filter</span>
+
             </button>
 
-            <div class="dropdown-menu dropdown-menu-end p-3" style="min-width: 240px;">
+            <div class="dropdown-menu dropdown-menu-end p-3 shadow-sm"
+                style="min-width: 280px; border-radius: 8px;">
 
                 <label class="form-label small mb-1">Role</label>
+
                 <select id="filterRoleSelect" class="form-select form-select-sm mb-3">
                     <option value="">All Roles</option>
+
                     @foreach($roles as $role)
                         @php
                             $filterRoleLabel = match($role->role_name) {
@@ -127,25 +144,35 @@
                                 default => $role->role_name
                             };
                         @endphp
-                        <option value="{{ $filterRoleLabel }}">{{ $filterRoleLabel }}</option>
+
+                        <option value="{{ $filterRoleLabel }}">
+                            {{ $filterRoleLabel }}
+                        </option>
                     @endforeach
                 </select>
 
                 <div class="d-flex gap-2">
-                    <button id="filterApplyBtn" class="btn btn-primary btn-sm w-50">Apply</button>
-                    <button id="filterResetBtn" class="btn btn-light btn-sm w-50">Reset</button>
+                    <button id="filterApplyBtn" class="btn btn-primary btn-sm w-50">
+                        Apply
+                    </button>
+
+                    <button id="filterResetBtn" class="btn btn-light btn-sm w-50">
+                        Reset
+                    </button>
                 </div>
 
             </div>
         </div>
 
-        <!-- ADD USER BUTTON -->
+        <!-- ADD USER -->
         <button id="add-user-btn"
-                class="btn btn-primary px-3 py-2 fw-semibold"
+                class="btn btn-primary d-flex align-items-center gap-2 px-3"
+                style="height: 38px; border-radius: 6px;"
                 data-bs-toggle="modal"
                 data-bs-target="#addUserModal">
-            <i class="fa-solid fa-user-plus me-2"></i>
-            Add User
+
+            <i class="fa-solid fa-user-plus"></i>
+            <span>Add User</span>
         </button>
 
     </div>
@@ -315,39 +342,70 @@
      ADD USER MODAL
      ========================================================= -->
 <div class="modal fade" id="addUserModal" tabindex="-1" aria-labelledby="addUserModalLabel" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered">
-        <div class="modal-content">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-content" style="border-radius: 10px; overflow: hidden;">
 
-            <div class="modal-header">
+            <!-- HEADER -->
+            <div class="modal-header bg-light">
                 <h5 class="modal-title fw-bold" id="addUserModalLabel">
-                    <i class="fa-solid fa-user-plus me-2 text-primary"></i>Add New User
+                    <i class="fa-solid fa-user-plus me-2 text-primary"></i>
+                    Add New User
                 </h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
 
             <form method="POST" action="{{ route('admin.users.store') }}">
                 @csrf
-                <div class="modal-body">
 
+                <div class="modal-body px-4 py-4">
+
+                    <!-- FULL NAME -->
                     <div class="mb-3">
-                        <label for="add_full_name" class="form-label">Full Name</label>
-                        <input type="text" id="add_full_name" name="full_name" class="form-control" value="{{ old('full_name') }}" placeholder="e.g. Juan dela Cruz" required>
+                        <label for="add_full_name" class="form-label fw-semibold">Full Name</label>
+                        <input type="text"
+                               id="add_full_name"
+                               name="full_name"
+                               class="form-control form-control-lg"
+                               value="{{ old('full_name') }}"
+                               placeholder="e.g. Juan dela Cruz"
+                               required>
                     </div>
 
+                    <!-- USERNAME -->
                     <div class="mb-3">
-                        <label for="add_username" class="form-label">Username</label>
-                        <input type="text" id="add_username" name="username" class="form-control" value="{{ old('username') }}" placeholder="e.g. jdelacruz" required>
+                        <label for="add_username" class="form-label fw-semibold">Username</label>
+                        <input type="text"
+                               id="add_username"
+                               name="username"
+                               class="form-control form-control-lg"
+                               value="{{ old('username') }}"
+                               placeholder="e.g. jdelacruz"
+                               required>
                     </div>
 
+                    <!-- PASSWORD -->
                     <div class="mb-3">
-                        <label for="add_password" class="form-label">Password</label>
-                        <input type="password" id="add_password" name="password" class="form-control" placeholder="Minimum 6 characters" required>
+                        <label for="add_password" class="form-label fw-semibold">Password</label>
+                        <input type="password"
+                               id="add_password"
+                               name="password"
+                               class="form-control form-control-lg"
+                               placeholder="Minimum 6 characters"
+                               required>
                     </div>
 
+                    <!-- ROLE -->
                     <div class="mb-3">
-                        <label for="add_role_id" class="form-label">Role</label>
-                        <select id="add_role_id" name="role_id" class="form-select" required>
-                            <option value="" disabled {{ old('role_id') === null ? 'selected' : '' }}>Select a role...</option>
+                        <label for="add_role_id" class="form-label fw-semibold">Role</label>
+                        <select id="add_role_id"
+                                name="role_id"
+                                class="form-select form-select-lg"
+                                required>
+
+                            <option value="" disabled {{ old('role_id') === null ? 'selected' : '' }}>
+                                Select a role...
+                            </option>
+
                             @foreach($roles as $role)
                                 @php
                                     $addRoleLabel = match($role->role_name) {
@@ -358,39 +416,63 @@
                                         default => $role->role_name
                                     };
                                 @endphp
-                                <option value="{{ $role->role_id }}" {{ old('role_id') == $role->role_id ? 'selected' : '' }}>
+
+                                <option value="{{ $role->role_id }}"
+                                    {{ old('role_id') == $role->role_id ? 'selected' : '' }}>
                                     {{ $addRoleLabel }}
                                 </option>
                             @endforeach
+
                         </select>
                     </div>
 
+                    <!-- PERMISSIONS -->
                     <div class="mb-3">
-                        <label class="form-label fw-semibold">Direct Permission Overrides</label>
-                        <div class="p-3 border rounded bg-light" style="max-height: 180px; overflow-y: auto;">
+                        <label class="form-label fw-semibold">
+                            Direct Permission Overrides
+                        </label>
+
+                        <div class="p-3 border rounded bg-light"
+                             style="max-height: 220px; overflow-y: auto; border-radius: 8px;">
+
                             @foreach($permissions as $perm)
                                 <div class="form-check mb-2">
-                                    <input class="form-check-input" 
-                                           type="checkbox" 
-                                           name="permissions[]" 
-                                           value="{{ $perm->permission_id }}" 
+
+                                    <input class="form-check-input"
+                                           type="checkbox"
+                                           name="permissions[]"
+                                           value="{{ $perm->permission_id }}"
                                            id="add_perm_{{ $perm->permission_id }}">
+
                                     <label class="form-check-label" for="add_perm_{{ $perm->permission_id }}">
-                                        <span class="fw-semibold text-dark">{{ $perm->permission_key }}</span>
-                                        <span class="text-muted small d-block" style="font-size: 0.75rem;">{{ $perm->description }} ({{ $perm->module }})</span>
+                                        <span class="fw-semibold">{{ $perm->permission_key }}</span>
+                                        <span class="text-muted d-block" style="font-size: 0.8rem;">
+                                            {{ $perm->description }} ({{ $perm->module }})
+                                        </span>
                                     </label>
+
                                 </div>
                             @endforeach
+
                         </div>
-                        <div class="form-text small text-muted">Explicitly grant these permissions regardless of the user's role.</div>
+
+                        <div class="form-text text-muted small mt-1">
+                            Explicitly grant these permissions regardless of the user's role.
+                        </div>
                     </div>
 
                 </div>
 
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-light" data-bs-dismiss="modal">Cancel</button>
-                    <button type="submit" class="btn btn-primary">Save User</button>
+                <!-- FOOTER -->
+                <div class="modal-footer bg-light">
+                    <button type="button" class="btn btn-light px-4" data-bs-dismiss="modal">
+                        Cancel
+                    </button>
+                    <button type="submit" class="btn btn-primary px-4">
+                        Save User
+                    </button>
                 </div>
+
             </form>
 
         </div>
@@ -461,12 +543,14 @@
      EDIT USER MODAL
      ========================================================= -->
 <div class="modal fade" id="editUserModal" tabindex="-1" aria-labelledby="editUserModalLabel" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered">
-        <div class="modal-content">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-content" style="border-radius: 10px; overflow: hidden;">
 
-            <div class="modal-header">
+            <!-- HEADER -->
+            <div class="modal-header bg-light">
                 <h5 class="modal-title fw-bold" id="editUserModalLabel">
-                    <i class="fa-solid fa-user-gear me-2 text-warning"></i>Edit User
+                    <i class="fa-solid fa-user-gear me-2 text-warning"></i>
+                    Edit User
                 </h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
@@ -474,29 +558,50 @@
             <form method="POST" id="editUserForm" action="">
                 @csrf
                 @method('PATCH')
-                <div class="modal-body">
 
+                <div class="modal-body px-4 py-4">
+
+                    <!-- FULL NAME -->
                     <div class="mb-3">
-                        <label for="edit_full_name" class="form-label">Full Name</label>
-                        <input type="text" id="edit_full_name" name="full_name" class="form-control" required>
+                        <label for="edit_full_name" class="form-label fw-semibold">Full Name</label>
+                        <input type="text"
+                               id="edit_full_name"
+                               name="full_name"
+                               class="form-control form-control-lg"
+                               required>
                     </div>
 
+                    <!-- USERNAME -->
                     <div class="mb-3">
-                        <label for="edit_username" class="form-label">Username</label>
-                        <input type="text" id="edit_username" name="username" class="form-control" required>
+                        <label for="edit_username" class="form-label fw-semibold">Username</label>
+                        <input type="text"
+                               id="edit_username"
+                               name="username"
+                               class="form-control form-control-lg"
+                               required>
                     </div>
 
+                    <!-- PASSWORD -->
                     <div class="mb-3">
-                        <label for="edit_password" class="form-label">
+                        <label for="edit_password" class="form-label fw-semibold">
                             New Password
                             <span class="text-muted small">(leave blank to keep current)</span>
                         </label>
-                        <input type="password" id="edit_password" name="password" class="form-control" placeholder="Minimum 6 characters">
+                        <input type="password"
+                               id="edit_password"
+                               name="password"
+                               class="form-control form-control-lg"
+                               placeholder="Minimum 6 characters">
                     </div>
 
+                    <!-- ROLE -->
                     <div class="mb-3">
-                        <label for="edit_role_id" class="form-label">Role</label>
-                        <select id="edit_role_id" name="role_id" class="form-select" required>
+                        <label for="edit_role_id" class="form-label fw-semibold">Role</label>
+                        <select id="edit_role_id"
+                                name="role_id"
+                                class="form-select form-select-lg"
+                                required>
+
                             @foreach($roles as $role)
                                 @php
                                     $editRoleLabel = match($role->role_name) {
@@ -507,37 +612,63 @@
                                         default => $role->role_name
                                     };
                                 @endphp
-                                <option value="{{ $role->role_id }}">{{ $editRoleLabel }}</option>
+
+                                <option value="{{ $role->role_id }}">
+                                    {{ $editRoleLabel }}
+                                </option>
                             @endforeach
+
                         </select>
                     </div>
 
+                    <!-- PERMISSIONS -->
                     <div class="mb-3">
-                        <label class="form-label fw-semibold">Direct Permission Overrides</label>
-                        <div class="p-3 border rounded bg-light" style="max-height: 180px; overflow-y: auto;">
+                        <label class="form-label fw-semibold">
+                            Direct Permission Overrides
+                        </label>
+
+                        <div class="p-3 border rounded bg-light"
+                             style="max-height: 220px; overflow-y: auto; border-radius: 8px;">
+
                             @foreach($permissions as $perm)
                                 <div class="form-check mb-2">
-                                    <input class="form-check-input permission-checkbox" 
-                                           type="checkbox" 
-                                           name="permissions[]" 
-                                           value="{{ $perm->permission_id }}" 
+
+                                    <input class="form-check-input permission-checkbox"
+                                           type="checkbox"
+                                           name="permissions[]"
+                                           value="{{ $perm->permission_id }}"
                                            id="edit_perm_{{ $perm->permission_id }}">
+
                                     <label class="form-check-label" for="edit_perm_{{ $perm->permission_id }}">
-                                        <span class="fw-semibold text-dark">{{ $perm->permission_key }}</span>
-                                        <span class="text-muted small d-block" style="font-size: 0.75rem;">{{ $perm->description }} ({{ $perm->module }})</span>
+                                        <span class="fw-semibold">{{ $perm->permission_key }}</span>
+                                        <span class="text-muted d-block" style="font-size: 0.8rem;">
+                                            {{ $perm->description }} ({{ $perm->module }})
+                                        </span>
                                     </label>
+
                                 </div>
                             @endforeach
+
                         </div>
-                        <div class="form-text small text-muted">Explicitly grant these permissions regardless of the user's role.</div>
+
+                        <div class="form-text text-muted small mt-1">
+                            Explicitly grant these permissions regardless of the user's role.
+                        </div>
                     </div>
 
                 </div>
 
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-light" data-bs-dismiss="modal">Cancel</button>
-                    <button type="submit" class="btn btn-warning text-white">Save Changes</button>
+                <!-- FOOTER -->
+                <div class="modal-footer bg-light">
+                    <button type="button" class="btn btn-light px-4" data-bs-dismiss="modal">
+                        Cancel
+                    </button>
+
+                    <button type="submit" class="btn btn-warning text-white px-4">
+                        Save Changes
+                    </button>
                 </div>
+
             </form>
 
         </div>

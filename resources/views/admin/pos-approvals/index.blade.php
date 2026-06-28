@@ -117,46 +117,99 @@
         <div class="card-header bg-white border-0 py-3">
             <h5 class="fw-bold mb-0 text-dark"><i class="fa-solid fa-history text-muted me-2"></i>Authorization Log</h5>
         </div>
+
         <div class="card-body bg-light border-bottom py-3">
-            <form action="{{ route('admin.pos-approvals') }}" method="GET" class="row g-2 align-items-end">
-                <div class="col-lg-3 col-md-6">
-                    <label for="search" class="form-label small fw-semibold text-muted mb-1">Search</label>
-                    <div class="input-group input-group-sm">
-                        <span class="input-group-text bg-white"><i class="fa-solid fa-magnifying-glass text-muted"></i></span>
-                        <input type="text" name="search" id="search" class="form-control border-start-0" placeholder="Search order, tab, user, reason..." value="{{ request('search') }}">
+
+            <form id="posApprovalFilterForm"
+                action="{{ route('admin.pos-approvals') }}"
+                method="GET"
+                class="d-flex flex-wrap align-items-end gap-2">
+
+                <!-- SEARCH -->
+                <div style="width: 320px;">
+                    <label class="form-label small fw-semibold text-muted mb-1">Search</label>
+
+                    <div class="input-group"
+                        style="border: 1px solid #ced4da; border-radius: 6px; overflow: hidden; height: 38px;">
+
+                        <span class="input-group-text bg-white border-0">
+                            <i class="fa-solid fa-magnifying-glass text-muted"></i>
+                        </span>
+
+                        <input type="text"
+                            name="search"
+                            id="posSearchInput"
+                            class="form-control border-0 shadow-none"
+                            placeholder="Search order, tab, user, reason..."
+                            value="{{ request('search') }}"
+                            autocomplete="off">
                     </div>
                 </div>
-                <div class="col-lg-2 col-md-3 col-sm-6">
-                    <label for="request_type" class="form-label small fw-semibold text-muted mb-1">Request Type</label>
-                    <select name="request_type" id="request_type" class="form-select form-select-sm">
+
+                <!-- REQUEST TYPE -->
+                <div style="width: 180px;">
+                    <label class="form-label small fw-semibold text-muted mb-1">Request Type</label>
+
+                    <select name="request_type"
+                            class="form-select auto-filter"
+                            style="height: 38px; border-radius: 6px;">
+
                         <option value="all" {{ request('request_type') === 'all' || !request('request_type') ? 'selected' : '' }}>All Types</option>
                         <option value="cancel_tab" {{ request('request_type') === 'cancel_tab' ? 'selected' : '' }}>Void Tab</option>
                         <option value="refund" {{ request('request_type') === 'refund' ? 'selected' : '' }}>Refund Order</option>
                         <option value="cancel_order" {{ request('request_type') === 'cancel_order' ? 'selected' : '' }}>Cancel Order</option>
+
                     </select>
                 </div>
-                <div class="col-lg-2 col-md-3 col-sm-6">
-                    <label for="status" class="form-label small fw-semibold text-muted mb-1">Status</label>
-                    <select name="status" id="status" class="form-select form-select-sm">
-                        <option value="all" {{ request('status') === 'all' || !request('status') ? 'selected' : '' }}>All Statuses</option>
+
+                <!-- STATUS -->
+                <div style="width: 160px;">
+                    <label class="form-label small fw-semibold text-muted mb-1">Status</label>
+
+                    <select name="status"
+                            class="form-select auto-filter"
+                            style="height: 38px; border-radius: 6px;">
+
+                        <option value="all" {{ request('status') === 'all' || !request('status') ? 'selected' : '' }}>All</option>
                         <option value="approved" {{ request('status') === 'approved' ? 'selected' : '' }}>Approved</option>
                         <option value="rejected" {{ request('status') === 'rejected' ? 'selected' : '' }}>Rejected</option>
+
                     </select>
                 </div>
-                <div class="col-lg-2 col-md-6 col-sm-6">
-                    <label for="date_from" class="form-label small fw-semibold text-muted mb-1">Date From</label>
-                    <input type="date" name="date_from" id="date_from" class="form-control form-control-sm" value="{{ request('date_from') }}">
+
+                <!-- DATE FROM -->
+                <div style="width: 170px;">
+                    <label class="form-label small fw-semibold text-muted mb-1">Date From</label>
+
+                    <input type="date"
+                        name="date_from"
+                        class="form-control auto-filter"
+                        style="height: 38px; border-radius: 6px;"
+                        value="{{ request('date_from') }}">
                 </div>
-                <div class="col-lg-2 col-md-6 col-sm-6">
-                    <label for="date_until" class="form-label small fw-semibold text-muted mb-1">Date Until</label>
-                    <input type="date" name="date_until" id="date_until" class="form-control form-control-sm" value="{{ request('date_until') }}">
+
+                <!-- DATE UNTIL -->
+                <div style="width: 170px;">
+                    <label class="form-label small fw-semibold text-muted mb-1">Date Until</label>
+
+                    <input type="date"
+                        name="date_until"
+                        class="form-control auto-filter"
+                        style="height: 38px; border-radius: 6px;"
+                        value="{{ request('date_until') }}">
                 </div>
-                <div class="col-lg-1 col-md-12 d-flex gap-1 justify-content-end">
-                    <button type="submit" class="btn btn-sm btn-primary w-100"><i class="fa-solid fa-filter me-1"></i>Filter</button>
-                    @if(request()->anyFilled(['search', 'request_type', 'status', 'date_from', 'date_until']))
-                        <a href="{{ route('admin.pos-approvals') }}" class="btn btn-sm btn-outline-secondary" title="Clear Filters"><i class="fa-solid fa-rotate-left"></i></a>
-                    @endif
-                </div>
+
+                <!-- RESET (ONLY SHOW IF FILTERS ACTIVE) -->
+                @if(request()->anyFilled(['search','request_type','status','date_from','date_until']))
+                    <a href="{{ route('admin.pos-approvals') }}"
+                    class="btn btn-outline-danger d-flex align-items-center justify-content-center"
+                    style="height: 38px; width: 42px; border-radius: 6px;"
+                    title="Reset Filters">
+
+                        <i class="fa-solid fa-rotate"></i>
+                    </a>
+                @endif
+
             </form>
         </div>
         <div class="table-responsive">
@@ -433,6 +486,24 @@
     }
 
     setInterval(pollPendingRequests, 5000);
+
+    (() => {
+        const form = document.getElementById('posApprovalFilterForm');
+        const searchInput = document.getElementById('posSearchInput');
+
+        let timer;
+
+        // auto-submit for selects + date
+        document.querySelectorAll('.auto-filter').forEach(el => {
+            el.addEventListener('change', () => form.submit());
+        });
+
+        // debounce search input
+        searchInput.addEventListener('input', () => {
+            clearTimeout(timer);
+            timer = setTimeout(() => form.submit(), 500);
+        });
+    })();
 </script>
 @endpush
 @endsection

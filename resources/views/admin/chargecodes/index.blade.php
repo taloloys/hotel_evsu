@@ -38,10 +38,10 @@
 <div class="row g-3 mb-4">
 
     <div class="col-md-4">
-        <div class="card border-0 shadow-sm">
+        <div class="card border-1 shadow-sm">
             <div class="card-body d-flex justify-content-between align-items-center">
                 <div>
-                    <div class="text-muted small">Total Charge Codes</div>
+                    <div class="text-muted large">Total Charge Codes</div>
                     <h4 class="mb-0 fw-bold">{{ $totalCount }}</h4>
                 </div>
                 <div class="bg-primary-subtle text-primary rounded-circle d-flex align-items-center justify-content-center" style="width: 48px; height: 48px;">
@@ -52,10 +52,10 @@
     </div>
 
     <div class="col-md-4">
-        <div class="card border-0 shadow-sm">
+        <div class="card border-1 shadow-sm">
             <div class="card-body d-flex justify-content-between align-items-center">
                 <div>
-                    <div class="text-muted small">Active</div>
+                    <div class="text-muted large">Active</div>
                     <h4 class="mb-0 fw-bold text-success">{{ $activeCount }}</h4>
                 </div>
                 <div class="bg-success-subtle text-success rounded-circle d-flex align-items-center justify-content-center" style="width: 48px; height: 48px;">
@@ -66,10 +66,10 @@
     </div>
 
     <div class="col-md-4">
-        <div class="card border-0 shadow-sm">
+        <div class="card border-1 shadow-sm">
             <div class="card-body d-flex justify-content-between align-items-center">
                 <div>
-                    <div class="text-muted small">Inactive</div>
+                    <div class="text-muted large">Inactive</div>
                     <h4 class="mb-0 fw-bold text-danger">{{ $inactiveCount }}</h4>
                 </div>
                 <div class="bg-danger-subtle text-danger rounded-circle d-flex align-items-center justify-content-center" style="width: 48px; height: 48px;">
@@ -81,58 +81,105 @@
 
 </div>
 
-<!-- ACTIONS BAR -->
-<div class="d-flex justify-content-end align-items-center mb-3 gap-2 flex-wrap">
+<!-- PAGE HEADER + ACTIONS BAR -->
+<div class="d-flex justify-content-between align-items-start flex-wrap gap-3 mb-3">
 
-    <!-- SEARCH (SMALL) -->
-    <div style="width: 220px;">
-        <input type="text"
-               id="chargeSearchInput"
-               class="form-control form-control-sm"
-               placeholder="Search code or description..."
-               autocomplete="off">
+    <!-- TITLE -->
+    <div>
+        <h5 class="fw-bold mb-0">Charge Codes</h5>
+        <small class="text-muted">Manage charge codes, categories, and status</small>
     </div>
 
-    <!-- FILTER BUTTON -->
-    <div class="dropdown">
-        <button class="btn btn-outline-secondary btn-sm"
-                data-bs-toggle="dropdown">
-            <i class="fa-solid fa-filter"></i>
-        </button>
-        <div class="dropdown-menu dropdown-menu-end p-3" style="min-width: 260px;">
-            <label class="form-label small mb-1">Category</label>
-            <select id="filterCategorySelect" class="form-select form-select-sm mb-2">
-                <option value="">All Categories</option>
-                @foreach($categories as $category)
-                    <option value="{{ $category }}">{{ str_replace('_', ' ', $category) }}</option>
-                @endforeach
-            </select>
+    <!-- RIGHT ACTIONS -->
+    <div class="d-flex justify-content-end align-items-center gap-2 flex-wrap">
 
-            <label class="form-label small mb-1">Status</label>
-            <select id="filterStatusSelect" class="form-select form-select-sm mb-3">
-                <option value="">All Statuses</option>
-                <option value="active">Active</option>
-                <option value="disabled">Inactive</option>
-            </select>
+        <!-- SEARCH -->
+        <div style="width: 340px;">
+            <div class="input-group"
+                 style="border: 1px solid #ced4da; border-radius: 6px; overflow: hidden; height: 38px;">
 
-            <div class="d-flex gap-2">
-                <button id="filterApplyBtn" class="btn btn-primary btn-sm w-50">Apply</button>
-                <button id="filterResetBtn" class="btn btn-light btn-sm w-50">Reset</button>
+                <span class="input-group-text bg-white border-0">
+                    <i class="fa-solid fa-magnifying-glass text-muted"></i>
+                </span>
+
+                <input type="text"
+                       id="chargeSearchInput"
+                       class="form-control border-0 shadow-none"
+                       placeholder="Search code or description..."
+                       autocomplete="off">
             </div>
         </div>
+
+        <!-- FILTER -->
+        <div class="dropdown">
+
+            <button class="btn btn-outline-secondary d-flex align-items-center gap-1 px-3"
+                    data-bs-toggle="dropdown"
+                    style="height: 38px; border-radius: 6px;">
+
+                <i class="fa-solid fa-filter"></i>
+                <span>Filter</span>
+
+            </button>
+
+            <div class="dropdown-menu dropdown-menu-end p-3 shadow-sm"
+                 style="min-width: 280px; border-radius: 8px;">
+
+                <label class="form-label small mb-1 fw-semibold">Category</label>
+                <select id="filterCategorySelect"
+                        class="form-select mb-3"
+                        style="height: 38px; border-radius: 6px;">
+
+                    <option value="">All Categories</option>
+
+                    @foreach($categories as $category)
+                        <option value="{{ $category }}">
+                            {{ str_replace('_', ' ', $category) }}
+                        </option>
+                    @endforeach
+
+                </select>
+
+                <label class="form-label small mb-1 fw-semibold">Status</label>
+                <select id="filterStatusSelect"
+                        class="form-select mb-3"
+                        style="height: 38px; border-radius: 6px;">
+
+                    <option value="">All Statuses</option>
+                    <option value="active">Active</option>
+                    <option value="disabled">Inactive</option>
+
+                </select>
+
+                <div class="d-flex gap-2">
+                    <button id="filterApplyBtn" class="btn btn-primary w-50" style="height: 38px;">
+                        Apply
+                    </button>
+
+                    <button id="filterResetBtn" class="btn btn-light w-50" style="height: 38px;">
+                        Reset
+                    </button>
+                </div>
+
+            </div>
+        </div>
+
+        <!-- ADD CHARGE -->
+        <button class="btn btn-primary d-flex align-items-center gap-2 px-3"
+                style="height: 38px; border-radius: 6px;"
+                data-bs-toggle="modal"
+                data-bs-target="#addChargeModal">
+
+            <i class="fa-solid fa-plus"></i>
+            <span>Add Charge</span>
+
+        </button>
+
     </div>
-
-    <!-- ADD CHARGE CODE -->
-    <button class="btn btn-primary btn-sm px-3"
-            data-bs-toggle="modal"
-            data-bs-target="#addChargeModal">
-        <i class="fa-solid fa-plus me-1"></i>
-        Add Charge
-    </button>
-
 </div>
 
-<!-- CHARGE CODES TABLE -->
+
+<!-- TABLE SECTION (FIXED OUTSIDE HEADER) -->
 <div class="card border-0 shadow-sm">
 
     <div class="table-responsive">
@@ -156,17 +203,22 @@
                         data-category="{{ strtolower($charge->category) }}"
                         data-active="{{ $charge->is_active ? 'active' : 'disabled' }}"
                         @if(!$charge->is_active) class="opacity-75 bg-light-subtle" @endif>
+
                         <td class="ps-3 fw-bold text-primary">
                             {{ $charge->charge_code }}
                         </td>
+
                         <td class="fw-semibold">
-                            <span class="text-muted me-2">[{{ $charge->charge_code }}]</span>{{ $charge->description }}
+                            <span class="text-muted me-2">[{{ $charge->charge_code }}]</span>
+                            {{ $charge->description }}
                         </td>
+
                         <td>
                             <span class="badge bg-light text-dark border">
                                 {{ str_replace('_', ' ', $charge->category) }}
                             </span>
                         </td>
+
                         <td>
                             @if($charge->is_active)
                                 <span class="badge bg-success">
@@ -180,12 +232,13 @@
                                 </span>
                             @endif
                         </td>
+
                         <td class="text-center">
                             <div class="d-flex justify-content-center gap-1">
-                                <!-- EDIT BUTTON -->
+
+                                <!-- EDIT -->
                                 <button type="button"
                                         class="btn btn-sm btn-outline-primary"
-                                        title="Edit Charge Code"
                                         data-bs-toggle="modal"
                                         data-bs-target="#editChargeModal"
                                         data-charge-code="{{ $charge->charge_code }}"
@@ -195,20 +248,24 @@
                                     <i class="fa-solid fa-pen"></i>
                                 </button>
 
-                                <!-- TOGGLE STATUS BUTTON -->
-                                <form action="{{ route('admin.chargecodes.toggle', $charge) }}" method="POST" class="d-inline m-0">
+                                <!-- TOGGLE -->
+                                <form action="{{ route('admin.chargecodes.toggle', $charge) }}"
+                                      method="POST"
+                                      class="d-inline m-0">
                                     @csrf
                                     @method('PATCH')
+
                                     @if($charge->is_active)
-                                        <button type="submit" class="btn btn-sm btn-outline-danger" title="Disable Charge Code">
+                                        <button type="submit" class="btn btn-sm btn-outline-danger">
                                             <i class="fa-solid fa-ban"></i>
                                         </button>
                                     @else
-                                        <button type="submit" class="btn btn-sm btn-outline-success" title="Enable Charge Code">
+                                        <button type="submit" class="btn btn-sm btn-outline-success">
                                             <i class="fa-solid fa-check"></i>
                                         </button>
                                     @endif
                                 </form>
+
                             </div>
                         </td>
                     </tr>
@@ -220,10 +277,10 @@
                     </tr>
                 @endforelse
 
-                {{-- Shown by JS when filters hide all rows --}}
                 <tr id="noFilterResultsRow" style="display:none;">
                     <td colspan="5" class="text-center py-4 text-muted">
-                        <i class="fa-solid fa-magnifying-glass me-2"></i>No charge codes match your search or filter.
+                        <i class="fa-solid fa-magnifying-glass me-2"></i>
+                        No charge codes match your search or filter.
                     </td>
                 </tr>
 
