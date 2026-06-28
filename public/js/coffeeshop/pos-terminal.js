@@ -299,18 +299,42 @@
         products.forEach(product => {
             const col = document.createElement('div');
             col.className = 'col-md-3 col-6 product-tile';
-            col.innerHTML = `
-                <div class="card border-0 shadow-sm h-100 ${product.stock_quantity <= 0 ? 'opacity-50' : ''}">
-                    <div class="card-body text-center">
-                        ${product.image_url ? `<img src="${product.image_url}" class="mb-2 rounded" style="max-height:48px;" alt="">` : '<i class="fa-solid fa-mug-hot fa-2x text-warning mb-2"></i>'}
-                        <div class="fw-semibold">${product.name}</div>
-                        <small class="text-muted d-block">${product.description || ''}</small>
-                        <small class="text-muted">${product.category || ''}</small>
-                        <div class="fw-bold text-primary mt-2">${formatMoney(product.price)}</div>
-                        <small class="${product.is_low_stock ? 'text-danger' : 'text-muted'}">Stock: ${product.stock_quantity}</small>
-                        <button type="button" class="btn btn-primary btn-sm w-100 mt-2 px-4 py-2 add-product-btn" data-product-id="${product.product_id}" ${product.stock_quantity <= 0 ? 'disabled' : ''}>ADD</button>
+           col.innerHTML = `
+            <div class="card border-0 shadow-sm h-100 ${product.stock_quantity <= 0 ? 'opacity-50' : ''}">
+                <div class="card-body d-flex flex-column text-center">
+
+                    ${product.image_url
+                        ? `<img src="${product.image_url}" class="mb-2 rounded mx-auto" style="max-height:48px;" alt="">`
+                        : `<i class="fa-solid fa-mug-hot fa-2x text-warning mb-2"></i>`}
+
+                    <div class="fw-semibold">${product.name}</div>
+
+                    <small class="text-muted d-block" style="min-height:48px;">
+                        ${product.description || ''}
+                    </small>
+
+                    <small class="text-muted mb-2">
+                        ${product.category || ''}
+                    </small>
+
+                    <div class="fw-bold text-primary">
+                        ${formatMoney(product.price)}
                     </div>
+
+                    <small class="${product.is_low_stock ? 'text-danger' : 'text-muted'}">
+                        Stock: ${product.stock_quantity}
+                    </small>
+
+                    <button
+                        type="button"
+                        class="btn btn-primary btn-sm w-100 px-4 py-2 mt-auto add-product-btn"
+                        data-product-id="${product.product_id}"
+                        ${product.stock_quantity <= 0 ? 'disabled' : ''}>
+                        ADD
+                    </button>
+
                 </div>
+            </div>
             `;
             productGrid.appendChild(col);
         });

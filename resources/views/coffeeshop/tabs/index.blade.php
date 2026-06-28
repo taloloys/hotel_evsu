@@ -82,7 +82,6 @@
                     <th>Total</th>
                     <th>Status</th>
                     <th>Opened</th>
-                    <th class="text-end pe-4">Action</th>
                 </tr>
 
                 </thead>

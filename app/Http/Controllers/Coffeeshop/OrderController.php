@@ -86,11 +86,42 @@ class OrderController extends Controller
     public function refund(Request $request, PosOrder $order, PosOrderService $orderService): RedirectResponse
     {
         $user = auth()->user();
-        $isAdmin = $user && ($user->role?->is_system_admin || $user->role?->role_name === 'ADMIN');
+
+        $isAdmin = $user && (
+            $user->role?->is_system_admin ||
+            $user->role?->role_name === 'ADMIN'
+        );
+
+        // 🚨 1. HARD STOP: already refunded
+        if ($order->status === 'refunded') {
+            return back()->withErrors([
+                'order' => 'This order has already been refunded.'
+            ]);
+        }
+
+        // 🚨 2. HARD STOP: already has pending request
+        $existing = PosApprovalRequest::where('order_id', $order->order_id)
+            ->where('request_type', 'refund')
+            ->where('status', 'pending')
+            ->exists();
+
+        if ($existing && !$isAdmin) {
+            return back()->withErrors([
+                'order' => 'A refund request is already pending for this order.'
+            ]);
+        }
 
         if ($isAdmin) {
             try {
                 $orderService->refundOrder($order);
+
+                // 🔒 extra safety: ensure status is locked immediately
+                $order->refresh();
+
+                if ($order->status === 'refunded') {
+                    return back()->with('success', 'Order already refunded.');
+                }
+
             } catch (\RuntimeException $e) {
                 return back()->withErrors(['order' => $e->getMessage()]);
             }
@@ -98,15 +129,7 @@ class OrderController extends Controller
             return back()->with('success', 'Order refunded and inventory restored.');
         }
 
-        $existing = PosApprovalRequest::where('order_id', $order->order_id)
-            ->where('request_type', 'refund')
-            ->where('status', 'pending')
-            ->exists();
-
-        if ($existing) {
-            return back()->withErrors(['order' => 'A refund request is already pending for this order.']);
-        }
-
+        // 🚨 prevent duplicate request creation
         PosApprovalRequest::create([
             'order_id' => $order->order_id,
             'request_type' => 'refund',

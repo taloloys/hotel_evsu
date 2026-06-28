@@ -63,24 +63,45 @@
 
         <div class="row g-3" id="product-grid">
             @foreach($products as $product)
-            <div class="col-md-3 col-6 product-tile" data-product-id="{{ $product->product_id }}" data-category-id="{{ $product->category_id }}">
+            <div class="col-md-3 col-6 product-tile"
+                data-product-id="{{ $product->product_id }}"
+                data-category-id="{{ $product->category_id }}">
+
                 <div class="card border-0 shadow-sm h-100 {{ $product->stock_quantity <= 0 ? 'opacity-50' : '' }}">
-                    <div class="card-body text-center">
+                    <div class="card-body d-flex flex-column text-center">
+
                         @if($product->image_url)
-                            <img src="{{ $product->image_url }}" class="mb-2 rounded" style="max-height:48px;" alt="">
+                            <img src="{{ $product->image_url }}" class="mb-2 rounded mx-auto" style="max-height:48px;" alt="">
                         @else
                             <i class="fa-solid fa-mug-hot fa-2x text-warning mb-2"></i>
                         @endif
+
                         <div class="fw-semibold">{{ $product->name }}</div>
-                        <small class="text-muted d-block">{{ Str::limit($product->description, 40) }}</small>
-                        <small class="text-muted">{{ $product->category?->name }}</small>
-                        <div class="fw-bold text-primary mt-2">₱{{ number_format($product->price, 2) }}</div>
-                        <small class="{{ $product->isLowStock() ? 'text-danger' : 'text-muted' }}">Stock: {{ $product->stock_quantity }}</small>
-                        <button type="button" class="btn btn-primary btn-sm w-100 px-4 py-2 mt-2 add-product-btn"
-                                data-product-id="{{ $product->product_id }}"
-                                {{ $product->stock_quantity <= 0 ? 'disabled' : '' }}>
+
+                        <small class="text-muted d-block" style="min-height:48px;">
+                            {{ Str::limit($product->description, 40) }}
+                        </small>
+
+                        <small class="text-muted mb-2">
+                            {{ $product->category?->name }}
+                        </small>
+
+                        <div class="fw-bold text-primary">
+                            ₱{{ number_format($product->price, 2) }}
+                        </div>
+
+                        <small class="{{ $product->isLowStock() ? 'text-danger' : 'text-muted' }}">
+                            Stock: {{ $product->stock_quantity }}
+                        </small>
+
+                        <button
+                            type="button"
+                            class="btn btn-primary btn-sm w-100 px-4 py-2 mt-auto add-product-btn"
+                            data-product-id="{{ $product->product_id }}"
+                            {{ $product->stock_quantity <= 0 ? 'disabled' : '' }}>
                             ADD
                         </button>
+
                     </div>
                 </div>
             </div>

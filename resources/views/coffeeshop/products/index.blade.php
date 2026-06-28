@@ -9,16 +9,38 @@
 
 <div class="d-flex justify-content-between align-items-center mb-3">
     <form class="row g-2" method="GET">
-        <div class="col-auto"><input type="text" name="search" value="{{ request('search') }}" class="form-control" placeholder="Search products"></div>
         <div class="col-auto">
-            <select name="category_id" class="form-select">
+
+            <div class="input-group" style="width: 450px; border: 1px solid;">
+                <span class="input-group-text bg-white">
+                    <i class="fa-solid fa-magnifying-glass text-muted"></i>
+                </span>
+
+                <input type="text"
+                    name="search"
+                    value="{{ request('search') }}"
+                    class="form-control"
+                    placeholder="Search products..."
+                    onkeydown="if(event.key==='Enter'){ this.form.submit(); }">
+            </div>
+        </div>
+        <div class="col-auto">
+            <select name="category_id"
+                    class="form-select"
+                    style="width: 220px; border: 1px solid;"
+                    onchange="this.form.submit()">
+
                 <option value="all">All Categories</option>
+
                 @foreach($categories as $category)
-                <option value="{{ $category->category_id }}" @selected(request('category_id') == $category->category_id)>{{ $category->name }}</option>
+                    <option value="{{ $category->category_id }}"
+                        @selected(request('category_id') == $category->category_id)>
+                        {{ $category->name }}
+                    </option>
                 @endforeach
+
             </select>
         </div>
-        <div class="col-auto"><button class="btn btn-outline-secondary">Filter</button></div>
     </form>
     <a href="{{ route('coffeeshop.products.create') }}" class="btn btn-primary"><i class="fa-solid fa-plus me-1"></i> Add Product</a>
 </div>
