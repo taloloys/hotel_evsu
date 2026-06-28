@@ -360,4 +360,64 @@ class GuestFolioController extends Controller
 
         return back()->with('success', "Folio #{$folio->folio_number} has been reopened.");
     }
+
+    /**
+     * Mark a folio as paid — post a clearing payment and close the folio.
+     */
+    public function markAsPaid(Request $request, Folio $folio): RedirectResponse
+    {
+        if ($folio->status !== 'OPEN') {
+            return back()->withErrors(['payment' => 'Only open folios can be marked as paid.']);
+        }
+
+        $validated = $request->validate([
+            'payment_method' => ['required', 'string', 'in:Cash,Credit Card'],
+            'amount' => ['required', 'numeric', 'min:0.01'],
+            'reference_notes' => ['nullable', 'string', 'max:255'],
+        ]);
+
+        $userId = auth()->id() ?? 1;
+
+        $activeShift = Shift::where('user_id', $userId)->whereNull('end_time')->first();
+        if (! $activeShift) {
+            $activeShift = Shift::orderBy('shift_id', 'desc')->first();
+            if (! $activeShift) {
+                $activeShift = Shift::create([
+                    'user_id' => $userId,
+                    'start_time' => Carbon::now(),
+                ]);
+            }
+        }
+
+        // Determine payment charge code (Cash = 403, Credit Card = 401)
+        $chargeCode = $validated['payment_method'] === 'Credit Card' ? '401' : '403';
+        $paymentMethod = $validated['payment_method'] === 'Credit Card' ? 'CREDIT_CARD' : 'CASH';
+
+        DB::transaction(function () use ($folio, $validated, $activeShift, $userId, $chargeCode, $paymentMethod) {
+            Transaction::create([
+                'folio_id' => $folio->folio_id,
+                'charge_code' => $chargeCode,
+                'shift_id' => $activeShift->shift_id,
+                'user_id' => $userId,
+                'transaction_date' => Carbon::now()->toDateString(),
+                'charge_number' => 'PAY-'.time(),
+                'payment_method' => $paymentMethod,
+                'reference_notes' => $validated['reference_notes'] ?? 'Full payment',
+                'charge_amount' => 0.00,
+                'credit_amount' => $validated['amount'],
+            ]);
+
+            $folio->update([
+                'status' => 'CLOSED',
+                'payment_method' => $validated['payment_method'],
+            ]);
+        });
+
+        ActivityLog::log(
+            'ROOM_MODIFIED',
+            "Marked Folio #{$folio->folio_number} as Paid (₱".number_format($validated['amount'], 2).') and closed.'
+        );
+
+        return back()->with('success', "Folio #{$folio->folio_number} marked as paid and closed.");
+    }
 }

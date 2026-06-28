@@ -63,6 +63,7 @@ class RegistrationController extends Controller
             'num_free_breakfasts' => ['nullable', 'integer', 'min:0', 'max:20'],
             'breakfast_code' => ['nullable', 'string', 'max:20'],
             'payment_method' => ['nullable', 'string', 'in:Cash,Credit Card'],
+            'net_rate' => ['nullable', 'numeric', 'min:0'],
             'room_id' => ['required', 'integer', 'exists:rooms,room_id'],
             'arrival_date' => ['required', 'date', 'after_or_equal:today'],
             'arrival_time' => ['required', 'date_format:H:i'],
@@ -114,7 +115,9 @@ class RegistrationController extends Controller
                 'folio_type' => 'GUEST',
                 'status' => 'OPEN',
                 'payment_method' => $validated['payment_method'] ?? 'Cash',
-                'net_rate' => $room->base_rate,
+                'net_rate' => (isset($validated['net_rate']) && $validated['net_rate'] !== null && $validated['net_rate'] !== '')
+                    ? (float) $validated['net_rate']
+                    : $room->base_rate,
             ]);
 
             $booking = Booking::create([

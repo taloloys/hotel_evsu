@@ -528,68 +528,10 @@
         `;
 
         const modal = new bootstrap.Modal(document.getElementById('receiptModal'));
+        modal.show();
         setTimeout(() => {
             window.printReceipt();
         }, 300);
-        modal.show();
-        // AUTO PRINT RECEIPT (no button needed)
-        setTimeout(() => {
-            const printContent = document.getElementById('receipt-content').innerHTML;
-
-            const printWindow = window.open('', '', 'width=400,height=600');
-
-            printWindow.document.write(`
-                <html>
-                <head>
-                    <title>Receipt</title>
-                    <style>
-                        body {
-                            font-family: Arial;
-                            padding: 10px;
-                            font-size: 12px;
-                            width: 280px;
-                        }
-
-                        .receipt {
-                            width: 100%;
-                        }
-
-                        table {
-                            width: 100%;
-                            border-collapse: collapse;
-                            font-size: 12px;
-                        }
-
-                        td, th {
-                            padding: 4px 0;
-                        }
-
-                        .text-center {
-                            text-align: center;
-                        }
-
-                        .text-end {
-                            text-align: right;
-                        }
-                    </style>
-                </head>
-                <body>
-                    ${content}
-                    <script>
-                        window.onload = function() {
-                            window.print();
-                            window.onafterprint = window.close;
-                        }
-                    <\/script>
-                </body>
-                </html>
-            `);
-
-            printWindow.document.close();
-            printWindow.focus();
-            printWindow.print();
-            printWindow.close();
-        }, 500);
     }
 
     async function updateItemQuantity(itemId, quantity) {
@@ -797,12 +739,6 @@
 
             showReceipt(data);
 
-            // AUTO OPEN PRINT
-           setTimeout(() => {
-                if (typeof window.printReceipt === 'function') {
-                    window.printReceipt();
-                }
-            }, 100);
             
             tabs = tabs.filter(t => t.tab_id !== activeTabId);
             renderTabs();
@@ -851,11 +787,6 @@
             const result = await executeClose({
                 payment_method: 'cash'
             });
-
-            // ensure receipt prints even if modal timing delays it
-            setTimeout(() => {
-                window.printReceipt();
-            }, 200);
 
         });
     });
@@ -959,11 +890,29 @@
             <head>
                 <title>Receipt</title>
                 <style>
-                    body { font-family: Arial; padding: 20px; }
-                    table { width: 100%; border-collapse: collapse; }
-                    th, td { border-bottom: 1px solid #ddd; padding: 6px; }
-                    .text-end { text-align: right; }
-                    .text-center { text-align: center; }
+                    body {
+                        font-family: Arial;
+                        padding: 10px;
+                        font-size: 12px;
+                        width: 280px;
+                    }
+                    .receipt {
+                        width: 100%;
+                    }
+                    table {
+                        width: 100%;
+                        border-collapse: collapse;
+                        font-size: 12px;
+                    }
+                    td, th {
+                        padding: 4px 0;
+                    }
+                    .text-center {
+                        text-align: center;
+                    }
+                    .text-end {
+                        text-align: right;
+                    }
                 </style>
             </head>
             <body>
@@ -979,6 +928,7 @@
         `);
 
         win.document.close();
+        win.focus();
     };
 
     bindProductButtons();

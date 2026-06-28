@@ -136,7 +136,11 @@
     @stack('styles')
 </head>
 
-<body>
+<body
+    data-flash-success="{{ session('success') }}"
+    data-flash-error="{{ session('error') }}"
+    data-flash-validation="{{ $errors->any() ? $errors->first() : '' }}"
+>
 
 <div class="sidebar">
     @include('layouts.sidebar')
@@ -153,6 +157,48 @@
 </div>
 
 @stack('modals')
+
+<!-- SweetAlert2 -->
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script>
+    document.addEventListener('turbo:load', function() {
+        const body = document.body;
+
+        // Read and immediately clear so Turbo cache replays never re-fire
+        const flashSuccess    = body.getAttribute('data-flash-success');
+        const flashError      = body.getAttribute('data-flash-error');
+        const flashValidation = body.getAttribute('data-flash-validation');
+
+        body.removeAttribute('data-flash-success');
+        body.removeAttribute('data-flash-error');
+        body.removeAttribute('data-flash-validation');
+
+        if (flashSuccess) {
+            Swal.fire({
+                icon: 'success',
+                title: 'Success!',
+                text: flashSuccess,
+                confirmButtonColor: '#2563eb',
+                timer: 3000,
+                timerProgressBar: true
+            });
+        } else if (flashError) {
+            Swal.fire({
+                icon: 'error',
+                title: 'Error!',
+                text: flashError,
+                confirmButtonColor: '#2563eb'
+            });
+        } else if (flashValidation) {
+            Swal.fire({
+                icon: 'error',
+                title: 'Validation Error',
+                text: flashValidation,
+                confirmButtonColor: '#2563eb'
+            });
+        }
+    });
+</script>
 
 
 

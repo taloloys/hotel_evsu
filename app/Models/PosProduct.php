@@ -51,8 +51,18 @@ class PosProduct extends Model
 
     public function scopeLowStock($query)
     {
+        $default = PosSetting::defaultLowStockThreshold();
+
         return $query->where('is_active', true)
-            ->where('stock_quantity', '<=', 50);
+            ->where(function ($q) use ($default) {
+                $q->where(function ($sub) use ($default) {
+                    $sub->whereNull('low_stock_threshold')
+                        ->where('stock_quantity', '<=', $default);
+                })->orWhere(function ($sub) {
+                    $sub->whereNotNull('low_stock_threshold')
+                        ->whereColumn('stock_quantity', '<=', 'low_stock_threshold');
+                });
+            });
     }
 
     public function effectiveLowStockThreshold(): int

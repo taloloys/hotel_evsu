@@ -137,10 +137,11 @@
 
                                 @php
                                     $stock = $product->stock_quantity;
+                                    $threshold = $product->effectiveLowStockThreshold();
 
                                     $isOut = $stock <= 0;
-                                    $isCritical = $stock > 0 && $stock <= 20;
-                                    $isLow = $stock > 20 && $stock <= 50;
+                                    $isCritical = $stock > 0 && $stock <= (int)($threshold * 0.4);
+                                    $isLow = $stock > (int)($threshold * 0.4) && $stock <= $threshold;
 
                                     $stockClass = match(true) {
                                         $isOut => 'bg-secondary',
