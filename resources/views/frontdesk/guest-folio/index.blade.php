@@ -380,7 +380,17 @@
                                         <div>
                                             <label class="form-label small fw-semibold text-muted mb-2 d-block">FOLIO & STAY OPERATIONS</label>
                                             <div class="d-flex flex-wrap gap-2">
-                                                @if($folio->status === 'OPEN')
+                                            @if($folio->status === 'OPEN')
+                                                    {{-- Mark as Paid button --}}
+                                                    <button type="button"
+                                                        class="btn btn-sm btn-success fw-semibold"
+                                                        data-bs-toggle="modal"
+                                                        data-bs-target="#markPaidModal{{ $folio->folio_id }}"
+                                                    >
+                                                        <i class="fa-solid fa-circle-check me-1"></i> Mark as Paid
+                                                    </button>
+
+                                                    {{-- Close Folio (no payment posted, balance must be 0) --}}
                                                     <form method="POST" action="{{ route('frontdesk.guest-folio.close', $folio->folio_id) }}" class="d-inline">
                                                         @csrf
                                                         <button type="submit" class="btn btn-sm btn-danger" onclick="return confirm('Are you sure you want to close this folio?')">
@@ -620,7 +630,88 @@
         </div>
     </div>
 
+    {{-- Mark as Paid Modal --}}
+    @if($folio->status === 'OPEN')
+    <div class="modal fade" id="markPaidModal{{ $folio->folio_id }}" tabindex="-1" aria-labelledby="markPaidModalLabel{{ $folio->folio_id }}" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content border-0 shadow">
+                <div class="modal-header border-0 pb-0">
+                    <h5 class="modal-title fw-bold" id="markPaidModalLabel{{ $folio->folio_id }}">
+                        <i class="fa-solid fa-circle-check text-success me-2"></i> Mark Folio as Paid
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <form method="POST" action="{{ route('frontdesk.guest-folio.mark-paid', $folio->folio_id) }}">
+                    @csrf
+                    <div class="modal-body">
+                        <p class="text-muted small mb-3">
+                            This will post a payment transaction, update the payment method, and <strong>close</strong> the folio.
+                        </p>
+
+                        {{-- Balance Summary --}}
+                        <div class="bg-light rounded-3 p-3 mb-3 border">
+                            <div class="d-flex justify-content-between small mb-1">
+                                <span class="text-muted">Total Charges:</span>
+                                <span class="fw-semibold text-danger">₱{{ number_format($totalCharge, 2) }}</span>
+                            </div>
+                            <div class="d-flex justify-content-between small mb-1">
+                                <span class="text-muted">Total Credits:</span>
+                                <span class="fw-semibold text-success">₱{{ number_format($totalCredit, 2) }}</span>
+                            </div>
+                            <div class="d-flex justify-content-between fw-bold border-top pt-2 mt-1">
+                                <span>Outstanding Balance:</span>
+                                <span class="{{ $balance > 0 ? 'text-danger' : 'text-success' }}">
+                                    ₱{{ number_format(abs($balance), 2) }}
+                                    {{ $balance > 0 ? '(Due)' : ($balance < 0 ? '(Overpaid)' : '(Settled)') }}
+                                </span>
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold" for="paid_amount_{{ $folio->folio_id }}">Payment Amount <span class="text-danger">*</span></label>
+                            <div class="input-group">
+                                <span class="input-group-text">₱</span>
+                                <input
+                                    type="number"
+                                    class="form-control"
+                                    id="paid_amount_{{ $folio->folio_id }}"
+                                    name="amount"
+                                    value="{{ number_format(max($balance, 0), 2, '.', '') }}"
+                                    min="0.01"
+                                    step="0.01"
+                                    required
+                                >
+                            </div>
+                            <div class="form-text">Automatically set to the outstanding balance. Adjust if needed.</div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold" for="paid_method_{{ $folio->folio_id }}">Payment Method <span class="text-danger">*</span></label>
+                            <select class="form-select" id="paid_method_{{ $folio->folio_id }}" name="payment_method" required>
+                                <option value="Cash" @selected(($folio->payment_method ?? 'Cash') === 'Cash')>💵 Cash</option>
+                                <option value="Credit Card" @selected($folio->payment_method === 'Credit Card')>💳 Credit Card</option>
+                            </select>
+                        </div>
+
+                        <div class="mb-0">
+                            <label class="form-label fw-semibold" for="paid_notes_{{ $folio->folio_id }}">Reference Notes</label>
+                            <input type="text" class="form-control" id="paid_notes_{{ $folio->folio_id }}" name="reference_notes" placeholder="e.g. receipt #, bank ref, etc.">
+                        </div>
+                    </div>
+                    <div class="modal-footer border-0">
+                        <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
+                        <button type="submit" class="btn btn-success fw-semibold">
+                            <i class="fa-solid fa-circle-check me-1"></i> Confirm Payment & Close
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    @endif
+
     {{-- High-fidelity printable folio view --}}
+
     <div class="d-none d-print-block print-only-folio" id="print-folio-{{ $folio->folio_id }}" style="font-family: Arial, sans-serif; color: #000000; background: #ffffff; padding: 20px; line-height: 1.4; width: 100%;">
         
         {{-- Header block --}}

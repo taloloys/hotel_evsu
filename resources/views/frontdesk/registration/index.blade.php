@@ -184,10 +184,40 @@
                         @endif
                     </div>
 
-                    <div class="col-md-12">
+                    <div class="col-md-6">
                         <label class="form-label">Room Base Rate</label>
-                        <input type="text" class="form-control bg-light" id="room_base_rate_display" value="Select a room to view rate" readonly>
+                        <div class="input-group">
+                            <span class="input-group-text">₱</span>
+                            <input type="text" class="form-control bg-light" id="room_base_rate_display" value="—" readonly>
+                            <span class="input-group-text text-muted">/night</span>
+                        </div>
+                        <div class="form-text">Standard published rate for selected room.</div>
                     </div>
+
+                    <div class="col-md-6">
+                        <label class="form-label fw-semibold" for="net_rate">Agreed / Net Rate <span class="text-danger">*</span></label>
+                        <div class="input-group">
+                            <span class="input-group-text">₱</span>
+                            <input type="number"
+                                class="form-control @error('net_rate') is-invalid @enderror"
+                                id="net_rate"
+                                name="net_rate"
+                                value="{{ old('net_rate') }}"
+                                min="0"
+                                step="0.01"
+                                placeholder="Enter agreed room price"
+                            >
+                            <span class="input-group-text text-muted">/night</span>
+                        </div>
+                        <div class="form-text text-primary">
+                            <i class="fa-solid fa-circle-info me-1"></i>
+                            Adjust for discounts. Leave blank to use the base rate.
+                        </div>
+                        @error('net_rate')
+                            <div class="invalid-feedback">{{ $message }}</div>
+                        @enderror
+                    </div>
+
                 </div>
             </div>
         </div>
@@ -237,18 +267,31 @@
         const roomTypeFilter = document.getElementById('room_type_filter');
         const roomSelect = document.getElementById('room_id');
         const rateDisplay = document.getElementById('room_base_rate_display');
+        const netRateInput = document.getElementById('net_rate');
         const arrivalDate = document.getElementById('arrival_date');
         const departureDate = document.getElementById('departure_date');
 
         function updateRateDisplay() {
             const selected = roomSelect.options[roomSelect.selectedIndex];
             if (!selected || !selected.value) {
-                rateDisplay.value = 'Select a room to view rate';
+                rateDisplay.value = '—';
                 return;
             }
 
             const rate = parseFloat(selected.getAttribute('data-base-rate') || '0');
-            rateDisplay.value = '₱' + rate.toLocaleString('en-PH', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + ' / night';
+            rateDisplay.value = rate.toFixed(2);
+
+            // Auto-fill net_rate only if user hasn't typed something custom
+            if (netRateInput && !netRateInput.dataset.userEdited) {
+                netRateInput.value = rate.toFixed(2);
+            }
+        }
+
+        // Track if user manually edited the net rate
+        if (netRateInput) {
+            netRateInput.addEventListener('input', function() {
+                this.dataset.userEdited = 'true';
+            });
         }
 
         if (roomTypeFilter && roomSelect) {
@@ -270,7 +313,12 @@
                 }
             });
 
-            roomSelect.addEventListener('change', updateRateDisplay);
+            roomSelect.addEventListener('change', function() {
+                if (netRateInput) {
+                    netRateInput.dataset.userEdited = '';
+                }
+                updateRateDisplay();
+            });
             updateRateDisplay();
         }
 
