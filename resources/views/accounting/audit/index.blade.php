@@ -13,42 +13,95 @@
         <div class="row g-3 align-items-end">
 
             <!-- USER FILTER -->
-            <div class="col-md-3">
-                <label class="form-label small text-muted">User</label>
-                <select name="user_id" class="form-select form-select-sm" onchange="this.form.submit()">
-                    <option value="ALL" {{ $userIdFilter === 'ALL' ? 'selected' : '' }}>All Users</option>
-                    @foreach($users as $u)
-                        <option value="{{ $u->user_id }}" {{ $userIdFilter == $u->user_id ? 'selected' : '' }}>
-                            {{ $u->full_name }}
+            <div class="col-lg-3">
+                <label class="form-label fw-semibold mb-2">
+                    User
+                </label>
+
+                <div style="border:1px solid #000; border-radius:.375rem;">
+                    <select
+                        name="user_id"
+                        class="form-select border-0"
+                        onchange="this.form.submit()">
+
+                        <option value="ALL" {{ $userIdFilter === 'ALL' ? 'selected' : '' }}>
+                            All Users
                         </option>
-                    @endforeach
-                </select>
+
+                        @foreach($users as $u)
+                            <option
+                                value="{{ $u->user_id }}"
+                                {{ $userIdFilter == $u->user_id ? 'selected' : '' }}>
+                                {{ $u->full_name }}
+                            </option>
+                        @endforeach
+
+                    </select>
+                </div>
             </div>
 
             <!-- ACTION FILTER -->
-            <div class="col-md-3">
-                <label class="form-label small text-muted">Action Type</label>
-                <select name="action_type" class="form-select form-select-sm" onchange="this.form.submit()">
-                    <option value="ALL" {{ $actionFilter === 'ALL' ? 'selected' : '' }}>All Actions</option>
-                    @foreach($actionTypes as $type)
-                        <option value="{{ $type }}" {{ $actionFilter === $type ? 'selected' : '' }}>
-                            {{ $type }}
+            <div class="col-lg-3">
+                <label class="form-label fw-semibold mb-2">
+                    Action Type
+                </label>
+
+                <div style="border:1px solid #000; border-radius:.375rem;">
+                    <select
+                        name="action_type"
+                        class="form-select border-0"
+                        onchange="this.form.submit()">
+
+                        <option value="ALL" {{ $actionFilter === 'ALL' ? 'selected' : '' }}>
+                            All Actions
                         </option>
-                    @endforeach
-                </select>
+
+                        @foreach($actionTypes as $type)
+                            <option
+                                value="{{ $type }}"
+                                {{ $actionFilter === $type ? 'selected' : '' }}>
+                                {{ $type }}
+                            </option>
+                        @endforeach
+
+                    </select>
+                </div>
             </div>
 
             <!-- SEARCH -->
-            <div class="col-md-3">
-                <label class="form-label small text-muted">Search Description</label>
-                <input type="text" name="search" class="form-control form-control-sm" 
-                       placeholder="Search logs..." value="{{ $search }}">
+            <div class="col-lg-4">
+                <label class="form-label fw-semibold mb-2">
+                    Search
+                </label>
+
+                <div style="border:1px solid #000; border-radius:.375rem;">
+                    <div class="input-group">
+
+                        <span class="input-group-text bg-white border-0">
+                            <i class="fa-solid fa-search text-muted"></i>
+                        </span>
+
+                        <input
+                            type="text"
+                            name="search"
+                            class="form-control border-0"
+                            placeholder="Search activity logs..."
+                            value="{{ $search }}"
+                            autocomplete="off">
+
+                    </div>
+                </div>
             </div>
 
-            <!-- SUBMIT -->
-            <div class="col-md-3">
-                <button type="submit" class="btn btn-primary btn-sm w-100">
-                    <i class="fa-solid fa-magnifying-glass me-1"></i> Filter & Search
+            <!-- BUTTON -->
+            <div class="col-lg-2">
+                <button
+                    type="submit"
+                    class="btn btn-primary w-100 py-2">
+
+                    <i class="fa-solid fa-magnifying-glass me-1"></i>
+                    Search
+
                 </button>
             </div>
 

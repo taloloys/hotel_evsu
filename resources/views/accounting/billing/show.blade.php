@@ -8,7 +8,7 @@
 
 <!-- ACTION BUTTONS -->
 <div class="d-flex justify-content-between mb-4 d-print-none">
-    <a href="{{ route('accounting.billing') }}" class="btn btn-outline-secondary">
+    <a href="{{ route('accounting.billing') }}" class="btn btn-primary">
         <i class="fa-solid fa-arrow-left me-1"></i> Back to Invoices
     </a>
     <button onclick="window.print()" class="btn btn-primary">

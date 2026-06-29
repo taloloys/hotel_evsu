@@ -10,36 +10,36 @@
 <div class="row g-3 mb-4">
 
     <div class="col-lg-3">
-        <div class="card border-0 shadow-sm">
+        <div class="card border-1 shadow-sm">
             <div class="card-body">
-                <div class="text-muted small">Total Receivables</div>
+                <div class="text-muted large">Total Receivables</div>
                 <div class="fw-bold fs-3 text-danger">₱{{ number_format($totalReceivables, 2) }}</div>
             </div>
         </div>
     </div>
 
     <div class="col-lg-3">
-        <div class="card border-0 shadow-sm">
+        <div class="card border-1 shadow-sm">
             <div class="card-body">
-                <div class="text-muted small">Current (0–30 Days)</div>
+                <div class="text-muted large">Current (0–30 Days)</div>
                 <div class="fw-bold fs-3 text-success">₱{{ number_format($currentReceivables, 2) }}</div>
             </div>
         </div>
     </div>
 
     <div class="col-lg-3">
-        <div class="card border-0 shadow-sm">
+        <div class="card border-1 shadow-sm">
             <div class="card-body">
-                <div class="text-muted small">Overdue (31–60 Days)</div>
+                <div class="text-muted large">Overdue (31–60 Days)</div>
                 <div class="fw-bold fs-3 text-warning">₱{{ number_format($overdueReceivables, 2) }}</div>
             </div>
         </div>
     </div>
 
     <div class="col-lg-3">
-        <div class="card border-0 shadow-sm">
+        <div class="card border-1 shadow-sm">
             <div class="card-body">
-                <div class="text-muted small">Critical (>60 Days)</div>
+                <div class="text-muted large">Critical (>60 Days)</div>
                 <div class="fw-bold fs-3 text-danger">₱{{ number_format($criticalReceivables, 2) }}</div>
             </div>
         </div>
@@ -49,7 +49,7 @@
 
 
 <!-- ACTION BAR -->
-<form action="{{ route('accounting.receivables') }}" method="GET" class="card border-0 shadow-sm mb-3">
+<form action="{{ route('accounting.receivables') }}" method="GET" class="card border-1 shadow-sm mb-3">
 
     <div class="card-body d-flex justify-content-between align-items-center">
 
@@ -58,23 +58,55 @@
             <small class="text-muted">Guest balances requiring settlement</small>
         </div>
 
-        <div class="d-flex gap-2">
-
-            <!-- SEARCH -->
-            <input type="text" name="search" class="form-control form-control-sm"
-                   style="width: 220px;" placeholder="Search guest / room" value="{{ $search }}">
+        <div class="d-flex align-items-center gap-3">
 
             <!-- FILTER -->
-            <select name="status" class="form-select form-select-sm" style="width: 160px;" onchange="this.form.submit()">
-                <option value="ALL" {{ $statusFilter === 'ALL' ? 'selected' : '' }}>All Status</option>
-                <option value="CURRENT" {{ $statusFilter === 'CURRENT' ? 'selected' : '' }}>Current</option>
-                <option value="OVERDUE" {{ $statusFilter === 'OVERDUE' ? 'selected' : '' }}>Overdue</option>
-                <option value="CRITICAL" {{ $statusFilter === 'CRITICAL' ? 'selected' : '' }}>Critical</option>
-            </select>
+            <div style="width: 220px; border: 1px solid #000000; border-radius: .375rem;">
+                <select
+                    name="status"
+                    class="form-select border-0"
+                    onchange="this.form.submit()">
+
+                    <option value="ALL" {{ $statusFilter === 'ALL' ? 'selected' : '' }}>
+                        All Status
+                    </option>
+
+                    <option value="CURRENT" {{ $statusFilter === 'CURRENT' ? 'selected' : '' }}>
+                        Current
+                    </option>
+
+                    <option value="OVERDUE" {{ $statusFilter === 'OVERDUE' ? 'selected' : '' }}>
+                        Overdue
+                    </option>
+
+                    <option value="CRITICAL" {{ $statusFilter === 'CRITICAL' ? 'selected' : '' }}>
+                        Critical
+                    </option>
+
+                </select>
+            </div>
+
+            <!-- SEARCH -->
+            <div style="width: 340px; border: 1px solid #000000; border-radius: .375rem;">
+                <div class="input-group">
+                    <span class="input-group-text bg-white border-0">
+                        <i class="fa-solid fa-search text-muted"></i>
+                    </span>
+
+                    <input
+                        type="text"
+                        name="search"
+                        class="form-control border-0"
+                        placeholder="Search guest or room..."
+                        value="{{ $search }}"
+                        autocomplete="off">
+                </div>
+            </div>
 
             <!-- SEARCH BUTTON -->
-            <button type="submit" class="btn btn-primary btn-sm px-3">
-                <i class="fa-solid fa-magnifying-glass me-1"></i> Search
+            <button type="submit" class="btn btn-primary px-4">
+                <i class="fa-solid fa-search me-1"></i>
+                Search
             </button>
 
         </div>
@@ -85,7 +117,7 @@
 
 
 <!-- TABLE -->
-<div class="card border-0 shadow-sm">
+<div class="card border-1 shadow-sm">
 
     <div class="table-responsive">
 

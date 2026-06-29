@@ -10,36 +10,36 @@
 <div class="row g-3 mb-4">
 
     <div class="col-lg-3">
-        <div class="card border-0 shadow-sm">
+        <div class="card border-1 shadow-sm">
             <div class="card-body">
-                <div class="text-muted small">Total Invoices</div>
+                <div class="text-muted large">Total Invoices</div>
                 <div class="fw-bold fs-3">{{ $totalInvoices }}</div>
             </div>
         </div>
     </div>
 
     <div class="col-lg-3">
-        <div class="card border-0 shadow-sm">
+        <div class="card border-1 shadow-sm">
             <div class="card-body">
-                <div class="text-muted small">Closed (Paid)</div>
+                <div class="text-muted large">Closed (Paid)</div>
                 <div class="fw-bold fs-3 text-success">{{ $paidCount }}</div>
             </div>
         </div>
     </div>
 
     <div class="col-lg-3">
-        <div class="card border-0 shadow-sm">
+        <div class="card border-1 shadow-sm">
             <div class="card-body">
-                <div class="text-muted small">Open (Pending)</div>
+                <div class="text-muted large">Open (Pending)</div>
                 <div class="fw-bold fs-3 text-warning">{{ $pendingCount }}</div>
             </div>
         </div>
     </div>
 
     <div class="col-lg-3">
-        <div class="card border-0 shadow-sm">
+        <div class="card border-1 shadow-sm">
             <div class="card-body">
-                <div class="text-muted small">Outstanding Balance</div>
+                <div class="text-muted large">Outstanding Balance</div>
                 <div class="fw-bold fs-3 text-danger">₱{{ number_format($unpaidBalance, 2) }}</div>
             </div>
         </div>
@@ -49,7 +49,7 @@
 
 
 <!-- ACTION BAR -->
-<form action="{{ route('accounting.billing') }}" method="GET" class="card border-0 shadow-sm mb-3">
+<form action="{{ route('accounting.billing') }}" method="GET" class="card border-1 shadow-sm mb-3">
 
     <div class="card-body d-flex justify-content-between align-items-center">
 
@@ -58,19 +58,53 @@
             <small class="text-muted">All guest billing records</small>
         </div>
 
-        <div class="d-flex gap-2">
+        <div class="d-flex align-items-center gap-3">
 
-            <input type="text" name="search" class="form-control form-control-sm" style="width: 220px;"
-                   placeholder="Search invoice / guest" value="{{ $search }}">
+            {{-- Filter --}}
+            <div style="width: 220px; border: 1px solid">
+                <select
+                    name="status"
+                    class="form-select"
+                    style="height: 40px;"
+                    onchange="this.form.submit()">
 
-            <select name="status" class="form-select form-select-sm" style="width: 160px;" onchange="this.form.submit()">
-                <option value="ALL" {{ $statusFilter === 'ALL' ? 'selected' : '' }}>All Status</option>
-                <option value="PAID" {{ $statusFilter === 'PAID' ? 'selected' : '' }}>Paid</option>
-                <option value="UNPAID" {{ $statusFilter === 'UNPAID' ? 'selected' : '' }}>Unpaid / Pending</option>
-            </select>
+                    <option value="ALL" {{ $statusFilter === 'ALL' ? 'selected' : '' }}>
+                        All Status
+                    </option>
 
-            <button type="submit" class="btn btn-primary btn-sm">
-                <i class="fa-solid fa-magnifying-glass me-1"></i>
+                    <option value="PAID" {{ $statusFilter === 'PAID' ? 'selected' : '' }}>
+                        Paid
+                    </option>
+
+                    <option value="UNPAID" {{ $statusFilter === 'UNPAID' ? 'selected' : '' }}>
+                        Unpaid / Pending
+                    </option>
+
+                </select>
+            </div>
+
+            {{-- Search --}}
+            <div style="width: 300px; border: 1px solid;">
+                <div class="input-group">
+                    <span class="input-group-text bg-white border-end-0">
+                        <i class="fa-solid fa-search text-muted"></i>
+                    </span>
+
+                    <input
+                        type="text"
+                        name="search"
+                        class="form-control border-start-0"
+                        style="height: 40px;"
+                        placeholder="Search invoice no. or guest..."
+                        value="{{ $search }}"
+                        autocomplete="off">
+                </div>
+            </div>
+
+
+            {{-- Search Button --}}
+            <button type="submit" class="btn btn-primary px-4" style="height: 40px;">
+                <i class="fa-solid fa-search me-1"></i>
                 Search
             </button>
 
@@ -82,7 +116,7 @@
 
 
 <!-- TABLE -->
-<div class="card border-0 shadow-sm">
+<div class="card border-1 shadow-sm">
 
     <div class="table-responsive">
 

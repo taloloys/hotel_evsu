@@ -10,36 +10,36 @@
 <div class="row g-3 mb-4">
 
     <div class="col-lg-3">
-        <div class="card border-0 shadow-sm">
+        <div class="card border-1 shadow-sm">
             <div class="card-body">
-                <div class="text-muted small">Revenue</div>
+                <div class="text-muted large">Revenue</div>
                 <div class="fw-bold fs-4">₱{{ number_format($revenue, 2) }}</div>
             </div>
         </div>
     </div>
 
     <div class="col-lg-3">
-        <div class="card border-0 shadow-sm">
+        <div class="card border-1 shadow-sm">
             <div class="card-body">
-                <div class="text-muted small">Profit</div>
+                <div class="text-muted large">Profit</div>
                 <div class="fw-bold fs-4 text-primary">₱{{ number_format($profit, 2) }}</div>
             </div>
         </div>
     </div>
 
     <div class="col-lg-3">
-        <div class="card border-0 shadow-sm">
+        <div class="card border-1 shadow-sm">
             <div class="card-body">
-                <div class="text-muted small">Receivables</div>
+                <div class="text-muted large">Receivables</div>
                 <div class="fw-bold fs-4 text-warning">₱{{ number_format($receivables, 2) }}</div>
             </div>
         </div>
     </div>
 
     <div class="col-lg-3">
-        <div class="card border-0 shadow-sm">
+        <div class="card border-1 shadow-sm">
             <div class="card-body">
-                <div class="text-muted small">Expenses</div>
+                <div class="text-muted large">Expenses</div>
                 <div class="fw-bold fs-4 text-danger">₱{{ number_format($expenses, 2) }}</div>
             </div>
         </div>
@@ -48,7 +48,7 @@
 </div>
 
 <!-- CASH SUMMARY -->
-<div class="card border-0 shadow-sm mb-4">
+<div class="card border-1 shadow-sm mb-4">
 
     <div class="card-body py-3">
 
@@ -81,7 +81,7 @@
 </div>
 
 <!-- MAIN TABLE -->
-<div class="card border-0 shadow-sm">
+<div class="card border-1 shadow-sm">
 
     <div class="card-body">
 

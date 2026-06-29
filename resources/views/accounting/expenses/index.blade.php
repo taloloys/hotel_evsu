@@ -18,36 +18,36 @@
 <div class="row g-3 mb-4">
 
     <div class="col-lg-3">
-        <div class="card border-0 shadow-sm">
+        <div class="card border-1 shadow-sm">
             <div class="card-body">
-                <div class="text-muted small">Total Expenses (Approved)</div>
+                <div class="text-muted large">Total Expenses (Approved)</div>
                 <div class="fw-bold fs-3 text-danger">₱{{ number_format($totalExpenses, 2) }}</div>
             </div>
         </div>
     </div>
 
     <div class="col-lg-3">
-        <div class="card border-0 shadow-sm">
+        <div class="card border-1 shadow-sm">
             <div class="card-body">
-                <div class="text-muted small">Utilities</div>
+                <div class="text-muted large">Utilities</div>
                 <div class="fw-bold fs-3">₱{{ number_format($utilities, 2) }}</div>
             </div>
         </div>
     </div>
 
     <div class="col-lg-3">
-        <div class="card border-0 shadow-sm">
+        <div class="card border-1 shadow-sm">
             <div class="card-body">
-                <div class="text-muted small">Salaries & Wages</div>
+                <div class="text-muted large">Salaries & Wages</div>
                 <div class="fw-bold fs-3">₱{{ number_format($salaries, 2) }}</div>
             </div>
         </div>
     </div>
 
     <div class="col-lg-3">
-        <div class="card border-0 shadow-sm">
+        <div class="card border-1 shadow-sm">
             <div class="card-body">
-                <div class="text-muted small">Supplies & Stationery</div>
+                <div class="text-muted large">Supplies & Stationery</div>
                 <div class="fw-bold fs-3">₱{{ number_format($supplies, 2) }}</div>
             </div>
         </div>
@@ -57,7 +57,7 @@
 
 
 <!-- ACTION BAR -->
-<form action="{{ route('accounting.expenses') }}" method="GET" class="card border-0 shadow-sm mb-3">
+<form action="{{ route('accounting.expenses') }}" method="GET" class="card border-1 shadow-sm mb-3">
 
     <div class="card-body d-flex justify-content-between align-items-center">
 
@@ -66,27 +66,63 @@
             <small class="text-muted">Operational spending by department</small>
         </div>
 
-        <div class="d-flex gap-2">
-
-            <!-- SEARCH -->
-            <input type="text" name="search" class="form-control form-control-sm"
-                   style="width: 220px;" placeholder="Search expense / category" value="{{ $search }}">
+        <div class="d-flex align-items-center gap-3 flex-wrap">
 
             <!-- FILTER -->
-            <select name="department" class="form-select form-select-sm" style="width: 160px;" onchange="this.form.submit()">
-                <option value="All Departments" {{ $departmentFilter === 'All Departments' ? 'selected' : '' }}>All Departments</option>
-                @foreach($departments as $dept)
-                    <option value="{{ $dept }}" {{ $departmentFilter === $dept ? 'selected' : '' }}>{{ $dept }}</option>
-                @endforeach
-            </select>
+            <div style="width: 220px; border: 1px solid #000000; border-radius: .375rem;">
+                <select
+                    name="department"
+                    class="form-select border-0"
+                    onchange="this.form.submit()">
 
-            <button type="submit" class="btn btn-outline-secondary btn-sm">
-                <i class="fa-solid fa-magnifying-glass me-1"></i> Search
+                    <option value="All Departments"
+                        {{ $departmentFilter === 'All Departments' ? 'selected' : '' }}>
+                        All Departments
+                    </option>
+
+                    @foreach($departments as $dept)
+                        <option value="{{ $dept }}"
+                            {{ $departmentFilter === $dept ? 'selected' : '' }}>
+                            {{ $dept }}
+                        </option>
+                    @endforeach
+
+                </select>
+            </div>
+
+            <!-- SEARCH -->
+            <div style="width: 340px; border: 1px solid #000000; border-radius: .375rem;">
+                <div class="input-group">
+                    <span class="input-group-text bg-white border-0">
+                        <i class="fa-solid fa-search text-muted"></i>
+                    </span>
+
+                    <input
+                        type="text"
+                        name="search"
+                        class="form-control border-0"
+                        placeholder="Search expense or category..."
+                        value="{{ $search }}"
+                        autocomplete="off">
+                </div>
+            </div>
+
+            <!-- SEARCH BUTTON -->
+            <button type="submit" class="btn btn-primary px-3">
+                <i class="fa-solid fa-search me-1"></i>
+                Search
             </button>
 
             <!-- ADD EXPENSE -->
-            <button type="button" class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#addExpenseModal">
-                <i class="fa-solid fa-plus me-1"></i> Add Expense
+            <button
+                type="button"
+                class="btn btn-primary px-3"
+                data-bs-toggle="modal"
+                data-bs-target="#addExpenseModal">
+
+                <i class="fa-solid fa-plus me-1"></i>
+                Add Expense
+
             </button>
 
         </div>
@@ -97,7 +133,7 @@
 
 
 <!-- TABLE -->
-<div class="card border-0 shadow-sm">
+<div class="card border-1 shadow-sm">
 
     <div class="table-responsive">
 

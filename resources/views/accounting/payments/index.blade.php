@@ -18,36 +18,36 @@
 <div class="row g-3 mb-4">
 
     <div class="col-lg-3">
-        <div class="card border-0 shadow-sm">
+        <div class="card border-1 shadow-sm">
             <div class="card-body">
-                <div class="text-muted small">Total Payments (Collections)</div>
+                <div class="text-muted large">Total Payments (Collections)</div>
                 <div class="fw-bold fs-3 text-success">₱{{ number_format($totalPayments, 2) }}</div>
             </div>
         </div>
     </div>
 
     <div class="col-lg-3">
-        <div class="card border-0 shadow-sm">
+        <div class="card border-1 shadow-sm">
             <div class="card-body">
-                <div class="text-muted small">Cash Payments</div>
+                <div class="text-muted large">Cash Payments</div>
                 <div class="fw-bold fs-3">₱{{ number_format($cashPayments, 2) }}</div>
             </div>
         </div>
     </div>
 
     <div class="col-lg-3">
-        <div class="card border-0 shadow-sm">
+        <div class="card border-1 shadow-sm">
             <div class="card-body">
-                <div class="text-muted small">Card Payments</div>
+                <div class="text-muted large">Card Payments</div>
                 <div class="fw-bold fs-3">₱{{ number_format($cardPayments, 2) }}</div>
             </div>
         </div>
     </div>
 
     <div class="col-lg-3">
-        <div class="card border-0 shadow-sm">
+        <div class="card border-1 shadow-sm">
             <div class="card-body">
-                <div class="text-muted small">Check / Other Payments</div>
+                <div class="text-muted large">Check / Other Payments</div>
                 <div class="fw-bold fs-3 text-warning">₱{{ number_format($pendingPayments, 2) }}</div>
             </div>
         </div>
@@ -57,7 +57,7 @@
 
 
 <!-- ACTION BAR -->
-<form action="{{ route('accounting.payments') }}" method="GET" class="card border-0 shadow-sm mb-3">
+<form action="{{ route('accounting.payments') }}" method="GET" class="card border-1 shadow-sm mb-3">
 
     <div class="card-body d-flex justify-content-between align-items-center">
 
@@ -68,21 +68,60 @@
 
         <div class="d-flex gap-2">
 
-            <!-- SEARCH -->
-            <input type="text" name="search" class="form-control form-control-sm"
-                   style="width: 220px;" placeholder="Search reference / guest" value="{{ $search }}">
+            <div class="d-flex align-items-center gap-3">
 
-            <!-- FILTER -->
-            <select name="method" class="form-select form-select-sm" style="width: 160px;" onchange="this.form.submit()">
-                <option value="All Methods" {{ $methodFilter === 'All Methods' ? 'selected' : '' }}>All Methods</option>
-                <option value="CASH" {{ $methodFilter === 'CASH' ? 'selected' : '' }}>Cash</option>
-                <option value="CREDIT_CARD" {{ $methodFilter === 'CREDIT_CARD' ? 'selected' : '' }}>Card</option>
-                <option value="CHECK" {{ $methodFilter === 'CHECK' ? 'selected' : '' }}>Check</option>
-            </select>
+                {{-- Filter --}}
+                <div style="width: 200px; border: 1px solid #000000; border-radius: .375rem;">
+                    <select
+                        name="method"
+                        class="form-select"
+                        style="height:40px;"
+                        onchange="this.form.submit()">
 
-            <button type="submit" class="btn btn-outline-secondary btn-sm">
-                <i class="fa-solid fa-magnifying-glass me-1"></i> Search
-            </button>
+                        <option value="All Methods" {{ $methodFilter === 'All Methods' ? 'selected' : '' }}>
+                            All Methods
+                        </option>
+
+                        <option value="CASH" {{ $methodFilter === 'CASH' ? 'selected' : '' }}>
+                            Cash
+                        </option>
+
+                        <option value="CREDIT_CARD" {{ $methodFilter === 'CREDIT_CARD' ? 'selected' : '' }}>
+                            Card
+                        </option>
+
+                        <option value="CHECK" {{ $methodFilter === 'CHECK' ? 'selected' : '' }}>
+                            Check
+                        </option>
+
+                    </select>
+                </div>
+
+                {{-- Search --}}
+                <div style="width: 300px; border: 1px solid #000000; border-radius: .375rem;">
+                    <div class="input-group">
+                        <span class="input-group-text bg-white border-end-0">
+                            <i class="fa-solid fa-search text-muted"></i>
+                        </span>
+
+                        <input
+                            type="text"
+                            name="search"
+                            class="form-control border-start-0"
+                            style="height:40px;"
+                            placeholder="Search reference no. or guest..."
+                            value="{{ $search }}"
+                            autocomplete="off">
+                    </div>
+                </div>
+
+                {{-- Search Button --}}
+                <button type="submit" class="btn btn-primary px-4" style="height:40px;">
+                    <i class="fa-solid fa-search me-1"></i>
+                    Search
+                </button>
+
+            </div>
 
             <!-- ADD PAYMENT -->
             <button type="button" class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#recordPaymentModal">
@@ -97,7 +136,7 @@
 
 
 <!-- TABLE -->
-<div class="card border-0 shadow-sm">
+<div class="card border-1 shadow-sm">
 
     <div class="table-responsive">
 
@@ -166,56 +205,157 @@
 <!-- RECORD PAYMENT MODAL -->
 @push('modals')
 <div class="modal fade" id="recordPaymentModal" tabindex="-1" aria-labelledby="recordPaymentModalLabel" aria-hidden="true">
-    <div class="modal-dialog">
-        <form action="{{ route('accounting.payments.store') }}" method="POST" class="modal-content border-0 shadow-lg">
-            @csrf
-            <div class="modal-header bg-primary text-white border-0 py-3">
-                <h5 class="modal-title fw-bold" id="recordPaymentModalLabel">Record Guest Payment</h5>
-                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
-            </div>
-            <div class="modal-body p-4">
-                
-                <div class="mb-3">
-                    <label class="form-label small text-muted">Select Open Folio / Guest *</label>
-                    <select name="folio_id" class="form-select" required>
-                        <option value="" disabled selected>Select an active folio...</option>
-                        @foreach($openFolios as $f)
-                            <option value="{{ $f->folio_id }}">
-                                Folio #{{ $f->folio_number }} - {{ $f->guest ? $f->guest->first_name . ' ' . $f->guest->last_name : 'Walk-in' }}
-                            </option>
-                        @endforeach
-                    </select>
-                </div>
+    <div class="modal-dialog modal-lg modal-dialog-centered">
 
-                <div class="row mb-3">
+        <form action="{{ route('accounting.payments.store') }}" method="POST" class="modal-content">
+            @csrf
+
+            <!-- Header -->
+            <div class="modal-header">
+                <h5 class="modal-title fw-semibold" id="recordPaymentModalLabel">
+                    <i class="fa-solid fa-money-bill-wave text-success me-2"></i>
+                    Record Payment
+                </h5>
+
+                <button type="button"
+                        class="btn-close"
+                        data-bs-dismiss="modal">
+                </button>
+            </div>
+
+            <!-- Body -->
+            <div class="modal-body">
+
+                <div class="row g-4">
+
+                    <!-- Folio -->
+                    <div class="col-12">
+                        <label class="form-label fw-semibold">
+                            Guest / Folio
+                            <span class="text-danger">*</span>
+                        </label>
+
+                        <select
+                            name="folio_id"
+                            class="form-select"
+                            required>
+
+                            <option value="" disabled selected>
+                                Select guest folio
+                            </option>
+
+                            @foreach($openFolios as $f)
+                                <option value="{{ $f->folio_id }}">
+                                    Folio #{{ $f->folio_number }}
+                                    —
+                                    {{ $f->guest
+                                        ? $f->guest->first_name.' '.$f->guest->last_name
+                                        : 'Walk-in'
+                                    }}
+                                </option>
+                            @endforeach
+
+                        </select>
+
+                        <div class="form-text">
+                            Only open folios are available for payment.
+                        </div>
+                    </div>
+
+                    <!-- Payment Method -->
                     <div class="col-md-6">
-                        <label class="form-label small text-muted">Payment Method *</label>
-                        <select name="payment_method" class="form-select" required>
+
+                        <label class="form-label fw-semibold">
+                            Payment Method
+                            <span class="text-danger">*</span>
+                        </label>
+
+                        <select
+                            name="payment_method"
+                            class="form-select"
+                            required>
+
                             <option value="CASH">Cash</option>
                             <option value="CREDIT_CARD">Credit Card</option>
                             <option value="CHECK">Check</option>
+
                         </select>
+
                     </div>
+
+                    <!-- Amount -->
                     <div class="col-md-6">
-                        <label class="form-label small text-muted">Amount (PHP) *</label>
+
+                        <label class="form-label fw-semibold">
+                            Amount
+                            <span class="text-danger">*</span>
+                        </label>
+
                         <div class="input-group">
-                            <span class="input-group-text">₱</span>
-                            <input type="number" name="amount" class="form-control" placeholder="0.00" step="0.01" min="0.01" required>
+
+                            <span class="input-group-text">
+                                ₱
+                            </span>
+
+                            <input
+                                type="number"
+                                name="amount"
+                                class="form-control text-end"
+                                step="0.01"
+                                min="0.01"
+                                placeholder="0.00"
+                                required>
+
                         </div>
+
                     </div>
-                </div>
 
-                <div class="mb-0">
-                    <label class="form-label small text-muted">Reference Notes / Receipt Number</label>
-                    <input type="text" name="reference_notes" class="form-control" placeholder="OR-100234, Check details, card ref, etc.">
+                    <!-- Notes -->
+                    <div class="col-12">
+
+                        <label class="form-label fw-semibold">
+                            Reference Notes
+                        </label>
+
+                        <input
+                            type="text"
+                            name="reference_notes"
+                            class="form-control"
+                            placeholder="Receipt number, card reference, check number, etc.">
+
+                        <div class="form-text">
+                            Optional reference for future verification.
+                        </div>
+
+                    </div>
+
                 </div>
 
             </div>
-            <div class="modal-footer border-0 p-3 bg-light">
-                <button type="button" class="btn btn-outline-secondary btn-sm px-3" data-bs-dismiss="modal">Cancel</button>
-                <button type="submit" class="btn btn-primary btn-sm px-4">Post Payment</button>
+
+            <!-- Footer -->
+            <div class="modal-footer">
+
+                <button
+                    type="button"
+                    class="btn btn-secondary"
+                    data-bs-dismiss="modal">
+                    Cancel
+                </button>
+
+                <button
+                    type="submit"
+                    class="btn btn-primary">
+
+                    <i class="fa-solid fa-check me-1"></i>
+                    Record Payment
+
+                </button>
+
             </div>
+
         </form>
+
     </div>
 </div>
 @endpush

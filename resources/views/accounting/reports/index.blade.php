@@ -12,33 +12,78 @@
         <div class="row g-3 align-items-end">
 
             <!-- DATE FROM -->
-            <div class="col-md-3">
-                <label class="form-label small text-muted">Date From</label>
-                <input type="date" name="date_from" class="form-control form-control-sm" value="{{ $dateFrom }}">
+            <div class="col-lg-3 col-md-6">
+                <label class="form-label fw-semibold mb-2">
+                    Date From
+                </label>
+
+                <div class="w-100 border border-dark rounded">
+                    <input
+                        type="date"
+                        name="date_from"
+                        class="form-control border-0"
+                        value="{{ $dateFrom }}">
+                </div>
             </div>
 
             <!-- DATE TO -->
-            <div class="col-md-3">
-                <label class="form-label small text-muted">Date To</label>
-                <input type="date" name="date_to" class="form-control form-control-sm" value="{{ $dateTo }}">
+            <div class="col-lg-3 col-md-6">
+                <label class="form-label fw-semibold mb-2">
+                    Date To
+                </label>
+
+                <div class="w-100 border border-dark rounded">
+                    <input
+                        type="date"
+                        name="date_to"
+                        class="form-control border-0"
+                        value="{{ $dateTo }}">
+                </div>
             </div>
 
             <!-- REPORT TYPE -->
-            <div class="col-md-3">
-                <label class="form-label small text-muted">Report Type Filter</label>
-                <select name="report_type" class="form-select form-select-sm">
-                    <option value="ALL" {{ $reportType === 'ALL' ? 'selected' : '' }}>All Reports</option>
-                    <option value="PL" {{ $reportType === 'PL' ? 'selected' : '' }}>Profit & Loss</option>
-                    <option value="CASH" {{ $reportType === 'CASH' ? 'selected' : '' }}>Cash Flow</option>
-                    <option value="REVENUE" {{ $reportType === 'REVENUE' ? 'selected' : '' }}>Revenue Breakdown</option>
-                    <option value="TX" {{ $reportType === 'TX' ? 'selected' : '' }}>Transactions List</option>
-                </select>
-            </div>
+            <div class="col-lg-3 col-md-6">
+                <label class="form-label fw-semibold mb-2">
+                    Report Type
+                </label>
 
-            <!-- SUBMIT -->
-            <div class="col-md-3">
-                <button type="submit" class="btn btn-primary btn-sm w-100">
-                    <i class="fa-solid fa-filter me-1"></i> Generate Report
+                <div class="w-100 border border-dark rounded">
+                    <select
+                        name="report_type"
+                        class="form-select border-0">
+
+                        <option value="ALL" {{ $reportType === 'ALL' ? 'selected' : '' }}>
+                            All Reports
+                        </option>
+
+                        <option value="PL" {{ $reportType === 'PL' ? 'selected' : '' }}>
+                            Profit & Loss
+                        </option>
+
+                        <option value="CASH" {{ $reportType === 'CASH' ? 'selected' : '' }}>
+                            Cash Flow
+                        </option>
+
+                        <option value="REVENUE" {{ $reportType === 'REVENUE' ? 'selected' : '' }}>
+                            Revenue Breakdown
+                        </option>
+
+                        <option value="TX" {{ $reportType === 'TX' ? 'selected' : '' }}>
+                            Transactions List
+                        </option>
+
+                    </select>
+                </div>
+            </div>
+            <!-- GENERATE -->
+            <div class="col-lg-3 col-md-6">
+                <button
+                    type="submit"
+                    class="btn btn-primary w-30 py-2">
+
+                    <i class="fa-solid fa-filter me-2"></i>
+                    Generate Report
+
                 </button>
             </div>
 
