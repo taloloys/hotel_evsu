@@ -35,149 +35,448 @@
     <form method="POST" action="{{ route('frontdesk.checkin.store') }}" id="checkInForm">
         @csrf
 
-        <div class="card border-0 shadow-sm mb-4">
-            <div class="card-header bg-white">
-                <h5 class="fw-bold mb-0">Registration Information</h5>
+        <div class="card border mb-4">
+
+            <!-- Card Header -->
+            <div class="card-header bg-white py-3">
+                <h5 class="fw-bold mb-0">
+                    <i class="fa-solid fa-file-invoice text-primary me-2"></i>
+                    Registration Information
+                </h5>
             </div>
 
+            <!-- Card Body -->
             <div class="card-body">
-                <div class="row g-3">
-                    <div class="col-md-4">
-                        <label class="form-label" for="folio_number">Folio Number</label>
-                        <input type="text" class="form-control bg-light" id="folio_number" name="folio_number" value="{{ old('folio_number', $suggestedFolioNumber) }}" maxlength="20" readonly>
-                        <div class="form-text">Auto-generated reference number.</div>
-                    </div>
 
-                    <div class="col-md-4">
-                        <label class="form-label" for="payment_method">Payment Method <span class="text-danger">*</span></label>
-                        <select class="form-select @error('payment_method') is-invalid @enderror" id="payment_method" name="payment_method">
-                            <option value="Cash" @selected(old('payment_method', 'Cash') === 'Cash')>
-                                💵 Cash
-                            </option>
-                            <option value="Credit Card" @selected(old('payment_method') === 'Credit Card')>
-                                💳 Credit Card
-                            </option>
-                        </select>
-                    </div>
-                </div>
-            </div>
-        </div>
+                <div class="row g-4">
 
-        <div class="card border-0 shadow-sm mb-4">
-            <div class="card-header bg-white">
-                <h5 class="fw-bold mb-0">Guest Selection</h5>
-            </div>
-
-            <div class="card-body">
-                <div class="row g-3">
-                    <div class="col-md-12 position-relative">
-                        <label class="form-label" for="guest_search">Search Existing Guest <span class="text-danger">*</span></label>
-                        <div class="input-group">
-                            <span class="input-group-text"><i class="fa-solid fa-magnifying-glass"></i></span>
-                            <input type="text" class="form-control @error('guest_id') is-invalid @enderror" id="guest_search" placeholder="Type guest's first or last name to search..." value="{{ old('guest_id') && isset($selectedGuest) ? $selectedGuest->last_name . ', ' . $selectedGuest->first_name : '' }}" autocomplete="off" required>
-                            @error('guest_id')
-                                <div class="invalid-feedback">{{ $message }}</div>
-                            @enderror
-                        </div>
-                        <div id="guest_search_results" class="dropdown-menu w-100 shadow-sm mt-1" style="display: none; max-height: 250px; overflow-y: auto; z-index: 1050;"></div>
-                        <input type="hidden" id="guest_id" name="guest_id" value="{{ old('guest_id', $selectedGuest->guest_id ?? '') }}" required>
-                    </div>
-                </div>
-
-                <!-- Guest Details Card (Read-only confirmation) -->
-                <div class="mt-4 p-3 bg-light border rounded d-none" id="guest_info_card">
-                    <h6 class="fw-bold mb-3 text-secondary text-uppercase small">Selected Guest Information</h6>
-                    <div class="row">
-                        <div class="col-md-6 mb-2">
-                            <span class="text-muted d-block small">Full Name</span>
-                            <strong id="display_guest_name">-</strong>
-                        </div>
-                        <div class="col-md-6 mb-2">
-                            <span class="text-muted d-block small">Mobile Number</span>
-                            <strong id="display_guest_contact">-</strong>
-                        </div>
-                        <div class="col-md-12">
-                            <span class="text-muted d-block small">Address</span>
-                            <strong id="display_guest_address">-</strong>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <div class="card border-0 shadow-sm mb-4">
-            <div class="card-header bg-white">
-                <h5 class="fw-bold mb-0">Stay Information</h5>
-            </div>
-
-            <div class="card-body">
-                <div class="row g-3">
-                    <div class="col-md-3">
-                        <label class="form-label" for="arrival_date">Arrival Date <span class="text-danger">*</span></label>
-                        <input type="date" class="form-control @error('arrival_date') is-invalid @enderror" id="arrival_date" name="arrival_date" value="{{ old('arrival_date', $defaults['arrival_date']) }}" required>
-                    </div>
-
-                    <div class="col-md-3">
-                        <label class="form-label" for="arrival_time">Arrival Time <span class="text-danger">*</span></label>
-                        <input type="time" class="form-control @error('arrival_time') is-invalid @enderror" id="arrival_time" name="arrival_time" value="{{ old('arrival_time', $defaults['arrival_time']) }}" required>
-                    </div>
-
-                    <div class="col-md-3">
-                        <label class="form-label" for="departure_date">Departure Date <span class="text-danger">*</span></label>
-                        <input type="date" class="form-control @error('departure_date') is-invalid @enderror" id="departure_date" name="departure_date" value="{{ old('departure_date') }}" required>
-                    </div>
-
-                    <div class="col-md-3">
-                        <label class="form-label" for="departure_time">Departure Time <span class="text-danger">*</span></label>
-                        <input type="time" class="form-control @error('departure_time') is-invalid @enderror" id="departure_time" name="departure_time" value="{{ old('departure_time', $defaults['departure_time']) }}" required>
-                    </div>
-
-                    <div class="col-md-3">
-                        <label class="form-label" for="num_pax">No. of Pax</label>
-                        <input type="number" class="form-control @error('num_pax') is-invalid @enderror" id="num_pax" name="num_pax" value="{{ old('num_pax', $defaults['num_pax']) }}" min="1" max="20">
-                    </div>
-
-                    <div class="col-md-3">
-                        <label class="form-label" for="has_joiner">Joiner</label>
-                        <select class="form-select @error('has_joiner') is-invalid @enderror" id="has_joiner" name="has_joiner">
-                            <option value="0" @selected(old('has_joiner', '0') == '0')>No</option>
-                            <option value="1" @selected(old('has_joiner') == '1')>Yes</option>
-                        </select>
-                    </div>
-
+                    <!-- Folio Number -->
                     <div class="col-md-6">
-                        <label class="form-label" for="market_segment">Market Segment</label>
-                        <select class="form-select @error('market_segment') is-invalid @enderror" id="market_segment" name="market_segment">
-                            @foreach(['Walk-in', 'NONE', 'Corporate', 'Government', 'Travel Agency'] as $segment)
-                                <option value="{{ $segment }}" @selected(old('market_segment', $defaults['market_segment']) === $segment)>{{ $segment }}</option>
-                            @endforeach
-                        </select>
+                        <label class="form-label fw-semibold" for="folio_number">
+                            Folio Number
+                        </label>
+
+                        <input
+                            type="text"
+                            class="form-control bg-light shadow-none"
+                            id="folio_number"
+                            name="folio_number"
+                            value="{{ old('folio_number', $suggestedFolioNumber) }}"
+                            maxlength="20"
+                            readonly
+                            style="height:46px; border:1px solid #ced4da;">
+
+                        <small class="text-muted">
+                            Auto-generated reference number.
+                        </small>
                     </div>
+
+                    <!-- Payment Method -->
+                    <div class="col-md-6">
+                        <label class="form-label fw-semibold" for="payment_method">
+                            Payment Method
+                            <span class="text-danger">*</span>
+                        </label>
+
+                        <select
+                            class="form-select shadow-none @error('payment_method') is-invalid @enderror"
+                            id="payment_method"
+                            name="payment_method"
+                            style="height:46px; border:1px solid #ced4da;">
+
+                            <option value="Cash"
+                                @selected(old('payment_method', 'Cash') === 'Cash')>
+                                Cash
+                            </option>
+
+                            <option value="Credit Card"
+                                @selected(old('payment_method') === 'Credit Card')>
+                                Credit Card
+                            </option>
+
+                        </select>
+
+                        @error('payment_method')
+                            <div class="invalid-feedback">
+                                {{ $message }}
+                            </div>
+                        @enderror
+
+                        <small class="text-muted">
+                            Select the guest's preferred payment method.
+                        </small>
+                    </div>
+
                 </div>
+
             </div>
+
         </div>
 
-        <div class="card border-0 shadow-sm mb-4">
-            <div class="card-header bg-white">
-                <h5 class="fw-bold mb-0">Room Information</h5>
+        <div class="card border mb-4">
+
+            <!-- Card Header -->
+            <div class="card-header bg-white py-3">
+                <h5 class="fw-bold mb-0">
+                    <i class="fa-solid fa-user-check text-primary me-2"></i>
+                    Guest Selection
+                </h5>
             </div>
 
+            <!-- Card Body -->
             <div class="card-body">
-                <div class="row g-3">
+
+                <div class="row g-4">
+
+                    <div class="col-12 position-relative">
+
+                        <label class="form-label fw-semibold" for="guest_search">
+                            Search Existing Guest
+                            <span class="text-danger">*</span>
+                        </label>
+
+                        <!-- Search -->
+                        <div class="input-group"
+                            style="width:100%; border:1px solid #ced4da; border-radius:.375rem; overflow:hidden;">
+
+                            <span class="input-group-text bg-white border-0">
+                                <i class="fa-solid fa-magnifying-glass"></i>
+                            </span>
+
+                            <input
+                                type="text"
+                                class="form-control border-0 shadow-none @error('guest_id') is-invalid @enderror"
+                                id="guest_search"
+                                placeholder="Search guest by first or last name..."
+                                value="{{ old('guest_id') && isset($selectedGuest) ? $selectedGuest->last_name . ', ' . $selectedGuest->first_name : '' }}"
+                                autocomplete="off"
+                                style="height:46px;"
+                                required>
+
+                        </div>
+
+                        @error('guest_id')
+                            <div class="invalid-feedback d-block">
+                                {{ $message }}
+                            </div>
+                        @enderror
+
+                        <div id="guest_search_results"
+                            class="dropdown-menu w-100 shadow-sm mt-1"
+                            style="display:none; max-height:250px; overflow-y:auto; z-index:1050;">
+                        </div>
+
+                        <input
+                            type="hidden"
+                            id="guest_id"
+                            name="guest_id"
+                            value="{{ old('guest_id', $selectedGuest->guest_id ?? '') }}"
+                            required>
+
+                        <small class="text-muted">
+                            Search and select an existing guest before continuing.
+                        </small>
+
+                    </div>
+
+                </div>
+
+                <!-- Selected Guest -->
+                <div class="border rounded-3 mt-4 d-none" id="guest_info_card">
+
+                    <div class="border-bottom bg-light px-3 py-2">
+                        <strong class="small text-uppercase text-secondary">
+                            Selected Guest
+                        </strong>
+                    </div>
+
+                    <div class="p-3">
+
+                        <div class="row g-3">
+
+                            <div class="col-md-6">
+                                <label class="small text-muted mb-1">
+                                    Full Name
+                                </label>
+
+                                <div class="fw-semibold" id="display_guest_name">
+                                    -
+                                </div>
+                            </div>
+
+                            <div class="col-md-6">
+                                <label class="small text-muted mb-1">
+                                    Mobile Number
+                                </label>
+
+                                <div class="fw-semibold" id="display_guest_contact">
+                                    -
+                                </div>
+                            </div>
+
+                            <div class="col-12">
+                                <label class="small text-muted mb-1">
+                                    Address
+                                </label>
+
+                                <div class="fw-semibold" id="display_guest_address">
+                                    -
+                                </div>
+                            </div>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+        <div class="card border mb-4">
+
+            <!-- Card Header -->
+            <div class="card-header bg-white py-3">
+                <h5 class="fw-bold mb-0">
+                    <i class="fa-solid fa-calendar-days text-primary me-2"></i>
+                    Stay Information
+                </h5>
+            </div>
+
+            <!-- Card Body -->
+            <div class="card-body">
+
+                <div class="row g-4">
+
+                    <!-- Arrival Date -->
+                    <div class="col-md-3">
+                        <label class="form-label fw-semibold" for="arrival_date">
+                            Arrival Date
+                            <span class="text-danger">*</span>
+                        </label>
+
+                        <input
+                            type="date"
+                            class="form-control shadow-none @error('arrival_date') is-invalid @enderror"
+                            id="arrival_date"
+                            name="arrival_date"
+                            value="{{ old('arrival_date', $defaults['arrival_date']) }}"
+                            style="height:46px; border:1px solid #ced4da;"
+                            required>
+
+                        @error('arrival_date')
+                            <div class="invalid-feedback">{{ $message }}</div>
+                        @enderror
+                    </div>
+
+                    <!-- Arrival Time -->
+                    <div class="col-md-3">
+                        <label class="form-label fw-semibold" for="arrival_time">
+                            Arrival Time
+                            <span class="text-danger">*</span>
+                        </label>
+
+                        <input
+                            type="time"
+                            class="form-control shadow-none @error('arrival_time') is-invalid @enderror"
+                            id="arrival_time"
+                            name="arrival_time"
+                            value="{{ old('arrival_time', $defaults['arrival_time']) }}"
+                            style="height:46px; border:1px solid #ced4da;"
+                            required>
+
+                        @error('arrival_time')
+                            <div class="invalid-feedback">{{ $message }}</div>
+                        @enderror
+                    </div>
+
+                    <!-- Departure Date -->
+                    <div class="col-md-3">
+                        <label class="form-label fw-semibold" for="departure_date">
+                            Departure Date
+                            <span class="text-danger">*</span>
+                        </label>
+
+                        <input
+                            type="date"
+                            class="form-control shadow-none @error('departure_date') is-invalid @enderror"
+                            id="departure_date"
+                            name="departure_date"
+                            value="{{ old('departure_date') }}"
+                            style="height:46px; border:1px solid #ced4da;"
+                            required>
+
+                        @error('departure_date')
+                            <div class="invalid-feedback">{{ $message }}</div>
+                        @enderror
+                    </div>
+
+                    <!-- Departure Time -->
+                    <div class="col-md-3">
+                        <label class="form-label fw-semibold" for="departure_time">
+                            Departure Time
+                            <span class="text-danger">*</span>
+                        </label>
+
+                        <input
+                            type="time"
+                            class="form-control shadow-none @error('departure_time') is-invalid @enderror"
+                            id="departure_time"
+                            name="departure_time"
+                            value="{{ old('departure_time', $defaults['departure_time']) }}"
+                            style="height:46px; border:1px solid #ced4da;"
+                            required>
+
+                        @error('departure_time')
+                            <div class="invalid-feedback">{{ $message }}</div>
+                        @enderror
+                    </div>
+
+                    <!-- Number of Pax -->
+                    <div class="col-md-3">
+                        <label class="form-label fw-semibold" for="num_pax">
+                            Number of Guests
+                        </label>
+
+                        <input
+                            type="number"
+                            class="form-control shadow-none @error('num_pax') is-invalid @enderror"
+                            id="num_pax"
+                            name="num_pax"
+                            value="{{ old('num_pax', $defaults['num_pax']) }}"
+                            min="1"
+                            max="20"
+                            style="height:46px; border:1px solid #ced4da;">
+
+                        @error('num_pax')
+                            <div class="invalid-feedback">{{ $message }}</div>
+                        @enderror
+
+                        <small class="text-muted">
+                            Total number of staying guests.
+                        </small>
+                    </div>
+
+                    <!-- Joiner -->
+                    <div class="col-md-3">
+                        <label class="form-label fw-semibold" for="has_joiner">
+                            Joiner
+                        </label>
+
+                        <select
+                            class="form-select shadow-none @error('has_joiner') is-invalid @enderror"
+                            id="has_joiner"
+                            name="has_joiner"
+                            style="height:46px; border:1px solid #ced4da;">
+
+                            <option value="0" @selected(old('has_joiner','0') == '0')>
+                                No
+                            </option>
+
+                            <option value="1" @selected(old('has_joiner') == '1')>
+                                Yes
+                            </option>
+
+                        </select>
+
+                        @error('has_joiner')
+                            <div class="invalid-feedback">{{ $message }}</div>
+                        @enderror
+                    </div>
+
+                    <!-- Market Segment -->
+                    <div class="col-md-6">
+                        <label class="form-label fw-semibold" for="market_segment">
+                            Market Segment
+                        </label>
+
+                        <select
+                            class="form-select shadow-none @error('market_segment') is-invalid @enderror"
+                            id="market_segment"
+                            name="market_segment"
+                            style="height:46px; border:1px solid #ced4da;">
+
+                            @foreach(['Walk-in', 'NONE', 'Corporate', 'Government', 'Travel Agency'] as $segment)
+                                <option
+                                    value="{{ $segment }}"
+                                    @selected(old('market_segment', $defaults['market_segment']) === $segment)>
+                                    {{ $segment }}
+                                </option>
+                            @endforeach
+
+                        </select>
+
+                        @error('market_segment')
+                            <div class="invalid-feedback">{{ $message }}</div>
+                        @enderror
+
+                        <small class="text-muted">
+                            Select the guest's booking category.
+                        </small>
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+        <div class="card border mb-4">
+
+            <!-- Card Header -->
+            <div class="card-header bg-white py-3">
+                <h5 class="fw-bold mb-0">
+                    <i class="fa-solid fa-bed text-primary me-2"></i>
+                    Room Information
+                </h5>
+            </div>
+
+            <!-- Card Body -->
+            <div class="card-body">
+
+                <div class="row g-4">
+
+                    <!-- Room Type -->
                     <div class="col-md-4">
-                        <label class="form-label" for="room_type_filter">Filter by Room Type</label>
-                        <select class="form-select" id="room_type_filter">
+                        <label class="form-label fw-semibold" for="room_type_filter">
+                            Room Type
+                        </label>
+
+                        <select
+                            class="form-select shadow-none"
+                            id="room_type_filter"
+                            style="height:46px; border:1px solid #ced4da;">
+
                             <option value="">All Types</option>
+
                             @foreach($roomTypes as $type)
                                 <option value="{{ $type }}">{{ $type }}</option>
                             @endforeach
+
                         </select>
+
+                        <small class="text-muted">
+                            Filter rooms by room type.
+                        </small>
                     </div>
 
+                    <!-- Room Selection -->
                     <div class="col-md-8">
-                        <label class="form-label" for="room_id">Room <span class="text-danger">*</span></label>
-                        <select class="form-select @error('room_id') is-invalid @enderror" id="room_id" name="room_id" required>
+                        <label class="form-label fw-semibold" for="room_id">
+                            Available Room
+                            <span class="text-danger">*</span>
+                        </label>
+
+                        <select
+                            class="form-select shadow-none @error('room_id') is-invalid @enderror"
+                            id="room_id"
+                            name="room_id"
+                            style="height:46px; border:1px solid #ced4da;"
+                            required>
+
                             <option value="">Select available room</option>
+
                             @foreach($assignableRooms as $room)
                                 <option
                                     value="{{ $room->room_id }}"
@@ -185,74 +484,188 @@
                                     data-base-rate="{{ $room->base_rate }}"
                                     @selected(old('room_id') == $room->room_id)
                                 >
-                                    {{ $room->room_number }} — {{ $room->room_type }} (₱{{ number_format($room->base_rate, 2) }}/night)
+                                    {{ $room->room_number }} — {{ $room->room_type }}
+                                    (₱{{ number_format($room->base_rate, 2) }}/night)
                                 </option>
                             @endforeach
+
                         </select>
+
+                        @error('room_id')
+                            <div class="invalid-feedback">
+                                {{ $message }}
+                            </div>
+                        @enderror
+
                         @if($assignableRooms->isEmpty())
-                            <div class="form-text text-danger">No available rooms right now. Check the dashboard for rooms under cleaning or maintenance.</div>
+                            <small class="text-danger">
+                                No available rooms right now. Check the dashboard for rooms under cleaning or maintenance.
+                            </small>
                         @else
-                            <div class="form-text">Only rooms that are available and not reserved or occupied are listed.</div>
+                            <small class="text-muted">
+                                Only available rooms are listed.
+                            </small>
                         @endif
                     </div>
 
+                    <!-- Published Rate -->
                     <div class="col-md-6">
-                        <label class="form-label">Room Base Rate</label>
+
+                        <label class="form-label fw-semibold">
+                            Published Room Rate
+                        </label>
+
                         <div class="input-group">
-                            <span class="input-group-text">₱</span>
-                            <input type="text" class="form-control bg-light" id="room_base_rate_display" value="—" readonly>
-                            <span class="input-group-text text-muted">/night</span>
+
+                            <span class="input-group-text bg-light border">
+                                ₱
+                            </span>
+
+                            <input
+                                type="text"
+                                class="form-control bg-light shadow-none"
+                                id="room_base_rate_display"
+                                value="—"
+                                readonly
+                                style="height:46px; border:1px solid #ced4da;">
+
+                            <span class="input-group-text bg-light border text-muted">
+                                /night
+                            </span>
+
                         </div>
-                        <div class="form-text">Standard published rate for selected room.</div>
+
+                        <small class="text-muted">
+                            Standard room rate based on the selected room.
+                        </small>
+
                     </div>
 
+                    <!-- Net Rate -->
                     <div class="col-md-6">
-                        <label class="form-label fw-semibold" for="net_rate">Agreed / Net Rate <span class="text-danger">*</span></label>
+
+                        <label class="form-label fw-semibold" for="net_rate">
+                            Agreed Room Rate
+                            <span class="text-danger">*</span>
+                        </label>
+
                         <div class="input-group">
-                            <span class="input-group-text">₱</span>
-                            <input type="number"
-                                class="form-control @error('net_rate') is-invalid @enderror"
+
+                            <span class="input-group-text border">
+                                ₱
+                            </span>
+
+                            <input
+                                type="number"
+                                class="form-control shadow-none @error('net_rate') is-invalid @enderror"
                                 id="net_rate"
                                 name="net_rate"
                                 value="{{ old('net_rate') }}"
                                 min="0"
                                 step="0.01"
-                                placeholder="Enter agreed room price"
-                            >
-                            <span class="input-group-text text-muted">/night</span>
+                                placeholder="Enter agreed room rate"
+                                style="height:46px; border:1px solid #ced4da;">
+
+                            <span class="input-group-text border text-muted">
+                                /night
+                            </span>
+
                         </div>
-                        <div class="form-text text-primary">
-                            <i class="fa-solid fa-circle-info me-1"></i>
-                            Adjust for discounts. Leave blank to use the base rate.
-                        </div>
+
                         @error('net_rate')
-                            <div class="invalid-feedback">{{ $message }}</div>
+                            <div class="invalid-feedback d-block">
+                                {{ $message }}
+                            </div>
                         @enderror
+
+                        <small class="text-muted">
+                            Leave blank to automatically use the published room rate.
+                        </small>
+
                     </div>
+
                 </div>
+
             </div>
+
         </div>
 
-        <div class="card border-0 shadow-sm mb-4">
-            <div class="card-header bg-white">
-                <h5 class="fw-bold mb-0">Additional Information</h5>
+        <div class="card border mb-4">
+
+            <!-- Card Header -->
+            <div class="card-header bg-white py-3">
+                <h5 class="fw-bold mb-0">
+                    <i class="fa-solid fa-clipboard-list text-primary me-2"></i>
+                    Additional Information
+                </h5>
             </div>
 
+            <!-- Card Body -->
             <div class="card-body">
-                <div class="row g-3">
-                    <div class="col-md-12">
-                        <label class="form-label" for="special_arrangements">Special Arrangements</label>
-                        <textarea class="form-control @error('special_arrangements') is-invalid @enderror" id="special_arrangements" name="special_arrangements" rows="2" placeholder="e.g. extra pillows, early check-in request...">{{ old('special_arrangements') }}</textarea>
+
+                <div class="row g-4">
+
+                    <!-- Special Arrangements -->
+                    <div class="col-12">
+
+                        <label class="form-label fw-semibold" for="special_arrangements">
+                            Special Arrangements
+                        </label>
+
+                        <textarea
+                            class="form-control shadow-none @error('special_arrangements') is-invalid @enderror"
+                            id="special_arrangements"
+                            name="special_arrangements"
+                            rows="4"
+                            placeholder="Example: Extra pillows, early check-in request, late check-out, etc."
+                            style="border:1px solid #ced4da; resize:none;">{{ old('special_arrangements') }}</textarea>
+
+                        @error('special_arrangements')
+                            <div class="invalid-feedback">
+                                {{ $message }}
+                            </div>
+                        @enderror
+
+                        <small class="text-muted">
+                            Optional notes or special requests for this guest.
+                        </small>
+
                     </div>
 
-                    <div class="col-md-12">
-                        <div class="alert alert-light border mb-0">
-                            <i class="fa-solid fa-circle-info text-primary me-1"></i>
-                            Saving this check-in will immediately check the guest in and mark the selected room as <strong>OCCUPIED</strong> on the dashboard.
+                    <!-- Information -->
+                    <div class="col-12">
+
+                        <div class="border rounded-3 p-3 bg-light">
+
+                            <div class="d-flex align-items-start">
+
+                                <i class="fa-solid fa-circle-info text-primary me-3 mt-1"></i>
+
+                                <div>
+
+                                    <div class="fw-semibold mb-1">
+                                        Check-in Information
+                                    </div>
+
+                                    <div class="text-muted small">
+                                        Saving this registration will immediately
+                                        <strong>check in the guest</strong> and update the
+                                        selected room's status to
+                                        <strong>Occupied</strong>.
+                                    </div>
+
+                                </div>
+
+                            </div>
+
                         </div>
+
                     </div>
+
                 </div>
+
             </div>
+
         </div>
 
         <div class="card border-0 shadow-sm">

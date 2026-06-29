@@ -192,7 +192,7 @@
     </div>
 
     <div class="col-lg-3 col-md-6">
-        <div class="card border-0 shadow-sm">
+        <div class="card border-1 shadow-sm">
             <div class="card-body">
                 <div class="d-flex justify-content-between">
                     <div>
@@ -206,7 +206,7 @@
     </div>
 
     <div class="col-lg-3 col-md-6">
-        <div class="card border-0 shadow-sm">
+        <div class="card border-1 shadow-sm">
             <div class="card-body">
                 <div class="d-flex justify-content-between">
                     <div>
@@ -220,7 +220,7 @@
     </div>
 
     <div class="col-lg-3 col-md-6">
-        <div class="card border-0 shadow-sm">
+        <div class="card border-1 shadow-sm">
             <div class="card-body">
                 <div class="d-flex justify-content-between">
                     <div>
@@ -236,7 +236,7 @@
 </div>
 
 <!-- TODAY'S CHECK-IN & RESERVATIONS -->
-<div class="card border-0 shadow-sm mb-4">
+<div class="card border-1 shadow-sm mb-4">
     <div class="card-header bg-white">
         <div class="d-flex flex-wrap justify-content-between align-items-center gap-3">
             <h5 class="fw-bold mb-0">
@@ -248,7 +248,7 @@
                         <span class="input-group-text"><i class="fa-solid fa-search"></i></span>
                         <input type="text" class="form-control" id="checkinSearch" placeholder="Search guest name...">
                     </div>
-                    <select class="form-select form-select-sm" id="checkinSort" style="width: 180px;">
+                    <select class="form-select form-select-sm" id="checkinSort" style="width: 250px;">
                         <option value="guest-asc">Guest (A-Z)</option>
                         <option value="guest-desc">Guest (Z-A)</option>
                         <option value="room-asc">Room (Low-High)</option>
@@ -328,7 +328,7 @@
 </div>
 
 <!-- AVAILABLE ROOMS (NOT RESERVED OR IN USE) -->
-<div class="card border-0 shadow-sm mb-4">
+<div class="card border-1 shadow-sm mb-4">
     <div class="card-header bg-white">
         <div class="d-flex flex-wrap justify-content-between align-items-center gap-3">
             <h5 class="fw-bold mb-0">
@@ -337,16 +337,41 @@
             </h5>
             @if($vacantRooms->count() > 0)
                 <div class="d-flex flex-wrap gap-2">
-                    <div class="input-group input-group-sm" style="width: 220px;">
-                        <span class="input-group-text"><i class="fa-solid fa-search"></i></span>
-                        <input type="text" class="form-control" id="vacantRoomSearch" placeholder="Search room or type...">
+
+                    <!-- Search -->
+                    <div class="input-group" style="width:360px; border:1px solid #000; border-radius:.375rem; overflow:hidden;">
+                        <span class="input-group-text bg-white border-0">
+                            <i class="fa-solid fa-search"></i>
+                        </span>
+
+                        <input
+                            type="text"
+                            class="form-control border-0 shadow-none"
+                            id="vacantRoomSearch"
+                            placeholder="Search room or type..."
+                            style="height:45px;"
+                        >
                     </div>
-                    <select class="form-select form-select-sm" id="vacantRoomSort" style="width: 180px;">
+
+                    <!-- Sort -->
+                    <select
+                        id="vacantRoomSort"
+                        class="form-select shadow-none"
+                        style="
+                            width:200px;
+                            height:45px;
+                            border:1px solid #000 !important;
+                            border-radius:8px;
+                            box-shadow:none !important;
+                            outline:none;
+                        "
+                    >
                         <option value="room-asc">Room (Low-High)</option>
                         <option value="room-desc">Room (High-Low)</option>
                         <option value="type-asc">Type (A-Z)</option>
                         <option value="type-desc">Type (Z-A)</option>
                     </select>
+
                 </div>
             @endif
         </div>
@@ -377,25 +402,51 @@
 </div>
 
 <!-- OCCUPIED ROOMS -->
-<div class="card border-0 shadow-sm mb-4">
+<div class="card border-1 shadow-sm mb-4">
     <div class="card-header bg-white">
         <div class="d-flex flex-wrap justify-content-between align-items-center gap-3">
             <h5 class="fw-bold mb-0">
                 <i class="fa-solid fa-bed text-primary"></i> Occupied Rooms
                 <span class="badge bg-primary ms-2">{{ $occupiedRoomList->count() }}</span>
             </h5>
+
             @if($occupiedRoomList->count() > 0)
                 <div class="d-flex flex-wrap gap-2">
-                    <div class="input-group input-group-sm" style="width: 220px;">
-                        <span class="input-group-text"><i class="fa-solid fa-search"></i></span>
-                        <input type="text" class="form-control" id="occupiedRoomSearch" placeholder="Search room or guest...">
+
+                    <!-- Search -->
+                    <div class="input-group" style="width:360px; border:1px solid #000; border-radius:.375rem; overflow:hidden;">
+                        <span class="input-group-text bg-white border-0">
+                            <i class="fa-solid fa-search"></i>
+                        </span>
+
+                        <input
+                            type="text"
+                            class="form-control border-0 shadow-none"
+                            id="occupiedRoomSearch"
+                            placeholder="Search room or guest..."
+                            style="height:45px;"
+                        >
                     </div>
-                    <select class="form-select form-select-sm" id="occupiedRoomSort" style="width: 180px;">
+
+                    <!-- Sort -->
+                    <select
+                        id="occupiedRoomSort"
+                        class="form-select shadow-none"
+                        style="
+                            width:200px;
+                            height:45px;
+                            border:1px solid #000 !important;
+                            border-radius:8px;
+                            box-shadow:none !important;
+                            outline:none;
+                        "
+                    >
                         <option value="room-asc">Room (Low-High)</option>
                         <option value="room-desc">Room (High-Low)</option>
                         <option value="guest-asc">Guest (A-Z)</option>
                         <option value="guest-desc">Guest (Z-A)</option>
                     </select>
+
                 </div>
             @endif
         </div>
@@ -440,7 +491,7 @@
 </div>
 
 <!-- TODAY'S CHECK-OUT -->
-<div class="card border-0 shadow-sm mb-4">
+<div class="card border-1 shadow-sm mb-4">
     <div class="card-header bg-white">
         <div class="d-flex flex-wrap justify-content-between align-items-center gap-3">
             <h5 class="fw-bold mb-0">
@@ -533,7 +584,7 @@
 </div>
 
 <!-- ROOM MONITORING -->
-<div class="card border-0 shadow-sm">
+<div class="card border-1 shadow-sm">
     <div class="card-header bg-white">
         <h5 class="fw-bold mb-0">
             Hotel Room Monitoring

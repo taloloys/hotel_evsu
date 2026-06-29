@@ -48,24 +48,46 @@
             </button>
         </div>
 
-        <form method="GET" action="{{ route('frontdesk.reservation') }}" class="card bg-light border-0 mb-4">
+        <form method="GET"
+            action="{{ route('frontdesk.reservation') }}"
+            class="card shadow-sm border mb-4">
+
+
             <div class="card-body">
+
                 <div class="row g-3 align-items-end">
 
-                    <div class="col-lg-3">
-                        <label class="form-label fw-semibold" for="filterDateFrom">Date From</label>
-                        <input type="date" class="form-control" id="filterDateFrom" name="date_from" value="{{ $filters['date_from'] }}">
+                    <!-- Search -->
+                    <div class="col-lg-4">
+                        <label class="form-label fw-semibold">Search Guest / Folio</label>
+
+                        <div class="input-group"
+                            style="border:1px solid #000000;border-radius:.5rem;overflow:hidden;">
+                            <span class="input-group-text bg-white border-0">
+                                <i class="fa-solid fa-search text-muted"></i>
+                            </span>
+
+                            <input
+                                type="text"
+                                class="form-control border-0 shadow-none"
+                                id="filterSearch"
+                                name="search"
+                                value="{{ $filters['search'] }}"
+                                placeholder="Guest name or folio..."
+                                style="height:46px;">
+                        </div>
                     </div>
 
-                    <div class="col-lg-3">
-                        <label class="form-label fw-semibold" for="filterDateTo">Date To</label>
-                        <input type="date" class="form-control" id="filterDateTo" name="date_to" value="{{ $filters['date_to'] }}">
-                    </div>
+                    <!-- Status -->
+                    <div class="col-lg-2">
+                        <label class="form-label fw-semibold">Status</label>
 
-                    <div class="col-lg-3">
-                        <label class="form-label fw-semibold" for="filterStatus">Booking Status</label>
-                        <select class="form-select" id="filterStatus" name="status">
-                            <option value="all" @selected($filters['status'] === 'all')>All Statuses</option>
+                        <select
+                            class="form-select shadow-none"
+                            id="filterStatus"
+                            name="status"
+                            style="height:46px;border:1px solid #030404;">
+                            <option value="all" @selected($filters['status'] === 'all')>All</option>
                             <option value="RESERVED" @selected($filters['status'] === 'RESERVED')>Reserved</option>
                             <option value="CHECKED_IN" @selected($filters['status'] === 'CHECKED_IN')>Checked In</option>
                             <option value="CHECKED_OUT" @selected($filters['status'] === 'CHECKED_OUT')>Checked Out</option>
@@ -73,23 +95,55 @@
                         </select>
                     </div>
 
-                    <div class="col-lg-3">
-                        <label class="form-label fw-semibold" for="filterSearch">Search Guest / Folio</label>
-                        <div class="input-group">
-                            <span class="input-group-text"><i class="fa-solid fa-search"></i></span>
-                            <input type="text" class="form-control" id="filterSearch" name="search" value="{{ $filters['search'] }}" placeholder="Guest name or folio no.">
-                        </div>
+                    <!-- Date From -->
+                    <div class="col-lg-2">
+                        <label class="form-label fw-semibold">Date From</label>
+
+                        <input
+                            type="date"
+                            class="form-control shadow-none"
+                            id="filterDateFrom"
+                            name="date_from"
+                            value="{{ $filters['date_from'] }}"
+                            style="height:46px;border:1px solid #000000;">
                     </div>
 
-                    <div class="col-12 d-flex gap-2">
-                        <button type="submit" class="btn btn-primary btn-sm">
-                            <i class="fa-solid fa-filter me-1"></i> Apply Filters
+                    <!-- Date To -->
+                    <div class="col-lg-2">
+                        <label class="form-label fw-semibold">Date To</label>
+
+                        <input
+                            type="date"
+                            class="form-control shadow-none"
+                            id="filterDateTo"
+                            name="date_to"
+                            value="{{ $filters['date_to'] }}"
+                            style="height:46px;border:1px solid #000000;">
+                    </div>
+
+                    <!-- Buttons -->
+                    <div class="col-lg-2 d-flex gap-2">
+
+                        <button
+                            type="submit"
+                            class="btn btn-primary flex-fill"
+                            style="height:46px;">
+                            <i class="fa-solid fa-filter me-1"></i>
+                            Apply
                         </button>
-                        <a href="{{ route('frontdesk.reservation') }}" class="btn btn-outline-secondary btn-sm">Clear</a>
+
+                        <a href="{{ route('frontdesk.reservation') }}"
+                        class="btn btn-outline-secondary"
+                        style="height:46px;display:flex;align-items:center;">
+                            <i class="fa-solid fa-rotate-left"></i>
+                        </a>
+
                     </div>
 
                 </div>
+
             </div>
+
         </form>
 
         <div class="table-responsive">
@@ -215,7 +269,7 @@
 
 <!-- NEW RESERVATION MODAL -->
 <div class="modal fade" id="newReservationModal" tabindex="-1" aria-hidden="true">
-    <div class="modal-dialog modal-lg modal-dialog-scrollable">
+    <div class="modal-dialog modal-fullscreen-lg-down modal-xl">
         <form method="POST" action="{{ route('frontdesk.reservation.store') }}" id="newReservationForm" class="modal-content">
             @csrf
 
@@ -230,110 +284,339 @@
                     <div class="row g-3 mb-3 border-bottom pb-3">
                         <div class="col-md-12 position-relative">
                             <label class="form-label" for="guest_search">Search Existing Guest (Optional)</label>
-                            <div class="input-group">
-                                <span class="input-group-text"><i class="fa-solid fa-magnifying-glass"></i></span>
-                                <input type="text" class="form-control" id="guest_search" placeholder="Type guest name to search..." autocomplete="off">
+                            <div class="input-group"
+                                style="width:400px; border:1px solid #000000; border-radius:.5rem; overflow:hidden;">
+
+                                <span class="input-group-text bg-white border-0 px-3">
+                                    <i class="fa-solid fa-magnifying-glass text-muted"></i>
+                                </span>
+
+                                <input
+                                    type="text"
+                                    class="form-control border-0 shadow-none"
+                                    id="guest_search"
+                                    placeholder="Type guest name to search..."
+                                    autocomplete="off"
+                                    style="height:46px; font-size:15px;"
+                                >
+
                             </div>
                             <div id="guest_search_results" class="dropdown-menu w-100 shadow-sm mt-1" style="display: none; max-height: 250px; overflow-y: auto; z-index: 1050;"></div>
                             <div class="form-text">If there is no existing guest, simply type the guest details directly below.</div>
                         </div>
                     </div>
-                    <div class="row g-3 mb-4">
+                    <div class="row g-4 mb-4">
+
+                        <!-- First Name -->
                         <div class="col-md-6">
-                            <label class="form-label" for="first_name">First Name <span class="text-danger">*</span></label>
-                            <input type="text" class="form-control @error('first_name') is-invalid @enderror" id="first_name" name="first_name" value="{{ old('first_name') }}" maxlength="50" required>
+                            <label class="form-label fw-semibold" for="first_name">
+                                First Name <span class="text-danger">*</span>
+                            </label>
+
+                            <input
+                                type="text"
+                                class="form-control shadow-none @error('first_name') is-invalid @enderror"
+                                id="first_name"
+                                name="first_name"
+                                value="{{ old('first_name') }}"
+                                maxlength="50"
+                                placeholder="Enter first name"
+                                style="height:46px; border:1px solid #000000;"
+                                required>
                         </div>
+
+                        <!-- Last Name -->
                         <div class="col-md-6">
-                            <label class="form-label" for="last_name">Last Name <span class="text-danger">*</span></label>
-                            <input type="text" class="form-control @error('last_name') is-invalid @enderror" id="last_name" name="last_name" value="{{ old('last_name') }}" maxlength="50" required>
+                            <label class="form-label fw-semibold" for="last_name">
+                                Last Name <span class="text-danger">*</span>
+                            </label>
+
+                            <input
+                                type="text"
+                                class="form-control shadow-none @error('last_name') is-invalid @enderror"
+                                id="last_name"
+                                name="last_name"
+                                value="{{ old('last_name') }}"
+                                maxlength="50"
+                                placeholder="Enter last name"
+                                style="height:46px; border:1px solid #000000;"
+                                required>
                         </div>
+
+                        <!-- Contact Number -->
                         <div class="col-md-6">
-                            <label class="form-label" for="contact_number">Contact Number</label>
-                            <input type="text" class="form-control @error('contact_number') is-invalid @enderror" id="contact_number" name="contact_number" value="{{ old('contact_number') }}" maxlength="20">
+                            <label class="form-label fw-semibold" for="contact_number">
+                                Contact Number
+                            </label>
+
+                            <input
+                                type="text"
+                                class="form-control shadow-none @error('contact_number') is-invalid @enderror"
+                                id="contact_number"
+                                name="contact_number"
+                                value="{{ old('contact_number') }}"
+                                maxlength="20"
+                                placeholder="09XXXXXXXXX"
+                                style="height:46px; border:1px solid #000000;">
                         </div>
+
+                        <!-- Address Line 1 -->
                         <div class="col-md-6">
-                            <label class="form-label" for="address_line1">Address Line 1</label>
-                            <input type="text" class="form-control @error('address_line1') is-invalid @enderror" id="address_line1" name="address_line1" value="{{ old('address_line1') }}" maxlength="100">
+                            <label class="form-label fw-semibold" for="address_line1">
+                                Address Line 1
+                            </label>
+
+                            <input
+                                type="text"
+                                class="form-control shadow-none @error('address_line1') is-invalid @enderror"
+                                id="address_line1"
+                                name="address_line1"
+                                value="{{ old('address_line1') }}"
+                                maxlength="100"
+                                placeholder="Street, Barangay"
+                                style="height:46px; border:1px solid #000000;">
                         </div>
+
+                        <!-- Address Line 2 -->
                         <div class="col-md-12">
-                            <label class="form-label" for="address_line2">Address Line 2</label>
-                            <input type="text" class="form-control @error('address_line2') is-invalid @enderror" id="address_line2" name="address_line2" value="{{ old('address_line2') }}" maxlength="100">
+                            <label class="form-label fw-semibold" for="address_line2">
+                                Address Line 2
+                            </label>
+
+                            <input
+                                type="text"
+                                class="form-control shadow-none @error('address_line2') is-invalid @enderror"
+                                id="address_line2"
+                                name="address_line2"
+                                value="{{ old('address_line2') }}"
+                                maxlength="100"
+                                placeholder="City, Province (Optional)"
+                                style="height:46px; border:1px solid #000000;">
                         </div>
+
                     </div>
 
                     <h6 class="fw-bold text-primary mb-3"><i class="fa-solid fa-file-invoice me-2"></i>Folio (folios table)</h6>
-                    <div class="row g-3 mb-4">
+                    <div class="row g-4 mb-4">
+
+                        <!-- Folio Number -->
                         <div class="col-md-4">
-                            <label class="form-label" for="folio_number">Folio Number</label>
-                            <input type="text" class="form-control @error('folio_number') is-invalid @enderror" id="folio_number" name="folio_number" value="{{ old('folio_number', $suggestedFolioNumber) }}" maxlength="20" placeholder="Auto-generated if blank">
+                            <label class="form-label fw-semibold" for="folio_number">
+                                Folio Number
+                            </label>
+
+                            <input
+                                type="text"
+                                class="form-control shadow-none @error('folio_number') is-invalid @enderror"
+                                id="folio_number"
+                                name="folio_number"
+                                value="{{ old('folio_number', $suggestedFolioNumber) }}"
+                                maxlength="20"
+                                placeholder="Auto-generated if left blank"
+                                style="height:46px; border:1px solid #000000;">
                         </div>
+
+                        <!-- Registration Number -->
                         <div class="col-md-4">
-                            <label class="form-label" for="registration_number">Registration Number</label>
-                            <input type="text" class="form-control @error('registration_number') is-invalid @enderror" id="registration_number" name="registration_number" value="{{ old('registration_number') }}" maxlength="20">
+                            <label class="form-label fw-semibold" for="registration_number">
+                                Registration Number
+                            </label>
+
+                            <input
+                                type="text"
+                                class="form-control shadow-none @error('registration_number') is-invalid @enderror"
+                                id="registration_number"
+                                name="registration_number"
+                                value="{{ old('registration_number') }}"
+                                maxlength="20"
+                                placeholder="Enter registration number"
+                                style="height:46px; border:1px solid #000000;">
                         </div>
+
+                        <!-- Account Number -->
                         <div class="col-md-4">
-                            <label class="form-label" for="account_number">Account Number</label>
-                            <input type="text" class="form-control @error('account_number') is-invalid @enderror" id="account_number" name="account_number" value="{{ old('account_number') }}" maxlength="20">
+                            <label class="form-label fw-semibold" for="account_number">
+                                Account Number
+                            </label>
+
+                            <input
+                                type="text"
+                                class="form-control shadow-none @error('account_number') is-invalid @enderror"
+                                id="account_number"
+                                name="account_number"
+                                value="{{ old('account_number') }}"
+                                maxlength="20"
+                                placeholder="Enter account number"
+                                style="height:46px; border:1px solid #000000;">
                         </div>
+
+                        <!-- Number of Guests -->
                         <div class="col-md-4">
-                            <label class="form-label" for="num_pax">Number of Guests (num_pax)</label>
-                            <input type="number" class="form-control @error('num_pax') is-invalid @enderror" id="num_pax" name="num_pax" value="{{ old('num_pax', 1) }}" min="1" max="20">
+                            <label class="form-label fw-semibold" for="num_pax">
+                                Number of Guests
+                            </label>
+
+                            <input
+                                type="number"
+                                class="form-control shadow-none @error('num_pax') is-invalid @enderror"
+                                id="num_pax"
+                                name="num_pax"
+                                value="{{ old('num_pax', 1) }}"
+                                min="1"
+                                max="20"
+                                placeholder="1"
+                                style="height:46px; border:1px solid #000000;">
                         </div>
+
                     </div>
 
                     <h6 class="fw-bold text-primary mb-3"><i class="fa-solid fa-bed me-2"></i>Booking (bookings table)</h6>
-                    <div class="row g-3">
+                    <div class="row g-4">
+
+                        <!-- Filter by Room Type -->
                         <div class="col-md-6">
-                            <label class="form-label" for="room_type_filter">Filter by Room Type</label>
-                            <select class="form-select" id="room_type_filter">
+                            <label class="form-label fw-semibold" for="room_type_filter">
+                                Filter by Room Type
+                            </label>
+
+                            <select
+                                class="form-select shadow-none"
+                                id="room_type_filter"
+                                style="height:46px; border:1px solid #000000;">
+
                                 <option value="">All Types</option>
+
                                 @foreach($roomTypes as $type)
-                                    <option value="{{ $type }}">{{ $type }}</option>
+                                    <option value="{{ $type }}">
+                                        {{ $type }}
+                                    </option>
                                 @endforeach
+
                             </select>
                         </div>
+
+                        <!-- Room -->
                         <div class="col-md-6">
-                            <label class="form-label" for="room_id">Room <span class="text-danger">*</span></label>
-                            <select class="form-select @error('room_id') is-invalid @enderror" id="room_id" name="room_id" required>
+                            <label class="form-label fw-semibold" for="room_id">
+                                Select Room
+                                <span class="text-danger">*</span>
+                            </label>
+
+                            <select
+                                class="form-select shadow-none @error('room_id') is-invalid @enderror"
+                                id="room_id"
+                                name="room_id"
+                                style="height:46px; border:1px solid #000000;"
+                                required>
+
                                 <option value="">Select available room</option>
+
                                 @foreach($assignableRooms as $room)
                                     <option
                                         value="{{ $room->room_id }}"
                                         data-room-type="{{ $room->room_type }}"
                                         @selected(old('room_id') == $room->room_id)
                                     >
-                                        {{ $room->room_number }} — {{ $room->room_type }} (₱{{ number_format($room->base_rate, 2) }})
+                                        {{ $room->room_number }}
+                                        — {{ $room->room_type }}
+                                        (₱{{ number_format($room->base_rate, 2) }})
                                     </option>
                                 @endforeach
+
                             </select>
+
                             @if($assignableRooms->isEmpty())
-                                <div class="form-text text-danger">No available rooms right now.</div>
+                                <div class="form-text text-danger mt-2">
+                                    <i class="fa-solid fa-circle-exclamation me-1"></i>
+                                    No available rooms right now.
+                                </div>
                             @endif
                         </div>
+
+                        <!-- Arrival Date -->
                         <div class="col-md-6">
-                            <label class="form-label" for="arrival_date">Arrival Date <span class="text-danger">*</span></label>
-                            <input type="date" class="form-control @error('arrival_date') is-invalid @enderror" id="arrival_date" name="arrival_date" value="{{ old('arrival_date', now()->toDateString()) }}" required>
+                            <label class="form-label fw-semibold" for="arrival_date">
+                                Arrival Date
+                                <span class="text-danger">*</span>
+                            </label>
+
+                            <input
+                                type="date"
+                                class="form-control shadow-none @error('arrival_date') is-invalid @enderror"
+                                id="arrival_date"
+                                name="arrival_date"
+                                value="{{ old('arrival_date', now()->toDateString()) }}"
+                                style="height:46px; border:1px solid #000000;"
+                                required>
                         </div>
+
+                        <!-- Arrival Time -->
                         <div class="col-md-6">
-                            <label class="form-label" for="arrival_time">Arrival Time <span class="text-danger">*</span></label>
-                            <input type="time" class="form-control @error('arrival_time') is-invalid @enderror" id="arrival_time" name="arrival_time" value="{{ old('arrival_time', '12:00') }}" required>
+                            <label class="form-label fw-semibold" for="arrival_time">
+                                Arrival Time
+                                <span class="text-danger">*</span>
+                            </label>
+
+                            <input
+                                type="time"
+                                class="form-control shadow-none @error('arrival_time') is-invalid @enderror"
+                                id="arrival_time"
+                                name="arrival_time"
+                                value="{{ old('arrival_time', '12:00') }}"
+                                style="height:46px; border:1px solid #000000;"
+                                required>
                         </div>
+
+                        <!-- Departure Date -->
                         <div class="col-md-6">
-                            <label class="form-label" for="departure_date">Departure Date <span class="text-danger">*</span></label>
-                            <input type="date" class="form-control @error('departure_date') is-invalid @enderror" id="departure_date" name="departure_date" value="{{ old('departure_date') }}" required>
+                            <label class="form-label fw-semibold" for="departure_date">
+                                Departure Date
+                                <span class="text-danger">*</span>
+                            </label>
+
+                            <input
+                                type="date"
+                                class="form-control shadow-none @error('departure_date') is-invalid @enderror"
+                                id="departure_date"
+                                name="departure_date"
+                                value="{{ old('departure_date') }}"
+                                style="height:46px; border:1px solid #000000;"
+                                required>
                         </div>
+
+                        <!-- Departure Time -->
                         <div class="col-md-6">
-                            <label class="form-label" for="departure_time">Departure Time <span class="text-danger">*</span></label>
-                            <input type="time" class="form-control @error('departure_time') is-invalid @enderror" id="departure_time" name="departure_time" value="{{ old('departure_time', '12:00') }}" required>
+                            <label class="form-label fw-semibold" for="departure_time">
+                                Departure Time
+                                <span class="text-danger">*</span>
+                            </label>
+
+                            <input
+                                type="time"
+                                class="form-control shadow-none @error('departure_time') is-invalid @enderror"
+                                id="departure_time"
+                                name="departure_time"
+                                value="{{ old('departure_time', '12:00') }}"
+                                style="height:46px; border:1px solid #000000;"
+                                required>
                         </div>
-                        <div class="col-md-12">
-                            <div class="alert alert-light border mb-0">
-                                <i class="fa-solid fa-circle-info text-primary me-1"></i>
-                                New reservations are saved with booking status <strong>RESERVED</strong> and will appear on the dashboard when arrival is today.
+
+                        <!-- Information -->
+                        <div class="col-12">
+                            <div class="alert alert-primary border rounded-3 d-flex align-items-start mb-0">
+                                <i class="fa-solid fa-circle-info fs-5 me-3 mt-1"></i>
+
+                                <div>
+                                    <strong>Reservation Status</strong><br>
+
+                                    New reservations are automatically saved with the
+                                    <strong>RESERVED</strong> status and will appear on the
+                                    dashboard once the arrival date is today.
+                                </div>
                             </div>
                         </div>
-                    </div>
 
+                    </div>
                 </div>
 
             <div class="modal-footer">
@@ -348,34 +631,109 @@
 
 <!-- VIEW RESERVATION MODAL -->
 <div class="modal fade" id="viewReservationModal" tabindex="-1" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title fw-bold">Reservation Details</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+        <div class="modal-content border-0 shadow-sm">
+
+            <!-- Header -->
+            <div class="modal-header border-bottom">
+                <h5 class="modal-title fw-bold">
+                    <i class="fa-solid fa-calendar-check text-primary me-2"></i>
+                    Reservation Details
+                </h5>
+
+                <button type="button"
+                        class="btn-close"
+                        data-bs-dismiss="modal">
+                </button>
             </div>
-            <div class="modal-body">
-                <dl class="row mb-0">
-                    <dt class="col-sm-4">Guest</dt>
-                    <dd class="col-sm-8" id="viewGuest"></dd>
-                    <dt class="col-sm-4">Contact</dt>
-                    <dd class="col-sm-8" id="viewContact"></dd>
-                    <dt class="col-sm-4">Folio No.</dt>
-                    <dd class="col-sm-8" id="viewFolio"></dd>
-                    <dt class="col-sm-4">Registration</dt>
-                    <dd class="col-sm-8" id="viewRegistration"></dd>
-                    <dt class="col-sm-4">Room</dt>
-                    <dd class="col-sm-8" id="viewRoom"></dd>
-                    <dt class="col-sm-4">Arrival</dt>
-                    <dd class="col-sm-8" id="viewArrival"></dd>
-                    <dt class="col-sm-4">Departure</dt>
-                    <dd class="col-sm-8" id="viewDeparture"></dd>
-                    <dt class="col-sm-4">Guests (Pax)</dt>
-                    <dd class="col-sm-8" id="viewPax"></dd>
-                    <dt class="col-sm-4">Status</dt>
-                    <dd class="col-sm-8" id="viewStatus"></dd>
-                </dl>
+
+            <!-- Body -->
+            <div class="modal-body p-4">
+
+                <table class="table table-hover align-middle mb-0">
+
+                    <tbody>
+
+                        <tr>
+                            <th width="35%" class="text-muted fw-semibold">
+                                Guest
+                            </th>
+                            <td id="viewGuest" class="fw-semibold"></td>
+                        </tr>
+
+                        <tr>
+                            <th class="text-muted fw-semibold">
+                                Contact Number
+                            </th>
+                            <td id="viewContact"></td>
+                        </tr>
+
+                        <tr>
+                            <th class="text-muted fw-semibold">
+                                Folio Number
+                            </th>
+                            <td id="viewFolio"></td>
+                        </tr>
+
+                        <tr>
+                            <th class="text-muted fw-semibold">
+                                Registration Number
+                            </th>
+                            <td id="viewRegistration"></td>
+                        </tr>
+
+                        <tr>
+                            <th class="text-muted fw-semibold">
+                                Room
+                            </th>
+                            <td id="viewRoom"></td>
+                        </tr>
+
+                        <tr>
+                            <th class="text-muted fw-semibold">
+                                Arrival
+                            </th>
+                            <td id="viewArrival"></td>
+                        </tr>
+
+                        <tr>
+                            <th class="text-muted fw-semibold">
+                                Departure
+                            </th>
+                            <td id="viewDeparture"></td>
+                        </tr>
+
+                        <tr>
+                            <th class="text-muted fw-semibold">
+                                Number of Guests
+                            </th>
+                            <td id="viewPax"></td>
+                        </tr>
+
+                        <tr>
+                            <th class="text-muted fw-semibold">
+                                Status
+                            </th>
+                            <td>
+                                <span id="viewStatus"></span>
+                            </td>
+                        </tr>
+
+                    </tbody>
+
+                </table>
+
             </div>
+
+            <!-- Footer -->
+            <div class="modal-footer border-top">
+                <button type="button"
+                        class="btn btn-outline-secondary px-4"
+                        data-bs-dismiss="modal">
+                    Close
+                </button>
+            </div>
+
         </div>
     </div>
 </div>

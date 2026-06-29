@@ -337,91 +337,131 @@
     <div class="modal fade" id="guestModal{{ $guest->guest_id }}" tabindex="-1" aria-labelledby="guestModalLabel{{ $guest->guest_id }}" aria-hidden="true">
         <div class="modal-dialog modal-lg modal-dialog-scrollable">
             <div class="modal-content">
+
                 <div class="modal-header">
-                    <h5 class="modal-title fw-bold" id="guestModalLabel{{ $guest->guest_id }}">
-                        <i class="fa-solid fa-user me-2 text-primary"></i>
+                    <h5 class="modal-title fw-semibold">
                         {{ $guest->last_name }}, {{ $guest->first_name }}
                     </h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+
+                    <button class="btn-close" data-bs-dismiss="modal"></button>
                 </div>
+
                 <div class="modal-body">
 
-                    {{-- Guest Info --}}
-                    <div class="row g-3 mb-4">
-                        <div class="col-md-6">
-                            <p class="mb-1 text-muted small fw-semibold">MOBILE NUMBER</p>
-                            <p class="mb-0">{{ $guest->contact_number ?: '—' }}</p>
+                    <h6 class="fw-semibold mb-3">Guest Information</h6>
+
+                    <div class="row mb-4">
+
+                        <div class="col-md-6 mb-3">
+                            <small class="text-muted">Mobile Number</small>
+                            <div>{{ $guest->contact_number ?: '—' }}</div>
                         </div>
-                        <div class="col-md-6">
-                            <p class="mb-1 text-muted small fw-semibold">ADDRESS</p>
-                            <p class="mb-0">{{ $guest->address_line1 ?: '—' }}</p>
+
+                        <div class="col-md-6 mb-3">
+                            <small class="text-muted">Address</small>
+                            <div>{{ $guest->address_line1 ?: '—' }}</div>
                         </div>
+
                         <div class="col-md-6">
-                            <p class="mb-1 text-muted small fw-semibold">FIRST REGISTERED</p>
-                            <p class="mb-0">{{ $guest->created_at->format('F d, Y') }}</p>
+                            <small class="text-muted">First Registered</small>
+                            <div>{{ $guest->created_at->format('F d, Y') }}</div>
                         </div>
+
                         <div class="col-md-6">
-                            <p class="mb-1 text-muted small fw-semibold">TOTAL STAYS</p>
-                            <p class="mb-0">
-                                <span class="badge bg-primary">{{ $guest->folios->count() }}</span>
-                            </p>
+                            <small class="text-muted">Total Stays</small>
+                            <div>{{ $guest->folios->count() }}</div>
                         </div>
+
                     </div>
 
                     <hr>
-                    <h6 class="fw-bold mb-3">Booking History</h6>
 
-                    @forelse($sortedFolios as $folio)
-                        @foreach($folio->bookings->sortByDesc('booking_id') as $booking)
-                            <div class="card border mb-3">
-                                <div class="card-body py-3">
-                                    <div class="row align-items-center">
-                                        <div class="col-md-3">
-                                            <p class="mb-1 text-muted small fw-semibold">FOLIO</p>
-                                            <p class="mb-0 fw-semibold">{{ $folio->folio_number }}</p>
-                                        </div>
-                                        <div class="col-md-3">
-                                            <p class="mb-1 text-muted small fw-semibold">ROOM</p>
-                                            <p class="mb-0 fw-semibold">
+                    <h6 class="fw-semibold mb-3">Booking History</h6>
+
+                    <div class="table-responsive">
+
+                        <table class="table table-bordered table-sm align-middle">
+
+                            <thead class="table-light">
+                                <tr>
+                                    <th>Folio</th>
+                                    <th>Room</th>
+                                    <th>Arrival</th>
+                                    <th>Departure</th>
+                                    <th>Payment</th>
+                                    <th>Status</th>
+                                </tr>
+                            </thead>
+
+                            <tbody>
+
+                                @forelse($sortedFolios as $folio)
+
+                                    @foreach($folio->bookings->sortByDesc('booking_id') as $booking)
+
+                                        <tr>
+
+                                            <td>{{ $folio->folio_number }}</td>
+
+                                            <td>
                                                 {{ $booking->room?->room_number ?? '—' }}
-                                                <span class="text-muted small fw-normal">{{ $booking->room?->room_type }}</span>
-                                            </p>
-                                        </div>
-                                        <div class="col-md-3">
-                                            <p class="mb-1 text-muted small fw-semibold">CHECK-IN → CHECK-OUT</p>
-                                            <p class="mb-0 small">
-                                                {{ $booking->arrival_date->format('M d, Y') }}
-                                                → {{ $booking->departure_date->format('M d, Y') }}
-                                            </p>
-                                        </div>
-                                        <div class="col-md-3 text-md-end">
-                                            @if($booking->status === 'CHECKED_IN')
-                                                <span class="badge bg-success-subtle text-success border border-success-subtle">In-House</span>
-                                            @elseif($booking->status === 'CHECKED_OUT')
-                                                <span class="badge bg-secondary-subtle text-secondary border border-secondary-subtle">Checked Out</span>
-                                            @elseif($booking->status === 'RESERVED')
-                                                <span class="badge bg-warning-subtle text-warning border border-warning-subtle">Reserved</span>
-                                            @else
-                                                <span class="badge bg-danger-subtle text-danger border border-danger-subtle">Cancelled</span>
-                                            @endif
-                                            @if($folio->payment_method)
-                                                <div class="text-muted small mt-1">
-                                                    {{ $folio->payment_method === 'Cash' ? '💵' : '💳' }} {{ $folio->payment_method }}
-                                                </div>
-                                            @endif
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        @endforeach
-                    @empty
-                        <p class="text-muted">No bookings on record.</p>
-                    @endforelse
+                                                <br>
+                                                <small class="text-muted">
+                                                    {{ $booking->room?->room_type }}
+                                                </small>
+                                            </td>
+
+                                            <td>{{ $booking->arrival_date->format('M d, Y') }}</td>
+
+                                            <td>{{ $booking->departure_date->format('M d, Y') }}</td>
+
+                                            <td>{{ $folio->payment_method ?? '—' }}</td>
+
+                                            <td>
+
+                                                @if($booking->status=='CHECKED_IN')
+                                                    <span class="badge bg-success">In-House</span>
+
+                                                @elseif($booking->status=='CHECKED_OUT')
+                                                    <span class="badge bg-secondary">Checked Out</span>
+
+                                                @elseif($booking->status=='RESERVED')
+                                                    <span class="badge bg-warning text-dark">Reserved</span>
+
+                                                @else
+                                                    <span class="badge bg-danger">Cancelled</span>
+                                                @endif
+
+                                            </td>
+
+                                        </tr>
+
+                                    @endforeach
+
+                                @empty
+
+                                    <tr>
+                                        <td colspan="6" class="text-center text-muted">
+                                            No booking history found.
+                                        </td>
+                                    </tr>
+
+                                @endforelse
+
+                            </tbody>
+
+                        </table>
+
+                    </div>
 
                 </div>
+
                 <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                    <button class="btn btn-secondary" data-bs-dismiss="modal">
+                        Close
+                    </button>
                 </div>
+
             </div>
         </div>
     </div>
