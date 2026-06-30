@@ -2,6 +2,7 @@
 
 namespace App\Services\Coffeeshop;
 
+use App\Models\ActivityLog;
 use App\Models\PosProduct;
 use App\Models\PosTab;
 use App\Models\PosTabItem;
@@ -170,9 +171,77 @@ class PosTabService
         return $tab->fresh(['items.product.category']);
     }
 
+    public function transferTabBillingTarget(PosTab $tab, string $newTabType, ?int $folioId = null, ?int $creditAccountId = null): PosTab
+    {
+        if ($tab->status !== 'open') {
+            throw new RuntimeException('Can only transfer open tabs.');
+        }
+
+        if (! in_array($newTabType, ['walk_in', 'room', 'account'])) {
+            throw new \InvalidArgumentException('Invalid tab type.');
+        }
+
+        if ($newTabType === 'room' && ! $folioId) {
+            throw new \InvalidArgumentException('Folio ID is required for room charge.');
+        }
+
+        if ($newTabType === 'account' && ! $creditAccountId) {
+            throw new \InvalidArgumentException('Credit Account ID is required for account charge.');
+        }
+
+        $oldType = $tab->tab_type;
+
+        $tab->update([
+            'tab_type' => $newTabType,
+            'folio_id' => $newTabType === 'room' ? $folioId : null,
+            'credit_account_id' => $newTabType === 'account' ? $creditAccountId : null,
+        ]);
+
+        ActivityLog::log(
+            'pos_tab_transfer',
+            "Transferred Tab #{$tab->tab_id} billing target from {$oldType} to {$newTabType}"
+        );
+
+        return $tab->fresh(['room', 'guest', 'folio', 'creditAccount']);
+    }
+
+    public function applyDiscount(PosTab $tab, string $type, float $amount, bool $isPercentage): PosTab
+    {
+        if ($tab->status !== 'open') {
+            throw new RuntimeException('Cannot apply discount to closed tab.');
+        }
+
+        $tab->update([
+            'discount_type' => $type,
+            'discount_amount' => $amount,
+            'is_discount_percentage' => $isPercentage,
+        ]);
+
+        $tab->recalculateTotals();
+
+        return $tab->fresh();
+    }
+
+    public function removeDiscount(PosTab $tab): PosTab
+    {
+        if ($tab->status !== 'open') {
+            throw new RuntimeException('Cannot remove discount from closed tab.');
+        }
+
+        $tab->update([
+            'discount_type' => null,
+            'discount_amount' => 0,
+            'is_discount_percentage' => false,
+        ]);
+
+        $tab->recalculateTotals();
+
+        return $tab->fresh();
+    }
+
     public function formatTab(PosTab $tab): array
     {
-        $tab->loadMissing(['items.product.category', 'room', 'guest', 'folio']);
+        $tab->loadMissing(['items.product.category', 'room', 'guest', 'folio', 'creditAccount']);
 
         return [
             'tab_id' => $tab->tab_id,
@@ -181,9 +250,14 @@ class PosTabService
             'status' => $tab->status,
             'guest_id' => $tab->guest_id,
             'folio_id' => $tab->folio_id,
+            'credit_account_id' => $tab->credit_account_id,
+            'credit_account_name' => $tab->creditAccount?->account_name,
             'booking_id' => $tab->booking_id,
             'room_id' => $tab->room_id,
             'room_number' => $tab->room?->room_number,
+            'discount_type' => $tab->discount_type,
+            'discount_amount' => (float) $tab->discount_amount,
+            'is_discount_percentage' => (bool) $tab->is_discount_percentage,
             'subtotal' => (float) $tab->subtotal,
             'total' => (float) $tab->total,
             'item_count' => $tab->items->sum('quantity'),

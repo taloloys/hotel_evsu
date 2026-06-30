@@ -30,12 +30,12 @@ class ActivityLogController extends Controller
 
         // Get filter options
         $users = User::orderBy('full_name')->get(['user_id', 'full_name', 'username']);
-        $actionTypes = ['LOGIN', 'RESERVATION_CREATE', 'CHECK_IN', 'ADD_CHARGE', 'PRINT_FOLIO', 'CLOSE_SHIFT', 'ROOM_MODIFIED'];
+        $actionTypes = ActivityLog::select('action_type')->distinct()->pluck('action_type')->toArray();
 
         // Get overall statistics (unfiltered for consistent overview, or filter-aware if preferred; standard is overall)
         $totalLogs = ActivityLog::count();
         $todayLogs = ActivityLog::whereDate('timestamp', Carbon::today())->count();
-        $auditLogsCount = ActivityLog::whereIn('action_type', ['ADD_CHARGE', 'CLOSE_SHIFT', 'ROOM_MODIFIED'])->count();
+        $auditLogsCount = ActivityLog::whereNotIn('action_type', ['LOGIN', 'VIEW'])->count();
 
         return view('admin.activitylogs.index', [
             'logs' => $logs,

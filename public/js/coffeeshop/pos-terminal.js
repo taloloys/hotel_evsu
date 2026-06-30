@@ -86,16 +86,20 @@
         return tabs.find(tab => tab.tab_id === activeTabId) || null;
     }
 
-    // Toggle tab input UI
     document.querySelectorAll('input[name="new-tab-type"]').forEach(radio => {
         radio.addEventListener('change', (e) => {
-            if (e.target.value === 'room') {
-                walkinPanel.classList.add('d-none');
+            const val = e.target.value;
+            walkinPanel.classList.add('d-none');
+            roomPanel.classList.add('d-none');
+            document.getElementById('new-tab-account-panel').classList.add('d-none');
+
+            if (val === 'room') {
                 roomPanel.classList.remove('d-none');
                 loadGuests();
+            } else if (val === 'account') {
+                document.getElementById('new-tab-account-panel').classList.remove('d-none');
             } else {
                 walkinPanel.classList.remove('d-none');
-                roomPanel.classList.add('d-none');
             }
         });
     });
@@ -142,25 +146,41 @@
         cartTotal.textContent = formatMoney(tab.total);
         cartItems.innerHTML = '';
 
-        // Badge
-        if (tab.tab_type === 'room') {
-            activeTabBadge.innerHTML = `<span class="badge bg-info small">Room Charge (Room ${tab.room_number})</span>`;
-        } else {
-            activeTabBadge.innerHTML = `<span class="badge bg-secondary small">Walk-in</span>`;
-        }
-
-        // Show/hide actions based on type
         const walkinActions = document.getElementById('walkin-checkout-actions');
         const roomActions = document.getElementById('room-checkout-actions');
+        const accountActions = document.getElementById('account-checkout-actions');
         const pendingAlert = document.getElementById('active-tab-pending-alert');
         const allButtons = document.querySelectorAll('.checkout-action-btn');
 
+        walkinActions.classList.add('d-none');
+        roomActions.classList.add('d-none');
+        accountActions.classList.add('d-none');
+
         if (tab.tab_type === 'room') {
-            walkinActions.classList.add('d-none');
             roomActions.classList.remove('d-none');
+            activeTabBadge.innerHTML = `<span class="badge bg-info small">Room Charge (Room ${tab.room_number})</span>`;
+        } else if (tab.tab_type === 'account') {
+            accountActions.classList.remove('d-none');
+            activeTabBadge.innerHTML = `<span class="badge bg-primary small">Account Charge (${tab.credit_account_name || 'N/A'})</span>`;
         } else {
             walkinActions.classList.remove('d-none');
-            roomActions.classList.add('d-none');
+            activeTabBadge.innerHTML = `<span class="badge bg-secondary small">Walk-in</span>`;
+        }
+
+        const discountBadge = document.getElementById('active-tab-discount-badge');
+        if (tab.discount_amount > 0) {
+            discountBadge.classList.remove('d-none');
+            const dStr = tab.is_discount_percentage ? `${tab.discount_amount}%` : formatMoney(tab.discount_amount);
+            discountBadge.textContent = `${tab.discount_type} Discount: -${dStr}`;
+        } else {
+            discountBadge.classList.add('d-none');
+        }
+
+        document.getElementById('cart-subtotal').textContent = formatMoney(tab.subtotal);
+        if (tab.discount_amount > 0) {
+            document.getElementById('cart-discount').textContent = '-' + formatMoney(tab.subtotal - tab.total);
+        } else {
+            document.getElementById('cart-discount').textContent = '-₱0.00';
         }
 
         // Handle pending cancellation state
@@ -455,14 +475,15 @@
     }
     function showReceipt(data) {
         const receiptEl = document.getElementById('receipt-content');
-
-        const items = data.items || [];
+        
+        const order = data.order || {};
+        const items = order.items || [];
 
         const itemsHtml = items.length
             ? items.map(item => `
                 <tr>
-                    <td>${item.name}</td>
-                    <td class="text-center">${item.qty}</td>
+                    <td>${item.product_name || item.name || 'Item'}</td>
+                    <td class="text-center">${item.quantity}</td>
                     <td class="text-end">₱${parseFloat(item.price).toFixed(2)}</td>
                 </tr>
             `).join('')
@@ -480,13 +501,16 @@
                 <div style="font-size:11px; margin-top:4px;">
                     ${new Date().toLocaleString()}
                 </div>
+                <div style="font-size:11px; margin-top:4px;">
+                    Order #${order.order_number || ''}
+                </div>
             </div>
 
             <div style="border-top:1px dashed #000; margin:8px 0;"></div>
 
             <!-- CUSTOMER -->
             <div style="font-size:12px;">
-                <strong>Customer:</strong> ${data.customer_name ?? 'Walk-in'}
+                <strong>Customer:</strong> ${order.customer_name || 'Walk-in'}
             </div>
 
             <div style="border-top:1px dashed #000; margin:8px 0;"></div>
@@ -496,24 +520,31 @@
                 ${items.map(item => `
                     <div style="display:flex; justify-content:space-between; margin-bottom:4px;">
                         <div style="width:55%;">
-                            ${item.name}
+                            ${item.product_name || item.name || 'Item'}
                         </div>
                         <div style="width:15%; text-align:center;">
-                            x${item.qty}
+                            x${item.quantity}
                         </div>
                         <div style="width:30%; text-align:right;">
-                            ₱${parseFloat(item.price).toFixed(2)}
+                            ₱${parseFloat(item.line_total || (item.quantity * item.price)).toFixed(2)}
                         </div>
                     </div>
                 `).join('')}
             </div>
 
             <div style="border-top:1px dashed #000; margin:8px 0;"></div>
+            
+            ${order.discount_amount > 0 ? `
+            <div style="display:flex; justify-content:space-between; font-size:12px; color: #555;">
+                <div>Discount</div>
+                <div>-₱${parseFloat(order.discount_amount).toFixed(2)}</div>
+            </div>
+            ` : ''}
 
             <!-- TOTAL -->
             <div style="display:flex; justify-content:space-between; font-weight:bold; font-size:14px;">
                 <div>TOTAL</div>
-                <div>₱${parseFloat(data.total).toFixed(2)}</div>
+                <div>₱${parseFloat(order.total || 0).toFixed(2)}</div>
             </div>
 
             <div style="border-top:1px dashed #000; margin:8px 0;"></div>
@@ -529,9 +560,6 @@
 
         const modal = new bootstrap.Modal(document.getElementById('receiptModal'));
         modal.show();
-        setTimeout(() => {
-            window.printReceipt();
-        }, 300);
     }
 
     async function updateItemQuantity(itemId, quantity) {
@@ -635,6 +663,15 @@
             payload.room_id = guest.room_id;
             payload.guest_id = guest.guest_id;
             payload.tab_name = `Room ${guest.room_number} - ${guest.guest_name}`;
+        } else if (tabType === 'account') {
+            const accSelect = document.getElementById('new-tab-account');
+            const accountId = accSelect.value;
+            if (!accountId) {
+                showAlert('Please select a credit account.', 'warning');
+                return;
+            }
+            payload.credit_account_id = accountId;
+            payload.tab_name = accSelect.options[accSelect.selectedIndex].text.split(' (')[0];
         } else {
             const tabName = document.getElementById('new-tab-name').value.trim();
             if (!tabName) {
@@ -763,6 +800,8 @@
 
     document.getElementById('pay-walkin-btn').addEventListener('click', triggerPaymentModal);
     document.getElementById('pay-direct-btn').addEventListener('click', triggerPaymentModal);
+    const payDirectAccountBtn = document.getElementById('pay-direct-account-btn');
+    if (payDirectAccountBtn) payDirectAccountBtn.addEventListener('click', triggerPaymentModal);
 
     // Modal Option Clicks
     document.querySelectorAll('.payment-method-opt').forEach(btn => {
@@ -875,6 +914,140 @@
             }
         } finally {
             btn.disabled = false;
+        }
+    });
+
+    const confirmAccountChargeModal = new bootstrap.Modal(document.getElementById('confirmAccountChargeModal'));
+    let accountChargeCallback = null;
+    const chargeAccountBtn = document.getElementById('charge-account-btn');
+    if (chargeAccountBtn) {
+        chargeAccountBtn.addEventListener('click', () => {
+            const tab = getActiveTab();
+            if (!tab) return;
+            document.getElementById('account-charge-warning-text').textContent = `Are you sure you want to charge ${formatMoney(tab.total)} to ${tab.credit_account_name}?`;
+            accountChargeCallback = async () => {
+                await executeClose({
+                    payment_method: 'account_charge',
+                    credit_account_id: tab.credit_account_id
+                });
+            };
+            confirmAccountChargeModal.show();
+        });
+    }
+    const confirmAccountChargeSubmitBtn = document.getElementById('confirm-account-charge-submit-btn');
+    if (confirmAccountChargeSubmitBtn) {
+        confirmAccountChargeSubmitBtn.addEventListener('click', async () => {
+            const btn = confirmAccountChargeSubmitBtn;
+            if (btn.disabled) return;
+            try {
+                btn.disabled = true;
+                confirmAccountChargeModal.hide();
+                if (accountChargeCallback) {
+                    const cb = accountChargeCallback;
+                    accountChargeCallback = null;
+                    await cb();
+                }
+            } finally {
+                btn.disabled = false;
+            }
+        });
+    }
+
+    // Transfer Tab
+    const transferTabModal = new bootstrap.Modal(document.getElementById('transferTabModal'));
+    const transferTypeSelect = document.getElementById('transfer-tab-type');
+    const transferRoomPanel = document.getElementById('transfer-room-panel');
+    const transferAccountPanel = document.getElementById('transfer-account-panel');
+    
+    document.getElementById('transfer-tab-btn').addEventListener('click', () => {
+        if (!activeTabId) return;
+        transferTypeSelect.value = getActiveTab().tab_type;
+        transferTypeSelect.dispatchEvent(new Event('change'));
+        transferTabModal.show();
+    });
+
+    transferTypeSelect.addEventListener('change', (e) => {
+        transferRoomPanel.classList.add('d-none');
+        transferAccountPanel.classList.add('d-none');
+        if (e.target.value === 'room') {
+            transferRoomPanel.classList.remove('d-none');
+            if(checkedInGuests.length === 0) loadGuests(); // ensure guests loaded
+            // Clone options from original guest select
+            const transferGuestSelect = document.getElementById('transfer-guest');
+            transferGuestSelect.innerHTML = document.getElementById('new-tab-guest').innerHTML;
+        } else if (e.target.value === 'account') {
+            transferAccountPanel.classList.remove('d-none');
+        }
+    });
+
+    document.getElementById('confirm-transfer-tab-btn').addEventListener('click', async () => {
+        const type = transferTypeSelect.value;
+        const payload = { tab_type: type };
+        
+        if (type === 'room') {
+            const guestVal = document.getElementById('transfer-guest').value;
+            if (!guestVal) return showAlert('Select a room.', 'warning');
+            payload.folio_id = JSON.parse(guestVal).folio_id;
+        } else if (type === 'account') {
+            const accVal = document.getElementById('transfer-account').value;
+            if (!accVal) return showAlert('Select an account.', 'warning');
+            payload.credit_account_id = accVal;
+        }
+
+        try {
+            transferTabModal.hide();
+            const data = await request(`${config.routes.tabItems}/${activeTabId}/transfer`, {
+                method: 'POST',
+                body: JSON.stringify(payload)
+            });
+            replaceTab(data.tab);
+            showAlert('Tab transferred.');
+        } catch (error) {
+            showAlert(error.message, 'danger');
+        }
+    });
+
+    // Discount Tab
+    const discountTabModal = new bootstrap.Modal(document.getElementById('discountTabModal'));
+    document.getElementById('discount-tab-btn').addEventListener('click', () => {
+        if (!activeTabId) return;
+        const tab = getActiveTab();
+        if (tab.discount_amount > 0) {
+            document.getElementById('discount-type').value = tab.discount_type;
+            document.getElementById('discount-amount').value = tab.discount_amount;
+            document.getElementById('discount-is-percentage').value = tab.is_discount_percentage ? '1' : '0';
+        }
+        discountTabModal.show();
+    });
+
+    document.getElementById('confirm-discount-btn').addEventListener('click', async () => {
+        try {
+            discountTabModal.hide();
+            const data = await request(`${config.routes.tabItems}/${activeTabId}/discount`, {
+                method: 'POST',
+                body: JSON.stringify({
+                    discount_type: document.getElementById('discount-type').value,
+                    discount_amount: document.getElementById('discount-amount').value,
+                    is_discount_percentage: document.getElementById('discount-is-percentage').value === '1'
+                })
+            });
+            replaceTab(data.tab);
+            showAlert('Discount applied.');
+        } catch (error) {
+            showAlert(error.message, 'danger');
+        }
+    });
+
+    document.getElementById('remove-discount-btn').addEventListener('click', async () => {
+        try {
+            discountTabModal.hide();
+            const data = await request(`${config.routes.tabItems}/${activeTabId}/discount`, {
+                method: 'DELETE'
+            });
+            replaceTab(data.tab);
+            showAlert('Discount removed.');
+        } catch (error) {
+            showAlert(error.message, 'danger');
         }
     });
 

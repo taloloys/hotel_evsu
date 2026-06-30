@@ -221,7 +221,7 @@ class ReservationController extends Controller
             $guestName = $booking->folio?->guest ? ($booking->folio->guest->first_name.' '.$booking->folio->guest->last_name) : 'Guest';
             $roomNumber = $booking->room?->room_number ?? 'N/A';
             ActivityLog::log(
-                'RESERVATION_CREATE',
+                'RESERVATION_CANCEL',
                 "Cancelled reservation #{$booking->booking_id} for {$guestName} (Room {$roomNumber})."
             );
         });

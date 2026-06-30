@@ -3,12 +3,15 @@
 namespace App\Services\Coffeeshop;
 
 use App\Models\ActivityLog;
+use App\Models\CreditAccount;
 use App\Models\PosInventoryLog;
 use App\Models\PosOrder;
 use App\Models\PosOrderItem;
 use App\Models\PosProduct;
 use App\Models\PosTab;
+use App\Services\CreditBillingService;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Storage;
 use RuntimeException;
 
 class PosOrderService
@@ -17,9 +20,10 @@ class PosOrderService
         private PosInventoryService $inventoryService,
         private PosGuestChargeService $chargeService,
         private PosTabService $tabService,
+        private CreditBillingService $creditService,
     ) {}
 
-    public function closeTab(PosTab $tab, string $paymentMethod, ?int $bookingId = null, ?int $folioId = null): PosOrder
+    public function closeTab(PosTab $tab, string $paymentMethod, ?int $bookingId = null, ?int $folioId = null, ?int $creditAccountId = null): PosOrder
     {
         if ($tab->status !== 'open') {
             throw new RuntimeException('Tab is not open.');
@@ -31,12 +35,13 @@ class PosOrderService
             throw new RuntimeException('Tab has no items.');
         }
 
-        return DB::transaction(function () use ($tab, $paymentMethod, $bookingId, $folioId) {
+        return DB::transaction(function () use ($tab, $paymentMethod, $bookingId, $folioId, $creditAccountId) {
             $userId = auth()->id() ?? 1;
             $shift = $this->chargeService->resolveActiveShift($userId);
             $orderNumber = $this->generateOrderNumber();
             $roomNumber = $tab->room?->room_number;
             $folioIdToUse = $folioId ?? $tab->folio_id;
+            $creditAccountIdToUse = $creditAccountId ?? $tab->credit_account_id;
 
             if ($paymentMethod === 'room_charge') {
                 $booking = $this->chargeService->validateRoomCharge($bookingId ?? $tab->booking_id, $folioIdToUse);
@@ -48,10 +53,14 @@ class PosOrderService
                 'order_number' => $orderNumber,
                 'tab_id' => $tab->tab_id,
                 'folio_id' => $paymentMethod === 'room_charge' ? $folioIdToUse : null,
+                'credit_account_id' => $paymentMethod === 'account_charge' ? $creditAccountIdToUse : null,
                 'customer_name' => $tab->tab_name,
                 'room_number' => $roomNumber,
                 'status' => 'closed',
                 'payment_method' => $paymentMethod,
+                'discount_type' => $tab->discount_type,
+                'discount_amount' => $tab->discount_amount,
+                'is_discount_percentage' => $tab->is_discount_percentage,
                 'subtotal' => $tab->subtotal,
                 'total' => $tab->total,
                 'user_id' => $userId,
@@ -60,6 +69,8 @@ class PosOrderService
             ]);
 
             $itemSummaryParts = [];
+            $receiptContent = "RECEIPT\nOrder: {$orderNumber}\nDate: ".now()->format('Y-m-d H:i:s')."\n";
+            $receiptContent .= "Customer: {$tab->tab_name}\n-----------------------------------\n";
 
             foreach ($tab->items as $item) {
                 $product = $item->product ?? PosProduct::findOrFail($item->product_id);
@@ -74,7 +85,6 @@ class PosOrderService
                     'line_total' => $item->line_total,
                 ]);
 
-                // Since stock was dynamically deducted during tab edits, we update the log reference from tab to order
                 PosInventoryLog::where('reference_type', 'pos_tab')
                     ->where('reference_id', $tab->tab_id)
                     ->where('product_id', $product->product_id)
@@ -83,7 +93,21 @@ class PosOrderService
                         'reference_id' => $order->order_id,
                     ]);
                 $itemSummaryParts[] = "{$product->name} x{$item->quantity}";
+
+                $receiptContent .= "{$product->name} x{$item->quantity} @ ₱{$item->unit_price} = ₱{$item->line_total}\n";
             }
+
+            $receiptContent .= "-----------------------------------\n";
+            $receiptContent .= "Subtotal: ₱{$tab->subtotal}\n";
+            if ($tab->discount_amount > 0) {
+                $discountStr = $tab->is_discount_percentage ? "{$tab->discount_amount}%" : "₱{$tab->discount_amount}";
+                $receiptContent .= "Discount ({$tab->discount_type}): -{$discountStr}\n";
+            }
+            $receiptContent .= "Total: ₱{$tab->total}\n";
+            $receiptContent .= "Payment Method: {$paymentMethod}\n";
+
+            // Save receipt locally
+            Storage::disk('local')->put("receipts/{$orderNumber}.txt", $receiptContent);
 
             $itemSummary = implode(', ', $itemSummaryParts);
             if (strlen($itemSummary) > 200) {
@@ -93,6 +117,10 @@ class PosOrderService
             if ($paymentMethod === 'room_charge') {
                 $transaction = $this->chargeService->postRoomCharge($order, (int) $folioIdToUse, $itemSummary);
                 $order->update(['transaction_id' => $transaction->transaction_id, 'folio_id' => $folioIdToUse]);
+            } elseif ($paymentMethod === 'account_charge') {
+                $account = CreditAccount::findOrFail($creditAccountIdToUse);
+                $this->creditService->chargeAccount($account, $order->total, 'pos_order', $order->order_id, $userId, "POS Order {$orderNumber}: {$itemSummary}");
+                $order->update(['credit_account_id' => $creditAccountIdToUse]);
             } else {
                 $this->chargeService->postWalkInSale($order, $paymentMethod, $itemSummary);
             }
@@ -101,6 +129,7 @@ class PosOrderService
                 'status' => 'closed',
                 'payment_method' => $paymentMethod,
                 'folio_id' => $paymentMethod === 'room_charge' ? $folioIdToUse : $tab->folio_id,
+                'credit_account_id' => $paymentMethod === 'account_charge' ? $creditAccountIdToUse : $tab->credit_account_id,
                 'closed_by' => $userId,
                 'closed_at' => now(),
             ]);
@@ -110,7 +139,7 @@ class PosOrderService
                 "POS order {$order->order_number} closed ({$paymentMethod}) for {$tab->tab_name}, total ₱".number_format((float) $order->total, 2).'.'
             );
 
-            return $order->fresh(['items', 'folio', 'transaction']);
+            return $order->fresh(['items', 'folio', 'transaction', 'creditAccount']);
         });
     }
 

@@ -143,7 +143,7 @@ class BookingOperationController extends Controller
         $guestName = $booking->folio?->guest ? ($booking->folio->guest->first_name.' '.$booking->folio->guest->last_name) : 'Guest';
         $roomNumber = $booking->room?->room_number ?? 'N/A';
         ActivityLog::log(
-            'CHECK_IN',
+            'CHECK_OUT',
             "Checked out guest {$guestName} from Room {$roomNumber} (Booking #{$booking->booking_id})."
         );
 

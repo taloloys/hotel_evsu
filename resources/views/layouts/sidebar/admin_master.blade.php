@@ -53,6 +53,12 @@
                     <i class="fa-solid fa-receipt me-2"></i>
                     Charge Codes
                 </a>
+
+                <a href="{{ route('admin.credit-accounts') }}"
+                    class="nav-link {{ request()->routeIs('admin.credit-accounts*') ? 'active' : '' }}">
+                    <i class="fa-solid fa-building-columns me-2"></i>
+                    Credit Accounts
+                </a>
             @endcan
 
             @can('manage-shifts')

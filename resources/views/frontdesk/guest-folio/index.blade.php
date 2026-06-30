@@ -1110,9 +1110,20 @@
 
                         <div class="mb-3">
                             <label class="form-label fw-semibold" for="paid_method_{{ $folio->folio_id }}">Payment Method <span class="text-danger">*</span></label>
-                            <select class="form-select" id="paid_method_{{ $folio->folio_id }}" name="payment_method" required>
+                            <select class="form-select payment-method-select" id="paid_method_{{ $folio->folio_id }}" name="payment_method" data-folio-id="{{ $folio->folio_id }}" required>
                                 <option value="Cash" @selected(($folio->payment_method ?? 'Cash') === 'Cash')>💵 Cash</option>
                                 <option value="Credit Card" @selected($folio->payment_method === 'Credit Card')>💳 Credit Card</option>
+                                <option value="Account Charge">🏢 Account Charge</option>
+                            </select>
+                        </div>
+
+                        <div class="mb-3 d-none account-select-container" id="account_select_container_{{ $folio->folio_id }}">
+                            <label class="form-label fw-semibold" for="credit_account_id_{{ $folio->folio_id }}">Select Credit Account <span class="text-danger">*</span></label>
+                            <select class="form-select" id="credit_account_id_{{ $folio->folio_id }}" name="credit_account_id">
+                                <option value="">Select Account...</option>
+                                @foreach($creditAccounts as $account)
+                                    <option value="{{ $account->account_id }}">{{ $account->account_name }} (Limit: ₱{{ number_format($account->available_credit, 2) }})</option>
+                                @endforeach
                             </select>
                         </div>
 
@@ -1396,6 +1407,23 @@
                 var modal = form.closest('.modal');
                 if (modal && modal.id) {
                     sessionStorage.setItem('openModalId', modal.id);
+                }
+            });
+        });
+
+        // Toggle Account Select when "Account Charge" is chosen
+        document.querySelectorAll('.payment-method-select').forEach(function(select) {
+            select.addEventListener('change', function() {
+                var folioId = this.getAttribute('data-folio-id');
+                var container = document.getElementById('account_select_container_' + folioId);
+                var selectEl = document.getElementById('credit_account_id_' + folioId);
+                if (this.value === 'Account Charge') {
+                    container.classList.remove('d-none');
+                    selectEl.required = true;
+                } else {
+                    container.classList.add('d-none');
+                    selectEl.required = false;
+                    selectEl.value = '';
                 }
             });
         });

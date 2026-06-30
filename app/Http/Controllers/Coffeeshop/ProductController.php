@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Coffeeshop;
 
 use App\Http\Controllers\Controller;
+use App\Models\ActivityLog;
 use App\Models\PosCategory;
 use App\Models\PosProduct;
 use Illuminate\Http\RedirectResponse;
@@ -53,7 +54,12 @@ class ProductController extends Controller
             $validated['image_path'] = $request->file('image')->store('pos/products', 'public');
         }
 
-        PosProduct::create($validated);
+        $product = PosProduct::create($validated);
+
+        ActivityLog::log(
+            'PRODUCT_MODIFIED',
+            "Created new coffeeshop product: {$product->name} (₱{$product->price})"
+        );
 
         return redirect()->route('coffeeshop.products')->with('success', 'Product created successfully.');
     }
@@ -78,12 +84,22 @@ class ProductController extends Controller
 
         $product->update($validated);
 
+        ActivityLog::log(
+            'PRODUCT_MODIFIED',
+            "Updated coffeeshop product: {$product->name}"
+        );
+
         return redirect()->route('coffeeshop.products')->with('success', 'Product updated successfully.');
     }
 
     public function destroy(PosProduct $product): RedirectResponse
     {
         $product->update(['is_active' => false]);
+
+        ActivityLog::log(
+            'PRODUCT_MODIFIED',
+            "Deactivated coffeeshop product: {$product->name}"
+        );
 
         return back()->with('success', 'Product deactivated successfully.');
     }

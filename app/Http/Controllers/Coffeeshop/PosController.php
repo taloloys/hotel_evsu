@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Coffeeshop;
 
 use App\Http\Controllers\Controller;
+use App\Models\CreditAccount;
 use App\Models\PosApprovalRequest;
 use App\Models\PosCategory;
 use App\Models\PosProduct;
@@ -21,9 +22,10 @@ class PosController extends Controller
     {
         $categories = PosCategory::active()->orderBy('sort_order')->get();
         $products = PosProduct::with('category')->active()->orderBy('name')->get();
-        $openTabs = PosTab::open()->with(['items.product', 'room'])->orderByDesc('opened_at')->get();
+        $openTabs = PosTab::open()->with(['items.product', 'room', 'creditAccount'])->orderByDesc('opened_at')->get();
+        $creditAccounts = CreditAccount::orderBy('account_name')->get();
 
-        return view('coffeeshop.pos.index', compact('categories', 'products', 'openTabs'));
+        return view('coffeeshop.pos.index', compact('categories', 'products', 'openTabs', 'creditAccounts'));
     }
 
     public function searchProducts(Request $request): JsonResponse
@@ -142,9 +144,10 @@ class PosController extends Controller
     public function closeTab(Request $request, PosTab $tab, PosOrderService $orderService, PosTabService $tabService): JsonResponse
     {
         $validated = $request->validate([
-            'payment_method' => ['required', 'in:cash,gcash,card,room_charge'],
+            'payment_method' => ['required', 'in:cash,gcash,card,room_charge,account_charge'],
             'booking_id' => ['nullable', 'exists:bookings,booking_id'],
             'folio_id' => ['nullable', 'exists:folios,folio_id'],
+            'credit_account_id' => ['nullable', 'exists:credit_accounts,account_id'],
         ]);
 
         try {
@@ -152,7 +155,8 @@ class PosController extends Controller
                 $tab,
                 $validated['payment_method'],
                 isset($validated['booking_id']) ? (int) $validated['booking_id'] : null,
-                isset($validated['folio_id']) ? (int) $validated['folio_id'] : null
+                isset($validated['folio_id']) ? (int) $validated['folio_id'] : null,
+                isset($validated['credit_account_id']) ? (int) $validated['credit_account_id'] : null
             );
         } catch (\RuntimeException $e) {
             return response()->json(['message' => $e->getMessage()], 422);
@@ -162,6 +166,70 @@ class PosController extends Controller
             'message' => 'Tab closed and order completed.',
             'order' => $order->load('items'),
             'tab' => $tabService->formatTab($tab->fresh()),
+        ]);
+    }
+
+    public function transferTab(Request $request, PosTab $tab, PosTabService $tabService): JsonResponse
+    {
+        $validated = $request->validate([
+            'tab_type' => ['required', 'in:walk_in,room,account'],
+            'folio_id' => ['nullable', 'exists:folios,folio_id'],
+            'credit_account_id' => ['nullable', 'exists:credit_accounts,account_id'],
+        ]);
+
+        try {
+            $tab = $tabService->transferTabBillingTarget(
+                $tab,
+                $validated['tab_type'],
+                isset($validated['folio_id']) ? (int) $validated['folio_id'] : null,
+                isset($validated['credit_account_id']) ? (int) $validated['credit_account_id'] : null
+            );
+        } catch (\Exception $e) {
+            return response()->json(['message' => $e->getMessage()], 422);
+        }
+
+        return response()->json([
+            'message' => 'Tab billing target updated.',
+            'tab' => $tabService->formatTab($tab),
+        ]);
+    }
+
+    public function applyDiscount(Request $request, PosTab $tab, PosTabService $tabService): JsonResponse
+    {
+        $validated = $request->validate([
+            'discount_type' => ['required', 'string', 'max:50'],
+            'discount_amount' => ['required', 'numeric', 'min:0'],
+            'is_discount_percentage' => ['required', 'boolean'],
+        ]);
+
+        try {
+            $tab = $tabService->applyDiscount(
+                $tab,
+                $validated['discount_type'],
+                (float) $validated['discount_amount'],
+                (bool) $validated['is_discount_percentage']
+            );
+        } catch (\Exception $e) {
+            return response()->json(['message' => $e->getMessage()], 422);
+        }
+
+        return response()->json([
+            'message' => 'Discount applied successfully.',
+            'tab' => $tabService->formatTab($tab),
+        ]);
+    }
+
+    public function removeDiscount(PosTab $tab, PosTabService $tabService): JsonResponse
+    {
+        try {
+            $tab = $tabService->removeDiscount($tab);
+        } catch (\Exception $e) {
+            return response()->json(['message' => $e->getMessage()], 422);
+        }
+
+        return response()->json([
+            'message' => 'Discount removed.',
+            'tab' => $tabService->formatTab($tab),
         ]);
     }
 

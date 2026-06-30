@@ -8,6 +8,7 @@ use App\Http\Controllers\Accounting\ReceivableController;
 use App\Http\Controllers\Accounting\ReportController;
 use App\Http\Controllers\Admin\ActivityLogController;
 use App\Http\Controllers\Admin\ChargeCodeController;
+use App\Http\Controllers\Admin\CreditAccountController;
 use App\Http\Controllers\Admin\DashboardController;
 use App\Http\Controllers\Admin\PermissionController;
 use App\Http\Controllers\Admin\PosApprovalController;
@@ -277,6 +278,12 @@ Route::middleware('auth')->group(function () {
                 ->name('tabs.items.destroy');
             Route::post('/tabs/{tab}/close', [CoffeeshopPosController::class, 'closeTab'])
                 ->name('tabs.close');
+            Route::post('/tabs/{tab}/transfer', [CoffeeshopPosController::class, 'transferTab'])
+                ->name('tabs.transfer');
+            Route::post('/tabs/{tab}/discount', [CoffeeshopPosController::class, 'applyDiscount'])
+                ->name('tabs.discount.apply');
+            Route::delete('/tabs/{tab}/discount', [CoffeeshopPosController::class, 'removeDiscount'])
+                ->name('tabs.discount.remove');
             Route::post('/tabs/{tab}/cancel', [CoffeeshopPosController::class, 'cancelTab'])
                 ->name('tabs.cancel');
         });
@@ -286,6 +293,16 @@ Route::middleware('auth')->group(function () {
         Route::middleware('can:manage-users')->group(function () {
             Route::get('/dashboard', [DashboardController::class, 'index'])
                 ->name('admin.dashboard');
+
+            // CREDIT ACCOUNTS
+            Route::get('/credit-accounts', [CreditAccountController::class, 'index'])
+                ->name('admin.credit-accounts');
+            Route::post('/credit-accounts', [CreditAccountController::class, 'store'])
+                ->name('admin.credit-accounts.store');
+            Route::get('/credit-accounts/{account}', [CreditAccountController::class, 'show'])
+                ->name('admin.credit-accounts.show');
+            Route::post('/credit-accounts/{account}/payment', [CreditAccountController::class, 'recordPayment'])
+                ->name('admin.credit-accounts.payment');
 
             Route::get('/users', [UserController::class, 'index'])
                 ->name('admin.users');

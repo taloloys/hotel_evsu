@@ -133,13 +133,18 @@
 
                     <div class="btn-group w-100" role="group">
                         <input type="radio" class="btn-check" name="new-tab-type" id="type-walkin" value="walk_in" checked>
-                        <label class="btn btn-outline-secondary py-2 px-3" for="type-walkin">
+                        <label class="btn btn-outline-secondary py-2 px-3" for="type-walkin" style="font-size: 0.85rem;">
                             Walk-in
                         </label>
 
                         <input type="radio" class="btn-check" name="new-tab-type" id="type-room" value="room">
-                        <label class="btn btn-outline-secondary py-2 px-3" for="type-room">
-                            Room Charge
+                        <label class="btn btn-outline-secondary py-2 px-3" for="type-room" style="font-size: 0.85rem;">
+                            Room
+                        </label>
+
+                        <input type="radio" class="btn-check" name="new-tab-type" id="type-account" value="account">
+                        <label class="btn btn-outline-secondary py-2 px-3" for="type-account" style="font-size: 0.85rem;">
+                            Account
                         </label>
                     </div>
                 </div>
@@ -157,6 +162,16 @@
                         </select>
                     </div>
 
+                    <!-- Credit Account input panel (hidden by default) -->
+                    <div id="new-tab-account-panel" class="mb-2 d-none">
+                        <select id="new-tab-account" class="form-select py-3">
+                            <option value="">Select credit account...</option>
+                            @foreach($creditAccounts as $account)
+                                <option value="{{ $account->account_id }}">{{ $account->account_name }} (Limit: ₱{{ number_format($account->available_credit, 2) }})</option>
+                            @endforeach
+                        </select>
+                    </div>
+
                     <button type="button" class="btn btn-primary w-100 py-2 fw-semibold" id="open-tab-btn">
                         <i class="fa-solid fa-folder-open me-1"></i> Open Tab
                     </button>
@@ -167,6 +182,7 @@
                         <div>
                             <strong id="active-tab-name"></strong>
                             <div id="active-tab-badge" class="mt-1"></div>
+                            <div id="active-tab-discount-badge" class="mt-1 d-none text-success small fw-bold"></div>
                         </div>
                         <span class="badge bg-primary" id="active-tab-total">₱0.00</span>
                     </div>
@@ -191,29 +207,66 @@
                         </textarea>
                     </div>
                     <hr>
-                    <div class="d-flex justify-content-between fw-bold fs-5 mb-3">
+                    <div class="d-flex justify-content-between mb-1">
+                        <span class="text-muted">Subtotal</span>
+                        <span id="cart-subtotal" class="text-muted">₱0.00</span>
+                    </div>
+                    <div class="d-flex justify-content-between mb-2">
+                        <span class="text-success fw-semibold">Discount</span>
+                        <span id="cart-discount" class="text-success fw-semibold">-₱0.00</span>
+                    </div>
+                    <div class="d-flex justify-content-between fw-bold fs-5 mb-3 border-top pt-2">
                         <span>Total</span>
                         <span id="cart-total">₱0.00</span>
                     </div>
 
-                    <!-- Walk-in actions -->
-                    <div id="walkin-checkout-actions" class="d-none">
-                        <button type="button" class="btn btn-success w-100 mb-2 checkout-action-btn" id="pay-walkin-btn">
-                            <i class="fa-solid fa-cash-register me-1"></i> Pay / Close Tab
-                        </button>
+                    <!-- Checkout Actions Wrapper -->
+                    <div id="checkout-actions-container" class="mb-3 border-bottom pb-3">
+                        <!-- Walk-in actions -->
+                        <div id="walkin-checkout-actions" class="d-none">
+                            <button type="button" class="btn btn-success w-100 mb-2 checkout-action-btn" id="pay-walkin-btn">
+                                <i class="fa-solid fa-cash-register me-1"></i> Pay / Close Tab
+                            </button>
+                        </div>
+
+                        <!-- Room charge actions -->
+                        <div id="room-checkout-actions" class="d-none">
+                            <button type="button" class="btn btn-success w-100 mb-2 checkout-action-btn" id="charge-room-btn">
+                                <i class="fa-solid fa-hotel me-1"></i> Charge to Room
+                            </button>
+                            <button type="button" class="btn btn-outline-success w-100 mb-2 checkout-action-btn" id="pay-direct-btn">
+                                <i class="fa-solid fa-cash-register me-1"></i> Pay Directly
+                            </button>
+                        </div>
+
+                        <!-- Account charge actions -->
+                        <div id="account-checkout-actions" class="d-none">
+                            <button type="button" class="btn btn-success w-100 mb-2 checkout-action-btn" id="charge-account-btn">
+                                <i class="fa-solid fa-file-invoice-dollar me-1"></i> Charge to Account
+                            </button>
+                            <button type="button" class="btn btn-outline-success w-100 mb-2 checkout-action-btn" id="pay-direct-account-btn">
+                                <i class="fa-solid fa-cash-register me-1"></i> Pay Directly
+                            </button>
+                        </div>
                     </div>
 
-                    <!-- Room charge actions -->
-                    <div id="room-checkout-actions" class="d-none">
-                        <button type="button" class="btn btn-success w-100 mb-2 checkout-action-btn" id="charge-room-btn">
-                            <i class="fa-solid fa-hotel me-1"></i> Charge to Room
-                        </button>
-                        <button type="button" class="btn btn-outline-success w-100 mb-2 checkout-action-btn" id="pay-direct-btn">
-                            <i class="fa-solid fa-cash-register me-1"></i> Pay Directly
-                        </button>
+                    <!-- Management Actions -->
+                    <div class="row g-2 mb-2">
+                        <div class="col-6">
+                            <button type="button" class="btn btn-outline-secondary w-100 btn-sm checkout-action-btn" id="transfer-tab-btn">
+                                <i class="fa-solid fa-exchange-alt me-1"></i> Transfer
+                            </button>
+                        </div>
+                        <div class="col-6">
+                            <button type="button" class="btn btn-outline-info w-100 btn-sm checkout-action-btn" id="discount-tab-btn">
+                                <i class="fa-solid fa-tags me-1"></i> Discount
+                            </button>
+                        </div>
                     </div>
 
-                    <button type="button" class="btn btn-outline-danger w-100 checkout-action-btn" id="cancel-tab-btn">Cancel Tab</button>
+                    <button type="button" class="btn btn-outline-danger w-100 btn-sm checkout-action-btn" id="cancel-tab-btn">
+                        <i class="fa-solid fa-ban me-1"></i> Cancel Tab
+                    </button>
                 </div>
 
                 <div id="no-tab-message" class="text-muted text-center py-4">
@@ -384,10 +437,112 @@
         </div>
     </div>
 </div>
+
+<div class="modal fade" id="transferTabModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow">
+            <div class="modal-header bg-secondary text-white">
+                <h5 class="modal-title"><i class="fa-solid fa-exchange-alt me-2"></i>Transfer Tab</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body p-4">
+                <p class="text-muted small mb-3">Change the billing target for this tab.</p>
+                <div class="mb-3">
+                    <label class="form-label fw-semibold">New Tab Type</label>
+                    <select id="transfer-tab-type" class="form-select">
+                        <option value="walk_in">Walk-in</option>
+                        <option value="room">Room Charge</option>
+                        <option value="account">Account Charge</option>
+                    </select>
+                </div>
+                <div id="transfer-room-panel" class="mb-3 d-none">
+                    <label class="form-label fw-semibold">Select Room</label>
+                    <select id="transfer-guest" class="form-select">
+                        <option value="">Select occupied room...</option>
+                    </select>
+                </div>
+                <div id="transfer-account-panel" class="mb-3 d-none">
+                    <label class="form-label fw-semibold">Select Account</label>
+                    <select id="transfer-account" class="form-select">
+                        <option value="">Select credit account...</option>
+                        @foreach($creditAccounts as $account)
+                            <option value="{{ $account->account_id }}">{{ $account->account_name }}</option>
+                        @endforeach
+                    </select>
+                </div>
+            </div>
+            <div class="modal-footer border-0">
+                <button type="button" class="btn btn-light btn-sm" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-secondary btn-sm" id="confirm-transfer-tab-btn">Transfer</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="discountTabModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow">
+            <div class="modal-header bg-info text-dark">
+                <h5 class="modal-title"><i class="fa-solid fa-tags me-2"></i>Apply Discount</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body p-4">
+                <div class="mb-3">
+                    <label class="form-label fw-semibold">Discount Type</label>
+                    <select id="discount-type" class="form-select">
+                        <option value="Senior Citizen">Senior Citizen (20%)</option>
+                        <option value="PWD">PWD (20%)</option>
+                        <option value="Custom">Custom / Manager's Discount</option>
+                    </select>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label fw-semibold">Amount</label>
+                    <div class="input-group">
+                        <input type="number" id="discount-amount" class="form-control" value="20" min="0" step="0.01">
+                        <select id="discount-is-percentage" class="form-select" style="max-width: 100px;">
+                            <option value="1">%</option>
+                            <option value="0">₱</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer border-0">
+                <button type="button" class="btn btn-light btn-sm" id="remove-discount-btn">Remove Discount</button>
+                <button type="button" class="btn btn-info btn-sm" id="confirm-discount-btn">Apply Discount</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="confirmAccountChargeModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow">
+            <div class="modal-header bg-primary text-white">
+                <h5 class="modal-title"><i class="fa-solid fa-file-invoice-dollar me-2"></i>Charge to Account</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body p-4">
+                <p id="account-charge-warning-text" class="text-muted small mb-0">Are you sure you want to charge the total amount to the selected corporate/VIP account?</p>
+            </div>
+            <div class="modal-footer border-0">
+                <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-primary btn-sm text-white" id="confirm-account-charge-submit-btn">Confirm Charge</button>
+            </div>
+        </div>
+    </div>
+</div>
 <div class="modal fade" id="receiptModal" tabindex="-1">
     <div class="modal-dialog modal-dialog-centered">
-        <div class="modal-content p-3">
-            <div id="receipt-content"></div>
+        <div class="modal-content">
+            <div class="modal-body p-3">
+                <div id="receipt-content"></div>
+            </div>
+            <div class="modal-footer border-0 p-2 d-flex justify-content-center">
+                <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Close</button>
+                <button type="button" class="btn btn-primary btn-sm" onclick="window.printReceipt()">
+                    <i class="fa-solid fa-print me-1"></i> Print Receipt
+                </button>
+            </div>
         </div>
     </div>
 </div>

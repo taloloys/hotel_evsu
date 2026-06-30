@@ -10,6 +10,7 @@ use App\Models\Folio;
 use App\Models\Room;
 use App\Models\Shift;
 use App\Models\Transaction;
+use App\Services\CreditBillingService;
 use Carbon\Carbon;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -66,6 +67,8 @@ class GuestFolioController extends Controller
             ->orderBy('charge_code')
             ->get();
 
+        $creditAccounts = CreditAccount::orderBy('account_name')->get();
+
         return view('frontdesk.guest-folio.index', [
             'folios' => $folios,
             'search' => $search,
@@ -73,6 +76,7 @@ class GuestFolioController extends Controller
             'statusFilter' => $statusFilter,
             'availableRooms' => $availableRooms,
             'chargeCodes' => $chargeCodes,
+            'creditAccounts' => $creditAccounts,
         ]);
     }
 
@@ -248,7 +252,7 @@ class GuestFolioController extends Controller
                 : 'Guest';
 
             ActivityLog::log(
-                'ROOM_MODIFIED',
+                'ROOM_TRANSFER',
                 "Room Transfer: Transferred {$guestName} from Room ".($oldRoom ? $oldRoom->room_number : 'N/A')." to Room {$newRoom->room_number}."
             );
         });
@@ -314,7 +318,7 @@ class GuestFolioController extends Controller
             $roomNumber = $room?->room_number ?? 'N/A';
 
             ActivityLog::log(
-                'CHECK_IN', // Matches BookingOperationController's action type for consistency
+                'CHECK_OUT',
                 "Checked out guest {$guestName} from Room {$roomNumber} (Booking #{$booking->booking_id}) via Folio."
             );
         });
@@ -339,7 +343,7 @@ class GuestFolioController extends Controller
         $folio->update(['status' => 'CLOSED']);
 
         ActivityLog::log(
-            'ROOM_MODIFIED',
+            'FOLIO_CLOSED',
             "Closed Folio #{$folio->folio_number}."
         );
 
@@ -354,7 +358,7 @@ class GuestFolioController extends Controller
         $folio->update(['status' => 'OPEN']);
 
         ActivityLog::log(
-            'ROOM_MODIFIED',
+            'FOLIO_REOPENED',
             "Reopened Folio #{$folio->folio_number}."
         );
 
@@ -364,16 +368,17 @@ class GuestFolioController extends Controller
     /**
      * Mark a folio as paid — post a clearing payment and close the folio.
      */
-    public function markAsPaid(Request $request, Folio $folio): RedirectResponse
+    public function markAsPaid(Request $request, Folio $folio, CreditBillingService $creditBillingService): RedirectResponse
     {
         if ($folio->status !== 'OPEN') {
             return back()->withErrors(['payment' => 'Only open folios can be marked as paid.']);
         }
 
         $validated = $request->validate([
-            'payment_method' => ['required', 'string', 'in:Cash,Credit Card'],
+            'payment_method' => ['required', 'string', 'in:Cash,Credit Card,Account Charge'],
             'amount' => ['required', 'numeric', 'min:0.01'],
             'reference_notes' => ['nullable', 'string', 'max:255'],
+            'credit_account_id' => ['required_if:payment_method,Account Charge', 'nullable', 'exists:credit_accounts,account_id'],
         ]);
 
         $userId = auth()->id() ?? 1;
@@ -387,6 +392,30 @@ class GuestFolioController extends Controller
                     'start_time' => Carbon::now(),
                 ]);
             }
+        }
+
+        if ($validated['payment_method'] === 'Account Charge') {
+            $account = \App\Models\CreditAccount::findOrFail($validated['credit_account_id']);
+            $creditBillingService->chargeAccount(
+                $account,
+                $validated['amount'],
+                'folio',
+                $folio->folio_id,
+                $validated['reference_notes'] ?? "Folio #{$folio->folio_number} settlement",
+                $userId
+            );
+
+            $folio->update([
+                'status' => 'CLOSED',
+                'payment_method' => 'Account Charge',
+            ]);
+
+            ActivityLog::log(
+                'FOLIO_PAID',
+                "Marked Folio #{$folio->folio_number} as Paid via Account Charge ({$account->account_name}) and closed."
+            );
+
+            return back()->with('success', "Folio #{$folio->folio_number} charged to account and closed.");
         }
 
         // Determine payment charge code (Cash = 403, Credit Card = 401)
@@ -414,7 +443,7 @@ class GuestFolioController extends Controller
         });
 
         ActivityLog::log(
-            'ROOM_MODIFIED',
+            'FOLIO_PAID',
             "Marked Folio #{$folio->folio_number} as Paid (₱".number_format($validated['amount'], 2).') and closed.'
         );
 

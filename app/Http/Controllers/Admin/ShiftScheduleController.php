@@ -71,7 +71,7 @@ class ShiftScheduleController extends Controller
 
         $user = User::findOrFail($validated['user_id']);
         ActivityLog::log(
-            'ROOM_MODIFIED',
+            'SHIFT_SCHEDULE_CREATED',
             "Scheduled shift '{$schedule->shift_name}' for {$user->full_name} on {$schedule->shift_date->format('Y-m-d')}."
         );
 
@@ -112,7 +112,7 @@ class ShiftScheduleController extends Controller
             $logMsg .= " Reassigned from {$oldUser->full_name} to {$newUser->full_name}.";
         }
 
-        ActivityLog::log('ROOM_MODIFIED', $logMsg);
+        ActivityLog::log('SHIFT_SCHEDULE_UPDATED', $logMsg);
 
         return redirect()
             ->route('admin.shift-schedules')
@@ -132,7 +132,7 @@ class ShiftScheduleController extends Controller
         $schedule->delete();
 
         ActivityLog::log(
-            'ROOM_MODIFIED',
+            'SHIFT_SCHEDULE_DELETED',
             "Deleted shift schedule '{$shiftName}' for {$userName} on {$shiftDate}."
         );
 

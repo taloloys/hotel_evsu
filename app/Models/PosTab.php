@@ -18,9 +18,13 @@ class PosTab extends Model
         'tab_type',
         'guest_id',
         'folio_id',
+        'credit_account_id',
         'booking_id',
         'room_id',
         'status',
+        'discount_type',
+        'discount_amount',
+        'is_discount_percentage',
         'payment_method',
         'subtotal',
         'total',
@@ -34,6 +38,8 @@ class PosTab extends Model
     protected function casts(): array
     {
         return [
+            'discount_amount' => 'decimal:2',
+            'is_discount_percentage' => 'boolean',
             'subtotal' => 'decimal:2',
             'total' => 'decimal:2',
             'opened_at' => 'datetime',
@@ -59,6 +65,11 @@ class PosTab extends Model
     public function folio(): BelongsTo
     {
         return $this->belongsTo(Folio::class, 'folio_id', 'folio_id');
+    }
+
+    public function creditAccount(): BelongsTo
+    {
+        return $this->belongsTo(CreditAccount::class, 'credit_account_id', 'account_id');
     }
 
     public function booking(): BelongsTo
@@ -89,9 +100,20 @@ class PosTab extends Model
     public function recalculateTotals(): void
     {
         $subtotal = $this->items()->sum('line_total');
+        $total = $subtotal;
+
+        if ($this->discount_amount > 0) {
+            if ($this->is_discount_percentage) {
+                $discountValue = $subtotal * ($this->discount_amount / 100);
+                $total = max(0, $subtotal - $discountValue);
+            } else {
+                $total = max(0, $subtotal - $this->discount_amount);
+            }
+        }
+
         $this->update([
             'subtotal' => $subtotal,
-            'total' => $subtotal,
+            'total' => $total,
         ]);
     }
 }

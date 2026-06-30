@@ -58,7 +58,7 @@ class UserController extends Controller
         $user->permissions()->sync($request->input('permissions', []));
 
         ActivityLog::log(
-            'ROOM_MODIFIED',
+            'USER_CREATED',
             "Created user account for {$validated['full_name']} (username: {$validated['username']})."
         );
 
@@ -83,7 +83,7 @@ class UserController extends Controller
         ]);
 
         ActivityLog::log(
-            'ROOM_MODIFIED',
+            'USER_STATUS_TOGGLED',
             "Toggled user account status for {$user->full_name} (username: {$user->username}) to ".($user->is_active ? 'ENABLED' : 'DISABLED').'.'
         );
 
@@ -124,7 +124,7 @@ class UserController extends Controller
         $user->refresh(); // Clear the resolvedPermissions cache
 
         ActivityLog::log(
-            'ROOM_MODIFIED',
+            'USER_UPDATED',
             "Updated user account details for {$user->full_name} (username: {$user->username})."
         );
 

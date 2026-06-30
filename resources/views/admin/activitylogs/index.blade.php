@@ -239,12 +239,13 @@
                             @php
                                 $badgeColor = match($log->action_type) {
                                     'LOGIN' => 'bg-info text-dark',
-                                    'RESERVATION_CREATE' => 'bg-primary text-white',
-                                    'CHECK_IN' => 'bg-success text-white',
-                                    'ADD_CHARGE' => 'bg-warning text-dark',
+                                    'RESERVATION_CREATE', 'USER_CREATED', 'SHIFT_SCHEDULE_CREATED' => 'bg-primary text-white',
+                                    'CHECK_IN', 'FOLIO_PAID', 'ROOM_TRANSFER', 'FOLIO_CLOSED', 'FOLIO_REOPENED' => 'bg-success text-white',
+                                    'CHECK_OUT', 'RESERVATION_CANCEL', 'SHIFT_SCHEDULE_DELETED' => 'bg-secondary text-white',
+                                    'ADD_CHARGE', 'USER_UPDATED', 'SHIFT_SCHEDULE_UPDATED', 'PRODUCT_MODIFIED' => 'bg-warning text-dark',
                                     'PRINT_FOLIO' => 'bg-secondary text-white',
                                     'CLOSE_SHIFT' => 'bg-dark text-white',
-                                    'ROOM_MODIFIED' => 'bg-danger text-white',
+                                    'ROOM_MODIFIED', 'USER_STATUS_TOGGLED' => 'bg-danger text-white',
                                     default => 'bg-light text-dark'
                                 };
                             @endphp
