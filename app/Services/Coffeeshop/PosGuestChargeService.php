@@ -59,7 +59,7 @@ class PosGuestChargeService
         ]);
 
         ActivityLog::log(
-            'ADD_CHARGE',
+            'POS_SALE',
             'POS room charge of ₱'.number_format((float) $order->total, 2)." posted on Folio via Order {$order->order_number}."
         );
 
@@ -110,7 +110,7 @@ class PosGuestChargeService
         ]);
 
         ActivityLog::log(
-            'ADD_CHARGE',
+            'POS_SALE',
             "POS {$paymentMethod} sale of ₱".number_format((float) $order->total, 2)." recorded via Order {$order->order_number}."
         );
 

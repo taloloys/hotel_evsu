@@ -42,7 +42,7 @@ class LoginController extends Controller
 
     public function logout(Request $request): RedirectResponse
     {
-        ActivityLog::log('LOGIN', 'User logged out.');
+        ActivityLog::log('LOGOUT', 'User logged out.');
 
         Auth::logout();
 

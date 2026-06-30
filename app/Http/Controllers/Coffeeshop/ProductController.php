@@ -57,7 +57,7 @@ class ProductController extends Controller
         $product = PosProduct::create($validated);
 
         ActivityLog::log(
-            'PRODUCT_MODIFIED',
+            'ADD_PRODUCT',
             "Created new coffeeshop product: {$product->name} (₱{$product->price})"
         );
 
@@ -85,7 +85,7 @@ class ProductController extends Controller
         $product->update($validated);
 
         ActivityLog::log(
-            'PRODUCT_MODIFIED',
+            'EDIT_PRODUCT',
             "Updated coffeeshop product: {$product->name}"
         );
 
@@ -97,7 +97,7 @@ class ProductController extends Controller
         $product->update(['is_active' => false]);
 
         ActivityLog::log(
-            'PRODUCT_MODIFIED',
+            'DEACTIVATE_PRODUCT',
             "Deactivated coffeeshop product: {$product->name}"
         );
 

@@ -135,7 +135,7 @@ class PosOrderService
             ]);
 
             ActivityLog::log(
-                'ADD_CHARGE',
+                'POS_SALE',
                 "POS order {$order->order_number} closed ({$paymentMethod}) for {$tab->tab_name}, total ₱".number_format((float) $order->total, 2).'.'
             );
 
@@ -162,7 +162,7 @@ class PosOrderService
             $order->update(['status' => 'refunded']);
 
             ActivityLog::log(
-                'ADD_CHARGE',
+                'POS_REFUND',
                 "POS order {$order->order_number} refunded."
             );
 

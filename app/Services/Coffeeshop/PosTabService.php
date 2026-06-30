@@ -198,7 +198,7 @@ class PosTabService
         ]);
 
         ActivityLog::log(
-            'pos_tab_transfer',
+            'POS_TAB_TRANSFER',
             "Transferred Tab #{$tab->tab_id} billing target from {$oldType} to {$newTabType}"
         );
 
