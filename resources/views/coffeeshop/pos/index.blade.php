@@ -71,9 +71,13 @@
                     <div class="card-body d-flex flex-column text-center">
 
                         @if($product->image_url)
-                            <img src="{{ $product->image_url }}" class="mb-2 rounded mx-auto" style="max-height:48px;" alt="">
+                            <div class="mb-3 rounded w-100 overflow-hidden" style="height: 120px;">
+                                <img src="{{ $product->image_url }}" class="w-100 h-100" style="object-fit: cover;" alt="{{ $product->name }}">
+                            </div>
                         @else
-                            <i class="fa-solid fa-mug-hot fa-2x text-warning mb-2"></i>
+                            <div class="mb-3 rounded w-100 bg-light d-flex align-items-center justify-content-center" style="height: 120px;">
+                                <i class="fa-solid fa-image fa-2x text-secondary opacity-50"></i>
+                            </div>
                         @endif
 
                         <div class="fw-semibold">{{ $product->name }}</div>
