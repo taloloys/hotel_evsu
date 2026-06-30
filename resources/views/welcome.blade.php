@@ -4,60 +4,202 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Hotel Don Felipe</title>
+
     <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css">
+
     <style>
-        [x-cloak] { display: none !important; }
+        body{
+            background:#f3f4f6;
+        }
+
+        .login-bg{
+            background-image: url("{{ asset('images/larrazabal.png') }}");
+            background-position: center;
+            background-repeat: no-repeat;
+            background-size: cover;
+        }
     </style>
 </head>
-<body class="min-h-screen bg-slate-950 text-slate-100">
-    <div class="absolute inset-0 overflow-hidden pointer-events-none">
-        <div class="absolute -top-24 -left-24 h-72 w-72 rounded-full bg-amber-500/20 blur-3xl"></div>
-        <div class="absolute top-24 right-0 h-80 w-80 rounded-full bg-cyan-400/10 blur-3xl"></div>
-        <div class="absolute bottom-0 left-1/3 h-80 w-80 rounded-full bg-emerald-400/10 blur-3xl"></div>
+
+<body>
+
+<div class="min-h-screen grid lg:grid-cols-2">
+
+    <!-- LEFT SIDE -->
+    <div
+        class="hidden lg:flex relative bg-cover bg-center bg-no-repeat"
+        style="background-image: url('{{ asset('images/picture.jpg') }}');">
+
+        <div class="relative z-10 flex flex-col justify-end p-12 text-white">
+
+            <h1 class="text-4xl font-bold drop-shadow-lg">
+                Hotel Don Felipe
+            </h1>
+
+            <p class="mt-3 max-w-md text-white drop-shadow-md">
+                Hotel Management System
+            </p>
+
+            <p class="mt-2 text-sm text-white/95 drop-shadow-md">
+                Manage reservations, guests, billing and daily hotel operations.
+            </p>
+
+        </div>
+
     </div>
 
-    <main class="relative mx-auto flex min-h-screen max-w-7xl items-center justify-center px-4 py-10 sm:px-6 lg:px-8">
-        <aside class="w-full max-w-md rounded-3xl border border-white/10 bg-white p-6 shadow-2xl shadow-black/30 sm:p-8">
-                <div class="mb-6">
-                    <h2 class="text-2xl font-bold text-slate-950">Sign in</h2>
-                    <p class="mt-2 text-sm text-slate-500">Use your staff credentials to continue into the dashboard.</p>
+    <!-- RIGHT SIDE -->
+    <div class="flex items-center justify-center p-6">
+
+        <div class="w-full max-w-md bg-white rounded-lg shadow-lg border border-black-200">
+
+            <!-- Header -->
+            <div class="px-7 pt-8 pb-2 border-b">
+
+                <h2 class="text-2xl font-bold text-gray-800">
+                    Sign In
+                </h2>
+
+                <p class="mt-1 text-sm text-gray-500">
+                    Enter your staff account to continue.
+                </p>
+
+            </div>
+
+            <!-- Form -->
+            <form method="POST"
+                  action="{{ url('/login') }}"
+                  class="p-4 space-y-5">
+
+                @csrf
+
+                @if ($errors->any())
+                    <div class="border border-red-200 bg-red-50 text-red-700 rounded-md px-4 py-3 text-sm">
+                        {{ $errors->first('username') ?? 'Invalid username or password.' }}
+                    </div>
+                @endif
+
+                <!-- Username -->
+
+                <div>
+
+                    <label
+                        class="block text-sm font-medium text-gray-700 mb-2" required>
+
+                        Username
+
+                    </label>
+
+                    <input
+                        type="text"
+                        name="username"
+                        required
+                        autofocus
+                        placeholder="Enter username"
+                        class="w-full border border-gray-300 rounded-md px-4 py-3 focus:border-blue-600 focus:ring-1 focus:ring-blue-600 outline-none">
+
                 </div>
 
-                <form method="POST" action="{{ url('/login') }}" class="space-y-5">
-                    @csrf
+                <!-- Password -->
+                <div>
 
-                    @if ($errors->any())
-                        <div class="rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
-                            {{ $errors->first('username') ?? 'Please check your login details and try again.' }}
-                        </div>
-                    @endif
+                    <label class="block text-sm font-medium text-gray-700 mb-2" required>
+                        Password
+                    </label>
 
-                    <div>
-                        <label for="username" class="mb-2 block text-sm font-medium text-slate-700">Username</label>
-                        <input type="text" name="username" id="username" required autofocus class="w-full rounded-xl border border-slate-200 px-4 py-3 text-slate-900 outline-none transition focus:border-amber-400 focus:ring-4 focus:ring-amber-100" placeholder="Enter your username">
+                    <div class="relative">
+
+                        <input
+                            id="password"
+                            type="password"
+                            name="password"
+                            required
+                            placeholder="Enter password"
+                            class="w-full border border-gray-300 rounded-md px-4 py-3 pr-12 focus:border-blue-600 focus:ring-1 focus:ring-blue-600 outline-none">
+
+                        <button
+                            type="button"
+                            id="togglePassword"
+                            class="absolute inset-y-0 right-0 flex items-center px-4 text-gray-500 hover:text-gray-700">
+
+                            <i id="passwordIcon" class="fa-solid fa-eye"></i>
+
+                        </button>
+
                     </div>
 
-                    <div>
-                        <label for="password" class="mb-2 block text-sm font-medium text-slate-700">Password</label>
-                        <input type="password" name="password" id="password" required class="w-full rounded-xl border border-slate-200 px-4 py-3 text-slate-900 outline-none transition focus:border-amber-400 focus:ring-4 focus:ring-amber-100" placeholder="Enter your password">
-                    </div>
+                </div>
 
-                    <div class="flex items-center gap-3">
-                        <input type="checkbox" name="remember" id="remember" class="h-4 w-4 rounded border-slate-300 text-amber-500 focus:ring-amber-400">
-                        <label for="remember" class="text-sm text-slate-600">Remember me</label>
-                    </div>
+                <!-- Remember -->
 
-                    <button type="submit" class="w-full rounded-xl bg-slate-950 px-4 py-3 font-semibold text-white transition hover:bg-slate-800">
-                        Sign In
-                    </button>
+                <div class="flex items-center justify-between">
 
-                    <div class="rounded-2xl bg-amber-50 px-4 py-3 text-sm text-amber-900">
-                        The login route expects a <span class="font-semibold">username</span> and <span class="font-semibold">password</span>, not email.
-                    </div>
-                </form>
+                    <label class="flex items-center gap-2 text-sm text-gray-600">
 
-            </aside>
+                        <input
+                            type="checkbox"
+                            name="remember"
+                            class="rounded border-gray-300">
+
+                        Remember me
+
+                    </label>
+
+                </div>
+
+                <!-- Button -->
+
+                <button
+                    type="submit"
+                    class="w-full bg-blue-600 hover:bg-blue-700 text-white font-medium py-3 rounded-md transition">
+
+                    Sign In
+
+                </button>
+
+                <div class="rounded-2xl bg-amber-50 px-4 py-3 text-sm text-amber-900">
+                    The login route expects a <span class="font-semibold">username</span> and <span class="font-semibold">password</span>, not email.
+                </div>
+
+
+            </form>
+            <!-- Footer -->
+
+            <div class="border-t bg-gray-50 px-8 py-4 text-center text-xs text-gray-500">
+
+                © {{ date('Y') }} Hotel Don Felipe
+
+            </div>
+
         </div>
-    </main>
+
+    </div>
+
+</div>
+
 </body>
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+
+    const password = document.getElementById('password');
+    const toggle = document.getElementById('togglePassword');
+    const icon = document.getElementById('passwordIcon');
+
+    toggle.addEventListener('click', function () {
+
+        if (password.type === 'password') {
+            password.type = 'text';
+            icon.classList.remove('fa-eye');
+            icon.classList.add('fa-eye-slash');
+        } else {
+            password.type = 'password';
+            icon.classList.remove('fa-eye-slash');
+            icon.classList.add('fa-eye');
+        }
+
+    });
+
+});
+</script>
 </html>
