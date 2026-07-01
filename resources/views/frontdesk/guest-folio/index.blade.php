@@ -563,7 +563,7 @@
                                                              <input type="text" class="form-control" id="paid_notes_{{ $folio->folio_id }}" name="reference_notes" placeholder="e.g. receipt #, bank ref, etc.">
                                                          </div>
                                                          <div class="form-check mb-3">
-                                                             <input class="form-check-input" type="checkbox" name="close_folio" id="close_folio_{{ $folio->folio_id }}" value="1" checked>
+                                                             <input class="form-check-input" type="checkbox" name="close_folio" id="close_folio_{{ $folio->folio_id }}" value="1">
                                                              <label class="form-check-label fw-semibold" for="close_folio_{{ $folio->folio_id }}">Close folio after payment</label>
                                                          </div>
                                                          <div class="text-end">
@@ -609,7 +609,7 @@
                                                              <input type="text" class="form-control" id="charge_notes_{{ $folio->folio_id }}" name="reference_notes" placeholder="e.g. LOA #, authorized by...">
                                                          </div>
                                                          <div class="form-check mb-3">
-                                                             <input class="form-check-input" type="checkbox" name="close_folio" id="charge_close_folio_{{ $folio->folio_id }}" value="1" checked>
+                                                             <input class="form-check-input" type="checkbox" name="close_folio" id="charge_close_folio_{{ $folio->folio_id }}" value="1">
                                                              <label class="form-check-label fw-semibold" for="charge_close_folio_{{ $folio->folio_id }}">Close folio after charging</label>
                                                          </div>
                                                          <div class="text-end">
