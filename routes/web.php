@@ -138,6 +138,8 @@ Route::middleware('auth')->group(function () {
 
                 Route::post('/guest-folio/{folio}/mark-paid', [GuestFolioController::class, 'markAsPaid'])
                     ->name('frontdesk.guest-folio.mark-paid');
+                Route::post('/guest-folio/{folio}/charge-account', [GuestFolioController::class, 'chargeToAccount'])
+                    ->name('frontdesk.guest-folio.charge-account');
 
                 Route::post('/guest-folio/{folio}/reopen', [GuestFolioController::class, 'reopenFolio'])
                     ->name('frontdesk.guest-folio.reopen');

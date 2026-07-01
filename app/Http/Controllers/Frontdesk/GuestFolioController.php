@@ -376,11 +376,13 @@ class GuestFolioController extends Controller
         }
 
         $validated = $request->validate([
-            'payment_method' => ['required', 'string', 'in:Cash,Credit Card,Account Charge'],
+            'payment_method' => ['required', 'string', 'in:Cash,Credit Card'],
             'amount' => ['required', 'numeric', 'min:0.01'],
             'reference_notes' => ['nullable', 'string', 'max:255'],
-            'credit_account_id' => ['required_if:payment_method,Account Charge', 'nullable', 'exists:credit_accounts,account_id'],
+            'close_folio' => ['nullable', 'boolean'],
         ]);
+
+        $closeFolio = isset($validated['close_folio']) && $validated['close_folio'];
 
         $userId = auth()->id() ?? 1;
 
@@ -395,35 +397,11 @@ class GuestFolioController extends Controller
             }
         }
 
-        if ($validated['payment_method'] === 'Account Charge') {
-            $account = CreditAccount::findOrFail($validated['credit_account_id']);
-            $creditBillingService->chargeAccount(
-                $account,
-                $validated['amount'],
-                'folio',
-                $folio->folio_id,
-                $validated['reference_notes'] ?? "Folio #{$folio->folio_number} settlement",
-                $userId
-            );
-
-            $folio->update([
-                'status' => 'CLOSED',
-                'payment_method' => 'Account Charge',
-            ]);
-
-            ActivityLog::log(
-                'FOLIO_PAID',
-                "Marked Folio #{$folio->folio_number} as Paid via Account Charge ({$account->account_name}) and closed."
-            );
-
-            return back()->with('success', "Folio #{$folio->folio_number} charged to account and closed.");
-        }
-
         // Determine payment charge code (Cash = 403, Credit Card = 401)
         $chargeCode = $validated['payment_method'] === 'Credit Card' ? '401' : '403';
         $paymentMethod = $validated['payment_method'] === 'Credit Card' ? 'CREDIT_CARD' : 'CASH';
 
-        DB::transaction(function () use ($folio, $validated, $activeShift, $userId, $chargeCode, $paymentMethod) {
+        DB::transaction(function () use ($folio, $validated, $activeShift, $userId, $chargeCode, $paymentMethod, $closeFolio) {
             Transaction::create([
                 'folio_id' => $folio->folio_id,
                 'charge_code' => $chargeCode,
@@ -432,22 +410,74 @@ class GuestFolioController extends Controller
                 'transaction_date' => Carbon::now()->toDateString(),
                 'charge_number' => 'PAY-'.time(),
                 'payment_method' => $paymentMethod,
-                'reference_notes' => $validated['reference_notes'] ?? 'Full payment',
+                'reference_notes' => $validated['reference_notes'] ?? 'Folio payment',
                 'charge_amount' => 0.00,
                 'credit_amount' => $validated['amount'],
             ]);
 
-            $folio->update([
-                'status' => 'CLOSED',
-                'payment_method' => $validated['payment_method'],
-            ]);
+            if ($closeFolio) {
+                $folio->update([
+                    'status' => 'CLOSED',
+                    'payment_method' => $validated['payment_method'],
+                ]);
+            }
         });
 
+        $actionText = $closeFolio ? 'and closed' : 'as partial payment';
         ActivityLog::log(
             'FOLIO_PAID',
-            "Marked Folio #{$folio->folio_number} as Paid (₱".number_format($validated['amount'], 2).') and closed.'
+            'Recorded payment of ₱'.number_format($validated['amount'], 2)." to Folio #{$folio->folio_number} {$actionText}."
         );
 
-        return back()->with('success', "Folio #{$folio->folio_number} marked as paid and closed.");
+        $successMsg = $closeFolio ? "Folio #{$folio->folio_number} marked as paid and closed." : "Payment recorded successfully to Folio #{$folio->folio_number}.";
+
+        return back()->with('success', $successMsg);
+    }
+
+    /**
+     * Charge the folio balance to a corporate credit account.
+     */
+    public function chargeToAccount(Request $request, Folio $folio, CreditBillingService $creditBillingService): RedirectResponse
+    {
+        if ($folio->status !== 'OPEN') {
+            return back()->withErrors(['payment' => 'Only open folios can be charged to an account.']);
+        }
+
+        $validated = $request->validate([
+            'amount' => ['required', 'numeric', 'min:0.01'],
+            'reference_notes' => ['nullable', 'string', 'max:255'],
+            'credit_account_id' => ['required', 'exists:credit_accounts,account_id'],
+            'close_folio' => ['nullable', 'boolean'],
+        ]);
+
+        $closeFolio = isset($validated['close_folio']) && $validated['close_folio'];
+        $userId = auth()->id() ?? 1;
+
+        $account = CreditAccount::findOrFail($validated['credit_account_id']);
+        $creditBillingService->chargeAccount(
+            $account,
+            $validated['amount'],
+            'folio',
+            $folio->folio_id,
+            $validated['reference_notes'] ?? "Folio #{$folio->folio_number} settlement",
+            $userId
+        );
+
+        if ($closeFolio) {
+            $folio->update([
+                'status' => 'CLOSED',
+                'payment_method' => 'Account Charge',
+            ]);
+        }
+
+        $actionText = $closeFolio ? 'and closed' : 'as partial payment';
+        ActivityLog::log(
+            'FOLIO_PAID',
+            "Posted Account Charge ({$account->account_name}) of ₱".number_format($validated['amount'], 2)." to Folio #{$folio->folio_number} {$actionText}."
+        );
+
+        $successMsg = $closeFolio ? "Folio #{$folio->folio_number} charged to account and closed." : "Account charge posted successfully to Folio #{$folio->folio_number}.";
+
+        return back()->with('success', $successMsg);
     }
 }

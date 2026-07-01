@@ -437,28 +437,32 @@
                                                     <button
                                                         type="button"
                                                         class="btn btn-success btn-sm"
-                                                        data-bs-toggle="modal"
-                                                        data-bs-target="#markPaidModal{{ $folio->folio_id }}">
+                                                        data-bs-toggle="collapse"
+                                                        data-bs-target="#markPaidCollapse{{ $folio->folio_id }}">
                                                         <i class="fa-solid fa-circle-check me-1"></i>
                                                         Mark Paid
+                                                    </button>
+
+                                                    <button
+                                                        type="button"
+                                                        class="btn btn-info btn-sm text-white"
+                                                        data-bs-toggle="collapse"
+                                                        data-bs-target="#chargeAccountCollapse{{ $folio->folio_id }}">
+                                                        <i class="fa-solid fa-building me-1"></i>
+                                                        Charge to Account
                                                     </button>
 
                                                     <form
                                                         method="POST"
                                                         action="{{ route('frontdesk.guest-folio.close',$folio->folio_id) }}">
-
                                                         @csrf
-
                                                         <button
-                                                            type="submit"
+                                                            type="button"
                                                             class="btn btn-danger btn-sm"
-                                                            onclick="return confirm('Are you sure you want to close this folio?')">
-
+                                                            onclick="event.preventDefault(); Swal.fire({ title: 'Are you sure?', text: 'Are you sure you want to close this folio?', icon: 'warning', showCancelButton: true, confirmButtonColor: '#d33', confirmButtonText: 'Yes, close it!' }).then((result) => { if (result.isConfirmed) { this.closest('form').submit(); } });">
                                                             <i class="fa-solid fa-lock me-1"></i>
                                                             Close Folio
-
                                                         </button>
-
                                                     </form>
 
                                                 @else
@@ -522,6 +526,98 @@
                                                 @endif
 
                                             </div>
+
+                                             {{-- Mark Paid Form --}}
+                                             @if($folio->status === 'OPEN')
+                                             <div class="collapse mt-3" id="markPaidCollapse{{ $folio->folio_id }}">
+                                                 <div class="border rounded p-3">
+                                                     <h6 class="fw-bold mb-3"><i class="fa-solid fa-circle-check text-success me-2"></i> Mark Folio as Paid</h6>
+                                                     <form method="POST" action="{{ route('frontdesk.guest-folio.mark-paid', $folio->folio_id) }}">
+                                                         @csrf
+                                                         <div class="bg-light rounded p-2 mb-3 border">
+                                                             <div class="d-flex justify-content-between fw-bold">
+                                                                 <span>Outstanding Balance:</span>
+                                                                 <span class="{{ $balance > 0 ? 'text-danger' : 'text-success' }}">
+                                                                     ₱{{ number_format(abs($balance), 2) }}
+                                                                 </span>
+                                                             </div>
+                                                         </div>
+                                                         <div class="mb-3">
+                                                             <label class="form-label fw-semibold" for="paid_amount_{{ $folio->folio_id }}">Payment Amount <span class="text-danger">*</span></label>
+                                                             <div class="input-group">
+                                                                 <span class="input-group-text">₱</span>
+                                                                 <input type="number" class="form-control" id="paid_amount_{{ $folio->folio_id }}" name="amount" value="{{ number_format(max($balance, 0), 2, '.', '') }}" min="0.01" step="0.01" required>
+                                                             </div>
+                                                         </div>
+                                                         <div class="mb-3">
+                                                             <label class="form-label fw-semibold" for="paid_method_{{ $folio->folio_id }}">Payment Method <span class="text-danger">*</span></label>
+                                                             <select class="form-select" id="paid_method_{{ $folio->folio_id }}" name="payment_method" required>
+                                                                 <option value="Cash" @selected(($folio->payment_method ?? 'Cash') === 'Cash')>💵 Cash</option>
+                                                                 <option value="Credit Card" @selected($folio->payment_method === 'Credit Card')>💳 Credit Card</option>
+                                                             </select>
+                                                         </div>
+                                                         <div class="mb-3">
+                                                             <label class="form-label fw-semibold" for="paid_notes_{{ $folio->folio_id }}">Reference Notes</label>
+                                                             <input type="text" class="form-control" id="paid_notes_{{ $folio->folio_id }}" name="reference_notes" placeholder="e.g. receipt #, bank ref, etc.">
+                                                         </div>
+                                                         <div class="form-check mb-3">
+                                                             <input class="form-check-input" type="checkbox" name="close_folio" id="close_folio_{{ $folio->folio_id }}" value="1" checked>
+                                                             <label class="form-check-label fw-semibold" for="close_folio_{{ $folio->folio_id }}">Close folio after payment</label>
+                                                         </div>
+                                                         <div class="text-end">
+                                                             <button type="button" class="btn btn-outline-secondary btn-sm" data-bs-toggle="collapse" data-bs-target="#markPaidCollapse{{ $folio->folio_id }}">Cancel</button>
+                                                             <button type="submit" class="btn btn-success btn-sm"><i class="fa-solid fa-check me-1"></i> Confirm Payment</button>
+                                                         </div>
+                                                     </form>
+                                                 </div>
+                                             </div>
+
+                                             {{-- Charge Account Form --}}
+                                             <div class="collapse mt-3" id="chargeAccountCollapse{{ $folio->folio_id }}">
+                                                 <div class="border rounded p-3">
+                                                     <h6 class="fw-bold mb-3"><i class="fa-solid fa-building text-info me-2"></i> Charge to Account</h6>
+                                                     <form method="POST" action="{{ route('frontdesk.guest-folio.charge-account', $folio->folio_id) }}">
+                                                         @csrf
+                                                         <div class="bg-light rounded p-2 mb-3 border">
+                                                             <div class="d-flex justify-content-between fw-bold">
+                                                                 <span>Outstanding Balance:</span>
+                                                                 <span class="{{ $balance > 0 ? 'text-danger' : 'text-success' }}">
+                                                                     ₱{{ number_format(abs($balance), 2) }}
+                                                                 </span>
+                                                             </div>
+                                                         </div>
+                                                         <div class="mb-3">
+                                                             <label class="form-label fw-semibold" for="charge_amount_{{ $folio->folio_id }}">Amount to Charge <span class="text-danger">*</span></label>
+                                                             <div class="input-group">
+                                                                 <span class="input-group-text">₱</span>
+                                                                 <input type="number" class="form-control" id="charge_amount_{{ $folio->folio_id }}" name="amount" value="{{ number_format(max($balance, 0), 2, '.', '') }}" min="0.01" step="0.01" required>
+                                                             </div>
+                                                         </div>
+                                                         <div class="mb-3">
+                                                             <label class="form-label fw-semibold" for="charge_credit_account_id_{{ $folio->folio_id }}">Select Credit Account <span class="text-danger">*</span></label>
+                                                             <select class="form-select" id="charge_credit_account_id_{{ $folio->folio_id }}" name="credit_account_id" required>
+                                                                 <option value="">Select Account...</option>
+                                                                 @foreach($creditAccounts as $account)
+                                                                     <option value="{{ $account->account_id }}">{{ $account->account_name }} (Limit: ₱{{ number_format($account->available_credit, 2) }})</option>
+                                                                 @endforeach
+                                                             </select>
+                                                         </div>
+                                                         <div class="mb-3">
+                                                             <label class="form-label fw-semibold" for="charge_notes_{{ $folio->folio_id }}">Reference Notes</label>
+                                                             <input type="text" class="form-control" id="charge_notes_{{ $folio->folio_id }}" name="reference_notes" placeholder="e.g. LOA #, authorized by...">
+                                                         </div>
+                                                         <div class="form-check mb-3">
+                                                             <input class="form-check-input" type="checkbox" name="close_folio" id="charge_close_folio_{{ $folio->folio_id }}" value="1" checked>
+                                                             <label class="form-check-label fw-semibold" for="charge_close_folio_{{ $folio->folio_id }}">Close folio after charging</label>
+                                                         </div>
+                                                         <div class="text-end">
+                                                             <button type="button" class="btn btn-outline-secondary btn-sm" data-bs-toggle="collapse" data-bs-target="#chargeAccountCollapse{{ $folio->folio_id }}">Cancel</button>
+                                                             <button type="submit" class="btn btn-info text-white btn-sm"><i class="fa-solid fa-check me-1"></i> Confirm Charge</button>
+                                                         </div>
+                                                     </form>
+                                                 </div>
+                                             </div>
+                                             @endif
 
                                             {{-- Checkout Form --}}
                                             @if($booking && $booking->status=='CHECKED_IN')
@@ -1053,97 +1149,6 @@
         </div>
     </div>
 
-    {{-- Mark as Paid Modal --}}
-    @if($folio->status === 'OPEN')
-    <div class="modal fade" id="markPaidModal{{ $folio->folio_id }}" tabindex="-1" aria-labelledby="markPaidModalLabel{{ $folio->folio_id }}" aria-hidden="true">
-        <div class="modal-dialog modal-dialog-centered">
-            <div class="modal-content border-0 shadow">
-                <div class="modal-header border-0 pb-0">
-                    <h5 class="modal-title fw-bold" id="markPaidModalLabel{{ $folio->folio_id }}">
-                        <i class="fa-solid fa-circle-check text-success me-2"></i> Mark Folio as Paid
-                    </h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-                </div>
-                <form method="POST" action="{{ route('frontdesk.guest-folio.mark-paid', $folio->folio_id) }}">
-                    @csrf
-                    <div class="modal-body">
-                        <p class="text-muted small mb-3">
-                            This will post a payment transaction, update the payment method, and <strong>close</strong> the folio.
-                        </p>
-
-                        {{-- Balance Summary --}}
-                        <div class="bg-light rounded-3 p-3 mb-3 border">
-                            <div class="d-flex justify-content-between small mb-1">
-                                <span class="text-muted">Total Charges:</span>
-                                <span class="fw-semibold text-danger">₱{{ number_format($totalCharge, 2) }}</span>
-                            </div>
-                            <div class="d-flex justify-content-between small mb-1">
-                                <span class="text-muted">Total Credits:</span>
-                                <span class="fw-semibold text-success">₱{{ number_format($totalCredit, 2) }}</span>
-                            </div>
-                            <div class="d-flex justify-content-between fw-bold border-top pt-2 mt-1">
-                                <span>Outstanding Balance:</span>
-                                <span class="{{ $balance > 0 ? 'text-danger' : 'text-success' }}">
-                                    ₱{{ number_format(abs($balance), 2) }}
-                                    {{ $balance > 0 ? '(Due)' : ($balance < 0 ? '(Overpaid)' : '(Settled)') }}
-                                </span>
-                            </div>
-                        </div>
-
-                        <div class="mb-3">
-                            <label class="form-label fw-semibold" for="paid_amount_{{ $folio->folio_id }}">Payment Amount <span class="text-danger">*</span></label>
-                            <div class="input-group">
-                                <span class="input-group-text">₱</span>
-                                <input
-                                    type="number"
-                                    class="form-control"
-                                    id="paid_amount_{{ $folio->folio_id }}"
-                                    name="amount"
-                                    value="{{ number_format(max($balance, 0), 2, '.', '') }}"
-                                    min="0.01"
-                                    step="0.01"
-                                    required
-                                >
-                            </div>
-                            <div class="form-text">Automatically set to the outstanding balance. Adjust if needed.</div>
-                        </div>
-
-                        <div class="mb-3">
-                            <label class="form-label fw-semibold" for="paid_method_{{ $folio->folio_id }}">Payment Method <span class="text-danger">*</span></label>
-                            <select class="form-select payment-method-select" id="paid_method_{{ $folio->folio_id }}" name="payment_method" data-folio-id="{{ $folio->folio_id }}" required>
-                                <option value="Cash" @selected(($folio->payment_method ?? 'Cash') === 'Cash')>💵 Cash</option>
-                                <option value="Credit Card" @selected($folio->payment_method === 'Credit Card')>💳 Credit Card</option>
-                                <option value="Account Charge">🏢 Account Charge</option>
-                            </select>
-                        </div>
-
-                        <div class="mb-3 d-none account-select-container" id="account_select_container_{{ $folio->folio_id }}">
-                            <label class="form-label fw-semibold" for="credit_account_id_{{ $folio->folio_id }}">Select Credit Account <span class="text-danger">*</span></label>
-                            <select class="form-select" id="credit_account_id_{{ $folio->folio_id }}" name="credit_account_id">
-                                <option value="">Select Account...</option>
-                                @foreach($creditAccounts as $account)
-                                    <option value="{{ $account->account_id }}">{{ $account->account_name }} (Limit: ₱{{ number_format($account->available_credit, 2) }})</option>
-                                @endforeach
-                            </select>
-                        </div>
-
-                        <div class="mb-0">
-                            <label class="form-label fw-semibold" for="paid_notes_{{ $folio->folio_id }}">Reference Notes</label>
-                            <input type="text" class="form-control" id="paid_notes_{{ $folio->folio_id }}" name="reference_notes" placeholder="e.g. receipt #, bank ref, etc.">
-                        </div>
-                    </div>
-                    <div class="modal-footer border-0">
-                        <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
-                        <button type="submit" class="btn btn-success fw-semibold">
-                            <i class="fa-solid fa-circle-check me-1"></i> Confirm Payment & Close
-                        </button>
-                    </div>
-                </form>
-            </div>
-        </div>
-    </div>
-    @endif
-
     {{-- High-fidelity printable folio view --}}
 
     <div class="d-none d-print-block print-only-folio" id="print-folio-{{ $folio->folio_id }}" style="font-family: Arial, sans-serif; color: #000000; background: #ffffff; padding: 20px; line-height: 1.4; width: 100%;">
@@ -1411,22 +1416,6 @@
             });
         });
 
-        // Toggle Account Select when "Account Charge" is chosen
-        document.querySelectorAll('.payment-method-select').forEach(function(select) {
-            select.addEventListener('change', function() {
-                var folioId = this.getAttribute('data-folio-id');
-                var container = document.getElementById('account_select_container_' + folioId);
-                var selectEl = document.getElementById('credit_account_id_' + folioId);
-                if (this.value === 'Account Charge') {
-                    container.classList.remove('d-none');
-                    selectEl.required = true;
-                } else {
-                    container.classList.add('d-none');
-                    selectEl.required = false;
-                    selectEl.value = '';
-                }
-            });
-        });
     })();
 </script>
 @endpush
