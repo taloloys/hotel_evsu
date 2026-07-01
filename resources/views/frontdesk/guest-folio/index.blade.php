@@ -545,10 +545,10 @@
                                                              </div>
                                                          </div>
                                                          <div class="mb-3">
-                                                             <label class="form-label fw-semibold" for="paid_amount_{{ $folio->folio_id }}">Payment Amount <span class="text-danger">*</span></label>
+                                                             <label class="form-label fw-semibold" for="paid_amount_{{ $folio->folio_id }}">Payment Amount (Full Balance) <span class="text-danger">*</span></label>
                                                              <div class="input-group">
                                                                  <span class="input-group-text">₱</span>
-                                                                 <input type="number" class="form-control" id="paid_amount_{{ $folio->folio_id }}" name="amount" value="{{ number_format(max($balance, 0), 2, '.', '') }}" min="0.01" step="0.01" required>
+                                                                 <input type="number" class="form-control bg-light" id="paid_amount_{{ $folio->folio_id }}" name="amount" value="{{ number_format(max($balance, 0), 2, '.', '') }}" min="0.01" step="0.01" required readonly>
                                                              </div>
                                                          </div>
                                                          <div class="mb-3">
