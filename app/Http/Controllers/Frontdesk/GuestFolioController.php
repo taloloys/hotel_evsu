@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\ActivityLog;
 use App\Models\Booking;
 use App\Models\ChargeCode;
+use App\Models\CreditAccount;
 use App\Models\Folio;
 use App\Models\Room;
 use App\Models\Shift;
@@ -395,7 +396,7 @@ class GuestFolioController extends Controller
         }
 
         if ($validated['payment_method'] === 'Account Charge') {
-            $account = \App\Models\CreditAccount::findOrFail($validated['credit_account_id']);
+            $account = CreditAccount::findOrFail($validated['credit_account_id']);
             $creditBillingService->chargeAccount(
                 $account,
                 $validated['amount'],
