@@ -527,9 +527,11 @@
 
                                             </div>
 
+                                             <div class="accordion" id="guestActionsAccordion{{ $folio->folio_id }}">
+
                                              {{-- Mark Paid Form --}}
                                              @if($folio->status === 'OPEN')
-                                             <div class="collapse mt-3" id="markPaidCollapse{{ $folio->folio_id }}">
+                                             <div class="collapse mt-3" id="markPaidCollapse{{ $folio->folio_id }}" data-bs-parent="#guestActionsAccordion{{ $folio->folio_id }}">
                                                  <div class="border rounded p-3">
                                                      <h6 class="fw-bold mb-3"><i class="fa-solid fa-circle-check text-success me-2"></i> Mark Folio as Paid</h6>
                                                      <form method="POST" action="{{ route('frontdesk.guest-folio.mark-paid', $folio->folio_id) }}">
@@ -573,7 +575,7 @@
                                              </div>
 
                                              {{-- Charge Account Form --}}
-                                             <div class="collapse mt-3" id="chargeAccountCollapse{{ $folio->folio_id }}">
+                                             <div class="collapse mt-3" id="chargeAccountCollapse{{ $folio->folio_id }}" data-bs-parent="#guestActionsAccordion{{ $folio->folio_id }}">
                                                  <div class="border rounded p-3">
                                                      <h6 class="fw-bold mb-3"><i class="fa-solid fa-building text-info me-2"></i> Charge to Account</h6>
                                                      <form method="POST" action="{{ route('frontdesk.guest-folio.charge-account', $folio->folio_id) }}">
@@ -624,7 +626,8 @@
 
                                             <div
                                                 class="collapse mt-3"
-                                                id="checkoutFormCollapse{{ $folio->folio_id }}">
+                                                id="checkoutFormCollapse{{ $folio->folio_id }}"
+                                                data-bs-parent="#guestActionsAccordion{{ $folio->folio_id }}">
 
                                                 <div class="border rounded p-3">
 
@@ -689,6 +692,8 @@
                                             </div>
 
                                             @endif
+
+                                            </div>
 
                                         </div>
 
