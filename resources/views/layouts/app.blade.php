@@ -303,6 +303,9 @@
     data-flash-success="{{ session('success') }}"
     data-flash-error="{{ session('error') }}"
     data-flash-validation="{{ $errors->any() ? $errors->first() : '' }}"
+    data-login-confirmation="{{ session('show_login_confirmation') ? 'true' : '' }}"
+    data-login-username="{{ Auth::user()?->username ?? '' }}"
+    data-login-role="{{ Auth::user()?->role?->role_name ?? '' }}"
 >
 
 <div class="sidebar">
@@ -358,6 +361,55 @@
                 title: 'Validation Error',
                 text: flashValidation,
                 confirmButtonColor: '#2563eb'
+            });
+        }
+
+        const loginConfirmation = body.getAttribute('data-login-confirmation') === 'true';
+        const loginUsername = body.getAttribute('data-login-username');
+        const loginRole = body.getAttribute('data-login-role');
+
+        body.removeAttribute('data-login-confirmation');
+        body.removeAttribute('data-login-username');
+        body.removeAttribute('data-login-role');
+
+        if (loginConfirmation && loginUsername) {
+            Swal.fire({
+                icon: 'question',
+                title: 'Confirm Account',
+                html: `You are signed in as <strong>${loginUsername}</strong><br>Role: <strong>${loginRole || 'Unknown'}</strong>`,
+                showCancelButton: true,
+                confirmButtonText: 'Proceed',
+                cancelButtonText: 'No, go back',
+                confirmButtonColor: '#a97142',
+                reverseButtons: true,
+                customClass: {
+                    popup: 'rounded-[1.5rem]',
+                    title: 'text-xl font-semibold',
+                },
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    const element = document.documentElement;
+                    const requestFullscreen = element.requestFullscreen || element.webkitRequestFullscreen || element.mozRequestFullScreen || element.msRequestFullscreen;
+                    if (requestFullscreen) {
+                        requestFullscreen.call(element).catch(() => {
+                            Swal.fire({
+                                icon: 'warning',
+                                title: 'Unable to fullscreen',
+                                text: 'Your browser blocked fullscreen mode. Please press F11 manually.',
+                                confirmButtonColor: '#a97142'
+                            });
+                        });
+                    } else {
+                        Swal.fire({
+                            icon: 'warning',
+                            title: 'Fullscreen not supported',
+                            text: 'Your browser does not support fullscreen mode.',
+                            confirmButtonColor: '#a97142'
+                        });
+                    }
+                } else {
+                    window.location.href = '{{ route('login') }}';
+                }
             });
         }
     });

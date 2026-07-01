@@ -19,10 +19,13 @@ it('redirects users to the correct dashboard after login', function (string $rol
         'role_id' => $roleModel->role_id,
     ]);
 
-    $this->post('/login', [
+    $response = $this->post('/login', [
         'username' => $user->username,
         'password' => 'password',
-    ])->assertRedirect(route($routeName));
+    ]);
+
+    $response->assertRedirect(route($routeName));
+    $response->assertSessionHas('show_login_confirmation', true);
 
     $this->assertAuthenticatedAs($user);
 })->with([

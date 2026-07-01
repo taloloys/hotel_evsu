@@ -37,7 +37,9 @@ class LoginController extends Controller
 
         $request->session()->regenerate();
 
-        return redirect()->intended($this->dashboardRouteForRole(Auth::user()?->role?->role_name));
+        return redirect()
+            ->intended($this->dashboardRouteForRole(Auth::user()?->role?->role_name))
+            ->with('show_login_confirmation', true);
     }
 
     public function logout(Request $request): RedirectResponse
