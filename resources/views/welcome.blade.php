@@ -7,187 +7,109 @@
 
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css">
-
-    <style>
-        body{
-            background:#f3f4f6;
-        }
-
-        .login-bg{
-            background-image: url("{{ asset('images/larrazabal.png') }}");
-            background-position: center;
-            background-repeat: no-repeat;
-            background-size: cover;
-        }
-    </style>
 </head>
 
-<body>
+<body class="min-h-screen bg-[radial-gradient(circle_at_top_left,_#fffaf5_0%,_#f6efe7_45%,_#efe2d0_100%)] text-slate-800">
 
-<div class="min-h-screen grid lg:grid-cols-2">
+<div class="min-h-screen flex items-center justify-center px-4 py-8 lg:px-8">
+    <div class="w-full max-w-6xl overflow-hidden rounded-[2rem] border border-[#e8d9c7] bg-white/90 shadow-[0_25px_80px_rgba(70,45,30,0.16)] backdrop-blur">
+        <div class="grid lg:grid-cols-[1.05fr_0.95fr]">
 
-    <!-- LEFT SIDE -->
-    <div
-        class="hidden lg:flex relative bg-cover bg-center bg-no-repeat"
-        style="background-image: url('{{ asset('images/picture.jpg') }}');">
-
-        <div class="relative z-10 flex flex-col justify-end p-12 text-white">
-
-            <h1 class="text-4xl font-bold drop-shadow-lg">
-                Hotel Don Felipe
-            </h1>
-
-            <p class="mt-3 max-w-md text-white drop-shadow-md">
-                Hotel Management System
-            </p>
-
-            <p class="mt-2 text-sm text-white/95 drop-shadow-md">
-                Manage reservations, guests, billing and daily hotel operations.
-            </p>
-
-        </div>
-
-    </div>
-
-    <!-- RIGHT SIDE -->
-    <div class="flex items-center justify-center p-6">
-
-        <div class="w-full max-w-md bg-white rounded-lg shadow-lg border border-black-200">
-
-            <!-- Header -->
-            <div class="px-7 pt-8 pb-2 border-b">
-
-                <h2 class="text-2xl font-bold text-gray-800">
-                    Sign In
-                </h2>
-
-                <p class="mt-1 text-sm text-gray-500">
-                    Enter your staff account to continue.
-                </p>
-
+            <div class="hidden lg:flex relative items-center justify-center overflow-hidden bg-gradient-to-br from-[#4d3126] via-[#6d4c41] to-[#a97142] p-12 text-white">
+                <div class="absolute inset-0 bg-[radial-gradient(circle_at_top_left,_rgba(255,255,255,0.26),_transparent_45%)]"></div>
+                <div class="relative z-10 max-w-md text-center">
+                    <div class="mx-auto mb-6 flex h-24 w-24 items-center justify-center rounded-full border border-white/30 bg-white/15 shadow-lg backdrop-blur">
+                        <img src="{{ asset('images/logo.png') }}" alt="Hotel Don Felipe logo" class="h-16 w-16 object-contain">
+                    </div>
+                    <h1 class="text-4xl font-semibold tracking-tight">Hotel Don Felipe</h1>
+                    <p class="mt-3 text-lg text-white/90">Hotel Management System</p>
+                    
+                </div>
             </div>
 
-            <!-- Form -->
-            <form method="POST"
-                  action="{{ url('/login') }}"
-                  class="p-4 space-y-5">
-
-                @csrf
-
-                @if ($errors->any())
-                    <div class="border border-red-200 bg-red-50 text-red-700 rounded-md px-4 py-3 text-sm">
-                        {{ $errors->first('username') ?? 'Invalid username or password.' }}
+            <div class="flex items-center justify-center bg-[#fcf9f5] p-6 sm:p-8 lg:p-10">
+                <div class="w-full max-w-md">
+                    <div class="mb-6 flex flex-col items-center text-center">
+                        <div class="mb-4 flex h-20 w-20 items-center justify-center rounded-full border border-[#e5d4bf] bg-white shadow-sm">
+                            <img src="{{ asset('images/logo.png') }}" alt="Hotel Don Felipe logo" class="h-14 w-14 object-contain">
+                        </div>
+                        <h2 class="text-3xl font-semibold text-slate-800">Welcome Back</h2>
+                        <p class="mt-2 text-sm text-slate-500">Sign in to continue to your staff dashboard.</p>
                     </div>
-                @endif
 
-                <!-- Username -->
+                    <form method="POST" action="{{ url('/login') }}" class="space-y-4">
+                        @csrf
 
-                <div>
+                        @if ($errors->any())
+                            <div class="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+                                {{ $errors->first('username') ?? 'Invalid username or password.' }}
+                            </div>
+                        @endif
 
-                    <label
-                        class="block text-sm font-medium text-gray-700 mb-2" required>
+                        <div>
+                            <label class="mb-2 block text-sm font-medium text-slate-700">Username</label>
+                            <input
+                                type="text"
+                                name="username"
+                                required
+                                autofocus
+                                placeholder="Enter username"
+                                class="w-full rounded-xl border border-[#dccdb7] bg-white px-4 py-3 text-sm outline-none transition focus:border-[#a97142] focus:ring-2 focus:ring-[#a97142]/20">
+                        </div>
 
-                        Username
+                        <div>
+                            <label class="mb-2 block text-sm font-medium text-slate-700">Password</label>
+                            <div class="relative">
+                                <input
+                                    id="password"
+                                    type="password"
+                                    name="password"
+                                    required
+                                    placeholder="Enter password"
+                                    class="w-full rounded-xl border border-[#dccdb7] bg-white px-4 py-3 pr-12 text-sm outline-none transition focus:border-[#a97142] focus:ring-2 focus:ring-[#a97142]/20">
+                                <button
+                                    type="button"
+                                    id="togglePassword"
+                                    class="absolute inset-y-0 right-0 flex items-center px-4 text-slate-500 hover:text-slate-700">
+                                    <i id="passwordIcon" class="fa-solid fa-eye"></i>
+                                </button>
+                            </div>
+                        </div>
 
-                    </label>
-
-                    <input
-                        type="text"
-                        name="username"
-                        required
-                        autofocus
-                        placeholder="Enter username"
-                        class="w-full border border-gray-300 rounded-md px-4 py-3 focus:border-blue-600 focus:ring-1 focus:ring-blue-600 outline-none">
-
-                </div>
-
-                <!-- Password -->
-                <div>
-
-                    <label class="block text-sm font-medium text-gray-700 mb-2" required>
-                        Password
-                    </label>
-
-                    <div class="relative">
-
-                        <input
-                            id="password"
-                            type="password"
-                            name="password"
-                            required
-                            placeholder="Enter password"
-                            class="w-full border border-gray-300 rounded-md px-4 py-3 pr-12 focus:border-blue-600 focus:ring-1 focus:ring-blue-600 outline-none">
+                        <div class="flex items-center justify-between pt-1">
+                            <label class="flex items-center gap-2 text-sm text-slate-600">
+                                <input type="checkbox" name="remember" class="rounded border-[#dccdb7] text-[#a97142] focus:ring-[#a97142]">
+                                Remember me
+                            </label>
+                        </div>
 
                         <button
-                            type="button"
-                            id="togglePassword"
-                            class="absolute inset-y-0 right-0 flex items-center px-4 text-gray-500 hover:text-gray-700">
-
-                            <i id="passwordIcon" class="fa-solid fa-eye"></i>
-
+                            type="submit"
+                            class="w-full rounded-xl bg-gradient-to-r from-[#6d4c41] to-[#a97142] px-4 py-3 font-semibold text-white shadow-lg shadow-[#a97142]/20 transition hover:opacity-95">
+                            Sign In
                         </button>
 
+                        <div class="rounded-xl border border-[#f0dfc9] bg-[#fff8ee] px-4 py-3 text-sm text-[#7a5738]">
+                            This login uses your <span class="font-semibold">username</span> and <span class="font-semibold">password</span>.
+                        </div>
+                    </form>
+
+                    <div class="mt-6 border-t border-[#eadfcf] pt-4 text-center text-xs text-slate-500">
+                        © {{ date('Y') }} Hotel Don Felipe
                     </div>
-
                 </div>
-
-                <!-- Remember -->
-
-                <div class="flex items-center justify-between">
-
-                    <label class="flex items-center gap-2 text-sm text-gray-600">
-
-                        <input
-                            type="checkbox"
-                            name="remember"
-                            class="rounded border-gray-300">
-
-                        Remember me
-
-                    </label>
-
-                </div>
-
-                <!-- Button -->
-
-                <button
-                    type="submit"
-                    class="w-full bg-blue-600 hover:bg-blue-700 text-white font-medium py-3 rounded-md transition">
-
-                    Sign In
-
-                </button>
-
-                <div class="rounded-2xl bg-amber-50 px-4 py-3 text-sm text-amber-900">
-                    The login route expects a <span class="font-semibold">username</span> and <span class="font-semibold">password</span>, not email.
-                </div>
-
-
-            </form>
-            <!-- Footer -->
-
-            <div class="border-t bg-gray-50 px-8 py-4 text-center text-xs text-gray-500">
-
-                © {{ date('Y') }} Hotel Don Felipe
-
             </div>
-
         </div>
-
     </div>
-
 </div>
 
-</body>
 <script>
 document.addEventListener('DOMContentLoaded', function () {
-
     const password = document.getElementById('password');
     const toggle = document.getElementById('togglePassword');
     const icon = document.getElementById('passwordIcon');
 
     toggle.addEventListener('click', function () {
-
         if (password.type === 'password') {
             password.type = 'text';
             icon.classList.remove('fa-eye');
@@ -197,9 +119,8 @@ document.addEventListener('DOMContentLoaded', function () {
             icon.classList.remove('fa-eye-slash');
             icon.classList.add('fa-eye');
         }
-
     });
-
 });
 </script>
+</body>
 </html>
