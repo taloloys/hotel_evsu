@@ -8,38 +8,17 @@
 
 @include('coffeeshop.partials.alerts')
 
-<style>
-#statisticsTabs .nav-link{
-    background:#e9ecef;
-    color:#495057;
-    border:1px solid #dee2e6;
-    font-weight:600;
-    padding:.7rem 1rem;
-    box-shadow:0 .125rem .25rem rgba(0,0,0,.05);
-    transition:all .2s ease;
-}
+<div class="coffeeshop-page-shell">
+    <div class="coffeeshop-hero">
+        <div class="d-flex flex-column flex-lg-row justify-content-between gap-3 align-items-lg-center">
+            <div>
+                <div class="fw-bold fs-5">Coffee shop analytics</div>
+                <div class="opacity-75 mt-1">Read sales trends, product performance, and inventory suggestions in one polished view.</div>
+            </div>
+        </div>
+    </div>
 
-#statisticsTabs .nav-link:hover{
-    background:#dee2e6;
-    color:#212529;
-    border-color:#ced4da;
-    transform:translateY(-1px);
-}
-
-#statisticsTabs .nav-link.active{
-    background:#0d6efd;
-    color:#fff;
-    border-color:#0d6efd;
-    box-shadow:0 .25rem .5rem rgba(13,110,253,.25);
-}
-
-#statisticsTabs .nav-link i{
-    font-size:.9rem;
-}
-</style>
-
-{{-- ===================== MAIN DASHBOARD WRAPPER ===================== --}}
-<div class="card border-0 shadow-sm rounded-4 overflow-hidden">
+    <div class="coffeeshop-panel overflow-hidden">
 
     <div class="card-body p-4">
 
@@ -100,7 +79,7 @@
                 {{-- NAV PILLS --}}
                 <div class="bg-light px-3 pt-3">
 
-                    <ul class="nav nav-pills nav-fill gap-2" id="statisticsTabs" role="tablist">
+                    <ul class="nav nav-pills nav-fill gap-2 coffeeshop-nav-pills" id="statisticsTabs" role="tablist">
 
                         <li class="nav-item">
                             <button class="nav-link active rounded-pill shadow-sm"

@@ -7,12 +7,22 @@
 @section('content')
 <div id="pos-alert" class="alert d-none"></div>
 
-<div class="row g-3">
+<div class="coffeeshop-page-shell">
+    <div class="coffeeshop-hero">
+        <div class="d-flex flex-column flex-lg-row justify-content-between gap-3 align-items-lg-center">
+            <div>
+                <div class="fw-bold fs-5">Coffee shop POS</div>
+                <div class="opacity-75 mt-1">Create tabs, add drinks and snacks, and check out with a streamlined flow.</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row g-3">
     <div class="col-lg-8">
 
         <!-- Suggested Pairings -->
-        <div class="card border-0 shadow-sm mb-3">
-            <div class="card-header bg-light">
+        <div class="coffeeshop-card mb-3">
+            <div class="card-header border-0 bg-transparent">
                 <strong>
                     <i class="fa-solid fa-lightbulb text-warning me-2"></i>
                     Suggested Pairings
@@ -44,7 +54,7 @@
 
             </div>
         </div>
-        <div class="card border-0 shadow-sm mb-3">
+        <div class="coffeeshop-card mb-3">
             <div class="card-body">
                 <div class="d-flex flex-wrap gap-2 justify-content-between align-items-center">
                     <div class="d-flex gap-2 flex-wrap" id="category-filters">
@@ -67,7 +77,7 @@
                 data-product-id="{{ $product->product_id }}"
                 data-category-id="{{ $product->category_id }}">
 
-                <div class="card border-0 shadow-sm h-100 {{ $product->stock_quantity <= 0 ? 'opacity-50' : '' }}">
+                <div class="coffeeshop-card h-100 {{ $product->stock_quantity <= 0 ? 'opacity-50' : '' }}">
                     <div class="card-body d-flex flex-column text-center">
 
                         @if($product->image_url)
@@ -114,8 +124,8 @@
     </div>
 
     <div class="col-lg-4">
-        <div class="card border-0 shadow-sm sticky-top" style="top:15px;">
-            <div class="card-header bg-white d-flex justify-content-between align-items-center">
+        <div class="coffeeshop-card sticky-top" style="top:15px;">
+            <div class="card-header border-0 bg-transparent d-flex justify-content-between align-items-center">
                 <div>
                     <div class="fw-bold">Customer Tabs</div>
                     <small class="text-muted">Multiple open tabs supported</small>
@@ -129,7 +139,7 @@
             <div class="card-body">
                 <div class="d-flex gap-2 mb-3 flex-wrap" id="tab-switcher"></div>
 
-                <div class="card bg-light border-0 p-3 mb-5 ">
+                <div class="card bg-light border-0 p-3 mb-5 rounded-4">
                     <div class="mb-3">
                     <label class="form-label fw-semibold text-muted mb-2">
                         Tab Type
@@ -278,6 +288,7 @@
                 </div>
             </div>
         </div>
+    </div>
     </div>
 </div>
 

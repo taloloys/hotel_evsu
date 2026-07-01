@@ -156,7 +156,7 @@
             <div class="text-uppercase text-secondary small fw-bold mb-2">
                 Coffee Shop
             </div>
-            <nav class="nav flex-column">
+            <nav class="nav flex-column coffeeshop-nav">
                 <a href="{{ route('coffeeshop.dashboard') }}"
                    class="nav-link {{ request()->routeIs('coffeeshop.dashboard') ? 'active' : '' }}">
                     <i class="fa-solid fa-gauge me-2"></i>

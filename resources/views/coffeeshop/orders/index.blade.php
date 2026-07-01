@@ -7,41 +7,19 @@
 @section('content')
 @include('coffeeshop.partials.alerts')
 
-<style>
-#ordersNav .nav-link{
-    background:#e9ecef;
-    color:#495057;
-    border:1px solid #dee2e6;
-    font-weight:600;
-    box-shadow:0 .125rem .25rem rgba(0,0,0,.05);
-    transition:all .2s ease;
-}
-
-#ordersNav .nav-link:hover{
-    background:#dee2e6;
-    color:#212529;
-    border-color:#ced4da;
-}
-
-#ordersNav .nav-link.active{
-    background:#0d6efd;
-    color:#fff;
-    border-color:#0d6efd;
-    box-shadow:0 .25rem .5rem rgba(13,110,253,.25);
-}
-</style>
-
-{{-- ===================== ORDERS FILTER (TAB STYLE UI ONLY) ===================== --}}
-<div class="card border-0 shadow-sm rounded-4 overflow-hidden mb-3">
-
-    <div class="card-header bg-white fw-semibold d-flex justify-content-between align-items-center">
-        <span>Order Management</span>
-        <small class="text-muted">All Orders • Active Tabs • Status Tracking</small>
+<div class="coffeeshop-page-shell">
+    <div class="coffeeshop-hero">
+        <div class="d-flex flex-column flex-lg-row justify-content-between gap-3 align-items-lg-center">
+            <div>
+                <div class="fw-bold fs-5">Orders and open tabs</div>
+                <div class="opacity-75 mt-1">Review every purchase, follow active tabs, and keep service flowing smoothly.</div>
+            </div>
+        </div>
     </div>
 
-    <div class="px-3 pt-3 bg-white border-bottom">
-
-        <ul class="nav nav-pills nav-fill gap-2 fw-semibold" id="ordersNav">
+    <div class="coffeeshop-panel overflow-hidden mb-3">
+        <div class="p-3 p-lg-4 border-bottom bg-white">
+            <ul class="nav nav-pills nav-fill gap-2 fw-semibold coffeeshop-nav-pills" id="ordersNav">
 
             @foreach([
                 'all' => 'All Orders',
@@ -65,34 +43,20 @@
             @endforeach
 
         </ul>
-
     </div>
-    <hr>
 
-    {{-- ===================== SEARCH (RIGHT ALIGNED) ===================== --}}
-    <div class="d-flex justify-content-end mb-3">
-
-        <form method="GET">
-
-           <div class="input-group" style="width: 450px; border: 1px solid;">
-            <span class="input-group-text bg-white">
-                <i class="fa-solid fa-magnifying-glass text-muted"></i>
-            </span>
-            <input type="text"
-                   name="search"
-                   value="{{ request('search') }}"
-                   class="form-control"
-                   placeholder="Search products..."
-                   onkeydown="if(event.key==='Enter'){ this.form.submit(); }">
-            </input>
+    <div class="p-3 p-lg-4">
+        <div class="d-flex justify-content-end mb-3">
+            <form method="GET">
+                <div class="input-group coffeeshop-form-control" style="width: 450px;">
+                    <span class="input-group-text bg-white border-0"><i class="fa-solid fa-magnifying-glass text-muted"></i></span>
+                    <input type="text" name="search" value="{{ request('search') }}" class="form-control border-0" placeholder="Search orders..." onkeydown="if(event.key==='Enter'){ this.form.submit(); }">
+                </div>
+            </form>
         </div>
 
-        </form>
-
-    </div>
-
     {{-- ===================== TABLE ===================== --}}
-    @if($status === 'active_tabs')
+        @if($status === 'active_tabs')
 
     <div class="card border-0 shadow-sm rounded-4">
 
@@ -216,7 +180,8 @@
 
     </div>
 
-    @endif
+        @endif
+    </div>
 </div>
 
 @endsection

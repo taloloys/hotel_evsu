@@ -7,64 +7,26 @@
 @section('content')
 @include('coffeeshop.partials.alerts')
 
-<style>
-    #customerNav .nav-link{
-    background:#e9ecef;
-    color:#495057;
-    border:1px solid #dee2e6;
-    font-weight:600;
-    box-shadow:0 .125rem .25rem rgba(0,0,0,.05);
-    transition:all .2s ease;
-}
+<div class="coffeeshop-page-shell">
+    <div class="coffeeshop-hero">
+        <div class="d-flex flex-column flex-lg-row justify-content-between gap-3 align-items-lg-center">
+            <div>
+                <div class="fw-bold fs-5">Customer stories and repeat visits</div>
+                <div class="opacity-75 mt-1">Review the people behind the orders and keep their history close at hand.</div>
+            </div>
+        </div>
+    </div>
 
-#customerNav .nav-link:hover{
-    background:#dee2e6;
-    color:#212529;
-    border-color:#ced4da;
-}
-
-#customerNav .nav-link.active{
-    background:#0d6efd;
-    color:#fff;
-    border-color:#0d6efd;
-    box-shadow:0 .25rem .5rem rgba(13,110,253,.25);
-}
-</style>
-<div class="card border-0 shadow-sm">
+    <div class="coffeeshop-panel">
 
     <div class="card-body">
 
         {{-- ===================== CLEAN STATS HEADER ===================== --}}
-        <div class="row g-0 mb-4 text-center border rounded-3 overflow-hidden bg-white">
-
-            <div class="col-md-3 col-6 py-4 border-end border-bottom">
-                <div class="text-muted meduim">Total Customers</div>
-                <div class="fw-bold fs-5 text-primary">
-                    {{ $orders->pluck('customer_name')->unique()->count() }}
-                </div>
-            </div>
-
-            <div class="col-md-3 col-6 py-3 border-end border-bottom">
-                <div class="text-muted medium">Active Tabs</div>
-                <div class="fw-bold fs-5 text-info">
-                    {{ $tabs->where('status', 'open')->count() }}
-                </div>
-            </div>
-
-            <div class="col-md-3 col-6 py-3 border-end">
-                <div class="text-muted medium">Completed</div>
-                <div class="fw-bold fs-5 text-success">
-                    {{ $orders->where('status', 'closed')->count() }}
-                </div>
-            </div>
-
-            <div class="col-md-3 col-6 py-3">
-                <div class="text-muted medium">Refunded</div>
-                <div class="fw-bold fs-5 text-danger">
-                    {{ $orders->where('status', 'refunded')->count() }}
-                </div>
-            </div>
-
+        <div class="row g-3 mb-4">
+            <div class="col-md-3 col-6"><div class="coffeeshop-card p-4 text-center h-100"><div class="text-muted small">Total Customers</div><div class="fw-bold fs-5 text-brown">{{ $orders->pluck('customer_name')->unique()->count() }}</div></div></div>
+            <div class="col-md-3 col-6"><div class="coffeeshop-card p-4 text-center h-100"><div class="text-muted small">Active Tabs</div><div class="fw-bold fs-5 text-info">{{ $tabs->where('status', 'open')->count() }}</div></div></div>
+            <div class="col-md-3 col-6"><div class="coffeeshop-card p-4 text-center h-100"><div class="text-muted small">Completed</div><div class="fw-bold fs-5 text-success">{{ $orders->where('status', 'closed')->count() }}</div></div></div>
+            <div class="col-md-3 col-6"><div class="coffeeshop-card p-4 text-center h-100"><div class="text-muted small">Refunded</div><div class="fw-bold fs-5 text-danger">{{ $orders->where('status', 'refunded')->count() }}</div></div></div>
         </div>
 
         {{-- ===================== FILTER (RIGHT ALIGNED) ===================== --}}
@@ -128,7 +90,7 @@
                 {{-- TAB NAVIGATION --}}
                 <div class="px-3 pt-3 bg-white border-bottom">
 
-                    <ul class="nav nav-pills nav-fill gap-2 fw-semibold" id="customerNav">
+                    <ul class="nav nav-pills nav-fill gap-2 fw-semibold coffeeshop-nav-pills" id="customerNav">
 
                         <li class="nav-item">
                             <button class="nav-link active rounded-pill"
@@ -296,7 +258,7 @@
 
                                 <div class="table-responsive border rounded-4 bg-white overflow-hidden shadow-sm">
 
-                                    <table class="table align-middle mb-0">
+                                    <table class="table align-middle mb-0 coffeeshop-table">
 
                                         <thead class="table-light">
                                             <tr class="text-muted small">
@@ -363,5 +325,6 @@
 
     </div>
 
+    </div>
 </div>
 @endsection

@@ -6,6 +6,18 @@
 
 @section('content')
 
+<div class="coffeeshop-page-shell">
+    <div class="coffeeshop-hero">
+        <div class="d-flex flex-column flex-lg-row justify-content-between gap-3 align-items-lg-center">
+            <div>
+                <div class="fw-bold fs-5">Sales and revenue</div>
+                <div class="opacity-75 mt-1">Review overall performance with the same polished coffee-shop experience.</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="coffeeshop-panel p-3 p-lg-4">
+
 <!-- KPI ROW (REAL BUSINESS METRICS) -->
 <div class="row g-3 mb-3">
 
@@ -48,7 +60,7 @@
 </div>
 
 <!-- ACTION BAR (FILTER + EXPORT - REAL SYSTEM STYLE) -->
-<div class="card border-0 shadow-sm mb-3">
+<div class="coffeeshop-card border-0 shadow-sm mb-3">
 
     <div class="card-body d-flex justify-content-between align-items-center">
 
@@ -120,7 +132,7 @@
 
     <div class="table-responsive">
 
-        <table class="table table-hover align-middle mb-0">
+        <table class="table table-hover align-middle mb-0 coffeeshop-table">
 
             <thead class="table-light">
                 <tr>
@@ -168,6 +180,7 @@
 
     </div>
 
+    </div>
 </div>
 
 @endsection

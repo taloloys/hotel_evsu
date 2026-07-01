@@ -8,7 +8,18 @@
 
 @include('coffeeshop.partials.alerts')
 
-<div class="row">
+<div class="coffeeshop-page-shell">
+    <div class="coffeeshop-hero">
+        <div class="d-flex flex-column flex-lg-row justify-content-between gap-3 align-items-lg-center">
+            <div>
+                <div class="fw-bold fs-5">Order detail</div>
+                <div class="opacity-75 mt-1">Inspect each line item and the payment flow in a polished view.</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="coffeeshop-panel overflow-hidden">
+        <div class="row">
     <div class="col-12">
 
         <div class="card border-0 shadow-sm rounded-4 overflow-hidden">
@@ -179,7 +190,7 @@
             {{-- ================= TABLE ================= --}}
             <div class="table-responsive">
 
-                <table class="table table-lg align-middle mb-0">
+                <table class="table table-lg align-middle mb-0 coffeeshop-table">
 
                     <thead class="table-light">
                         <tr>

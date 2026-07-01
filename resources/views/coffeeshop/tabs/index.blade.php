@@ -7,31 +7,17 @@
 @section('content')
 @include('coffeeshop.partials.alerts')
 
-<style>
-#tabsNav .nav-link{
-    background:#e9ecef;
-    color:#495057;
-    border:1px solid #dee2e6;
-    font-weight:600;
-    box-shadow:0 .125rem .25rem rgba(0,0,0,.05);
-    transition:all .2s ease;
-}
+<div class="coffeeshop-page-shell">
+    <div class="coffeeshop-hero">
+        <div class="d-flex flex-column flex-lg-row justify-content-between gap-3 align-items-lg-center">
+            <div>
+                <div class="fw-bold fs-5">Tab overview</div>
+                <div class="opacity-75 mt-1">Track every open, closed, and cancelled tab without losing the flow of service.</div>
+            </div>
+        </div>
+    </div>
 
-#tabsNav .nav-link:hover{
-    background:#dee2e6;
-    color:#212529;
-    border-color:#ced4da;
-}
-
-#tabsNav .nav-link.active{
-    background:#0d6efd;
-    color:#fff;
-    border-color:#0d6efd;
-    box-shadow:0 .25rem .5rem rgba(13,110,253,.25);
-}
-</style>
-
-<div class="card border-0 shadow-sm rounded-4 overflow-hidden mb-4">
+    <div class="coffeeshop-panel overflow-hidden mb-4">
 
     {{-- HEADER --}}
     <div class="card-header bg-white fw-semibold d-flex justify-content-between align-items-center">
@@ -42,7 +28,7 @@
     {{-- NAV PILLS --}}
     <div class="px-3 pt-3 bg-white border-bottom">
 
-        <ul class="nav nav-pills nav-fill gap-2 fw-semibold" id="tabsNav">
+        <ul class="nav nav-pills nav-fill gap-2 fw-semibold coffeeshop-nav-pills" id="tabsNav">
 
             <li class="nav-item">
                 <a href="{{ route('coffeeshop.tabs', ['status' => 'open']) }}"
@@ -96,7 +82,7 @@
         {{-- TABLE --}}
         <div class="table-responsive">
 
-            <table class="table table-hover align-middle mb-0">
+            <table class="table table-hover align-middle mb-0 coffeeshop-table">
 
                 <thead class="table-light">
 
@@ -225,6 +211,7 @@
 
         @endif
 
+    </div>
     </div>
 </div>
 @endsection

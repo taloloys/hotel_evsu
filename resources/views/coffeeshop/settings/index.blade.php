@@ -7,42 +7,17 @@
 @section('content')
 @include('coffeeshop.partials.alerts')
 
-<style>
-    /* ===========================
-   APP TABS (GLOBAL STYLE)
-=========================== */
+<div class="coffeeshop-page-shell">
+    <div class="coffeeshop-hero">
+        <div class="d-flex flex-column flex-lg-row justify-content-between gap-3 align-items-lg-center">
+            <div>
+                <div class="fw-bold fs-5">POS settings and categories</div>
+                <div class="opacity-75 mt-1">Fine-tune inventory thresholds and keep your menu organization tidy.</div>
+            </div>
+        </div>
+    </div>
 
-.app-tabs .nav-link{
-    background:#e9ecef;
-    color:#495057;
-    border:1px solid #dee2e6;
-    font-weight:600;
-    border-radius:999px;
-    padding:.65rem 1rem;
-    box-shadow:0 .125rem .25rem rgba(0,0,0,.05);
-    transition:all .2s ease;
-}
-
-.app-tabs .nav-link:hover{
-    background:#dee2e6;
-    color:#212529;
-    border-color:#ced4da;
-}
-
-.app-tabs .nav-link.active{
-    background:#0d6efd;
-    color:#fff;
-    border-color:#0d6efd;
-    box-shadow:0 .25rem .5rem rgba(13,110,253,.25);
-}
-
-/* icon spacing consistency */
-.app-tabs .nav-link i{
-    font-size:.9rem;
-}
-</style>
-
-<div class="card border-0 shadow-sm rounded-4 overflow-hidden">
+    <div class="coffeeshop-panel overflow-hidden">
 
     {{-- ================= HEADER ================= --}}
     <div class="card-header bg-white d-flex justify-content-between align-items-center">
@@ -53,7 +28,7 @@
     {{-- ================= TAB NAV ================= --}}
     <div class="px-3 pt-3 bg-white border-bottom">
 
-        <ul class="nav nav-pills nav-fill gap-2 fw-semibold app-tabs" id="settingsTabs" role="tablist">
+        <ul class="nav nav-pills nav-fill gap-2 fw-semibold coffeeshop-nav-pills app-tabs" id="settingsTabs" role="tablist">
 
             <li class="nav-item">
                 <button class="nav-link active rounded-pill"
@@ -148,7 +123,7 @@
 
                 <div class="table-responsive">
 
-                    <table class="table table-sm align-middle mb-0">
+                    <table class="table table-sm align-middle mb-0 coffeeshop-table">
 
                         <thead class="table-light text-muted small">
                             <tr>
@@ -204,6 +179,7 @@
 
         </div>
 
+    </div>
     </div>
 </div>
 @endsection

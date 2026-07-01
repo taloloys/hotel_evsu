@@ -7,16 +7,26 @@
 @section('content')
 @include('coffeeshop.partials.alerts')
 
-<div class="row g-3 mb-4">
-    <div class="col-md-2"><div class="card border-0 shadow-sm h-100"><div class="card-body p-3"><div class="text-muted small">Total Sales</div><h5 class="mb-0">₱{{ number_format($summary['total_sales'], 2) }}</h5></div></div></div>
-    <div class="col-md-2"><div class="card border-0 shadow-sm h-100"><div class="card-body p-3"><div class="text-muted small">Orders</div><h5 class="mb-0">{{ $summary['order_count'] }}</h5></div></div></div>
-    <div class="col-md-2"><div class="card border-0 shadow-sm h-100"><div class="card-body p-3"><div class="text-muted small">Cash</div><h5 class="mb-0">₱{{ number_format($summary['cash_total'], 2) }}</h5></div></div></div>
-    <div class="col-md-2"><div class="card border-0 shadow-sm h-100"><div class="card-body p-3"><div class="text-muted small">GCash</div><h5 class="mb-0">₱{{ number_format($summary['gcash_total'], 2) }}</h5></div></div></div>
-    <div class="col-md-2"><div class="card border-0 shadow-sm h-100"><div class="card-body p-3"><div class="text-muted small">Card</div><h5 class="mb-0">₱{{ number_format($summary['card_total'], 2) }}</h5></div></div></div>
-    <div class="col-md-2"><div class="card border-0 shadow-sm h-100"><div class="card-body p-3"><div class="text-muted small">Room Charge</div><h5 class="mb-0">₱{{ number_format($summary['room_total'], 2) }}</h5></div></div></div>
-</div>
+<div class="coffeeshop-page-shell">
+    <div class="coffeeshop-hero">
+        <div class="d-flex flex-column flex-lg-row justify-content-between gap-3 align-items-lg-center">
+            <div>
+                <div class="fw-bold fs-5">Reporting overview</div>
+                <div class="opacity-75 mt-1">Review sales totals and payment breakdowns with a clearer, calmer layout.</div>
+            </div>
+        </div>
+    </div>
 
-<form method="GET" class="card border-0 shadow-sm mb-4">
+    <div class="row g-3 mb-4">
+        <div class="col-md-2"><div class="coffeeshop-card p-3 h-100"><div class="text-muted small">Total Sales</div><h5 class="mb-0 text-brown">₱{{ number_format($summary['total_sales'], 2) }}</h5></div></div>
+        <div class="col-md-2"><div class="coffeeshop-card p-3 h-100"><div class="text-muted small">Orders</div><h5 class="mb-0">{{ $summary['order_count'] }}</h5></div></div>
+        <div class="col-md-2"><div class="coffeeshop-card p-3 h-100"><div class="text-muted small">Cash</div><h5 class="mb-0">₱{{ number_format($summary['cash_total'], 2) }}</h5></div></div>
+        <div class="col-md-2"><div class="coffeeshop-card p-3 h-100"><div class="text-muted small">GCash</div><h5 class="mb-0">₱{{ number_format($summary['gcash_total'], 2) }}</h5></div></div>
+        <div class="col-md-2"><div class="coffeeshop-card p-3 h-100"><div class="text-muted small">Card</div><h5 class="mb-0">₱{{ number_format($summary['card_total'], 2) }}</h5></div></div>
+        <div class="col-md-2"><div class="coffeeshop-card p-3 h-100"><div class="text-muted small">Room Charge</div><h5 class="mb-0">₱{{ number_format($summary['room_total'], 2) }}</h5></div></div>
+    </div>
+
+    <form method="GET" class="coffeeshop-panel mb-4">
 
     <div class="card-body">
 
@@ -81,7 +91,7 @@
     <hr>
     <div class="table-responsive card border-1">
 
-        <table class="table align-middle mb-0">
+        <table class="table align-middle mb-0 coffeeshop-table">
 
             {{-- HEADER --}}
             <thead class="table-light">
@@ -171,9 +181,6 @@
     </div>
 
 </form>
-
-<div class="card border-0 shadow-sm rounded-4 overflow-hidden">
-
 
 </div>
 @endsection
