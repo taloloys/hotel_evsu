@@ -240,10 +240,10 @@
                                 $badgeColor = match($log->action_type) {
                                     'LOGIN' => 'bg-info text-dark',
                                     'LOGOUT' => 'bg-secondary text-white',
-                                    'RESERVATION_CREATE', 'USER_CREATED', 'SHIFT_SCHEDULE_CREATED', 'ADD_PRODUCT' => 'bg-primary text-white',
+                                    'RESERVATION_CREATE', 'USER_CREATED', 'SHIFT_SCHEDULE_CREATED', 'ADD_PRODUCT', 'CREDIT_ACCOUNT_CREATED' => 'bg-primary text-white',
                                     'CHECK_IN', 'FOLIO_PAID', 'ROOM_TRANSFER', 'FOLIO_CLOSED', 'FOLIO_REOPENED', 'POS_SALE' => 'bg-success text-white',
                                     'CHECK_OUT', 'RESERVATION_CANCEL', 'SHIFT_SCHEDULE_DELETED', 'DEACTIVATE_PRODUCT' => 'bg-secondary text-white',
-                                    'ADD_CHARGE', 'USER_UPDATED', 'SHIFT_SCHEDULE_UPDATED', 'EDIT_PRODUCT', 'POS_REFUND', 'POS_TAB_TRANSFER' => 'bg-warning text-dark',
+                                    'ADD_CHARGE', 'USER_UPDATED', 'SHIFT_SCHEDULE_UPDATED', 'EDIT_PRODUCT', 'POS_REFUND', 'POS_TAB_TRANSFER', 'ACCOUNT_CHARGED' => 'bg-warning text-dark',
                                     'PRINT_FOLIO' => 'bg-secondary text-white',
                                     'CLOSE_SHIFT' => 'bg-dark text-white',
                                     'ROOM_MODIFIED', 'USER_STATUS_TOGGLED' => 'bg-danger text-white',

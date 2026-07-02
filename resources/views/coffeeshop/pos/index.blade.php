@@ -139,7 +139,7 @@
             <div class="card-body">
                 <div class="d-flex gap-2 mb-3 flex-wrap" id="tab-switcher"></div>
 
-                <div class="card bg-light border-0 p-3 mb-5 rounded-4">
+                <div id="new-tab-form-container" class="card bg-light border-0 p-3 mb-5 rounded-4 d-none">
                     <div class="mb-3">
                     <label class="form-label fw-semibold text-muted mb-2">
                         Tab Type

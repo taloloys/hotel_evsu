@@ -238,7 +238,7 @@
     <!-- Hotwire Turbo -->
     <script src="https://cdn.jsdelivr.net/npm/@hotwired/turbo@8.0.5/dist/turbo.es2017-umd.js" defer></script>
     <script>
-        document.addEventListener('turbo:load', function() {
+        function fetchLayoutData() {
             fetch('{{ route('api.layout-data') }}', {
                 headers: {
                     'X-Requested-With': 'XMLHttpRequest',
@@ -267,6 +267,14 @@
                 }
             })
             .catch(err => console.error('Error fetching layout data:', err));
+        }
+
+        document.addEventListener('turbo:load', function() {
+            fetchLayoutData();
+            if (window.layoutDataInterval) {
+                clearInterval(window.layoutDataInterval);
+            }
+            window.layoutDataInterval = setInterval(fetchLayoutData, 10000); // 10 seconds
         });
 
         // Clean up Bootstrap modals and backdrops before caching the page

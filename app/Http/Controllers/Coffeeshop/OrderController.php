@@ -19,7 +19,7 @@ class OrderController extends Controller
     {
         $status = $request->input('status', 'all');
 
-        $ordersQuery = PosOrder::with(['items', 'folio.guest', 'user'])
+        $ordersQuery = PosOrder::with(['items', 'folio.guest', 'user', 'approvalRequests'])
             ->orderByDesc('created_at');
 
         if ($status !== 'all' && $status !== 'active_tabs') {
@@ -40,7 +40,7 @@ class OrderController extends Controller
             : $ordersQuery->paginate(20)->withQueryString();
 
         $activeTabs = PosTab::open()
-            ->with(['items.product', 'room'])
+            ->with(['items.product', 'room', 'approvalRequests'])
             ->when($request->filled('search'), fn ($q) => $q->where('tab_name', 'like', '%'.$request->search.'%'))
             ->orderByDesc('opened_at')
             ->paginate(20, ['*'], 'tabs_page')
@@ -95,7 +95,7 @@ class OrderController extends Controller
         // 🚨 1. HARD STOP: already refunded
         if ($order->status === 'refunded') {
             return back()->withErrors([
-                'order' => 'This order has already been refunded.'
+                'order' => 'This order has already been refunded.',
             ]);
         }
 
@@ -105,9 +105,9 @@ class OrderController extends Controller
             ->where('status', 'pending')
             ->exists();
 
-        if ($existing && !$isAdmin) {
+        if ($existing && ! $isAdmin) {
             return back()->withErrors([
-                'order' => 'A refund request is already pending for this order.'
+                'order' => 'A refund request is already pending for this order.',
             ]);
         }
 

@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Models\ActivityLog;
 use App\Models\PosApprovalRequest;
 use App\Services\Coffeeshop\PosOrderService;
 use App\Services\Coffeeshop\PosTabService;
@@ -41,12 +42,10 @@ class PosApprovalController extends Controller
                         $tq->where('tab_name', 'like', "%{$search}%");
                     })
                     ->orWhereHas('requestedBy', function ($uq) use ($search) {
-                        $uq->where('first_name', 'like', "%{$search}%")
-                            ->orWhere('last_name', 'like', "%{$search}%");
+                        $uq->where('full_name', 'like', "%{$search}%");
                     })
                     ->orWhereHas('resolvedBy', function ($uq) use ($search) {
-                        $uq->where('first_name', 'like', "%{$search}%")
-                            ->orWhere('last_name', 'like', "%{$search}%");
+                        $uq->where('full_name', 'like', "%{$search}%");
                     });
             });
         }
@@ -112,6 +111,11 @@ class PosApprovalController extends Controller
 
             Cache::flush();
 
+            ActivityLog::log(
+                'POS_APPROVAL',
+                "Approved POS authorization request #{$approvalRequest->request_id} for ".str_replace('_', ' ', $approvalRequest->request_type)
+            );
+
             if (request()->wantsJson()) {
                 return response()->json(['message' => 'POS approval request approved and executed.']);
             }
@@ -145,6 +149,11 @@ class PosApprovalController extends Controller
         ]);
 
         Cache::flush();
+
+        ActivityLog::log(
+            'POS_APPROVAL',
+            "Rejected POS authorization request #{$approvalRequest->request_id} for ".str_replace('_', ' ', $approvalRequest->request_type)
+        );
 
         if (request()->wantsJson()) {
             return response()->json(['message' => 'POS approval request rejected.']);

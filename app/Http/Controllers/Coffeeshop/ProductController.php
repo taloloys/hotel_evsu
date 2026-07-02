@@ -104,6 +104,21 @@ class ProductController extends Controller
         return back()->with('success', 'Product deactivated successfully.');
     }
 
+    public function toggleActive(PosProduct $product): RedirectResponse
+    {
+        $newStatus = ! $product->is_active;
+        $product->update(['is_active' => $newStatus]);
+
+        $statusText = $newStatus ? 'Activated' : 'Deactivated';
+
+        ActivityLog::log(
+            strtoupper($statusText).'_PRODUCT',
+            "{$statusText} coffeeshop product: {$product->name}"
+        );
+
+        return back()->with('success', "Product {$statusText} successfully.");
+    }
+
     private function validatedProduct(Request $request, ?int $productId = null): array
     {
         return $request->validate([

@@ -93,6 +93,18 @@ class GuestFolioController extends Controller
             'reference_notes' => ['nullable', 'string', 'max:255'],
         ]);
 
+        if ($folio->status !== 'OPEN') {
+            return back()->withErrors(['payment' => 'Cannot add transactions to a closed folio.']);
+        }
+
+        if ($validated['type'] === 'PAYMENT' && $folio->isSettled()) {
+            return back()->withErrors(['payment' => 'This folio has already been settled.']);
+        }
+
+        if ($validated['type'] === 'PAYMENT' && round($validated['amount'], 2) > round($folio->balance, 2)) {
+            return back()->withErrors(['payment' => 'Payment amount cannot exceed the outstanding balance.']);
+        }
+
         $userId = auth()->id() ?? 1;
 
         // Retrieve or fallback active shift
@@ -375,12 +387,20 @@ class GuestFolioController extends Controller
             return back()->withErrors(['payment' => 'Only open folios can be marked as paid.']);
         }
 
+        if ($folio->isSettled()) {
+            return back()->withErrors(['payment' => 'This folio has already been settled.']);
+        }
+
         $validated = $request->validate([
             'payment_method' => ['required', 'string', 'in:Cash,Credit Card'],
             'amount' => ['required', 'numeric', 'min:0.01'],
             'reference_notes' => ['nullable', 'string', 'max:255'],
             'close_folio' => ['nullable', 'boolean'],
         ]);
+
+        if (round($validated['amount'], 2) > round($folio->balance, 2)) {
+            return back()->withErrors(['payment' => 'Payment amount cannot exceed the outstanding balance.']);
+        }
 
         $closeFolio = isset($validated['close_folio']) && $validated['close_folio'];
 
@@ -443,6 +463,10 @@ class GuestFolioController extends Controller
             return back()->withErrors(['payment' => 'Only open folios can be charged to an account.']);
         }
 
+        if ($folio->isSettled()) {
+            return back()->withErrors(['payment' => 'This folio has already been settled.']);
+        }
+
         $validated = $request->validate([
             'amount' => ['required', 'numeric', 'min:0.01'],
             'reference_notes' => ['nullable', 'string', 'max:255'],
@@ -450,25 +474,58 @@ class GuestFolioController extends Controller
             'close_folio' => ['nullable', 'boolean'],
         ]);
 
+        if (round($validated['amount'], 2) > round($folio->balance, 2)) {
+            return back()->withErrors(['payment' => 'Payment amount cannot exceed the outstanding balance.']);
+        }
+
         $closeFolio = isset($validated['close_folio']) && $validated['close_folio'];
         $userId = auth()->id() ?? 1;
 
         $account = CreditAccount::findOrFail($validated['credit_account_id']);
-        $creditBillingService->chargeAccount(
-            $account,
-            $validated['amount'],
-            'folio',
-            $folio->folio_id,
-            $validated['reference_notes'] ?? "Folio #{$folio->folio_number} settlement",
-            $userId
-        );
 
-        if ($closeFolio) {
-            $folio->update([
-                'status' => 'CLOSED',
-                'payment_method' => 'Account Charge',
-            ]);
+        $activeShift = Shift::where('user_id', $userId)->whereNull('end_time')->first();
+        if (! $activeShift) {
+            $activeShift = Shift::orderBy('shift_id', 'desc')->first();
+            if (! $activeShift) {
+                $activeShift = Shift::create([
+                    'user_id' => $userId,
+                    'start_time' => Carbon::now(),
+                ]);
+            }
         }
+
+        DB::transaction(function () use ($creditBillingService, $account, $validated, $folio, $userId, $closeFolio, $activeShift) {
+            $creditBillingService->chargeAccount(
+                $account,
+                $validated['amount'],
+                'folio',
+                $folio->folio_id,
+                $userId,
+                $validated['reference_notes'] ?? "Folio #{$folio->folio_number} settlement"
+            );
+
+            Transaction::create([
+                'folio_id' => $folio->folio_id,
+                'charge_code' => 404, // Use 404 for Account Charge (or 403/other if 404 is not defined)
+                'shift_id' => $activeShift->shift_id,
+                'user_id' => $userId,
+                'transaction_date' => Carbon::now()->toDateString(),
+                'charge_number' => 'AR-'.time(),
+                'payment_method' => 'ACCOUNT_CHARGE',
+                'reference_notes' => $validated['reference_notes'] ?? "Account Charge: {$account->account_name}",
+                'charge_amount' => 0.00,
+                'credit_amount' => $validated['amount'],
+            ]);
+
+            if ($closeFolio) {
+                $folio->update([
+                    'status' => 'CLOSED',
+                    'payment_method' => 'Account Charge',
+                ]);
+            }
+        });
+
+        // Transaction handles folio update if closeFolio is true
 
         $actionText = $closeFolio ? 'and closed' : 'as partial payment';
         ActivityLog::log(

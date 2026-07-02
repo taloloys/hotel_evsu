@@ -254,7 +254,6 @@
                                     <i class="fa-solid fa-xmark me-1"></i> Clear
                                 </a>
                             @endif
-                            <button type="button" class="btn btn-light" onclick="window.history.back()">Close</button>
                         </div>
 
                     </form>

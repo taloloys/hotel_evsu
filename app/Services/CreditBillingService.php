@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use App\Models\ActivityLog;
 use App\Models\CreditAccount;
 use App\Models\CreditAccountLedger;
 use Exception;
@@ -36,7 +37,7 @@ class CreditBillingService
                 throw new Exception("Charge amount ({$amount}) exceeds available credit ({$account->available_credit}).");
             }
 
-            return CreditAccountLedger::create([
+            $ledger = CreditAccountLedger::create([
                 'account_id' => $account->account_id,
                 'type' => 'charge',
                 'amount' => $amount,
@@ -45,6 +46,13 @@ class CreditBillingService
                 'processed_by' => $processedBy,
                 'notes' => $notes,
             ]);
+
+            ActivityLog::log(
+                'ACCOUNT_CHARGED',
+                'Charged ₱'.number_format($amount, 2)." to Account ({$account->account_name}). Reference: ".($notes ?? "{$referenceType} #{$referenceId}")
+            );
+
+            return $ledger;
         });
     }
 

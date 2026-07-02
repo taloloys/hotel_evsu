@@ -70,9 +70,10 @@ class PosController extends Controller
     {
         $validated = $request->validate([
             'tab_name' => ['required', 'string', 'max:150'],
-            'tab_type' => ['nullable', 'in:walk_in,room'],
+            'tab_type' => ['nullable', 'in:walk_in,room,account'],
             'guest_id' => ['nullable', 'exists:guests,guest_id'],
             'folio_id' => ['nullable', 'exists:folios,folio_id'],
+            'credit_account_id' => ['nullable', 'exists:credit_accounts,account_id'],
             'booking_id' => ['nullable', 'exists:bookings,booking_id'],
             'room_id' => ['nullable', 'exists:rooms,room_id'],
             'notes' => ['nullable', 'string', 'max:500'],

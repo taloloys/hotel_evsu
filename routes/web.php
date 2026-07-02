@@ -219,6 +219,8 @@ Route::middleware('auth')->group(function () {
             ->name('coffeeshop.products.update');
         Route::delete('/products/{product}', [CoffeeshopProductController::class, 'destroy'])
             ->name('coffeeshop.products.destroy');
+        Route::post('/products/{product}/toggle-active', [CoffeeshopProductController::class, 'toggleActive'])
+            ->name('coffeeshop.products.toggle-active');
 
         Route::get('/inventory', [CoffeeshopInventoryController::class, 'index'])
             ->name('coffeeshop.inventory');

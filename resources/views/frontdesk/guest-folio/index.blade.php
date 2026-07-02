@@ -76,16 +76,15 @@
                         </button>
                     </div>
 
-                    <div class="col-md-2">
+                    <div class="col-md-2 d-flex gap-2">
                         @if($search || $folioType !== 'ALL' || $statusFilter !== 'ALL')
-                            <a href="{{ route('frontdesk.guest-folio') }}" class="btn btn-outline-secondary w-100">
+                            <a href="{{ route('frontdesk.guest-folio') }}" class="btn btn-outline-secondary flex-fill">
                                 <i class="fa-solid fa-xmark me-1"></i> Clear
                             </a>
-                        @else
-                            <button type="button" class="btn btn-outline-secondary w-100" onclick="window.print()">
-                                <i class="fa-solid fa-print me-1"></i> Print
-                            </button>
                         @endif
+                        <button type="button" class="btn btn-outline-secondary flex-fill" onclick="printFolioList()">
+                            <i class="fa-solid fa-print me-1"></i> Print
+                        </button>
                     </div>
 
                 </div>
@@ -434,23 +433,25 @@
 
                                                 @if($folio->status === 'OPEN')
 
-                                                    <button
-                                                        type="button"
-                                                        class="btn btn-success btn-sm"
-                                                        data-bs-toggle="collapse"
-                                                        data-bs-target="#markPaidCollapse{{ $folio->folio_id }}">
-                                                        <i class="fa-solid fa-circle-check me-1"></i>
-                                                        Mark Paid
-                                                    </button>
+                                                    @if(!$folio->isSettled())
+                                                        <button
+                                                            type="button"
+                                                            class="btn btn-success btn-sm"
+                                                            data-bs-toggle="collapse"
+                                                            data-bs-target="#markPaidCollapse{{ $folio->folio_id }}">
+                                                            <i class="fa-solid fa-circle-check me-1"></i>
+                                                            Mark Paid
+                                                        </button>
 
-                                                    <button
-                                                        type="button"
-                                                        class="btn btn-info btn-sm text-white"
-                                                        data-bs-toggle="collapse"
-                                                        data-bs-target="#chargeAccountCollapse{{ $folio->folio_id }}">
-                                                        <i class="fa-solid fa-building me-1"></i>
-                                                        Charge to Account
-                                                    </button>
+                                                        <button
+                                                            type="button"
+                                                            class="btn btn-info btn-sm text-white"
+                                                            data-bs-toggle="collapse"
+                                                            data-bs-target="#chargeAccountCollapse{{ $folio->folio_id }}">
+                                                            <i class="fa-solid fa-building me-1"></i>
+                                                            Charge to Account
+                                                        </button>
+                                                    @endif
 
                                                     <form
                                                         method="POST"
@@ -1349,6 +1350,107 @@
     </div>
 @endforeach
 
+{{-- Printable Folio List View --}}
+<div class="d-none" id="print-folio-list" style="font-family: Arial, sans-serif; color: #000; background: #fff; padding: 20px;">
+
+    {{-- Header --}}
+    <div style="display: flex; align-items: center; justify-content: center; margin-bottom: 20px; border-bottom: 2px solid #000; padding-bottom: 12px;">
+        <img src="{{ asset('images/logo.png') }}" alt="Hotel Don Felipe" style="width: 70px; height: 70px; object-fit: contain; margin-right: 16px;">
+        <div style="text-align: center;">
+            <div style="font-size: 18px; font-weight: bold; letter-spacing: 1px;">HOTEL DON FELIPE</div>
+            <div style="font-size: 11px; color: #444;">Bonifacio Street, Ormoc City</div>
+            <div style="font-size: 11px; color: #444;">Tel. 255-3580 | Fax. 561-9620 | hdfelipe@yahoo.com</div>
+            <div style="font-size: 14px; font-weight: bold; margin-top: 6px; letter-spacing: 1px;">GUEST FOLIO LIST</div>
+        </div>
+    </div>
+
+    {{-- Report Meta --}}
+    <div style="font-size: 12px; margin-bottom: 16px; line-height: 1.8;">
+        <div><strong>Report Date:</strong> {{ now()->format('m/d/Y h:i A') }}</div>
+        @if($search)
+            <div><strong>Search:</strong> "{{ $search }}"</div>
+        @endif
+        @if($folioType !== 'ALL')
+            <div><strong>Folio Type:</strong> {{ $folioType }}</div>
+        @endif
+        @if($statusFilter !== 'ALL')
+            <div><strong>Status:</strong> {{ $statusFilter }}</div>
+        @endif
+        <div><strong>Total Folios:</strong> {{ $folios->total() }}</div>
+    </div>
+
+    {{-- Folio Table --}}
+    <table style="width: 100%; border-collapse: collapse; font-size: 11px; margin-bottom: 16px;">
+        <thead>
+            <tr>
+                <th style="border-top: 1px solid #000; border-bottom: 1px solid #000; padding: 6px 0; text-align: left;">Folio No.</th>
+                <th style="border-top: 1px solid #000; border-bottom: 1px solid #000; padding: 6px 0; text-align: left;">Guest Name</th>
+                <th style="border-top: 1px solid #000; border-bottom: 1px solid #000; padding: 6px 0; text-align: left;">Room</th>
+                <th style="border-top: 1px solid #000; border-bottom: 1px solid #000; padding: 6px 0; text-align: left;">Type</th>
+                <th style="border-top: 1px solid #000; border-bottom: 1px solid #000; padding: 6px 0; text-align: left;">Arrival</th>
+                <th style="border-top: 1px solid #000; border-bottom: 1px solid #000; padding: 6px 0; text-align: left;">Departure</th>
+                <th style="border-top: 1px solid #000; border-bottom: 1px solid #000; padding: 6px 0; text-align: right;">Base Rate</th>
+                <th style="border-top: 1px solid #000; border-bottom: 1px solid #000; padding: 6px 0; text-align: right;">Net Rate</th>
+                <th style="border-top: 1px solid #000; border-bottom: 1px solid #000; padding: 6px 0; text-align: center;">Payment</th>
+                <th style="border-top: 1px solid #000; border-bottom: 1px solid #000; padding: 6px 0; text-align: center;">Status</th>
+            </tr>
+        </thead>
+        <tbody>
+            @forelse($folios as $folio)
+                @php
+                    $printBooking = $folio->bookings->sortByDesc('booking_id')->first();
+                    $printRoom = $printBooking?->room;
+                @endphp
+                <tr>
+                    <td style="padding: 6px 0; font-weight: bold; border-bottom: 1px dashed #ccc;">{{ $folio->folio_number }}</td>
+                    <td style="padding: 6px 0; border-bottom: 1px dashed #ccc;">
+                        @if($folio->guest)
+                            {{ $folio->guest->last_name }}, {{ $folio->guest->first_name }}
+                        @else
+                            —
+                        @endif
+                    </td>
+                    <td style="padding: 6px 0; border-bottom: 1px dashed #ccc;">
+                        @if($printRoom)
+                            {{ $printRoom->room_number }} ({{ $printRoom->room_type }})
+                        @else
+                            —
+                        @endif
+                    </td>
+                    <td style="padding: 6px 0; text-align: left; border-bottom: 1px dashed #ccc;">{{ $folio->folio_type }}</td>
+                    <td style="padding: 6px 0; border-bottom: 1px dashed #ccc;">{{ $printBooking?->arrival_date?->format('m/d/Y') ?? '—' }}</td>
+                    <td style="padding: 6px 0; border-bottom: 1px dashed #ccc;">{{ $printBooking?->departure_date?->format('m/d/Y') ?? '—' }}</td>
+                    <td style="padding: 6px 0; text-align: right; border-bottom: 1px dashed #ccc;">
+                        @if($printRoom) {{ number_format($printRoom->base_rate, 2) }} @else — @endif
+                    </td>
+                    <td style="padding: 6px 0; text-align: right; border-bottom: 1px dashed #ccc;">
+                        @if($folio->net_rate !== null) {{ number_format($folio->net_rate, 2) }} @else — @endif
+                    </td>
+                    <td style="padding: 6px 0; text-align: center; border-bottom: 1px dashed #ccc;">{{ $folio->payment_method ?? '—' }}</td>
+                    <td style="padding: 6px 0; text-align: center; border-bottom: 1px dashed #ccc;">{{ $folio->status }}</td>
+                </tr>
+            @empty
+                <tr>
+                    <td colspan="10" style="padding: 10px; text-align: center; border-bottom: 1px solid #000;">No folios found.</td>
+                </tr>
+            @endforelse
+        </tbody>
+    </table>
+
+    <div style="text-align: center; font-size: 11px; font-style: italic; margin: 12px 0; color: #555;">
+        *** Nothing follows ***
+    </div>
+
+    <div style="display: flex; justify-content: space-between; margin-top: 50px; font-size: 12px;">
+        <div style="text-align: center;">
+            <div style="border-top: 1px solid #000; width: 200px; padding-top: 4px;">Generated By</div>
+        </div>
+        <div style="text-align: center;">
+            <div style="border-top: 1px solid #000; width: 200px; padding-top: 4px;">Verified By</div>
+        </div>
+    </div>
+</div>
+
 @endsection
 
 @push('styles')
@@ -1383,6 +1485,21 @@
             background: #ffffff !important;
             color: #000000 !important;
         }
+        /* Folio list print mode */
+        #print-folio-list {
+            display: none !important;
+        }
+        #print-folio-list.active-print-list {
+            display: block !important;
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            margin: 0 !important;
+            padding: 10px !important;
+            background: #ffffff !important;
+            color: #000000 !important;
+        }
     }
 </style>
 @endpush
@@ -1395,12 +1512,32 @@
             document.querySelectorAll('.print-only-folio').forEach(function(el) {
                 el.classList.remove('active-print-folio');
             });
+            // Ensure list print mode is off
+            var listEl = document.getElementById('print-folio-list');
+            if (listEl) listEl.classList.remove('active-print-list');
             
             // Add active class to selected print container
             var printContainer = document.getElementById('print-folio-' + folioId);
             if (printContainer) {
                 printContainer.classList.add('active-print-folio');
                 window.print();
+            }
+        };
+
+        window.printFolioList = function() {
+            // Remove any active folio print
+            document.querySelectorAll('.print-only-folio').forEach(function(el) {
+                el.classList.remove('active-print-folio');
+            });
+            // Activate list print mode
+            var listEl = document.getElementById('print-folio-list');
+            if (listEl) {
+                listEl.classList.add('active-print-list');
+                window.print();
+                // Clean up after print dialog closes
+                setTimeout(function() {
+                    listEl.classList.remove('active-print-list');
+                }, 500);
             }
         };
 

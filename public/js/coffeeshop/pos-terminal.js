@@ -7,6 +7,7 @@
 
     const config = window.posConfig;
     let tabs = [...(config.initialTabs || [])];
+    // Set active tab to the first tab, or null if no tabs
     let activeTabId = tabs.length ? tabs[0].tab_id : null;
     let activeCategory = 'all';
     let searchTimer = null;
@@ -22,6 +23,7 @@
     const productGrid = document.getElementById('product-grid');
     const searchInput = document.getElementById('product-search');
     const tabSwitcher = document.getElementById('tab-switcher');
+    const newTabFormContainer = document.getElementById('new-tab-form-container');
     const activeTabPanel = document.getElementById('active-tab-panel');
     const noTabMessage = document.getElementById('no-tab-message');
     const cartItems = document.getElementById('cart-items');
@@ -105,7 +107,23 @@
     });
 
     function renderTabs() {
+        if (activeTabId !== null && !tabs.some(tab => tab.tab_id === activeTabId)) {
+            activeTabId = tabs.length > 0 ? tabs[0].tab_id : null;
+        }
+
         tabSwitcher.innerHTML = '';
+        
+        // "+ New Tab" button
+        const newBtn = document.createElement('button');
+        newBtn.type = 'button';
+        newBtn.className = `btn btn-sm ${activeTabId === null ? 'btn-success fw-bold' : 'btn-outline-success fw-bold'}`;
+        newBtn.innerHTML = '<i class="fa-solid fa-plus me-1"></i>New Tab';
+        newBtn.addEventListener('click', () => {
+            activeTabId = null;
+            renderTabs();
+        });
+        tabSwitcher.appendChild(newBtn);
+
         tabs.forEach(tab => {
             const btn = document.createElement('button');
             btn.type = 'button';
@@ -119,20 +137,21 @@
             tabSwitcher.appendChild(btn);
         });
 
-        if (!tabs.length) {
-            activeTabId = null;
+        if (activeTabId === null) {
             activeTabPanel.classList.add('d-none');
-            noTabMessage.classList.remove('d-none');
-            return;
+            newTabFormContainer.classList.remove('d-none');
+            noTabMessage.classList.add('d-none');
+        } else {
+            newTabFormContainer.classList.add('d-none');
+            activeTabPanel.classList.remove('d-none');
+            noTabMessage.classList.add('d-none');
+            renderCart();
         }
 
-        if (!activeTabId || !tabs.some(tab => tab.tab_id === activeTabId)) {
-            activeTabId = tabs[0].tab_id;
+        const openTabsCounter = document.getElementById('open-tabs-counter');
+        if (openTabsCounter) {
+            openTabsCounter.textContent = tabs.length;
         }
-
-        activeTabPanel.classList.remove('d-none');
-        noTabMessage.classList.add('d-none');
-        renderCart();
     }
 
     function renderCart() {
@@ -687,6 +706,7 @@
                 method: 'POST',
                 body: JSON.stringify(payload),
             });
+            
             tabs.unshift(data.tab);
             activeTabId = data.tab.tab_id;
             document.getElementById('new-tab-name').value = '';
@@ -1052,7 +1072,20 @@
     });
 
     // Auto-polling for live-sync (every 5 seconds)
-    setInterval(refreshTabs, 5000);
+    if (window.posPollInterval) {
+        clearInterval(window.posPollInterval);
+    }
+    window.posPollInterval = setInterval(refreshTabs, 5000);
+
+    // Clean up interval when navigating away via Turbo
+    document.addEventListener('turbo:before-visit', function cleanup() {
+        if (window.posPollInterval) {
+            clearInterval(window.posPollInterval);
+            window.posPollInterval = null;
+        }
+        document.removeEventListener('turbo:before-visit', cleanup);
+    });
+
     window.printReceipt = function () {
         const content = document.getElementById('receipt-content').innerHTML;
 

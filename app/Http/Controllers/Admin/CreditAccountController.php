@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Models\ActivityLog;
 use App\Models\CreditAccount;
 use App\Services\CreditBillingService;
 use Illuminate\Http\Request;
@@ -25,7 +26,12 @@ class CreditAccountController extends Controller
             'credit_limit' => 'required|numeric|min:0',
         ]);
 
-        CreditAccount::create($validated);
+        $account = CreditAccount::create($validated);
+
+        ActivityLog::log(
+            'CREDIT_ACCOUNT_CREATED',
+            "Created new credit account: {$account->account_name} with limit of ₱".number_format($account->credit_limit, 2)
+        );
 
         return back()->with('success', 'Credit Account created successfully.');
     }

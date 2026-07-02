@@ -60,12 +60,14 @@
                             <td><span class="coffeeshop-pill {{ $product->is_active ? 'bg-success-subtle text-success' : 'bg-secondary-subtle text-secondary' }}">{{ $product->is_active ? 'Active' : 'Inactive' }}</span></td>
                             <td class="text-end">
                                 <a href="{{ route('coffeeshop.products.edit', $product) }}" class="btn btn-sm btn-outline-secondary rounded-pill px-3">Edit</a>
-                                @if($product->is_active)
-                                <form action="{{ route('coffeeshop.products.destroy', $product) }}" method="POST" class="d-inline">
-                                    @csrf @method('DELETE')
-                                    <button class="btn btn-sm btn-outline-danger rounded-pill px-3" onclick="return confirm('Deactivate this product?')">Deactivate</button>
+                                <form action="{{ route('coffeeshop.products.toggle-active', $product) }}" method="POST" class="d-inline">
+                                    @csrf
+                                    @if($product->is_active)
+                                        <button class="btn btn-sm btn-outline-danger rounded-pill px-3" onclick="return confirm('Deactivate this product?')">Deactivate</button>
+                                    @else
+                                        <button class="btn btn-sm btn-outline-success rounded-pill px-3" onclick="return confirm('Activate this product?')">Activate</button>
+                                    @endif
                                 </form>
-                                @endif
                             </td>
                         </tr>
                     @empty

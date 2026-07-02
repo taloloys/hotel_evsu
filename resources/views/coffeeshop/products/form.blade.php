@@ -89,6 +89,7 @@
     {{-- STATUS --}}
     <div class="col-md-6 d-flex align-items-end">
         <div class="form-check form-switch ps-0">
+            <input type="hidden" name="is_active" value="0">
             <input class="form-check-input ms-0"
                    type="checkbox"
                    name="is_active"

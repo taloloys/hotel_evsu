@@ -50,7 +50,7 @@
                             };
                             $typeLabel = match($req->request_type) {
                                 'refund' => 'REFUND ORDER',
-                                'cancel_tab' => 'VOID TAB',
+                                'cancel_tab' => 'CANCEL TAB',
                                 'cancel_order' => 'CANCEL ORDER',
                                 default => strtoupper($req->request_type)
                             };
@@ -155,7 +155,7 @@
                             style="height: 38px; border-radius: 6px;">
 
                         <option value="all" {{ request('request_type') === 'all' || !request('request_type') ? 'selected' : '' }}>All Types</option>
-                        <option value="cancel_tab" {{ request('request_type') === 'cancel_tab' ? 'selected' : '' }}>Void Tab</option>
+                        <option value="cancel_tab" {{ request('request_type') === 'cancel_tab' ? 'selected' : '' }}>Cancel Tab</option>
                         <option value="refund" {{ request('request_type') === 'refund' ? 'selected' : '' }}>Refund Order</option>
                         <option value="cancel_order" {{ request('request_type') === 'cancel_order' ? 'selected' : '' }}>Cancel Order</option>
 
@@ -199,16 +199,26 @@
                         value="{{ request('date_until') }}">
                 </div>
 
-                <!-- RESET (ONLY SHOW IF FILTERS ACTIVE) -->
-                @if(request()->anyFilled(['search','request_type','status','date_from','date_until']))
-                    <a href="{{ route('admin.pos-approvals') }}"
-                    class="btn btn-outline-danger d-flex align-items-center justify-content-center"
-                    style="height: 38px; width: 42px; border-radius: 6px;"
-                    title="Reset Filters">
+                <!-- ACTIONS -->
+                <div class="d-flex gap-2">
+                    <!-- SUBMIT -->
+                    <button type="submit"
+                        class="btn btn-primary d-flex align-items-center justify-content-center"
+                        style="height: 38px; border-radius: 6px;"
+                        title="Apply Filters">
+                        <i class="fa-solid fa-filter me-2"></i>Filter
+                    </button>
 
-                        <i class="fa-solid fa-rotate"></i>
-                    </a>
-                @endif
+                    <!-- RESET (ONLY SHOW IF FILTERS ACTIVE) -->
+                    @if(request()->anyFilled(['search','request_type','status','date_from','date_until']))
+                        <a href="{{ route('admin.pos-approvals') }}"
+                        class="btn btn-outline-danger d-flex align-items-center justify-content-center"
+                        style="height: 38px; width: 42px; border-radius: 6px;"
+                        title="Reset Filters">
+                            <i class="fa-solid fa-rotate"></i>
+                        </a>
+                    @endif
+                </div>
 
             </form>
         </div>
@@ -225,7 +235,7 @@
                         <th>Status</th>
                     </tr>
                 </thead>
-                <tbody>
+                <tbody id="resolved-tbody">
                     @forelse($resolvedRequests as $req)
                         @php
                             $badgeColor = match($req->request_type) {
@@ -236,7 +246,7 @@
                             };
                             $typeLabel = match($req->request_type) {
                                 'refund' => 'REFUND',
-                                'cancel_tab' => 'VOID TAB',
+                                'cancel_tab' => 'CANCEL TAB',
                                 'cancel_order' => 'CANCEL ORDER',
                                 default => strtoupper($req->request_type)
                             };
@@ -373,6 +383,7 @@
                     setTimeout(() => {
                         row.remove();
                         updatePendingCount();
+                        refreshResolvedLogs();
                     }, 500);
                 } else {
                     setTimeout(() => location.reload(), 1000);
@@ -482,6 +493,35 @@
             }
         } catch (err) {
             console.error('Polling error:', err);
+        }
+    }
+
+    async function refreshResolvedLogs() {
+        try {
+            const form = document.getElementById('posApprovalFilterForm');
+            const url = new URL(form.action);
+            const formData = new FormData(form);
+            for (const [key, value] of formData) {
+                if (value && value !== 'all') {
+                    url.searchParams.append(key, value);
+                }
+            }
+            
+            const res = await fetch(url.toString());
+            if (!res.ok) return;
+            const html = await res.text();
+            
+            const parser = new DOMParser();
+            const doc = parser.parseFromString(html, 'text/html');
+            
+            const newTbody = doc.getElementById('resolved-tbody');
+            const currentTbody = document.getElementById('resolved-tbody');
+            
+            if (newTbody && currentTbody) {
+                currentTbody.innerHTML = newTbody.innerHTML;
+            }
+        } catch (err) {
+            console.error('Refresh resolved logs error:', err);
         }
     }
 

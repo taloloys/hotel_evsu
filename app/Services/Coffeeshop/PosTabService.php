@@ -17,11 +17,22 @@ class PosTabService
 
     public function openTab(array $data): PosTab
     {
+        $tabType = $data['tab_type'] ?? 'walk_in';
+
+        if ($tabType === 'room' && empty($data['folio_id'])) {
+            throw new \InvalidArgumentException('Folio ID is required for room charge.');
+        }
+
+        if ($tabType === 'account' && empty($data['credit_account_id'])) {
+            throw new \InvalidArgumentException('Credit Account ID is required for account charge.');
+        }
+
         return PosTab::create([
             'tab_name' => $data['tab_name'],
             'tab_type' => $data['tab_type'] ?? 'walk_in',
             'guest_id' => $data['guest_id'] ?? null,
             'folio_id' => $data['folio_id'] ?? null,
+            'credit_account_id' => $data['credit_account_id'] ?? null,
             'booking_id' => $data['booking_id'] ?? null,
             'room_id' => $data['room_id'] ?? null,
             'status' => 'open',

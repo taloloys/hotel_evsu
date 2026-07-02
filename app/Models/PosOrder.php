@@ -82,6 +82,11 @@ class PosOrder extends Model
         return $this->belongsTo(Shift::class, 'shift_id', 'shift_id');
     }
 
+    public function approvalRequests(): HasMany
+    {
+        return $this->hasMany(PosApprovalRequest::class, 'order_id', 'order_id');
+    }
+
     public function scopeClosed($query)
     {
         return $query->where('status', 'closed');

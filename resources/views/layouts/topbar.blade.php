@@ -84,16 +84,16 @@
 
                     </button>
 
-                    <ul class="dropdown-menu dropdown-menu-end shadow border-0 rounded-3 py-0 overflow-hidden"
+                    <ul class="dropdown-menu dropdown-menu-end shadow border-0 rounded-3 py-0"
                         aria-labelledby="notificationDropdown"
-                        style="width: 320px; max-height: 400px; overflow-y: auto; z-index: 1050;">
+                        style="width: 320px; z-index: 1050;">
 
                         <li class="p-3 border-bottom d-flex justify-content-between align-items-center bg-light">
                             <span class="fw-bold">Notifications</span>
                             <button class="btn btn-sm btn-link text-decoration-none p-0 text-primary fw-semibold" id="clearAllNotifications">Clear All</button>
                         </li>
 
-                        <div id="notificationList">
+                        <div id="notificationList" style="max-height: 400px; overflow-y: auto;">
                             <!-- Dynamic items will be rendered here -->
                         </div>
 

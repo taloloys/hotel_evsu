@@ -103,6 +103,11 @@ class ChargeCodeSeeder extends Seeder
                 'description' => 'CASH',
                 'category' => 'PAYMENT',
             ],
+            [
+                'charge_code' => 404,
+                'description' => 'ACCOUNT CHARGE',
+                'category' => 'PAYMENT',
+            ],
         ];
 
         foreach ($chargeCodes as $code) {

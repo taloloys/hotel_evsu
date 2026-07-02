@@ -84,7 +84,15 @@
                         <td>{{ $tab->room?->room_number ?? '—' }}</td>
                         <td>{{ $tab->items->map(fn($i) => $i->product?->name.' x'.$i->quantity)->join(', ') }}</td>
                         <td class="fw-bold text-primary">₱{{ number_format($tab->total, 2) }}</td>
-                        <td><span class="badge bg-success">OPEN TAB</span></td>
+                        <td>
+                            <span class="badge bg-success">OPEN TAB</span>
+                            @php
+                                $rejectedCancel = $tab->approvalRequests->where('request_type', 'cancel_tab')->where('status', 'rejected')->first();
+                            @endphp
+                            @if($rejectedCancel)
+                                <span class="badge bg-danger mt-1">CANCEL REJECTED</span>
+                            @endif
+                        </td>
                         <td>
                             <a href="{{ route('coffeeshop.pos') }}"
                             class="btn btn-sm btn-primary rounded-pill px-3">
@@ -147,7 +155,19 @@
                         <td>{{ $order->room_number ?? '—' }}</td>
                         <td>{{ $order->payment_method ? str_replace('_', ' ', strtoupper($order->payment_method)) : '—' }}</td>
                         <td class="fw-bold text-primary">₱{{ number_format($order->total, 2) }}</td>
-                        <td><span class="badge bg-secondary">{{ strtoupper($order->status) }}</span></td>
+                        <td>
+                            <span class="badge bg-secondary">{{ strtoupper($order->status) }}</span>
+                            @php
+                                $rejectedRefund = $order->approvalRequests->where('request_type', 'refund')->where('status', 'rejected')->first();
+                                $rejectedCancel = $order->approvalRequests->where('request_type', 'cancel_order')->where('status', 'rejected')->first();
+                            @endphp
+                            @if($rejectedRefund)
+                                <span class="badge bg-danger mt-1">REFUND REJECTED</span>
+                            @endif
+                            @if($rejectedCancel)
+                                <span class="badge bg-danger mt-1">CANCEL REJECTED</span>
+                            @endif
+                        </td>
                         <td>
                             <a href="{{ route('coffeeshop.orders.show', $order) }}"
                             class="btn btn-sm btn-outline-primary rounded-pill px-3">
