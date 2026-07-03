@@ -174,8 +174,11 @@ class PosController extends Controller
     {
         $validated = $request->validate([
             'tab_type' => ['required', 'in:walk_in,room,account'],
-            'folio_id' => ['nullable', 'exists:folios,folio_id'],
-            'credit_account_id' => ['nullable', 'exists:credit_accounts,account_id'],
+            'folio_id' => ['required_if:tab_type,room', 'nullable', 'exists:folios,folio_id'],
+            'booking_id' => ['required_if:tab_type,room', 'nullable', 'exists:bookings,booking_id'],
+            'room_id' => ['required_if:tab_type,room', 'nullable', 'exists:rooms,room_id'],
+            'guest_id' => ['required_if:tab_type,room', 'nullable', 'exists:guests,guest_id'],
+            'credit_account_id' => ['required_if:tab_type,account', 'nullable', 'exists:credit_accounts,account_id'],
         ]);
 
         try {
@@ -183,7 +186,9 @@ class PosController extends Controller
                 $tab,
                 $validated['tab_type'],
                 isset($validated['folio_id']) ? (int) $validated['folio_id'] : null,
-                isset($validated['credit_account_id']) ? (int) $validated['credit_account_id'] : null
+                isset($validated['credit_account_id']) ? (int) $validated['credit_account_id'] : null,
+                isset($validated['booking_id']) ? (int) $validated['booking_id'] : null,
+                isset($validated['room_id']) ? (int) $validated['room_id'] : null
             );
         } catch (\Exception $e) {
             return response()->json(['message' => $e->getMessage()], 422);

@@ -182,7 +182,7 @@ class PosTabService
         return $tab->fresh(['items.product.category']);
     }
 
-    public function transferTabBillingTarget(PosTab $tab, string $newTabType, ?int $folioId = null, ?int $creditAccountId = null): PosTab
+    public function transferTabBillingTarget(PosTab $tab, string $newTabType, ?int $folioId = null, ?int $creditAccountId = null, ?int $bookingId = null, ?int $roomId = null, ?int $guestId = null): PosTab
     {
         if ($tab->status !== 'open') {
             throw new RuntimeException('Can only transfer open tabs.');
@@ -206,6 +206,9 @@ class PosTabService
             'tab_type' => $newTabType,
             'folio_id' => $newTabType === 'room' ? $folioId : null,
             'credit_account_id' => $newTabType === 'account' ? $creditAccountId : null,
+            'booking_id' => $newTabType === 'room' ? $bookingId : null,
+            'room_id' => $newTabType === 'room' ? $roomId : null,
+            'guest_id' => $newTabType === 'room' ? $guestId : null,
         ]);
 
         ActivityLog::log(

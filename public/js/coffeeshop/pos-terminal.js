@@ -116,7 +116,7 @@
         // "+ New Tab" button
         const newBtn = document.createElement('button');
         newBtn.type = 'button';
-        newBtn.className = `btn btn-sm ${activeTabId === null ? 'btn-success fw-bold' : 'btn-outline-success fw-bold'}`;
+        newBtn.className = `btn ${activeTabId === null ? 'btn-success fw-bold' : 'btn-outline-success fw-bold'}`;
         newBtn.innerHTML = '<i class="fa-solid fa-plus me-1"></i>New Tab';
         newBtn.addEventListener('click', () => {
             activeTabId = null;
@@ -127,7 +127,7 @@
         tabs.forEach(tab => {
             const btn = document.createElement('button');
             btn.type = 'button';
-            btn.className = `btn btn-sm ${tab.tab_id === activeTabId ? 'btn-primary' : 'btn-outline-secondary'}`;
+            btn.className = `btn ${tab.tab_id === activeTabId ? 'btn-primary' : 'btn-outline-secondary'}`;
             btn.textContent = `${tab.tab_name} (${formatMoney(tab.total)})`;
             btn.addEventListener('click', () => {
                 activeTabId = tab.tab_id;
@@ -223,17 +223,17 @@
 
         tab.items.forEach(item => {
             const row = document.createElement('div');
-            row.className = 'd-flex justify-content-between align-items-center mb-3 gap-2 py-1';
+            row.className = 'cart-row mb-3 py-1';
 
             row.innerHTML = `
-                <div>
-                    <div class="fw-semibold fs-5">${item.name}</div>
+                <div class="item-details">
+                    <div class="fw-semibold fs-6">${item.name}</div>
                     <small class="text-muted">
                         ${formatMoney(item.unit_price)} each
                     </small>
                 </div>
 
-                <div class="d-flex align-items-center gap-2">
+                <div class="d-flex align-items-center gap-2 justify-content-end">
 
                     <button type="button"
                         class="btn btn-outline-secondary btn-sm px-3 qty-btn"
@@ -339,12 +339,12 @@
             const col = document.createElement('div');
             col.className = 'col-md-3 col-6 product-tile';
            col.innerHTML = `
-            <div class="card border-0 shadow-sm h-100 ${product.stock_quantity <= 0 ? 'opacity-50' : ''}">
+            <div class="coffeeshop-card h-100 ${product.stock_quantity <= 0 ? 'opacity-50' : ''}">
                 <div class="card-body d-flex flex-column text-center">
 
                     ${product.image_url
-                        ? `<img src="${product.image_url}" class="mb-2 rounded mx-auto" style="max-height:48px;" alt="">`
-                        : `<i class="fa-solid fa-mug-hot fa-2x text-warning mb-2"></i>`}
+                        ? `<div class="mb-3 rounded w-100 overflow-hidden" style="height: 120px;"><img src="${product.image_url}" class="w-100 h-100" style="object-fit: cover;" alt="${product.name}"></div>`
+                        : `<div class="mb-3 rounded w-100 bg-light d-flex align-items-center justify-content-center" style="height: 120px;"><i class="fa-solid fa-image fa-2x text-secondary opacity-50"></i></div>`}
 
                     <div class="fw-semibold">${product.name}</div>
 
@@ -366,7 +366,7 @@
 
                     <button
                         type="button"
-                        class="btn btn-primary btn-sm w-100 px-4 py-2 mt-auto add-product-btn"
+                        class="btn btn-primary w-100 mt-auto add-product-btn"
                         data-product-id="${product.product_id}"
                         ${product.stock_quantity <= 0 ? 'disabled' : ''}>
                         ADD
@@ -986,14 +986,19 @@
         transferTabModal.show();
     });
 
-    transferTypeSelect.addEventListener('change', (e) => {
+    transferTypeSelect.addEventListener('change', async (e) => {
         transferRoomPanel.classList.add('d-none');
         transferAccountPanel.classList.add('d-none');
+
         if (e.target.value === 'room') {
             transferRoomPanel.classList.remove('d-none');
-            if(checkedInGuests.length === 0) loadGuests(); // ensure guests loaded
-            // Clone options from original guest select
             const transferGuestSelect = document.getElementById('transfer-guest');
+
+            if (checkedInGuests.length === 0) {
+                await loadGuests(); // ensure guests loaded before cloning
+            }
+
+            // Clone options from original guest select after load completes
             transferGuestSelect.innerHTML = document.getElementById('new-tab-guest').innerHTML;
         } else if (e.target.value === 'account') {
             transferAccountPanel.classList.remove('d-none');
@@ -1007,7 +1012,11 @@
         if (type === 'room') {
             const guestVal = document.getElementById('transfer-guest').value;
             if (!guestVal) return showAlert('Select a room.', 'warning');
-            payload.folio_id = JSON.parse(guestVal).folio_id;
+            const guestData = JSON.parse(guestVal);
+            payload.folio_id = guestData.folio_id;
+            payload.booking_id = guestData.booking_id;
+            payload.room_id = guestData.room_id;
+            payload.guest_id = guestData.guest_id;
         } else if (type === 'account') {
             const accVal = document.getElementById('transfer-account').value;
             if (!accVal) return showAlert('Select an account.', 'warning');

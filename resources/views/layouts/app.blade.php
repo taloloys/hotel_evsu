@@ -177,6 +177,7 @@
             border-radius: 1rem;
             background: linear-gradient(180deg, #fffdfb 0%, #fcf7f0 100%);
             box-shadow: 0 8px 22px rgba(78, 52, 46, 0.06);
+            overflow: hidden;
         }
 
         .coffeeshop-table thead th {
@@ -230,6 +231,138 @@
         .coffeeshop-form-control:focus {
             border-color: var(--caramel);
             box-shadow: 0 0 0 0.2rem rgba(169, 113, 66, 0.18);
+        }
+
+        #tab-switcher {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            grid-auto-rows: minmax(3.6rem, auto);
+            gap: 0.6rem;
+            align-items: stretch;
+        }
+
+        #tab-switcher button {
+            width: 100%;
+            height: 100%;
+            min-height: 3.6rem;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.35rem;
+            padding: 0.75rem 0.85rem;
+            line-height: 1.2;
+            text-align: center;
+        }
+
+        #tab-switcher button.btn-primary {
+            font-size: 1rem;
+            font-weight: 600;
+        }
+
+        #tab-switcher button.btn-outline-secondary {
+            font-size: 0.95rem;
+        }
+
+        #active-tab-name {
+            font-size: 1.1rem;
+        }
+
+        .coffeeshop-card .form-control,
+        .coffeeshop-card .form-select,
+        .coffeeshop-card .input-group,
+        .coffeeshop-card .btn {
+            border-radius: 0.85rem;
+        }
+
+        .coffeeshop-card .input-group {
+            overflow: hidden;
+        }
+
+        #product-grid {
+            align-items: stretch;
+        }
+
+        #product-grid .product-tile {
+            display: flex;
+        }
+
+        #product-grid .product-tile .coffeeshop-card {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+        }
+
+        #product-grid .product-tile .coffeeshop-card .card-body {
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            padding: 1rem;
+        }
+
+        .product-tile .coffeeshop-card .fw-semibold {
+            font-size: 0.95rem;
+            margin-bottom: 0.35rem;
+        }
+
+        #product-grid .product-tile .coffeeshop-card small,
+        #cart-items small {
+            font-size: 0.82rem;
+        }
+
+        #cart-items {
+            max-height: calc(100vh - 420px);
+            overflow-y: auto;
+            overflow-x: hidden;
+            min-height: 10rem;
+            padding-right: 0.35rem;
+            width: 100%;
+            min-width: 0;
+        }
+
+        #cart-items .cart-row {
+            display: grid;
+            grid-template-columns: 1fr auto;
+            column-gap: 0.75rem;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        #cart-items .cart-row .item-details {
+            min-width: 0;
+        }
+
+        #cart-items .remove-item-btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            line-height: 1;
+        }
+
+        #cart-items .remove-item-btn i {
+            line-height: 1;
+        }
+
+        #cart-items .fw-semibold {
+            font-size: 0.95rem;
+        }
+
+        .coffeeshop-card .card-body {
+            padding: 1.15rem;
+        }
+
+        .checkout-action-btn {
+            font-size: 1rem;
+            padding: 0.85rem 1rem;
+            border-radius: 0.95rem;
+        }
+
+        .checkout-action-btn.btn-outline-secondary,
+        .checkout-action-btn.btn-outline-info,
+        .checkout-action-btn.btn-outline-danger {
+            font-weight: 600;
         }
     </style>
     <!-- Bootstrap Bundle JS -->

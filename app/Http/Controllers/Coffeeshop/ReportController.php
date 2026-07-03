@@ -11,7 +11,7 @@ use Symfony\Component\HttpFoundation\StreamedResponse;
 
 class ReportController extends Controller
 {
-    public function index(Request $request): View
+    private function buildReportQuery(Request $request)
     {
         $dateFrom = $request->input('date_from', Carbon::today()->subDays(7)->toDateString());
         $dateTo = $request->input('date_to', Carbon::today()->toDateString());
@@ -26,6 +26,13 @@ class ReportController extends Controller
         if ($paymentMethod !== 'all') {
             $query->where('payment_method', $paymentMethod);
         }
+
+        return [$query, $dateFrom, $dateTo, $paymentMethod];
+    }
+
+    public function index(Request $request): View
+    {
+        [$query, $dateFrom, $dateTo, $paymentMethod] = $this->buildReportQuery($request);
 
         $orders = $query->get();
 
@@ -43,14 +50,9 @@ class ReportController extends Controller
 
     public function export(Request $request): StreamedResponse
     {
-        $dateFrom = $request->input('date_from', Carbon::today()->subDays(7)->toDateString());
-        $dateTo = $request->input('date_to', Carbon::today()->toDateString());
+        [$query, $dateFrom, $dateTo, $paymentMethod] = $this->buildReportQuery($request);
 
-        $orders = PosOrder::where('status', 'closed')
-            ->whereDate('closed_at', '>=', $dateFrom)
-            ->whereDate('closed_at', '<=', $dateTo)
-            ->orderByDesc('closed_at')
-            ->get();
+        $orders = $query->get();
 
         $filename = 'pos-report-'.$dateFrom.'-to-'.$dateTo.'.csv';
 
@@ -59,13 +61,16 @@ class ReportController extends Controller
             fputcsv($handle, ['Order Number', 'Customer', 'Room', 'Payment Method', 'Total', 'Closed At']);
 
             foreach ($orders as $order) {
+                $closedAt = $order->closed_at ?: $order->created_at;
+                $closedAt = optional($closedAt)->format('Y-m-d H:i:s');
+
                 fputcsv($handle, [
                     $order->order_number,
                     $order->customer_name,
                     $order->room_number,
                     $order->payment_method,
                     $order->total,
-                    optional($order->closed_at)->format('Y-m-d H:i:s'),
+                    $closedAt,
                 ]);
             }
 

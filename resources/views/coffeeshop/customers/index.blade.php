@@ -19,7 +19,7 @@
 
     <div class="coffeeshop-panel">
 
-    <div class="card-body">
+    <div class="card-body p-3">
 
         {{-- ===================== CLEAN STATS HEADER ===================== --}}
         <div class="row g-3 mb-4">

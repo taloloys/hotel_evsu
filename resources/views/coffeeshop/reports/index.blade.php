@@ -30,7 +30,7 @@
 
     <div class="card-body">
 
-        <div class="row g-3 align-items-end">
+        <div class="row g-3 align-items-end p-3">
 
             {{-- DATE RANGE --}}
             <div class="col-lg-4 col-md-6">
@@ -66,11 +66,11 @@
         {{-- ACTION BUTTONS --}}
         <div class="d-flex justify-content-between align-items-center mt-4 pt-3 border-top">
 
-            <div class="text-muted small">
+            <div class="text-muted small p-3">
                 Filter and generate updated sales report
             </div>
 
-            <div class="d-flex gap-2">
+            <div class="d-flex gap-2 p-3">
 
                 <a href="{{ route('coffeeshop.reports.export', request()->query()) }}"
                    class="btn btn-success px-3">
@@ -91,7 +91,7 @@
     <hr>
     <div class="table-responsive card border-1">
 
-        <table class="table align-middle mb-0 coffeeshop-table">
+        <table class="table align-middle mb-0 coffeeshop-table p-3">
 
             {{-- HEADER --}}
             <thead class="table-light">

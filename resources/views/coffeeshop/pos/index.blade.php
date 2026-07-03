@@ -21,7 +21,7 @@
     <div class="col-lg-8">
 
         <!-- Suggested Pairings -->
-        <div class="coffeeshop-card mb-3">
+        <div class="coffeeshop-card mb-3 p-3">
             <div class="card-header border-0 bg-transparent">
                 <strong>
                     <i class="fa-solid fa-lightbulb text-warning me-2"></i>
@@ -63,9 +63,9 @@
                         <button type="button" class="btn btn-outline-secondary btn-sm category-btn" data-category="{{ $category->category_id }}">{{ $category->name }}</button>
                         @endforeach
                     </div>
-                    <div class="input-group" style="max-width: 360px; border: 1px solid">
+                    <div class="input-group coffeeshop-form-control" style="max-width: 360px; border: 1px solid; overflow: hidden; border-radius: 0.75rem;">
                         <span class="input-group-text bg-white"><i class="fa-solid fa-search text-muted"></i></span>
-                        <input type="text" id="product-search" class="form-control" placeholder="Search products..." autocomplete="off">
+                        <input type="text" id="product-search" class="form-control border-0 shadow-none" placeholder="Search products..." autocomplete="off">
                     </div>
                 </div>
             </div>
@@ -110,7 +110,7 @@
 
                         <button
                             type="button"
-                            class="btn btn-primary btn-sm w-100 px-4 py-2 mt-auto add-product-btn"
+                            class="btn btn-primary w-100 mt-auto add-product-btn"
                             data-product-id="{{ $product->product_id }}"
                             {{ $product->stock_quantity <= 0 ? 'disabled' : '' }}>
                             ADD
@@ -125,7 +125,7 @@
 
     <div class="col-lg-4">
         <div class="coffeeshop-card sticky-top" style="top:15px;">
-            <div class="card-header border-0 bg-transparent d-flex justify-content-between align-items-center">
+            <div class="card-header border-0 bg-transparent d-flex justify-content-between align-items-center p-3">
                 <div>
                     <div class="fw-bold">Customer Tabs</div>
                     <small class="text-muted">Multiple open tabs supported</small>
@@ -267,18 +267,18 @@
                     <!-- Management Actions -->
                     <div class="row g-2 mb-2">
                         <div class="col-6">
-                            <button type="button" class="btn btn-outline-secondary w-100 btn-sm checkout-action-btn" id="transfer-tab-btn">
+                            <button type="button" class="btn btn-outline-secondary w-100 checkout-action-btn" id="transfer-tab-btn">
                                 <i class="fa-solid fa-exchange-alt me-1"></i> Transfer
                             </button>
                         </div>
                         <div class="col-6">
-                            <button type="button" class="btn btn-outline-info w-100 btn-sm checkout-action-btn" id="discount-tab-btn">
+                            <button type="button" class="btn btn-outline-info w-100 checkout-action-btn" id="discount-tab-btn">
                                 <i class="fa-solid fa-tags me-1"></i> Discount
                             </button>
                         </div>
                     </div>
 
-                    <button type="button" class="btn btn-outline-danger w-100 btn-sm checkout-action-btn" id="cancel-tab-btn">
+                    <button type="button" class="btn btn-outline-danger w-100 checkout-action-btn" id="cancel-tab-btn">
                         <i class="fa-solid fa-ban me-1"></i> Cancel Tab
                     </button>
                 </div>

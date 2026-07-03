@@ -20,7 +20,7 @@
     <div class="coffeeshop-panel overflow-hidden mb-4">
 
     {{-- HEADER --}}
-    <div class="card-header bg-white fw-semibold d-flex justify-content-between align-items-center">
+    <div class="card-header bg-white fw-semibold d-flex justify-content-between align-items-center p-3">
         <span>Tab Management</span>
         <small class="text-muted">Open • Closed • Cancelled • All Tabs</small>
     </div>
@@ -86,13 +86,13 @@
 
                 <thead class="table-light">
 
-                <tr>
-                    <th class="ps-4">Customer Tab</th>
-                    <th class="text-center">Items</th>
-                    <th>Total</th>
-                    <th>Status</th>
-                    <th>Opened</th>
-                </tr>
+                    <tr>
+                        <th class="ps-4">Customer Tab</th>
+                        <th class="text-center">Items</th>
+                        <th>Total</th>
+                        <th>Status</th>
+                        <th>Opened</th>
+                    </tr>
 
                 </thead>
 
