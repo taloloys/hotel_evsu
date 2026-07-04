@@ -903,21 +903,72 @@
 
     });
     let roomChargeCallback = null;
-    document.getElementById('charge-room-btn').addEventListener('click', () => {
+    let selectedGuestData = null;
+    
+    document.getElementById('charge-room-btn').addEventListener('click', async () => {
         const tab = getActiveTab();
         if (!tab) return;
 
-        document.getElementById('room-charge-warning-text').textContent = `Are you sure you want to charge ${formatMoney(tab.total)} to the room folio for "${tab.tab_name}"?`;
-        
+        // Fetch checked-in guests
+        try {
+            const response = await fetch('/coffeeshop/guests/checked-in', {
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest',
+                    'Accept': 'application/json'
+                }
+            });
+            const data = await response.json();
+            
+            const guestSelect = document.getElementById('charge-guest-select');
+            guestSelect.innerHTML = '<option value="">Select a guest...</option>';
+            
+            if (data.guests && data.guests.length > 0) {
+                data.guests.forEach(guest => {
+                    const option = document.createElement('option');
+                    option.value = JSON.stringify({
+                        folio_id: guest.folio_id,
+                        booking_id: guest.booking_id,
+                        guest_name: guest.guest_name,
+                        room_number: guest.room_number
+                    });
+                    option.textContent = `${guest.guest_name} - Room ${guest.room_number}`;
+                    guestSelect.appendChild(option);
+                });
+            } else {
+                const option = document.createElement('option');
+                option.value = '';
+                option.textContent = 'No checked-in guests available';
+                option.disabled = true;
+                guestSelect.appendChild(option);
+            }
+        } catch (error) {
+            console.error('Error fetching guests:', error);
+            alert('Failed to load checked-in guests');
+            return;
+        }
+
+        document.getElementById('room-charge-warning-text').textContent = `Total to charge: ${formatMoney(tab.total)}`;
         roomChargeCallback = async () => {
+            if (!selectedGuestData) {
+                alert('Please select a guest');
+                return;
+            }
             await executeClose({
                 payment_method: 'room_charge',
-                booking_id: tab.booking_id,
-                folio_id: tab.folio_id
+                booking_id: selectedGuestData.booking_id,
+                folio_id: selectedGuestData.folio_id
             });
         };
         
         confirmRoomChargeModal.show();
+    });
+
+    document.getElementById('charge-guest-select').addEventListener('change', (e) => {
+        if (e.target.value) {
+            selectedGuestData = JSON.parse(e.target.value);
+        } else {
+            selectedGuestData = null;
+        }
     });
 
     document.getElementById('confirm-room-charge-submit-btn').addEventListener('click', async () => {

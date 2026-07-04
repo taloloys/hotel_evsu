@@ -598,7 +598,7 @@
                                                          </div>
                                                          <div class="mb-3">
                                                              <label class="form-label fw-semibold" for="charge_credit_account_id_{{ $folio->folio_id }}">Select Credit Account <span class="text-danger">*</span></label>
-                                                             <select class="form-select" id="charge_credit_account_id_{{ $folio->folio_id }}" name="credit_account_id" required>
+                                                             <select class="form-select charge-account-select" id="charge_credit_account_id_{{ $folio->folio_id }}" name="credit_account_id" required>
                                                                  <option value="">Select Account...</option>
                                                                  @foreach($creditAccounts as $account)
                                                                      <option value="{{ $account->account_id }}">{{ $account->account_name }} (Limit: ₱{{ number_format($account->available_credit, 2) }})</option>
@@ -1501,10 +1501,19 @@
             color: #000000 !important;
         }
     }
+    
+    /* Custom styling for charge account select search */
+    .charge-account-select {
+        position: relative;
+    }
 </style>
+<link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+<link href="https://cdn.jsdelivr.net/npm/select2-bootstrap-5-theme@1.3.0/dist/select2-bootstrap-5-theme.min.css" rel="stylesheet" />
 @endpush
 
 @push('scripts')
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
 <script>
     (function() {
         window.printFolio = function(folioId) {
@@ -1557,6 +1566,23 @@
                 var modal = form.closest('.modal');
                 if (modal && modal.id) {
                     sessionStorage.setItem('openModalId', modal.id);
+                }
+            });
+        });
+
+        // Initialize Select2 for charge account selects
+        document.addEventListener('shown.bs.modal', function(e) {
+            // When modal is shown, initialize Select2 for any charge account selects in it
+            var chargeSelects = e.target.querySelectorAll('.charge-account-select');
+            chargeSelects.forEach(function(select) {
+                if (!$(select).data('select2')) {
+                    $(select).select2({
+                        theme: "bootstrap-5",
+                        placeholder: "Search or select account...",
+                        allowClear: true,
+                        width: '100%',
+                        dropdownParent: $(select).closest('.modal')
+                    });
                 }
             });
         });

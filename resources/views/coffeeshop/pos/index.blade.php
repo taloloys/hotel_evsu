@@ -246,7 +246,7 @@
                         <!-- Room charge actions -->
                         <div id="room-checkout-actions" class="d-none">
                             <button type="button" class="btn btn-success w-100 mb-2 checkout-action-btn" id="charge-room-btn">
-                                <i class="fa-solid fa-hotel me-1"></i> Charge to Room
+                                <i class="fa-solid fa-user me-1"></i> Charge to Guest
                             </button>
                             <button type="button" class="btn btn-outline-success w-100 mb-2 checkout-action-btn" id="pay-direct-btn">
                                 <i class="fa-solid fa-cash-register me-1"></i> Pay Directly
@@ -422,11 +422,17 @@
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content border-0 shadow">
             <div class="modal-header bg-success text-white">
-                <h5 class="modal-title"><i class="fa-solid fa-hotel me-2"></i>Charge to Room</h5>
+                <h5 class="modal-title"><i class="fa-solid fa-user me-2"></i>Charge to Guest</h5>
                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
             </div>
             <div class="modal-body p-4">
-                <p id="room-charge-warning-text" class="text-muted small mb-0">Are you sure you want to charge the total amount to the guest room folio?</p>
+                <p class="text-muted small mb-3">Select the guest to charge this order:</p>
+                <div class="mb-3">
+                    <select id="charge-guest-select" class="form-select">
+                        <option value="">Loading guests...</option>
+                    </select>
+                </div>
+                <p id="room-charge-warning-text" class="text-muted small mb-0"></p>
             </div>
             <div class="modal-footer border-0">
                 <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Cancel</button>
