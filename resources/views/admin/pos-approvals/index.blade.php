@@ -130,7 +130,7 @@
                     <label class="form-label small fw-semibold text-muted mb-1">Search</label>
 
                     <div class="input-group"
-                        style="border: 1px solid #ced4da; border-radius: 6px; overflow: hidden; height: 38px;">
+                        style="border: 1px solid #000000; border-radius: 6px; overflow: hidden; height: 38px;">
 
                         <span class="input-group-text bg-white border-0">
                             <i class="fa-solid fa-magnifying-glass text-muted"></i>
@@ -152,7 +152,7 @@
 
                     <select name="request_type"
                             class="form-select auto-filter"
-                            style="height: 38px; border-radius: 6px;">
+                            style="height: 38px; border-radius: 6px; border: 1px solid #000000;">
 
                         <option value="all" {{ request('request_type') === 'all' || !request('request_type') ? 'selected' : '' }}>All Types</option>
                         <option value="cancel_tab" {{ request('request_type') === 'cancel_tab' ? 'selected' : '' }}>Cancel Tab</option>
@@ -168,7 +168,7 @@
 
                     <select name="status"
                             class="form-select auto-filter"
-                            style="height: 38px; border-radius: 6px;">
+                            style="height: 38px; border-radius: 6px; border: 1px solid #000000;">
 
                         <option value="all" {{ request('status') === 'all' || !request('status') ? 'selected' : '' }}>All</option>
                         <option value="approved" {{ request('status') === 'approved' ? 'selected' : '' }}>Approved</option>
@@ -184,7 +184,7 @@
                     <input type="date"
                         name="date_from"
                         class="form-control auto-filter"
-                        style="height: 38px; border-radius: 6px;"
+                        style="height: 38px; border-radius: 6px; border: 1px solid #000000;"
                         value="{{ request('date_from') }}">
                 </div>
 
@@ -195,7 +195,7 @@
                     <input type="date"
                         name="date_until"
                         class="form-control auto-filter"
-                        style="height: 38px; border-radius: 6px;"
+                        style="height: 38px; border-radius: 6px; border: 1px solid #000000;"
                         value="{{ request('date_until') }}">
                 </div>
 
@@ -204,7 +204,7 @@
                     <!-- SUBMIT -->
                     <button type="submit"
                         class="btn btn-primary d-flex align-items-center justify-content-center"
-                        style="height: 38px; border-radius: 6px;"
+                        style="height: 38px; border-radius: 6px; "
                         title="Apply Filters">
                         <i class="fa-solid fa-filter me-2"></i>Filter
                     </button>

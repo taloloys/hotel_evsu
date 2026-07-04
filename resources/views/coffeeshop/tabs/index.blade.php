@@ -22,7 +22,7 @@
     {{-- HEADER --}}
     <div class="card-header bg-white fw-semibold d-flex justify-content-between align-items-center p-3">
         <span>Tab Management</span>
-        <small class="text-muted">Open • Closed • Cancelled • All Tabs</small>
+        <small class="text-muted">All Tabs • Open • Closed • Cancelled</small>
     </div>
 
     {{-- NAV PILLS --}}
@@ -34,7 +34,7 @@
                 <a href="{{ route('coffeeshop.tabs', ['status' => 'all']) }}"
                 class="nav-link rounded-pill {{ $status == 'all' ? 'active' : '' }}">
 
-                    <i class="fa-solid fa-table-list me-2"></i>
+                    <i class="me-2"></i>
                     All Tabs
                 </a>
             </li>
@@ -43,7 +43,7 @@
                 <a href="{{ route('coffeeshop.tabs', ['status' => 'open']) }}"
                 class="nav-link rounded-pill {{ $status == 'open' ? 'active' : '' }}">
 
-                    <i class="fa-solid fa-circle-play me-2"></i>
+                    <i class="me-2"></i>
                     Open
                 </a>
             </li>
@@ -52,7 +52,7 @@
                 <a href="{{ route('coffeeshop.tabs', ['status' => 'closed']) }}"
                 class="nav-link rounded-pill {{ $status == 'closed' ? 'active' : '' }}">
 
-                    <i class="fa-solid fa-circle-check me-2"></i>
+                    <i class="me-2"></i>
                     Closed
                 </a>
             </li>
@@ -61,7 +61,7 @@
                 <a href="{{ route('coffeeshop.tabs', ['status' => 'cancelled']) }}"
                 class="nav-link rounded-pill {{ $status == 'cancelled' ? 'active' : '' }}">
 
-                    <i class="fa-solid fa-ban me-2"></i>
+                    <i class="me-2"></i>
                     Cancelled
                 </a>
             </li>
@@ -69,7 +69,6 @@
         </ul>
 
     </div>
-    <hr>
     <div class="card border-0 shadow-sm rounded-4 overflow-hidden">
 
         {{-- TABS --}}

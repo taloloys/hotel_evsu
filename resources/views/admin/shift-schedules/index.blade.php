@@ -125,7 +125,7 @@
 
                 <!-- DATE FROM -->
                 <div class="input-group"
-                     style="width: 170px; border: 1px solid #ced4da; border-radius: 6px; overflow: hidden; height: 38px;">
+                     style="width: 170px; border: 1px solid #000000; border-radius: 6px; overflow: hidden; height: 38px;">
 
                     <span class="input-group-text bg-white border-0 text-muted small">From</span>
 
@@ -138,7 +138,7 @@
 
                 <!-- DATE TO -->
                 <div class="input-group"
-                     style="width: 170px; border: 1px solid #ced4da; border-radius: 6px; overflow: hidden; height: 38px;">
+                     style="width: 170px; border: 1px solid #000000; border-radius: 6px; overflow: hidden; height: 38px;">
 
                     <span class="input-group-text bg-white border-0 text-muted small">To</span>
 
@@ -152,7 +152,7 @@
                 <!-- EMPLOYEE -->
                 <select name="user_id"
                         class="form-select"
-                        style="width: 180px; height: 38px; border-radius: 6px;"
+                        style="width: 180px; height: 38px; border-radius: 6px; border: 1px solid #000000;"
                         onchange="this.form.submit()">
 
                     <option value="">All Employees</option>
@@ -168,7 +168,7 @@
                 <!-- STATUS -->
                 <select name="status"
                         class="form-select"
-                        style="width: 160px; height: 38px; border-radius: 6px;"
+                        style="width: 160px; height: 38px; border-radius: 6px; border: 1px solid #000000;"
                         onchange="this.form.submit()">
 
                     <option value="">All Statuses</option>

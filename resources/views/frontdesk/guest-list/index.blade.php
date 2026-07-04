@@ -9,7 +9,7 @@
 <div class="container-fluid d-print-none">
 
     {{-- Search Bar --}}
-    <div class="card border-0 shadow-sm mb-4">
+    <div class="card border-1 shadow-sm mb-4">
         <div class="card-body">
             <form method="GET" action="{{ route('frontdesk.guest-list') }}" id="searchForm">
                 <div class="row g-3 align-items-end">
@@ -85,7 +85,7 @@
     </div>
 
     {{-- Guest Table --}}
-    <div class="card border-0 shadow-sm">
+    <div class="card border-1 shadow-sm">
         <div class="card-body p-0">
             <div class="table-responsive">
                 <table class="table table-hover align-middle mb-0" id="guestTable">

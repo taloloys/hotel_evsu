@@ -113,7 +113,7 @@
                         <label class="form-label small text-muted mb-1">Search Keywords</label>
 
                         <div class="input-group"
-                            style="border: 1px solid #ced4da; border-radius: 6px; overflow: hidden; height: 45px;">
+                            style="border: 1px solid #000000; border-radius: 6px; overflow: hidden; height: 45px;">
 
                             <span class="input-group-text bg-white border-0">
                                 <i class="fa-solid fa-magnifying-glass text-muted"></i>

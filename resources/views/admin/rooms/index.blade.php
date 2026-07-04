@@ -138,7 +138,7 @@
                 <!-- SEARCH -->
                 <div style="width: 340px;">
                     <div class="input-group"
-                        style="border: 1px solid #ced4da; border-radius: 6px; overflow: hidden; height: 38px;">
+                        style="border: 1px solid #000000; border-radius: 6px; overflow: hidden; height: 38px;">
 
                         <span class="input-group-text bg-white border-0">
                             <i class="fa-solid fa-magnifying-glass text-muted"></i>

@@ -59,7 +59,7 @@
 
         <div class="table-responsive">
 
-            <table class="table mb-0 align-middle">
+            <table class="table table-hover align-middle mb-0 coffeeshop-table">
 
                 <thead class="table-light">
                     <tr>

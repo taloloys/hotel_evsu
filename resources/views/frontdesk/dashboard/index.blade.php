@@ -123,6 +123,42 @@
         font-size: 0.95rem;
         padding: 0.5rem 0.85rem;
     }
+
+    .room-toolbar-group {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.5rem;
+        align-items: center;
+    }
+
+    .room-toolbar-search {
+        width: 360px;
+        height: 45px;
+        border: 1px solid #000;
+        border-radius: 0.375rem;
+        overflow: hidden;
+        background: #fff;
+    }
+
+    .room-toolbar-search .input-group-text,
+    .room-toolbar-search .form-control {
+        height: 100%;
+        border: 0;
+        box-shadow: none;
+    }
+
+    .room-toolbar-search .form-control {
+        background: #fff;
+    }
+
+    .room-toolbar-select {
+        width: 200px;
+        height: 45px;
+        border: 1px solid #000 !important;
+        border-radius: 8px;
+        box-shadow: none !important;
+        outline: none;
+    }
 </style>
 
 @if($errors->has('shift'))
@@ -243,12 +279,22 @@
                 <i class="fa-solid fa-plane-arrival text-primary"></i> Today's Check-In & Reservations
             </h5>
             @if($todayCheckIns->count() > 0)
-                <div class="d-flex flex-wrap gap-2">
-                    <div class="input-group input-group-sm" style="width: 220px;">
-                        <span class="input-group-text"><i class="fa-solid fa-search"></i></span>
-                        <input type="text" class="form-control" id="checkinSearch" placeholder="Search guest name...">
+                <div class="room-toolbar-group">
+                    <div class="input-group room-toolbar-search">
+                        <span class="input-group-text bg-white border-0">
+                            <i class="fa-solid fa-search"></i>
+                        </span>
+                        <input
+                            type="text"
+                            class="form-control border-0 shadow-none"
+                            id="checkinSearch"
+                            placeholder="Search guest name..."
+                        >
                     </div>
-                    <select class="form-select form-select-sm" id="checkinSort" style="width: 250px;">
+                    <select
+                        id="checkinSort"
+                        class="form-select shadow-none room-toolbar-select"
+                    >
                         <option value="guest-asc">Guest (A-Z)</option>
                         <option value="guest-desc">Guest (Z-A)</option>
                         <option value="room-asc">Room (Low-High)</option>
@@ -336,10 +382,10 @@
                 <span class="badge bg-success ms-2">{{ $vacantRooms->count() }}</span>
             </h5>
             @if($vacantRooms->count() > 0)
-                <div class="d-flex flex-wrap gap-2">
+                <div class="room-toolbar-group">
 
                     <!-- Search -->
-                    <div class="input-group" style="width:360px; border:1px solid #000; border-radius:.375rem; overflow:hidden;">
+                    <div class="input-group room-toolbar-search">
                         <span class="input-group-text bg-white border-0">
                             <i class="fa-solid fa-search"></i>
                         </span>
@@ -349,22 +395,13 @@
                             class="form-control border-0 shadow-none"
                             id="vacantRoomSearch"
                             placeholder="Search room or type..."
-                            style="height:45px;"
                         >
                     </div>
 
                     <!-- Sort -->
                     <select
                         id="vacantRoomSort"
-                        class="form-select shadow-none"
-                        style="
-                            width:200px;
-                            height:45px;
-                            border:1px solid #000 !important;
-                            border-radius:8px;
-                            box-shadow:none !important;
-                            outline:none;
-                        "
+                        class="form-select shadow-none room-toolbar-select"
                     >
                         <option value="room-asc">Room (Low-High)</option>
                         <option value="room-desc">Room (High-Low)</option>
@@ -411,10 +448,10 @@
             </h5>
 
             @if($occupiedRoomList->count() > 0)
-                <div class="d-flex flex-wrap gap-2">
+                <div class="room-toolbar-group">
 
                     <!-- Search -->
-                    <div class="input-group" style="width:360px; border:1px solid #000; border-radius:.375rem; overflow:hidden;">
+                    <div class="input-group room-toolbar-search">
                         <span class="input-group-text bg-white border-0">
                             <i class="fa-solid fa-search"></i>
                         </span>
@@ -424,22 +461,13 @@
                             class="form-control border-0 shadow-none"
                             id="occupiedRoomSearch"
                             placeholder="Search room or guest..."
-                            style="height:45px;"
                         >
                     </div>
 
                     <!-- Sort -->
                     <select
                         id="occupiedRoomSort"
-                        class="form-select shadow-none"
-                        style="
-                            width:200px;
-                            height:45px;
-                            border:1px solid #000 !important;
-                            border-radius:8px;
-                            box-shadow:none !important;
-                            outline:none;
-                        "
+                        class="form-select shadow-none room-toolbar-select"
                     >
                         <option value="room-asc">Room (Low-High)</option>
                         <option value="room-desc">Room (High-Low)</option>
