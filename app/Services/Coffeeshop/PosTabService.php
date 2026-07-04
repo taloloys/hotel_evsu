@@ -269,6 +269,7 @@ class PosTabService
             'booking_id' => $tab->booking_id,
             'room_id' => $tab->room_id,
             'room_number' => $tab->room?->room_number,
+            'guest_name' => $tab->guest ? trim($tab->guest->first_name.' '.$tab->guest->last_name) : null,
             'discount_type' => $tab->discount_type,
             'discount_amount' => (float) $tab->discount_amount,
             'is_discount_percentage' => (bool) $tab->is_discount_percentage,

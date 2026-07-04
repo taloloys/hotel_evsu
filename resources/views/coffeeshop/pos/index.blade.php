@@ -471,7 +471,6 @@
                 <div class="mb-3">
                     <label class="form-label fw-semibold">New Tab Type</label>
                     <select id="transfer-tab-type" class="form-select">
-                        <option value="walk_in">Walk-in</option>
                         <option value="room">Room Charge</option>
                         <option value="account">Account Charge</option>
                     </select>

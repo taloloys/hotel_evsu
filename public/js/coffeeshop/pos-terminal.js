@@ -62,6 +62,25 @@
         setTimeout(() => alertBox.classList.add('d-none'), 4000);
     }
 
+    function showSuccess(message) {
+        if (window.Swal) {
+            Swal.fire({
+                icon: 'success',
+                title: 'Success',
+                text: message,
+                toast: true,
+                position: 'top-end',
+                showConfirmButton: false,
+                timer: 2500,
+                timerProgressBar: true,
+                background: '#ffffff',
+            });
+            return;
+        }
+
+        showAlert(message, 'success');
+    }
+
     async function request(url, options = {}) {
         const response = await fetch(url, {
             headers: {
@@ -175,11 +194,22 @@
         roomActions.classList.add('d-none');
         accountActions.classList.add('d-none');
 
+        const chargeRoomBtn = document.getElementById('charge-room-btn');
+        const chargeAccountBtn = document.getElementById('charge-account-btn');
+
         if (tab.tab_type === 'room') {
             roomActions.classList.remove('d-none');
-            activeTabBadge.innerHTML = `<span class="badge bg-info small">Room Charge (Room ${tab.room_number})</span>`;
+            const roomLabel = tab.room_number ? `Room ${tab.room_number}` : 'Room';
+            const guestLabel = tab.guest_name ? `Charge to ${tab.guest_name}` : `Charge to ${roomLabel}`;
+            if (chargeRoomBtn) {
+                chargeRoomBtn.innerHTML = `<i class="fa-solid fa-user me-1"></i> ${guestLabel}`;
+            }
+            activeTabBadge.innerHTML = `<span class="badge bg-info small">Room Charge (${roomLabel})</span>`;
         } else if (tab.tab_type === 'account') {
             accountActions.classList.remove('d-none');
+            if (chargeAccountBtn) {
+                chargeAccountBtn.innerHTML = `<i class="fa-solid fa-file-invoice-dollar me-1"></i> Charge to ${tab.credit_account_name || 'Account'}`;
+            }
             activeTabBadge.innerHTML = `<span class="badge bg-primary small">Account Charge (${tab.credit_account_name || 'N/A'})</span>`;
         } else {
             walkinActions.classList.remove('d-none');
@@ -801,7 +831,7 @@
             renderTabs();
             loadProducts();
 
-            showAlert(`Order ${data.order.order_number} completed.`);
+            showSuccess(`Order ${data.order.order_number} completed.`);
             return true;
 
         } catch (error) {
@@ -906,61 +936,82 @@
     let selectedGuestData = null;
     
     document.getElementById('charge-room-btn').addEventListener('click', async () => {
-        const tab = getActiveTab();
-        if (!tab) return;
+        const btn = document.getElementById('charge-room-btn');
+        const originalLabel = btn.innerHTML;
+        btn.disabled = true;
+        btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin me-1"></i> Processing...';
 
-        // Fetch checked-in guests
         try {
-            const response = await fetch('/coffeeshop/guests/checked-in', {
-                headers: {
-                    'X-Requested-With': 'XMLHttpRequest',
-                    'Accept': 'application/json'
-                }
-            });
-            const data = await response.json();
-            
-            const guestSelect = document.getElementById('charge-guest-select');
-            guestSelect.innerHTML = '<option value="">Select a guest...</option>';
-            
-            if (data.guests && data.guests.length > 0) {
-                data.guests.forEach(guest => {
-                    const option = document.createElement('option');
-                    option.value = JSON.stringify({
-                        folio_id: guest.folio_id,
-                        booking_id: guest.booking_id,
-                        guest_name: guest.guest_name,
-                        room_number: guest.room_number
-                    });
-                    option.textContent = `${guest.guest_name} - Room ${guest.room_number}`;
-                    guestSelect.appendChild(option);
-                });
-            } else {
-                const option = document.createElement('option');
-                option.value = '';
-                option.textContent = 'No checked-in guests available';
-                option.disabled = true;
-                guestSelect.appendChild(option);
-            }
-        } catch (error) {
-            console.error('Error fetching guests:', error);
-            alert('Failed to load checked-in guests');
-            return;
-        }
-
-        document.getElementById('room-charge-warning-text').textContent = `Total to charge: ${formatMoney(tab.total)}`;
-        roomChargeCallback = async () => {
-            if (!selectedGuestData) {
-                alert('Please select a guest');
+            const tab = getActiveTab();
+            if (!tab) {
                 return;
             }
-            await executeClose({
-                payment_method: 'room_charge',
-                booking_id: selectedGuestData.booking_id,
-                folio_id: selectedGuestData.folio_id
-            });
-        };
-        
-        confirmRoomChargeModal.show();
+
+            if (tab.tab_type === 'room' && tab.booking_id && tab.folio_id) {
+                await executeClose({
+                    payment_method: 'room_charge',
+                    booking_id: tab.booking_id,
+                    folio_id: tab.folio_id
+                });
+                return;
+            }
+
+            // Fetch checked-in guests when room details are missing
+            try {
+                const response = await fetch('/coffeeshop/guests/checked-in', {
+                    headers: {
+                        'X-Requested-With': 'XMLHttpRequest',
+                        'Accept': 'application/json'
+                    }
+                });
+                const data = await response.json();
+                
+                const guestSelect = document.getElementById('charge-guest-select');
+                guestSelect.innerHTML = '<option value="">Select a guest...</option>';
+                
+                if (data.guests && data.guests.length > 0) {
+                    data.guests.forEach(guest => {
+                        const option = document.createElement('option');
+                        option.value = JSON.stringify({
+                            folio_id: guest.folio_id,
+                            booking_id: guest.booking_id,
+                            guest_name: guest.guest_name,
+                            room_number: guest.room_number
+                        });
+                        option.textContent = `${guest.guest_name} - Room ${guest.room_number}`;
+                        guestSelect.appendChild(option);
+                    });
+                } else {
+                    const option = document.createElement('option');
+                    option.value = '';
+                    option.textContent = 'No checked-in guests available';
+                    option.disabled = true;
+                    guestSelect.appendChild(option);
+                }
+            } catch (error) {
+                console.error('Error fetching guests:', error);
+                alert('Failed to load checked-in guests');
+                return;
+            }
+
+            document.getElementById('room-charge-warning-text').textContent = `Total to charge: ${formatMoney(tab.total)}`;
+            roomChargeCallback = async () => {
+                if (!selectedGuestData) {
+                    alert('Please select a guest');
+                    return;
+                }
+                await executeClose({
+                    payment_method: 'room_charge',
+                    booking_id: selectedGuestData.booking_id,
+                    folio_id: selectedGuestData.folio_id
+                });
+            };
+            
+            confirmRoomChargeModal.show();
+        } finally {
+            btn.disabled = false;
+            btn.innerHTML = originalLabel;
+        }
     });
 
     document.getElementById('charge-guest-select').addEventListener('change', (e) => {
@@ -1032,7 +1083,8 @@
     
     document.getElementById('transfer-tab-btn').addEventListener('click', () => {
         if (!activeTabId) return;
-        transferTypeSelect.value = getActiveTab().tab_type;
+        const currentType = getActiveTab().tab_type;
+        transferTypeSelect.value = currentType === 'walk_in' ? 'room' : currentType;
         transferTypeSelect.dispatchEvent(new Event('change'));
         transferTabModal.show();
     });
@@ -1081,7 +1133,7 @@
                 body: JSON.stringify(payload)
             });
             replaceTab(data.tab);
-            showAlert('Tab transferred.');
+            showSuccess('Tab transferred successfully.');
         } catch (error) {
             showAlert(error.message, 'danger');
         }
