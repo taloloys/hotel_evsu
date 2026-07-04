@@ -31,6 +31,15 @@
         <ul class="nav nav-pills nav-fill gap-2 fw-semibold coffeeshop-nav-pills" id="tabsNav">
 
             <li class="nav-item">
+                <a href="{{ route('coffeeshop.tabs', ['status' => 'all']) }}"
+                class="nav-link rounded-pill {{ $status == 'all' ? 'active' : '' }}">
+
+                    <i class="fa-solid fa-table-list me-2"></i>
+                    All Tabs
+                </a>
+            </li>
+            
+            <li class="nav-item">
                 <a href="{{ route('coffeeshop.tabs', ['status' => 'open']) }}"
                 class="nav-link rounded-pill {{ $status == 'open' ? 'active' : '' }}">
 
@@ -54,15 +63,6 @@
 
                     <i class="fa-solid fa-ban me-2"></i>
                     Cancelled
-                </a>
-            </li>
-
-            <li class="nav-item">
-                <a href="{{ route('coffeeshop.tabs', ['status' => 'all']) }}"
-                class="nav-link rounded-pill {{ $status == 'all' ? 'active' : '' }}">
-
-                    <i class="fa-solid fa-table-list me-2"></i>
-                    All Tabs
                 </a>
             </li>
 
@@ -92,6 +92,7 @@
                         <th>Total</th>
                         <th>Status</th>
                         <th>Opened</th>
+                        <th></th>
                     </tr>
 
                 </thead>

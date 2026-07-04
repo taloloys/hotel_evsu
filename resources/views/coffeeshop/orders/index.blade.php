@@ -2,7 +2,7 @@
 
 @section('title', 'Orders')
 @section('pageTitle', 'Order Management')
-@section('pageSubtitle', 'Open orders, active tabs, closed, cancelled, and refunded orders')
+@section('pageSubtitle', 'Review closed, cancelled, and refunded orders with their current status')
 
 @section('content')
 @include('coffeeshop.partials.alerts')
@@ -11,8 +11,8 @@
     <div class="coffeeshop-hero">
         <div class="d-flex flex-column flex-lg-row justify-content-between gap-3 align-items-lg-center">
             <div>
-                <div class="fw-bold fs-5">Orders and open tabs</div>
-                <div class="opacity-75 mt-1">Review every purchase, follow active tabs, and keep service flowing smoothly.</div>
+                <div class="fw-bold fs-5">Orders overview</div>
+                <div class="opacity-75 mt-1">Review every completed or adjusted purchase and keep transaction history easy to follow.</div>
             </div>
         </div>
     </div>
@@ -23,7 +23,6 @@
 
             @foreach([
                 'all' => 'All Orders',
-                'active_tabs' => 'Active Tabs',
                 'closed' => 'Closed',
                 'cancelled' => 'Cancelled',
                 'refunded' => 'Refunded'
@@ -56,77 +55,6 @@
         </div>
 
     {{-- ===================== TABLE ===================== --}}
-        @if($status === 'active_tabs')
-
-    <div class="card border-0 shadow-sm rounded-4">
-
-        <div class="table-responsive">
-
-            <table class="table mb-0 align-middle">
-
-                <thead class="table-light">
-                    <tr>
-                        <th>Customer</th>
-                        <th>Room</th>
-                        <th>Items</th>
-                        <th>Total</th>
-                        <th>Status</th>
-                        <th></th>
-                    </tr>
-                </thead>
-
-                <tbody>
-
-                @forelse($activeTabs as $tab)
-
-                    <tr>
-                        <td class="fw-semibold">{{ $tab->tab_name }}</td>
-                        <td>{{ $tab->room?->room_number ?? '—' }}</td>
-                        <td>{{ $tab->items->map(fn($i) => $i->product?->name.' x'.$i->quantity)->join(', ') }}</td>
-                        <td class="fw-bold text-primary">₱{{ number_format($tab->total, 2) }}</td>
-                        <td>
-                            <span class="badge bg-success">OPEN TAB</span>
-                            @php
-                                $rejectedCancel = $tab->approvalRequests->where('request_type', 'cancel_tab')->where('status', 'rejected')->first();
-                            @endphp
-                            @if($rejectedCancel)
-                                <span class="badge bg-danger mt-1">CANCEL REJECTED</span>
-                            @endif
-                        </td>
-                        <td>
-                            <a href="{{ route('coffeeshop.pos') }}"
-                            class="btn btn-sm btn-primary rounded-pill px-3">
-                                Manage
-                            </a>
-                        </td>
-                    </tr>
-
-                @empty
-
-                    <tr>
-                        <td colspan="6" class="text-muted text-center py-4">
-                            No active tabs.
-                        </td>
-                    </tr>
-
-                @endforelse
-
-                </tbody>
-
-            </table>
-
-        </div>
-
-        @if($activeTabs->hasPages())
-            <div class="p-3">
-                {{ $activeTabs->links() }}
-            </div>
-        @endif
-
-    </div>
-
-    @else
-
     <div class="card border-0 shadow-sm rounded-4">
 
         <div class="table-responsive">
@@ -199,8 +127,6 @@
         @endif
 
     </div>
-
-        @endif
     </div>
 </div>
 

@@ -20,7 +20,7 @@
     <div class="coffeeshop-panel overflow-hidden">
 
     {{-- ================= HEADER ================= --}}
-    <div class="card-header bg-white d-flex justify-content-between align-items-center">
+    <div class="card-header bg-white d-flex justify-content-between align-items-center p-3">
         <div class="fw-semibold">Settings</div>
         <small class="text-muted">Inventory • Categories • Configuration</small>
     </div>
@@ -69,7 +69,7 @@
     {{-- ================= TAB CONTENT ================= --}}
     <div class="card-body">
 
-        <div class="tab-content">
+        <div class="tab-content p-3">
 
             {{-- ================= INVENTORY SETTINGS ================= --}}
             <div class="tab-pane fade show active" id="tab-inventory">
@@ -111,7 +111,7 @@
                     <label class="form-label">Sort Order</label>
                     <input type="number" min="0" name="sort_order" class="form-control mb-3" value="0">
 
-                    <button class="btn btn-outline-primary">
+                    <button class="btn btn-primary">
                         Add Category
                     </button>
                 </form>
@@ -121,7 +121,7 @@
             {{-- ================= CATEGORIES TABLE ================= --}}
             <div class="tab-pane fade" id="tab-categories">
 
-                <div class="table-responsive">
+                <div class="table-responsive p-3">
 
                     <table class="table table-sm align-middle mb-0 coffeeshop-table">
 
@@ -154,7 +154,7 @@
                                             @csrf
                                             @method('PATCH')
 
-                                            <button class="btn btn-sm btn-outline-secondary rounded-pill px-3">
+                                            <button class="btn btn-sm btn-primary rounded-pill px-3">
                                                 {{ $category->is_active ? 'Deactivate' : 'Activate' }}
                                             </button>
                                         </form>
