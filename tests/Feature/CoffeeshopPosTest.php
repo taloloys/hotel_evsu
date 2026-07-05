@@ -2,6 +2,7 @@
 
 namespace Tests\Feature;
 
+use App\Models\PosCategory;
 use App\Models\PosProduct;
 use App\Models\User;
 use Database\Seeders\ChargeCodeSeeder;
@@ -80,5 +81,21 @@ class CoffeeshopPosTest extends TestCase
             ->getJson(route('coffeeshop.api.products.search', ['q' => 'San Miguel']))
             ->assertOk()
             ->assertJsonFragment(['name' => 'Beer']);
+    }
+
+    public function test_deactivated_category_products_are_hidden_in_pos(): void
+    {
+        $this->seed(UserSeeder::class);
+        $this->seed(PosCategorySeeder::class);
+        $this->seed(PosProductSeeder::class);
+
+        $user = User::whereHas('role', fn ($q) => $q->where('role_name', 'CAFETERIA'))->firstOrFail();
+        $category = PosCategory::where('name', 'Beer')->firstOrFail();
+        $category->update(['is_active' => false]);
+
+        $this->actingAs($user)
+            ->getJson(route('coffeeshop.api.products.search', ['q' => 'San Miguel']))
+            ->assertOk()
+            ->assertJsonMissing(['name' => 'Beer']);
     }
 }

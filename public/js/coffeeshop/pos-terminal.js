@@ -7,8 +7,10 @@
 
     const config = window.posConfig;
     let tabs = [...(config.initialTabs || [])];
-    // Set active tab to the first tab, or null if no tabs
-    let activeTabId = tabs.length ? tabs[0].tab_id : null;
+    const requestedTabId = Number.parseInt(new URLSearchParams(window.location.search).get('tab_id') || '', 10);
+    let activeTabId = Number.isFinite(requestedTabId) && tabs.some(tab => tab.tab_id === requestedTabId)
+        ? requestedTabId
+        : (tabs.length ? tabs[0].tab_id : null);
     let activeCategory = 'all';
     let searchTimer = null;
     let checkedInGuests = [];

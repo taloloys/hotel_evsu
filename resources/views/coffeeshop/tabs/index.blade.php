@@ -151,7 +151,7 @@
 
                             @if($tab->status == 'open')
 
-                                <a href="{{ route('coffeeshop.pos') }}"
+                                <a href="{{ route('coffeeshop.pos', ['tab_id' => $tab->tab_id]) }}"
                                 class="btn btn-primary btn-sm rounded-pill px-3">
                                     Continue
                                 </a>
