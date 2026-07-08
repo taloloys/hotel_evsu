@@ -105,6 +105,7 @@
 
 <script>
 document.addEventListener('DOMContentLoaded', function () {
+    sessionStorage.removeItem('isFullscreen');
     const password = document.getElementById('password');
     const toggle = document.getElementById('togglePassword');
     const icon = document.getElementById('passwordIcon');

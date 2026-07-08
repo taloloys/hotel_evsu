@@ -47,14 +47,14 @@
                             value="{{ request('search') }}"
                             class="form-control"
                             placeholder="Search customer or order..."
-                            onkeydown="if(event.key==='Enter'){ this.form.submit(); }">
+                            onkeydown="if(event.key==='Enter'){ event.preventDefault(); if(this.form.requestSubmit){ this.form.requestSubmit(); }else{ this.form.submit(); } }">
                     </div>
 
                     {{-- STATUS FILTER --}}
                     <select name="status"
                             class="form-select"
                             style="width: 220px; border: 1px solid;"
-                            onchange="this.form.submit()">
+                            onchange="this.form.requestSubmit ? this.form.requestSubmit() : this.form.submit()">
 
                         <option value="">All Records</option>
 

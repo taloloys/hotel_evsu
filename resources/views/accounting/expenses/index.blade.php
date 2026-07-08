@@ -73,7 +73,7 @@
                 <select
                     name="department"
                     class="form-select border-0"
-                    onchange="this.form.submit()">
+                    onchange="this.form.requestSubmit ? this.form.requestSubmit() : this.form.submit()">
 
                     <option value="All Departments"
                         {{ $departmentFilter === 'All Departments' ? 'selected' : '' }}>

@@ -460,7 +460,7 @@
                                                         <button
                                                             type="button"
                                                             class="btn btn-danger btn-sm"
-                                                            onclick="event.preventDefault(); Swal.fire({ title: 'Are you sure?', text: 'Are you sure you want to close this folio?', icon: 'warning', showCancelButton: true, confirmButtonColor: '#d33', confirmButtonText: 'Yes, close it!' }).then((result) => { if (result.isConfirmed) { this.closest('form').submit(); } });">
+                                                            onclick="event.preventDefault(); Swal.fire({ title: 'Are you sure?', text: 'Are you sure you want to close this folio?', icon: 'warning', showCancelButton: true, confirmButtonColor: '#d33', confirmButtonText: 'Yes, close it!' }).then((result) => { if (result.isConfirmed) { const f = this.closest('form'); if(f.requestSubmit){ f.requestSubmit(); }else{ f.submit(); } } });">
                                                             <i class="fa-solid fa-lock me-1"></i>
                                                             Close Folio
                                                         </button>

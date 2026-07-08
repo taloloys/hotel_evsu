@@ -29,12 +29,12 @@
                     <span class="input-group-text bg-white border-0">
                         <i class="fa-solid fa-magnifying-glass text-muted"></i>
                     </span>
-                    <input type="text" name="search" value="{{ request('search') }}" class="form-control border-0" placeholder="Search products..." onkeydown="if(event.key==='Enter'){ this.form.submit(); }">
+                    <input type="text" name="search" value="{{ request('search') }}" class="form-control border-0" placeholder="Search products..." onkeydown="if(event.key==='Enter'){ event.preventDefault(); if(this.form.requestSubmit){ this.form.requestSubmit(); }else{ this.form.submit(); } }">
                 </div>
             </div>
             <div class="col-lg-3">
                 <label class="form-label small text-muted mb-1">Category</label>
-                <select name="category_id" class="form-select coffeeshop-form-control" onchange="this.form.submit()" style="border: 1px solid black;">
+                <select name="category_id" class="form-select coffeeshop-form-control" onchange="this.form.requestSubmit ? this.form.requestSubmit() : this.form.submit()" style="border: 1px solid black;">
                     <option value="all">All Categories</option>
                     @foreach($categories as $category)
                         <option value="{{ $category->category_id }}" @selected(request('category_id') == $category->category_id)>{{ $category->name }}</option>

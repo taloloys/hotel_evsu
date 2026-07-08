@@ -22,7 +22,7 @@
                     <select
                         name="user_id"
                         class="form-select border-0"
-                        onchange="this.form.submit()">
+                        onchange="this.form.requestSubmit ? this.form.requestSubmit() : this.form.submit()">
 
                         <option value="ALL" {{ $userIdFilter === 'ALL' ? 'selected' : '' }}>
                             All Users
@@ -50,7 +50,7 @@
                     <select
                         name="action_type"
                         class="form-select border-0"
-                        onchange="this.form.submit()">
+                        onchange="this.form.requestSubmit ? this.form.requestSubmit() : this.form.submit()">
 
                         <option value="ALL" {{ $actionFilter === 'ALL' ? 'selected' : '' }}>
                             All Actions

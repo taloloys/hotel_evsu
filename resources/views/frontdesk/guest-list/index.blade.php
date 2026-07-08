@@ -37,7 +37,7 @@
                     </div>
                     <div class="col-md-3">
                         <label class="form-label fw-semibold" for="status">Status</label>
-                        <select class="form-select" id="status" name="status" onchange="document.getElementById('searchForm').submit()">
+                        <select class="form-select" id="status" name="status" onchange="const form = document.getElementById('searchForm'); if(form.requestSubmit){ form.requestSubmit(); }else{ form.submit(); }">
                             <option value="" {{ $status === '' || $status === null ? 'selected' : '' }}>All Statuses</option>
                             <option value="checked_in" {{ $status === 'checked_in' ? 'selected' : '' }}>Checked In (In-House)</option>
                             <option value="checked_out" {{ $status === 'checked_out' ? 'selected' : '' }}>Checked Out</option>

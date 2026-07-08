@@ -50,12 +50,12 @@
                 <label class="form-label small text-muted mb-1">Search</label>
                 <div class="input-group coffeeshop-form-control" style="border: 1px solid black; border-radius: 4px;">
                     <span class="input-group-text bg-white border-0"><i class="fa-solid fa-magnifying-glass text-muted"></i></span>
-                    <input type="text" name="search" value="{{ request('search') }}" class="form-control border-0" placeholder="Search products..." onkeydown="if(event.key==='Enter'){ this.form.submit(); }">
+                    <input type="text" name="search" value="{{ request('search') }}" class="form-control border-0" placeholder="Search products..." onkeydown="if(event.key==='Enter'){ event.preventDefault(); if(this.form.requestSubmit){ this.form.requestSubmit(); }else{ this.form.submit(); } }">
                 </div>
             </div>
             <div class="col-lg-3">
                 <label class="form-label small text-muted mb-1">Filter</label>
-                <select name="filter" class="form-select coffeeshop-form-control" onchange="this.form.submit()" style="border: 1px solid black;">
+                <select name="filter" class="form-select coffeeshop-form-control" onchange="this.form.requestSubmit ? this.form.requestSubmit() : this.form.submit()" style="border: 1px solid black;">
                     <option value="">All Inventory</option>
                     <option value="out_of_stock" @selected(request('filter')=='out_of_stock')>Out of Stock</option>
                     <option value="critical_stock" @selected(request('filter')=='critical_stock')>Low Stock (≤ Threshold)</option>

@@ -249,7 +249,7 @@
                         <div class="mt-1 flex-shrink-0">
                             <i class="fa-solid ${n.icon} fa-fw fs-5"></i>
                         </div>
-                        <div class="flex-grow-1 pe-3" onclick="window.location.href='${n.link}'">
+                        <div class="flex-grow-1 pe-3" onclick="if(window.Turbo){ Turbo.visit('${n.link}'); }else{ window.location.href='${n.link}'; }">
                             <div class="small text-dark mb-1">${n.message}</div>
                             <small class="text-muted text-xs">${n.time}</small>
                         </div>

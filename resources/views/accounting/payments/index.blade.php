@@ -76,7 +76,7 @@
                         name="method"
                         class="form-select"
                         style="height:40px;"
-                        onchange="this.form.submit()">
+                        onchange="this.form.requestSubmit ? this.form.requestSubmit() : this.form.submit()">
 
                         <option value="All Methods" {{ $methodFilter === 'All Methods' ? 'selected' : '' }}>
                             All Methods

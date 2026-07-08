@@ -65,7 +65,7 @@
                 <select
                     name="status"
                     class="form-select border-0"
-                    onchange="this.form.submit()">
+                    onchange="this.form.requestSubmit ? this.form.requestSubmit() : this.form.submit()">
 
                     <option value="ALL" {{ $statusFilter === 'ALL' ? 'selected' : '' }}>
                         All Status
