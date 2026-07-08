@@ -239,6 +239,29 @@
             grid-auto-rows: minmax(3.6rem, auto);
             gap: 0.6rem;
             align-items: stretch;
+            max-height: 12.5rem;
+            overflow-y: auto;
+            padding-right: 0.2rem;
+            scrollbar-width: thin;
+            scrollbar-color: var(--caramel) rgba(78, 52, 46, 0.12);
+        }
+
+        #tab-switcher::-webkit-scrollbar {
+            width: 0.45rem;
+        }
+
+        #tab-switcher::-webkit-scrollbar-track {
+            background: rgba(78, 52, 46, 0.08);
+            border-radius: 999px;
+        }
+
+        #tab-switcher::-webkit-scrollbar-thumb {
+            background: linear-gradient(180deg, var(--caramel), var(--coffee-700));
+            border-radius: 999px;
+        }
+
+        #tab-switcher::-webkit-scrollbar-thumb:hover {
+            background: linear-gradient(180deg, #b57a4a, var(--coffee-800));
         }
 
         #tab-switcher button {
