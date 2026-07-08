@@ -23,7 +23,7 @@
                                 type="text"
                                 class="form-control"
                                 id="search"
-                                name="search"
+                                name="search"s
                                 value="{{ $search }}"
                                 placeholder="Search by name..."
                                 autocomplete="off"
@@ -50,14 +50,14 @@
                     </div>
                     <div class="col-md-2">
                         @php
-                            $printText = 'Print Guest List';
+                            $printText = 'Guest List';
                             $printBtnClass = 'btn-outline-secondary';
                             if ($status === 'checked_in') {
-                                $printText = 'Print Checked In';
+                                $printText = 'Checked In';
                                 $printBtnClass = 'btn-outline-success';
                             } elseif ($status === 'checked_out') {
-                                $printText = 'Print Checked Out';
-                                $printBtnClass = 'btn-outline-primary';
+                                $printText = 'Checked Out';
+                                $printBtnClass = 'btn-outline-success';
                             }
                         @endphp
                         <button type="button" class="btn {{ $printBtnClass }} w-100" onclick="window.print()">
