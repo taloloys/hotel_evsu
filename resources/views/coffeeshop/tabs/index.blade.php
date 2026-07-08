@@ -71,11 +71,17 @@
     </div>
     <div class="card border-0 shadow-sm rounded-4 overflow-hidden">
 
-        {{-- TABS --}}
-        <div class="bg-light px-3 pt-3">
-
-            <!-- Your nav pills here -->
-
+        {{-- SEARCH --}}
+        <div class="p-3 p-lg-4 bg-white border-bottom">
+            <div class="d-flex justify-content-end">
+                <form method="GET">
+                    <input type="hidden" name="status" value="{{ $status }}">
+                    <div class="input-group coffeeshop-form-control" style="width: 450px; border: 1px solid black; border-radius: 4px;">
+                        <span class="input-group-text bg-white border-0"><i class="fa-solid fa-magnifying-glass text-muted"></i></span>
+                        <input type="text" name="search" value="{{ request('search') }}" class="form-control border-0" placeholder="Search tabs..." onkeydown="if(event.key==='Enter'){ this.form.submit(); }">
+                    </div>
+                </form>
+            </div>
         </div>
 
         {{-- TABLE --}}

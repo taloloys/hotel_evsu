@@ -47,12 +47,13 @@
     <div class="p-3 p-lg-4">
         <div class="d-flex justify-content-end mb-3">
             <form method="GET">
-                <div class="input-group coffeeshop-form-control" style="width: 450px;">
+                <div class="input-group coffeeshop-form-control" style="width: 450px; border: 1px solid black; border-radius: 4px;">
                     <span class="input-group-text bg-white border-0"><i class="fa-solid fa-magnifying-glass text-muted"></i></span>
                     <input type="text" name="search" value="{{ request('search') }}" class="form-control border-0" placeholder="Search orders..." onkeydown="if(event.key==='Enter'){ this.form.submit(); }">
                 </div>
             </form>
         </div>
+    </div>
 
     {{-- ===================== TABLE ===================== --}}
     <div class="card border-0 shadow-sm rounded-4">

@@ -38,7 +38,8 @@
                 <input type="date"
                        name="date_from"
                        value="{{ $dateFrom }}"
-                       class="form-control">
+                       class="form-control"
+                       style="border: 1px solid black;">
             </div>
 
             <div class="col-lg-4 col-md-6">
@@ -46,13 +47,14 @@
                 <input type="date"
                        name="date_to"
                        value="{{ $dateTo }}"
-                       class="form-control">
+                       class="form-control"
+                       style="border: 1px solid black;">
             </div>
 
             {{-- PAYMENT FILTER --}}
             <div class="col-lg-4 col-md-6">
                 <label class="form-label small text-muted">Payment Method</label>
-                <select name="payment_method" class="form-select">
+                <select name="payment_method" class="form-select" style="border: 1px solid black;">
                     <option value="all" @selected($paymentMethod === 'all')>All Payments</option>
                     <option value="cash" @selected($paymentMethod === 'cash')>Cash</option>
                     <option value="gcash" @selected($paymentMethod === 'gcash')>GCash</option>

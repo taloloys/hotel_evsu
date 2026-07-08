@@ -22,18 +22,19 @@
 
     <div class="coffeeshop-panel p-3 p-lg-4">
         <form class="row g-2 align-items-end mb-3" method="GET">
-            <div class="col-lg-6">
+            <div class="col-lg-5"></div>
+            <div class="col-lg-4">
                 <label class="form-label small text-muted mb-1">Search</label>
-                <div class="input-group coffeeshop-form-control">
+                <div class="input-group coffeeshop-form-control" style="border: 1px solid black; border-radius: 4px;">
                     <span class="input-group-text bg-white border-0">
                         <i class="fa-solid fa-magnifying-glass text-muted"></i>
                     </span>
                     <input type="text" name="search" value="{{ request('search') }}" class="form-control border-0" placeholder="Search products..." onkeydown="if(event.key==='Enter'){ this.form.submit(); }">
                 </div>
             </div>
-            <div class="col-lg-4">
+            <div class="col-lg-3">
                 <label class="form-label small text-muted mb-1">Category</label>
-                <select name="category_id" class="form-select coffeeshop-form-control" onchange="this.form.submit()">
+                <select name="category_id" class="form-select coffeeshop-form-control" onchange="this.form.submit()" style="border: 1px solid black;">
                     <option value="all">All Categories</option>
                     @foreach($categories as $category)
                         <option value="{{ $category->category_id }}" @selected(request('category_id') == $category->category_id)>{{ $category->name }}</option>

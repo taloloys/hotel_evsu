@@ -133,7 +133,8 @@
                                         <input type="date"
                                             name="date_from"
                                             value="{{ $filters['date_from'] }}"
-                                            class="form-control auto-submit">
+                                            class="form-control auto-submit"
+                                            style="border: 1px solid black;">
                                     </div>
 
                                     <div class="col-md-6">
@@ -144,7 +145,8 @@
                                         <input type="date"
                                             name="date_to"
                                             value="{{ $filters['date_to'] }}"
-                                            class="form-control auto-submit">
+                                            class="form-control auto-submit"
+                                            style="border: 1px solid black;">
                                     </div>
 
                                 </div>
