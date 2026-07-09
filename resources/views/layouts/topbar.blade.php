@@ -314,16 +314,26 @@
     (function() {
         const timeElement = document.getElementById('header-time');
         if (timeElement) {
+            // Get initial server time in milliseconds
+            let serverTimeMs = {{ now()->getTimestamp() * 1000 }};
+            const startTimePerformance = performance.now();
+
             function updateClock() {
-                const now = new Date();
-                let hours = now.getHours();
-                const minutes = String(now.getMinutes()).padStart(2, '0');
-                const seconds = String(now.getSeconds()).padStart(2, '0');
+                // Calculate elapsed time using high-resolution timer to avoid setInterval drift
+                const elapsed = performance.now() - startTimePerformance;
+                const currentServerTime = new Date(serverTimeMs + elapsed);
+
+                let hours = currentServerTime.getHours();
+                const minutes = String(currentServerTime.getMinutes()).padStart(2, '0');
+                const seconds = String(currentServerTime.getSeconds()).padStart(2, '0');
                 const ampm = hours >= 12 ? 'PM' : 'AM';
                 hours = hours % 12;
                 hours = hours ? hours : 12;
                 const hoursStr = String(hours).padStart(2, '0');
                 timeElement.textContent = hoursStr + ':' + minutes + ':' + seconds + ' ' + ampm;
+
+                // Expose current server time globally so other components (like checkout modal) can read it
+                window.currentServerTime = currentServerTime;
             }
             updateClock();
             if (window.headerClockInterval) {

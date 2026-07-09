@@ -1018,7 +1018,7 @@
     function openCheckOutModal(bookingId) {
         pendingCheckOutBookingId = bookingId;
 
-        const now = new Date();
+        const now = window.currentServerTime || new Date();
         let hours = now.getHours();
         const minutes = now.getMinutes().toString().padStart(2, '0');
         const period = hours >= 12 ? 'PM' : 'AM';

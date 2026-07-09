@@ -550,7 +550,7 @@
                 </div>
                 <div style="font-size:12px;">POS RECEIPT</div>
                 <div style="font-size:11px; margin-top:4px;">
-                    ${new Date().toLocaleString()}
+                    ${(window.currentServerTime || new Date()).toLocaleString()}
                 </div>
                 <div style="font-size:11px; margin-top:4px;">
                     Order #${order.order_number || ''}
