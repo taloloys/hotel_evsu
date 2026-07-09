@@ -138,7 +138,7 @@
         const newBtn = document.createElement('button');
         newBtn.type = 'button';
         newBtn.className = `btn ${activeTabId === null ? 'btn-success fw-bold' : 'btn-outline-success fw-bold'}`;
-        newBtn.innerHTML = '<i class="fa-solid fa-plus me-1"></i>New Tab';
+        newBtn.innerHTML = '<i class="fa-solid fa-plus me-1"></i>New Customer';
         newBtn.addEventListener('click', () => {
             activeTabId = null;
             renderTabs();
