@@ -224,10 +224,11 @@
                                     </button>
 
                                     @if($reservation->status === 'RESERVED')
-                                        <form method="POST" action="{{ route('frontdesk.reservation.cancel', $reservation) }}" class="d-inline" onsubmit="return confirm('Cancel this reservation?');">
+                                        <form method="POST" action="{{ route('frontdesk.reservation.cancel', $reservation) }}" class="d-inline">
                                             @csrf
                                             @method('PATCH')
-                                            <button type="submit" class="btn btn-outline-danger" title="Cancel reservation">
+                                            <button type="button" class="btn btn-outline-danger" title="Cancel reservation"
+                                                onclick="swalConfirmCancelReservation(this)">
                                                 <i class="fa-solid fa-ban"></i>
                                             </button>
                                         </form>
@@ -875,6 +876,24 @@
                 }
             });
         }
+        // SweetAlert2 — Module 6: Cancel Reservation
+        window.swalConfirmCancelReservation = function(btn) {
+            var form = btn.closest('form');
+            Swal.fire({
+                icon: 'warning',
+                title: 'Cancel Reservation?',
+                text: 'This action cannot be undone. The reservation will be marked as cancelled.',
+                showCancelButton: true,
+                confirmButtonText: '<i class="fa-solid fa-ban me-1"></i> Yes, Cancel It',
+                cancelButtonText: 'Keep Reservation',
+                confirmButtonColor: '#dc3545',
+                reverseButtons: true,
+            }).then(function(result) {
+                if (result.isConfirmed && form) {
+                    form.submit();
+                }
+            });
+        };
     })();
 </script>
 @endpush

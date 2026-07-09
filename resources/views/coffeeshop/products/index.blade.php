@@ -64,9 +64,9 @@
                                 <form action="{{ route('coffeeshop.products.toggle-active', $product) }}" method="POST" class="d-inline">
                                     @csrf
                                     @if($product->is_active)
-                                        <button class="btn btn-sm btn-outline-danger rounded-pill px-3" onclick="return confirm('Deactivate this product?')">Deactivate</button>
+                                        <button type="button" class="btn btn-sm btn-outline-danger rounded-pill px-3" onclick="swalConfirmToggleProduct(this, false, '{{ addslashes($product->name) }}')">Deactivate</button>
                                     @else
-                                        <button class="btn btn-sm btn-outline-success rounded-pill px-3" onclick="return confirm('Activate this product?')">Activate</button>
+                                        <button type="button" class="btn btn-sm btn-outline-success rounded-pill px-3" onclick="swalConfirmToggleProduct(this, true, '{{ addslashes($product->name) }}')">Activate</button>
                                     @endif
                                 </form>
                             </td>
@@ -84,3 +84,27 @@
     </div>
 </div>
 @endsection
+
+@push('scripts')
+<script>
+    window.swalConfirmToggleProduct = function(btn, activate, productName) {
+        var form = btn.closest('form');
+        Swal.fire({
+            icon: activate ? 'question' : 'warning',
+            title: activate ? 'Activate Product?' : 'Deactivate Product?',
+            html: (activate ? 'Activate' : 'Deactivate') + ' <strong>' + productName + '</strong>?',
+            showCancelButton: true,
+            confirmButtonText: activate
+                ? '<i class="fa-solid fa-circle-check me-1"></i> Activate'
+                : '<i class="fa-solid fa-circle-xmark me-1"></i> Deactivate',
+            cancelButtonText: 'Cancel',
+            confirmButtonColor: activate ? '#198754' : '#dc3545',
+            reverseButtons: true,
+        }).then(function(result) {
+            if (result.isConfirmed && form) {
+                form.submit();
+            }
+        });
+    };
+</script>
+@endpush

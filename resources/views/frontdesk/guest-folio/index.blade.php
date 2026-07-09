@@ -497,9 +497,9 @@
                                                         @csrf
 
                                                         <button
-                                                            type="submit"
+                                                            type="button"
                                                             class="btn btn-primary btn-sm"
-                                                            onclick="return confirm('Check in {{ $folio->guest?->first_name }} to Room {{ $room?->room_number }}?')">
+                                                            onclick="swalConfirmCheckIn(this, '{{ $folio->guest?->first_name }}', '{{ $room?->room_number }}')">
 
                                                             <i class="fa-solid fa-door-open me-1"></i>
                                                             Check In
@@ -783,8 +783,9 @@
                                                     <div class="text-end">
 
                                                         <button
+                                                            type="button"
                                                             class="btn btn-primary"
-                                                            onclick="return confirm('Transfer guest to selected room?')">
+                                                            onclick="swalConfirmTransfer(this)">
 
                                                             <i class="fa-solid fa-right-left me-1"></i>
 
@@ -961,188 +962,217 @@
                     <hr>
 
                     {{-- ====================== TRANSACTION LEDGER ====================== --}}
-                    <div class="border rounded-3">
+                    @php
+                        // Categorize all transactions for this folio
+                        $txnsByCategory = [
+                            'room'       => collect(),
+                            'restaurant' => collect(),
+                            'laundry'    => collect(),
+                            'tax'        => collect(),
+                            'discounts'  => collect(),
+                            'other'      => collect(),
+                            'payments'   => collect(),
+                        ];
 
-                        {{-- Header --}}
-                        <div class="d-flex justify-content-between align-items-center px-3 py-2 border-bottom bg-light">
-                            <div>
-                                <h6 class="mb-0 fw-semibold">
-                                    <i class="fa-solid fa-receipt text-primary me-2"></i>
-                                    Transaction Ledger
-                                </h6>
+                        $roomCodes      = [100, 103];
+                        $laundryCodes   = [104, 105];
+                        $restaurantCodes = [200];
+                        $discountCodes  = [201];
+
+                        foreach ($folio->transactions->sortBy('timestamp') as $txn) {
+                            $code     = (int) $txn->charge_code;
+                            $category = $txn->chargeCode?->category ?? 'HOTEL';
+
+                            if ($category === 'PAYMENT') {
+                                $txnsByCategory['payments']->push($txn);
+                            } elseif (in_array($code, $roomCodes)) {
+                                $txnsByCategory['room']->push($txn);
+                            } elseif (in_array($code, $laundryCodes)) {
+                                $txnsByCategory['laundry']->push($txn);
+                            } elseif (in_array($code, $restaurantCodes)) {
+                                $txnsByCategory['restaurant']->push($txn);
+                            } elseif ($category === 'TAX_SERVICE') {
+                                $txnsByCategory['tax']->push($txn);
+                            } elseif (in_array($code, $discountCodes)) {
+                                $txnsByCategory['discounts']->push($txn);
+                            } else {
+                                $txnsByCategory['other']->push($txn);
+                            }
+                        }
+
+                        $sumRoom       = $txnsByCategory['room']->sum('charge_amount');
+                        $sumRestaurant = $txnsByCategory['restaurant']->sum('charge_amount');
+                        $sumLaundry    = $txnsByCategory['laundry']->sum('charge_amount');
+                        $sumTax        = $txnsByCategory['tax']->sum('charge_amount');
+                        $sumDiscounts  = $txnsByCategory['discounts']->sum('charge_amount');
+                        $sumOther      = $txnsByCategory['other']->sum('charge_amount');
+                        $sumPayments   = $txnsByCategory['payments']->sum('credit_amount');
+                    @endphp
+
+                    {{-- Folio Summary Cards --}}
+                    <div class="row g-2 mb-3">
+                        @php
+                            $summaryItems = [
+                                ['label' => 'Room Charges',         'icon' => 'fa-bed',             'color' => 'primary',  'amount' => $sumRoom],
+                                ['label' => 'Restaurant / F&B',     'icon' => 'fa-utensils',        'color' => 'warning',  'amount' => $sumRestaurant],
+                                ['label' => 'Laundry',              'icon' => 'fa-shirt',           'color' => 'info',     'amount' => $sumLaundry],
+                                ['label' => 'Taxes & Fees',         'icon' => 'fa-landmark',        'color' => 'secondary','amount' => $sumTax],
+                                ['label' => 'Discounts',            'icon' => 'fa-tag',             'color' => 'success',  'amount' => $sumDiscounts],
+                                ['label' => 'Other Charges',        'icon' => 'fa-circle-dot',      'color' => 'dark',     'amount' => $sumOther],
+                                ['label' => 'Total Payments',       'icon' => 'fa-money-bill-wave', 'color' => 'success',  'amount' => $sumPayments, 'isPayment' => true],
+                            ];
+                        @endphp
+                        @foreach($summaryItems as $item)
+                            @if($item['amount'] > 0)
+                            <div class="col-6 col-md-4">
+                                <div class="border rounded-3 p-2 d-flex align-items-center gap-2 bg-white h-100">
+                                    <div class="rounded-circle d-flex align-items-center justify-content-center flex-shrink-0"
+                                         style="width:36px;height:36px;background:var(--bs-{{ $item['color'] }}-bg-subtle,#f8f9fa);">
+                                        <i class="fa-solid {{ $item['icon'] }} text-{{ $item['color'] }} small"></i>
+                                    </div>
+                                    <div class="min-w-0">
+                                        <div class="text-muted" style="font-size:0.7rem;line-height:1.2;">{{ $item['label'] }}</div>
+                                        <div class="fw-bold small {{ isset($item['isPayment']) ? 'text-success' : 'text-dark' }}">
+                                            ₱{{ number_format($item['amount'], 2) }}
+                                        </div>
+                                    </div>
+                                </div>
                             </div>
+                            @endif
+                        @endforeach
+                    </div>
 
-                            <small class="text-muted">
-                                {{ $folio->transactions->count() }} Transaction(s)
-                            </small>
+                    {{-- Outstanding Balance Banner --}}
+                    @if($balance > 0)
+                    <div class="alert alert-danger border-0 py-2 px-3 mb-3 d-flex justify-content-between align-items-center">
+                        <span><i class="fa-solid fa-circle-exclamation me-2"></i><strong>Outstanding Balance</strong></span>
+                        <span class="fw-bold fs-5">₱{{ number_format($balance, 2) }}</span>
+                    </div>
+                    @elseif($balance < 0)
+                    <div class="alert alert-warning border-0 py-2 px-3 mb-3 d-flex justify-content-between align-items-center">
+                        <span><i class="fa-solid fa-triangle-exclamation me-2"></i><strong>Overpaid — Refund Due</strong></span>
+                        <span class="fw-bold fs-5">₱{{ number_format(abs($balance), 2) }}</span>
+                    </div>
+                    @else
+                    <div class="alert alert-success border-0 py-2 px-3 mb-3 d-flex justify-content-between align-items-center">
+                        <span><i class="fa-solid fa-circle-check me-2"></i><strong>Fully Settled</strong></span>
+                        <span class="fw-bold fs-5">₱0.00</span>
+                    </div>
+                    @endif
+
+                    {{-- Categorized Transaction Ledger --}}
+                    <div class="border rounded-3">
+                        <div class="d-flex justify-content-between align-items-center px-3 py-2 border-bottom bg-light">
+                            <h6 class="mb-0 fw-semibold">
+                                <i class="fa-solid fa-receipt text-primary me-2"></i>
+                                Transaction Ledger
+                            </h6>
+                            <small class="text-muted">{{ $folio->transactions->count() }} Transaction(s)</small>
                         </div>
 
                         @if($folio->transactions->isEmpty())
-
                             <div class="py-5 text-center">
-
                                 <i class="fa-solid fa-file-invoice text-muted mb-3 fs-2"></i>
-
-                                <p class="text-muted mb-0">
-                                    No transactions have been recorded for this folio.
-                                </p>
-
+                                <p class="text-muted mb-0">No transactions have been recorded for this folio.</p>
                             </div>
-
                         @else
+                            @php
+                                $ledgerSections = [
+                                    ['key' => 'room',       'label' => 'Room Charges',     'icon' => 'fa-bed',             'type' => 'charge'],
+                                    ['key' => 'restaurant', 'label' => 'Restaurant / F&B', 'icon' => 'fa-utensils',        'type' => 'charge'],
+                                    ['key' => 'laundry',    'label' => 'Laundry',          'icon' => 'fa-shirt',           'type' => 'charge'],
+                                    ['key' => 'tax',        'label' => 'Taxes & Fees',     'icon' => 'fa-landmark',        'type' => 'charge'],
+                                    ['key' => 'discounts',  'label' => 'Discounts',        'icon' => 'fa-tag',             'type' => 'charge'],
+                                    ['key' => 'other',      'label' => 'Other Charges',    'icon' => 'fa-circle-dot',      'type' => 'charge'],
+                                    ['key' => 'payments',   'label' => 'Payments',         'icon' => 'fa-money-bill-wave', 'type' => 'payment'],
+                                ];
+                            @endphp
 
                             <div class="table-responsive">
-
-                                <table class="table table-hover align-middle mb-0">
-
+                                <table class="table table-hover align-middle mb-0 small">
                                     <thead class="table-light">
-
                                         <tr>
-                                            <th style="width:120px;">Date</th>
+                                            <th style="width:110px;">Date</th>
                                             <th>Description</th>
-                                            <th style="width:220px;">Reference</th>
-                                            <th class="text-end" style="width:140px;">Charge</th>
-                                            <th class="text-end" style="width:140px;">Payment</th>
+                                            <th style="width:200px;">Reference</th>
+                                            <th class="text-end" style="width:130px;">Charge (₱)</th>
+                                            <th class="text-end" style="width:130px;">Payment (₱)</th>
                                         </tr>
-
                                     </thead>
-
                                     <tbody>
-
-                                        @foreach($folio->transactions->sortBy('timestamp') as $txn)
-
-                                            <tr>
-
-                                                <td class="small text-muted">
-                                                    {{ $txn->transaction_date->format('M d, Y') }}
-                                                </td>
-
-                                                <td>
-                                                    {{ $txn->chargeCode?->description ?? "Code #{$txn->charge_code}" }}
-                                                </td>
-
-                                                <td class="text-muted small">
-                                                    {{ $txn->reference_notes ?: '—' }}
-                                                </td>
-
-                                                <td class="text-end">
-
-                                                    @if($txn->charge_amount > 0)
-
-                                                        <span class="fw-semibold text-danger">
-                                                            ₱{{ number_format($txn->charge_amount,2) }}
+                                        @foreach($ledgerSections as $section)
+                                            @if($txnsByCategory[$section['key']]->isNotEmpty())
+                                                {{-- Section header row --}}
+                                                <tr class="table-light">
+                                                    <td colspan="5" class="py-1 px-3">
+                                                        <span class="fw-semibold text-secondary" style="font-size:0.72rem;letter-spacing:.06em;text-transform:uppercase;">
+                                                            <i class="fa-solid {{ $section['icon'] }} me-1"></i>
+                                                            {{ $section['label'] }}
                                                         </span>
-
+                                                    </td>
+                                                </tr>
+                                                {{-- Transaction rows --}}
+                                                @foreach($txnsByCategory[$section['key']] as $txn)
+                                                <tr>
+                                                    <td class="text-muted ps-3">{{ $txn->transaction_date->format('M d, Y') }}</td>
+                                                    <td>{{ $txn->chargeCode?->description ?? "Code #{$txn->charge_code}" }}</td>
+                                                    <td class="text-muted">{{ $txn->reference_notes ?: '—' }}</td>
+                                                    <td class="text-end">
+                                                        @if($txn->charge_amount > 0)
+                                                            <span class="fw-semibold text-danger">{{ number_format($txn->charge_amount, 2) }}</span>
+                                                        @else
+                                                            <span class="text-muted">—</span>
+                                                        @endif
+                                                    </td>
+                                                    <td class="text-end">
+                                                        @if($txn->credit_amount > 0)
+                                                            <span class="fw-semibold text-success">{{ number_format($txn->credit_amount, 2) }}</span>
+                                                        @else
+                                                            <span class="text-muted">—</span>
+                                                        @endif
+                                                    </td>
+                                                </tr>
+                                                @endforeach
+                                                {{-- Section subtotal row --}}
+                                                <tr style="border-top:1px dashed #dee2e6;">
+                                                    <td colspan="3" class="text-end py-1 text-muted ps-3" style="font-size:0.75rem;">
+                                                        Subtotal — {{ $section['label'] }}
+                                                    </td>
+                                                    @if($section['type'] === 'payment')
+                                                        <td class="text-end py-1"></td>
+                                                        <td class="text-end py-1 fw-semibold text-success">
+                                                            {{ number_format($txnsByCategory[$section['key']]->sum('credit_amount'), 2) }}
+                                                        </td>
                                                     @else
-
-                                                        <span class="text-muted">—</span>
-
+                                                        <td class="text-end py-1 fw-semibold text-danger">
+                                                            {{ number_format($txnsByCategory[$section['key']]->sum('charge_amount'), 2) }}
+                                                        </td>
+                                                        <td class="text-end py-1"></td>
                                                     @endif
-
-                                                </td>
-
-                                                <td class="text-end">
-
-                                                    @if($txn->credit_amount > 0)
-
-                                                        <span class="fw-semibold text-success">
-                                                            ₱{{ number_format($txn->credit_amount,2) }}
-                                                        </span>
-
-                                                    @else
-
-                                                        <span class="text-muted">—</span>
-
-                                                    @endif
-
-                                                </td>
-
-                                            </tr>
-
+                                                </tr>
+                                            @endif
                                         @endforeach
-
                                     </tbody>
-
-                                    <tfoot class="table-light">
-
+                                    <tfoot class="table-light" style="border-top:2px solid #dee2e6;">
                                         <tr>
-
-                                            <td colspan="3" class="text-end fw-semibold">
-                                                Total Charges
-                                            </td>
-
-                                            <td class="text-end fw-bold text-danger">
-                                                ₱{{ number_format($totalCharge,2) }}
-                                            </td>
-
+                                            <td colspan="3" class="text-end fw-semibold py-2">Total Charges</td>
+                                            <td class="text-end fw-bold text-danger py-2">₱{{ number_format($totalCharge, 2) }}</td>
                                             <td></td>
-
                                         </tr>
-
                                         <tr>
-
-                                            <td colspan="4" class="text-end fw-semibold">
-                                                Total Payments
-                                            </td>
-
-                                            <td class="text-end fw-bold text-success">
-                                                ₱{{ number_format($totalCredit,2) }}
-                                            </td>
-
+                                            <td colspan="3" class="text-end fw-semibold py-2">Total Payments</td>
+                                            <td></td>
+                                            <td class="text-end fw-bold text-success py-2">₱{{ number_format($totalCredit, 2) }}</td>
                                         </tr>
-
-                                        <tr class="border-top">
-
-                                            <td colspan="4" class="text-end fw-bold">
-                                                Balance Due
-                                            </td>
-
-                                            <td class="text-end fw-bold">
-
-                                                @if($balance > 0)
-
-                                                    <span class="text-danger">
-                                                        ₱{{ number_format($balance,2) }}
-                                                    </span>
-
-                                                    <div class="small text-muted">
-                                                        Unpaid
-                                                    </div>
-
-                                                @elseif($balance < 0)
-
-                                                    <span class="text-success">
-                                                        ₱{{ number_format(abs($balance),2) }}
-                                                    </span>
-
-                                                    <div class="small text-muted">
-                                                        Overpaid
-                                                    </div>
-
-                                                @else
-
-                                                    <span class="text-success">
-                                                        ₱0.00
-                                                    </span>
-
-                                                    <div class="small text-muted">
-                                                        Settled
-                                                    </div>
-
-                                                @endif
-
-                                            </td>
-
+                                        <tr style="border-top:2px solid #343a40;">
+                                            <td colspan="3" class="text-end fw-bold py-2 fs-6">Outstanding Balance</td>
+                                            <td class="text-end fw-bold py-2 fs-6 {{ $balance > 0 ? 'text-danger' : ($balance < 0 ? 'text-warning' : 'text-success') }}">₱{{ number_format(abs($balance), 2) }}</td>
+                                            <td class="text-end py-2 small text-muted">{{ $balance > 0 ? 'Unpaid' : ($balance < 0 ? 'Overpaid' : 'Settled') }}</td>
                                         </tr>
-
                                     </tfoot>
-
                                 </table>
-
                             </div>
-
                         @endif
-
                     </div>
 
                 </div>
@@ -1250,29 +1280,36 @@
                 </tr>
             </thead>
             <tbody>
-                @php 
+                @php
                     $runningBal = 0.00;
-                    $roomSalesSum = 0.00;
-                    $govTaxSum = 0.00;
-                    $laundrySum = 0.00;
-                    $otherChargesSum = 0.00;
+                    $printSumRoom = 0.00;
+                    $printSumRestaurant = 0.00;
+                    $printSumLaundry = 0.00;
+                    $printSumTax = 0.00;
+                    $printSumDiscounts = 0.00;
+                    $printSumOther = 0.00;
+                    $printSumPayments = 0.00;
                 @endphp
                 @foreach($folio->transactions->sortBy('timestamp') as $txn)
                     @php
                         $runningBal += ($txn->charge_amount - $txn->credit_amount);
-                        
-                        // Summary classification
-                        if ($txn->charge_amount > 0) {
-                            $code = (int)$txn->charge_code;
-                            if ($code === 100 || $code === 103) {
-                                $roomSalesSum += $txn->charge_amount;
-                            } elseif ($code === 101 || $code === 102) {
-                                $govTaxSum += $txn->charge_amount;
-                            } elseif ($code === 104 || $code === 105) {
-                                $laundrySum += $txn->charge_amount;
-                            } else {
-                                $otherChargesSum += $txn->charge_amount;
-                            }
+                        $printCode = (int) $txn->charge_code;
+                        $printCat  = $txn->chargeCode?->category ?? 'HOTEL';
+
+                        if ($printCat === 'PAYMENT') {
+                            $printSumPayments += $txn->credit_amount;
+                        } elseif ($printCode === 100 || $printCode === 103) {
+                            $printSumRoom += $txn->charge_amount;
+                        } elseif ($printCode === 104 || $printCode === 105) {
+                            $printSumLaundry += $txn->charge_amount;
+                        } elseif ($printCode === 200) {
+                            $printSumRestaurant += $txn->charge_amount;
+                        } elseif ($printCat === 'TAX_SERVICE') {
+                            $printSumTax += $txn->charge_amount;
+                        } elseif ($printCode === 201) {
+                            $printSumDiscounts += $txn->charge_amount;
+                        } else {
+                            $printSumOther += $txn->charge_amount;
                         }
                     @endphp
                     <tr>
@@ -1293,7 +1330,7 @@
                 @endforeach
                 {{-- Total balance row --}}
                 <tr style="border-top: 1px solid #000; border-bottom: 3px double #000; font-weight: bold;">
-                    <td colspan="4" style="padding: 8px 0;">Total Balance - P</td>
+                    <td colspan="4" style="padding: 8px 0;">Total Balance - ₱</td>
                     <td style="padding: 8px 0; text-align: right;">{{ number_format($runningBal, 2) }}</td>
                 </tr>
             </tbody>
@@ -1315,33 +1352,51 @@
             <div style="width: 45%;">
                 <div style="font-weight: bold; font-style: italic; margin-bottom: 8px;">SUMMARY :</div>
                 <table style="width: 100%; border-collapse: collapse; line-height: 1.5;">
-                    @if($roomSalesSum > 0)
+                    @if($printSumRoom > 0)
                         <tr>
-                            <td>ROOM SALES</td>
-                            <td style="text-align: right;">{{ number_format($roomSalesSum, 2) }}</td>
+                            <td>ROOM CHARGES</td>
+                            <td style="text-align: right;">{{ number_format($printSumRoom, 2) }}</td>
                         </tr>
                     @endif
-                    @if($govTaxSum > 0)
+                    @if($printSumRestaurant > 0)
                         <tr>
-                            <td>GOVERNMENT TAX</td>
-                            <td style="text-align: right;">{{ number_format($govTaxSum, 2) }}</td>
+                            <td>RESTAURANT / FOOD &amp; BEVERAGE</td>
+                            <td style="text-align: right;">{{ number_format($printSumRestaurant, 2) }}</td>
                         </tr>
                     @endif
-                    @if($laundrySum > 0)
+                    @if($printSumLaundry > 0)
                         <tr>
-                            <td>LAUNDRY SERVICE AND PRESSING</td>
-                            <td style="text-align: right;">{{ number_format($laundrySum, 2) }}</td>
+                            <td>LAUNDRY SERVICE &amp; PRESSING</td>
+                            <td style="text-align: right;">{{ number_format($printSumLaundry, 2) }}</td>
                         </tr>
                     @endif
-                    @if($otherChargesSum > 0)
+                    @if($printSumTax > 0)
+                        <tr>
+                            <td>TAXES &amp; SERVICE CHARGES</td>
+                            <td style="text-align: right;">{{ number_format($printSumTax, 2) }}</td>
+                        </tr>
+                    @endif
+                    @if($printSumDiscounts > 0)
+                        <tr>
+                            <td>DISCOUNTS / COMPLIMENTARY</td>
+                            <td style="text-align: right;">{{ number_format($printSumDiscounts, 2) }}</td>
+                        </tr>
+                    @endif
+                    @if($printSumOther > 0)
                         <tr>
                             <td>OTHER CHARGES</td>
-                            <td style="text-align: right;">{{ number_format($otherChargesSum, 2) }}</td>
+                            <td style="text-align: right;">{{ number_format($printSumOther, 2) }}</td>
+                        </tr>
+                    @endif
+                    @if($printSumPayments > 0)
+                        <tr style="border-top: 1px solid #999;">
+                            <td>TOTAL PAYMENTS</td>
+                            <td style="text-align: right;">({{ number_format($printSumPayments, 2) }})</td>
                         </tr>
                     @endif
                     <tr style="border-top: 1px solid #000; border-bottom: 3px double #000; font-weight: bold;">
-                        <td style="padding: 5px 0;">Total</td>
-                        <td style="padding: 5px 0; text-align: right;">{{ number_format($roomSalesSum + $govTaxSum + $laundrySum + $otherChargesSum, 2) }}</td>
+                        <td style="padding: 5px 0;">OUTSTANDING BALANCE</td>
+                        <td style="padding: 5px 0; text-align: right;">{{ number_format($runningBal, 2) }}</td>
                     </tr>
                 </table>
             </div>
@@ -1586,6 +1641,64 @@
                 }
             });
         });
+
+        // SweetAlert2 helpers — Module 6
+        window.swalConfirmCheckIn = function(btn, guestName, roomNumber) {
+            Swal.fire({
+                icon: 'question',
+                title: 'Confirm Check-In',
+                html: 'Check in <strong>' + (guestName || 'guest') + '</strong> to Room <strong>' + (roomNumber || '—') + '</strong>?',
+                showCancelButton: true,
+                confirmButtonText: '<i class="fa-solid fa-door-open me-1"></i> Check In',
+                cancelButtonText: 'Cancel',
+                confirmButtonColor: '#0d6efd',
+                reverseButtons: true,
+            }).then(function(result) {
+                if (result.isConfirmed) {
+                    var form = btn.closest('form');
+                    if (form) {
+                        sessionStorage.setItem('openModalId', form.closest('.modal').id);
+                        form.submit();
+                    }
+                }
+            });
+        };
+
+        window.swalConfirmTransfer = function(btn) {
+            var form = btn.closest('form');
+            var select = form ? form.querySelector('select[name="new_room_id"]') : null;
+            var selectedText = select && select.selectedIndex > 0
+                ? select.options[select.selectedIndex].text.trim()
+                : null;
+
+            if (!selectedText) {
+                Swal.fire({
+                    icon: 'warning',
+                    title: 'No Room Selected',
+                    text: 'Please select a room before transferring.',
+                    confirmButtonColor: '#ffc107',
+                });
+                return;
+            }
+
+            Swal.fire({
+                icon: 'question',
+                title: 'Confirm Room Transfer',
+                html: 'Transfer guest to <strong>' + selectedText + '</strong>?',
+                showCancelButton: true,
+                confirmButtonText: '<i class="fa-solid fa-right-left me-1"></i> Transfer',
+                cancelButtonText: 'Cancel',
+                confirmButtonColor: '#0d6efd',
+                reverseButtons: true,
+            }).then(function(result) {
+                if (result.isConfirmed) {
+                    if (form) {
+                        sessionStorage.setItem('openModalId', form.closest('.modal').id);
+                        form.submit();
+                    }
+                }
+            });
+        };
 
     })();
 </script>

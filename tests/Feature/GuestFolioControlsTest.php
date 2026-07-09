@@ -124,6 +124,20 @@ test('user can post a payment transaction to a folio', function (): void {
     $guest = Guest::create(['last_name' => 'Cruz', 'first_name' => 'Juan']);
     $folio = Folio::create(['folio_number' => 'REG-2026001', 'guest_id' => $guest->guest_id, 'status' => 'OPEN']);
 
+    // Create a charge transaction first so the folio is not settled and has a balance
+    Transaction::create([
+        'folio_id' => $folio->folio_id,
+        'charge_code' => $this->cleaningChargeCode->charge_code,
+        'shift_id' => $this->shift->shift_id,
+        'user_id' => $this->frontdeskUser->user_id,
+        'transaction_date' => now()->toDateString(),
+        'charge_number' => 'CHG-001',
+        'payment_method' => 'NONE',
+        'reference_notes' => 'Surcharge',
+        'charge_amount' => 1000.00,
+        'credit_amount' => 0.00,
+    ]);
+
     $response = $this->actingAs($this->frontdeskUser)
         ->post(route('frontdesk.guest-folio.transaction', $folio->folio_id), [
             'charge_code' => $this->cashPaymentCode->charge_code,
