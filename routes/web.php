@@ -204,6 +204,9 @@ Route::middleware('auth')->group(function () {
         Route::get('/dashboard', [CoffeeshopDashboardController::class, 'index'])
             ->name('coffeeshop.dashboard');
 
+        Route::get('/dashboard/recent-orders-partial', [CoffeeshopDashboardController::class, 'recentOrdersPartial'])
+            ->name('coffeeshop.dashboard.recent-orders-partial');
+
         Route::get('/pos', [CoffeeshopPosController::class, 'index'])
             ->name('coffeeshop.pos');
 
