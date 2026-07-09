@@ -8,7 +8,7 @@
     <style>
         /* Custom list wrapper with scrolling and nice scrollbar */
         .dashboard-list-scroll {
-            height: 320px;
+            height: 350px;
             overflow-y: auto;
             padding-right: 4px;
             scrollbar-width: thin;
@@ -323,17 +323,11 @@
     <!-- MATRIX -->
     <div class="card border-0 shadow-sm mt-4">
 
-        <div class="card-header bg-white border-0 d-flex justify-content-between align-items-center flex-wrap gap-2">
+        <div class="card-header bg-white border-0">
             <h6 class="fw-bold mb-0">Role Permission Matrix</h6>
-            <!-- Search Box -->
-            <div class="search-container mb-0" style="width: 250px;">
-                <i class="fa-solid fa-magnifying-glass search-icon"></i>
-                <input type="text" id="matrix-search" class="form-control search-input py-1.5"
-                    placeholder="Filter permissions...">
-            </div>
         </div>
 
-        <div class="card-body pt-0">
+        <div class="card-body">
 
             <div class="matrix-table-scroll border rounded-3">
 
@@ -411,10 +405,9 @@
                 setupLiveFilter('role-search', '.role-item');
                 setupLiveFilter('permission-search', '.permission-item');
                 setupLiveFilter('user-search', '.user-item');
-                setupLiveFilter('matrix-search', '.matrix-row');
 
                 // Clear search inputs on load/reload to stay in sync with lists
-                ['role-search', 'permission-search', 'user-search', 'matrix-search'].forEach(id => {
+                ['role-search', 'permission-search', 'user-search'].forEach(id => {
                     const input = document.getElementById(id);
                     if (input) {
                         input.value = '';
