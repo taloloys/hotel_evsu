@@ -425,7 +425,35 @@
             .catch(err => console.error('Error fetching layout data:', err));
         }
 
+        // Restore sidebar scroll position from sessionStorage
+        function restoreSidebarScroll() {
+            const sidebar = document.querySelector('.sidebar');
+            if (sidebar) {
+                const scrollTop = sessionStorage.getItem('sidebar-scroll');
+                if (scrollTop !== null) {
+                    sidebar.scrollTop = parseInt(scrollTop, 10);
+                }
+            }
+        }
+
+        // Listen for scroll events on the sidebar using capturing event listener at document level
+        document.addEventListener('scroll', function(event) {
+            const target = event.target;
+            if (target && target.classList && target.classList.contains('sidebar')) {
+                sessionStorage.setItem('sidebar-scroll', target.scrollTop);
+            }
+        }, true);
+
+        // Clear sidebar scroll position on logout form submit
+        document.addEventListener('submit', function(event) {
+            const action = event.target.getAttribute('action');
+            if (action && action.includes('logout')) {
+                sessionStorage.removeItem('sidebar-scroll');
+            }
+        });
+
         document.addEventListener('turbo:load', function() {
+            restoreSidebarScroll();
             fetchLayoutData();
             if (window.layoutDataInterval) {
                 clearInterval(window.layoutDataInterval);
@@ -453,11 +481,22 @@
 
         // Ensure no stray backdrops or modal-open classes are carried over to the new body
         document.addEventListener('turbo:before-render', function(event) {
+            const newSidebar = event.detail.newBody.querySelector('.sidebar');
+            if (newSidebar) {
+                const scrollTop = sessionStorage.getItem('sidebar-scroll');
+                if (scrollTop !== null) {
+                    newSidebar.scrollTop = parseInt(scrollTop, 10);
+                }
+            }
+
             event.detail.newBody.querySelectorAll('.modal-backdrop').forEach(backdrop => backdrop.remove());
             event.detail.newBody.classList.remove('modal-open');
             event.detail.newBody.style.removeProperty('overflow');
             event.detail.newBody.style.removeProperty('padding-right');
         });
+
+        // Restore scroll position after new body is rendered
+        document.addEventListener('turbo:render', restoreSidebarScroll);
     </script>
 
     @stack('styles')
