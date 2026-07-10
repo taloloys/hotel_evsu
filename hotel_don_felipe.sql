@@ -585,7 +585,8 @@ CREATE TABLE `users` (
 --
 ALTER TABLE `activitylogs`
   ADD PRIMARY KEY (`log_id`),
-  ADD KEY `activitylogs_user_id_index` (`user_id`);
+  ADD KEY `activitylogs_user_id_index` (`user_id`),
+  ADD KEY `idx_activitylogs_timestamp` (`timestamp`);
 
 --
 -- Indexes for table `bookings`
@@ -594,7 +595,8 @@ ALTER TABLE `bookings`
   ADD PRIMARY KEY (`booking_id`),
   ADD KEY `bookings_folio_id_index` (`folio_id`),
   ADD KEY `bookings_room_id_index` (`room_id`),
-  ADD KEY `bookings_checked_in_by_foreign` (`checked_in_by`);
+  ADD KEY `bookings_checked_in_by_foreign` (`checked_in_by`),
+  ADD KEY `idx_bookings_arrival_departure` (`arrival_date`,`departure_date`);
 
 --
 -- Indexes for table `cache`
@@ -653,13 +655,15 @@ ALTER TABLE `folios`
   ADD UNIQUE KEY `folios_folio_number_unique` (`folio_number`),
   ADD UNIQUE KEY `folios_registration_number_unique` (`registration_number`),
   ADD KEY `folios_guest_id_index` (`guest_id`),
-  ADD KEY `folios_credit_account_id_foreign` (`credit_account_id`);
+  ADD KEY `folios_credit_account_id_foreign` (`credit_account_id`),
+  ADD KEY `idx_folios_status` (`status`);
 
 --
 -- Indexes for table `guests`
 --
 ALTER TABLE `guests`
-  ADD PRIMARY KEY (`guest_id`);
+  ADD PRIMARY KEY (`guest_id`),
+  ADD KEY `idx_guests_search_name` (`last_name`,`first_name`);
 
 --
 -- Indexes for table `jobs`
@@ -824,7 +828,8 @@ ALTER TABLE `transactions`
   ADD KEY `transactions_folio_id_index` (`folio_id`),
   ADD KEY `transactions_charge_code_index` (`charge_code`),
   ADD KEY `transactions_shift_id_index` (`shift_id`),
-  ADD KEY `transactions_user_id_index` (`user_id`);
+  ADD KEY `transactions_user_id_index` (`user_id`),
+  ADD KEY `idx_transactions_reporting_date` (`transaction_date`,`timestamp`);
 
 --
 -- Indexes for table `userpermissions`
