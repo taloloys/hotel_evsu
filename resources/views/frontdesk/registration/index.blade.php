@@ -123,6 +123,18 @@
             <!-- Card Body -->
             <div class="card-body">
 
+                <div class="row mb-4">
+                    <div class="col-12 position-relative">
+                        <label class="form-label fw-semibold text-primary" for="guest_search">
+                            <i class="fa-solid fa-magnifying-glass me-1"></i> Search Existing Guest (Optional)
+                        </label>
+                        <input type="text" class="form-control shadow-none border-primary" id="guest_search" placeholder="Search by name to autofill..." style="height:46px; background-color: #f8fbff;">
+                        <ul class="list-group position-absolute w-100 mt-1 shadow d-none" id="guest_suggestions" style="z-index: 1050; max-height: 250px; overflow-y: auto;">
+                        </ul>
+                    </div>
+                </div>
+                <hr class="mb-4">
+
                 <div class="row g-4">
 
                     <!-- First Name -->
@@ -696,6 +708,80 @@
                     const nextDay = new Date(this.value);
                     nextDay.setDate(nextDay.getDate() + 1);
                     departureDate.value = nextDay.toISOString().split('T')[0];
+                }
+            });
+        }
+
+        // Guest Autocomplete
+        const guestSearch = document.getElementById('guest_search');
+        const guestSuggestions = document.getElementById('guest_suggestions');
+        
+        let searchTimeout;
+
+        if (guestSearch && guestSuggestions) {
+            guestSearch.addEventListener('input', function() {
+                clearTimeout(searchTimeout);
+                const query = this.value.trim();
+
+                if (query.length < 2) {
+                    guestSuggestions.classList.add('d-none');
+                    guestSuggestions.innerHTML = '';
+                    return;
+                }
+
+                searchTimeout = setTimeout(() => {
+                    fetch(`{{ route('frontdesk.guests.search') }}?q=${encodeURIComponent(query)}`)
+                        .then(response => response.json())
+                        .then(guests => {
+                            guestSuggestions.innerHTML = '';
+                            
+                            if (guests.length === 0) {
+                                guestSuggestions.innerHTML = '<li class="list-group-item text-muted">No guests found.</li>';
+                                guestSuggestions.classList.remove('d-none');
+                                return;
+                            }
+
+                            guests.forEach(guest => {
+                                const li = document.createElement('li');
+                                li.className = 'list-group-item list-group-item-action cursor-pointer';
+                                li.style.cursor = 'pointer';
+                                
+                                const nameDiv = document.createElement('div');
+                                nameDiv.className = 'fw-bold';
+                                nameDiv.textContent = `${guest.first_name} ${guest.last_name}`;
+                                
+                                const detailsDiv = document.createElement('div');
+                                detailsDiv.className = 'small text-muted';
+                                detailsDiv.textContent = [guest.contact_number, guest.address_line1].filter(Boolean).join(' • ');
+                                
+                                li.appendChild(nameDiv);
+                                if (detailsDiv.textContent) li.appendChild(detailsDiv);
+
+                                li.addEventListener('click', () => {
+                                    document.getElementById('first_name').value = guest.first_name || '';
+                                    document.getElementById('last_name').value = guest.last_name || '';
+                                    document.getElementById('address_line1').value = guest.address_line1 || '';
+                                    document.getElementById('contact_number').value = guest.contact_number || '';
+                                    
+                                    guestSearch.value = `${guest.first_name} ${guest.last_name}`;
+                                    guestSuggestions.classList.add('d-none');
+                                });
+
+                                guestSuggestions.appendChild(li);
+                            });
+                            
+                            guestSuggestions.classList.remove('d-none');
+                        })
+                        .catch(error => {
+                            console.error('Error fetching guests:', error);
+                        });
+                }, 300); // Debounce delay
+            });
+
+            // Hide suggestions when clicking outside
+            document.addEventListener('click', function(e) {
+                if (!guestSearch.contains(e.target) && !guestSuggestions.contains(e.target)) {
+                    guestSuggestions.classList.add('d-none');
                 }
             });
         }
