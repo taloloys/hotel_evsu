@@ -11,9 +11,9 @@
     <h5 class="mb-0 text-muted">Overview</h5>
     <form method="GET" action="{{ route('accounting.dashboard') }}" class="d-flex align-items-center" data-turbo="true">
         <label for="filter" class="me-2 text-muted mb-0 small">Filter:</label>
-        <select name="filter" id="filter" class="form-select form-select-sm w-auto" onchange="this.form.submit()">
-            <option value="all" {{ ($filter ?? 'all') == 'all' ? 'selected' : '' }}>All Time</option>
-            <option value="today" {{ ($filter ?? '') == 'today' ? 'selected' : '' }}>Today</option>
+        <select name="filter" id="filter" class="form-select form-select-sm w-auto" onchange="this.form.requestSubmit()">
+            <option value="all" {{ ($filter ?? '') == 'all' ? 'selected' : '' }}>All Time</option>
+            <option value="today" {{ ($filter ?? 'today') == 'today' ? 'selected' : '' }}>Today</option>
             <option value="weekly" {{ ($filter ?? '') == 'weekly' ? 'selected' : '' }}>This Week</option>
             <option value="monthly" {{ ($filter ?? '') == 'monthly' ? 'selected' : '' }}>This Month</option>
             <option value="yearly" {{ ($filter ?? '') == 'yearly' ? 'selected' : '' }}>This Year</option>
@@ -27,8 +27,8 @@
     <div class="col-lg-3">
         <div class="card border-1 shadow-sm">
             <div class="card-body">
-                <div class="text-muted large">Revenue</div>
-                <div class="fw-bold fs-4">₱{{ number_format($revenue, 2) }}</div>
+                <div class="text-muted large">Cash Sales</div>
+                <div class="fw-bold fs-4">₱{{ number_format($cashIn, 2) }}</div>
             </div>
         </div>
     </div>
@@ -36,8 +36,8 @@
     <div class="col-lg-3">
         <div class="card border-1 shadow-sm">
             <div class="card-body">
-                <div class="text-muted large">Profit</div>
-                <div class="fw-bold fs-4 text-primary">₱{{ number_format($profit, 2) }}</div>
+                <div class="text-muted large">Credit</div>
+                <div class="fw-bold fs-4 text-primary">₱{{ number_format($cashInCard, 2) }}</div>
             </div>
         </div>
     </div>

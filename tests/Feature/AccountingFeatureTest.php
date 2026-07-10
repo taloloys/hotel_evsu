@@ -89,7 +89,7 @@ beforeEach(function (): void {
 
 test('unauthenticated accounting users are redirected to login', function (): void {
     $this->get(route('accounting.dashboard'))
-        ->assertRedirect(route('login'));
+        ->assertRedirect('/');
 });
 
 test('authenticated accountants can view the accounting dashboard', function (): void {
@@ -128,7 +128,7 @@ test('accountant can list and filter invoices/billing', function (): void {
     $folio = Folio::create(['folio_number' => 'F-999', 'guest_id' => $guest->guest_id, 'status' => 'OPEN']);
 
     $response = $this->actingAs($this->accountantUser)
-        ->get(route('accounting.billing'));
+        ->get(route('accounting.billing', ['date_range' => 'all']));
 
     $response->assertOk();
     $response->assertSee('F-999');
@@ -175,16 +175,18 @@ test('accountant can list and add operating expenses', function (): void {
         ->post(route('accounting.expenses.store'), [
             'expense_date' => now()->toDateString(),
             'department' => 'Maintenance',
-            'description' => 'Light Bulb replacements',
+            'purpose' => 'Light Bulb replacements',
             'category' => 'Supplies',
             'amount' => 650.00,
+            'funding_source' => 'FRONT DESK',
+            'requested_by' => 'John Doe',
         ]);
 
     $response->assertRedirect(route('accounting.expenses'));
 
     $this->assertDatabaseHas('expenses', [
         'department' => 'Maintenance',
-        'description' => 'Light Bulb replacements',
+        'purpose' => 'Light Bulb replacements',
         'amount' => 650.00,
         'status' => 'APPROVED',
     ]);

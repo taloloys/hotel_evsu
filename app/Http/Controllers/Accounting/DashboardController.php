@@ -13,7 +13,7 @@ class DashboardController extends Controller
 {
     public function index(Request $request): View
     {
-        $filter = $request->query('filter', 'all');
+        $filter = $request->query('filter', 'today');
 
         $txQuery = Transaction::query();
         $expenseQuery = Expense::query();
@@ -22,21 +22,29 @@ class DashboardController extends Controller
         });
 
         if ($filter === 'today') {
-            $txQuery->whereDate('timestamp', Carbon::today());
-            $expenseQuery->whereDate('expense_date', Carbon::today());
-            $receivablesBaseQuery->whereDate('timestamp', Carbon::today());
+            $start = Carbon::today();
+            $end = Carbon::today()->endOfDay();
+            $txQuery->whereBetween('timestamp', [$start, $end]);
+            $expenseQuery->whereBetween('expense_date', [$start, $end]);
+            $receivablesBaseQuery->whereBetween('timestamp', [$start, $end]);
         } elseif ($filter === 'weekly') {
-            $txQuery->whereBetween('timestamp', [Carbon::now()->startOfWeek(), Carbon::now()->endOfWeek()]);
-            $expenseQuery->whereBetween('expense_date', [Carbon::now()->startOfWeek(), Carbon::now()->endOfWeek()]);
-            $receivablesBaseQuery->whereBetween('timestamp', [Carbon::now()->startOfWeek(), Carbon::now()->endOfWeek()]);
+            $start = Carbon::now()->startOfWeek();
+            $end = Carbon::now()->endOfWeek();
+            $txQuery->whereBetween('timestamp', [$start, $end]);
+            $expenseQuery->whereBetween('expense_date', [$start, $end]);
+            $receivablesBaseQuery->whereBetween('timestamp', [$start, $end]);
         } elseif ($filter === 'monthly') {
-            $txQuery->whereMonth('timestamp', Carbon::now()->month)->whereYear('timestamp', Carbon::now()->year);
-            $expenseQuery->whereMonth('expense_date', Carbon::now()->month)->whereYear('expense_date', Carbon::now()->year);
-            $receivablesBaseQuery->whereMonth('timestamp', Carbon::now()->month)->whereYear('timestamp', Carbon::now()->year);
+            $start = Carbon::now()->startOfMonth();
+            $end = Carbon::now()->endOfMonth();
+            $txQuery->whereBetween('timestamp', [$start, $end]);
+            $expenseQuery->whereBetween('expense_date', [$start, $end]);
+            $receivablesBaseQuery->whereBetween('timestamp', [$start, $end]);
         } elseif ($filter === 'yearly') {
-            $txQuery->whereYear('timestamp', Carbon::now()->year);
-            $expenseQuery->whereYear('expense_date', Carbon::now()->year);
-            $receivablesBaseQuery->whereYear('timestamp', Carbon::now()->year);
+            $start = Carbon::now()->startOfYear();
+            $end = Carbon::now()->endOfYear();
+            $txQuery->whereBetween('timestamp', [$start, $end]);
+            $expenseQuery->whereBetween('expense_date', [$start, $end]);
+            $receivablesBaseQuery->whereBetween('timestamp', [$start, $end]);
         }
 
         // 1. Core KPIs
