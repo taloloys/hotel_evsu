@@ -82,7 +82,22 @@
                         <td class="fw-semibold">{{ $order->order_number }}</td>
                         <td>{{ $order->customer_name }}</td>
                         <td>{{ $order->room_number ?? '—' }}</td>
-                        <td>{{ $order->payment_method ? str_replace('_', ' ', strtoupper($order->payment_method)) : '—' }}</td>
+                        <td>
+                            @if($order->payment_method)
+                                @php
+                                    $paymentBadge = match($order->payment_method) {
+                                        'room_charge' => 'bg-info',
+                                        'account_charge' => 'bg-primary',
+                                        default => 'bg-secondary'
+                                    };
+                                @endphp
+                                <span class="badge {{ $paymentBadge }} text-white">
+                                    {{ str_replace('_', ' ', strtoupper($order->payment_method)) }}
+                                </span>
+                            @else
+                                —
+                            @endif
+                        </td>
                         <td class="fw-bold text-primary">₱{{ number_format($order->total, 2) }}</td>
                         <td>
                             <span class="badge bg-secondary">{{ strtoupper($order->status) }}</span>

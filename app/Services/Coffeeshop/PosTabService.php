@@ -52,12 +52,14 @@ class PosTabService
 
         $product = PosProduct::active()->findOrFail($productId);
 
-        if ($product->stock_quantity < $quantity) {
+        if ($product->is_stockable && $product->stock_quantity < $quantity) {
             throw new RuntimeException("Insufficient stock for {$product->name}. Available: {$product->stock_quantity}.");
         }
 
         return DB::transaction(function () use ($tab, $product, $quantity) {
-            $this->inventoryService->adjustStock($product, -$quantity, 'sale', 'pos_tab', $tab->tab_id, "Added to tab {$tab->tab_name}");
+            if ($product->is_stockable) {
+                $this->inventoryService->adjustStock($product, -$quantity, 'sale', 'pos_tab', $tab->tab_id, "Added to tab {$tab->tab_name}");
+            }
 
             $existing = PosTabItem::where('tab_id', $tab->tab_id)
                 ->where('product_id', $product->product_id)
@@ -67,7 +69,7 @@ class PosTabService
                 $newQty = $existing->quantity + $quantity;
                 $existing->update([
                     'quantity' => $newQty,
-                    'line_total' => $newQty * $existing->unit_price,
+                    'line_total' => round($newQty * (float) $existing->unit_price, 2),
                 ]);
             } else {
                 PosTabItem::create([
@@ -75,7 +77,7 @@ class PosTabService
                     'product_id' => $product->product_id,
                     'quantity' => $quantity,
                     'unit_price' => $product->price,
-                    'line_total' => $quantity * $product->price,
+                    'line_total' => round($quantity * (float) $product->price, 2),
                 ]);
             }
 
@@ -103,18 +105,20 @@ class PosTabService
         $diff = $quantity - $item->quantity;
 
         return DB::transaction(function () use ($tab, $item, $quantity, $product, $diff) {
-            if ($diff > 0) {
-                if ($product->stock_quantity < $diff) {
-                    throw new RuntimeException("Insufficient stock for {$product->name}. Available: {$product->stock_quantity}.");
+            if ($product->is_stockable) {
+                if ($diff > 0) {
+                    if ($product->stock_quantity < $diff) {
+                        throw new RuntimeException("Insufficient stock for {$product->name}. Available: {$product->stock_quantity}.");
+                    }
+                    $this->inventoryService->adjustStock($product, -$diff, 'sale', 'pos_tab', $tab->tab_id, 'Increased tab item quantity');
+                } elseif ($diff < 0) {
+                    $this->inventoryService->adjustStock($product, abs($diff), 'cancel', 'pos_tab', $tab->tab_id, 'Decreased tab item quantity');
                 }
-                $this->inventoryService->adjustStock($product, -$diff, 'sale', 'pos_tab', $tab->tab_id, 'Increased tab item quantity');
-            } elseif ($diff < 0) {
-                $this->inventoryService->adjustStock($product, abs($diff), 'cancel', 'pos_tab', $tab->tab_id, 'Decreased tab item quantity');
             }
 
             $item->update([
                 'quantity' => $quantity,
-                'line_total' => $quantity * $item->unit_price,
+                'line_total' => round($quantity * (float) $item->unit_price, 2),
             ]);
 
             $tab->recalculateTotals();
@@ -132,7 +136,9 @@ class PosTabService
         $product = PosProduct::findOrFail($item->product_id);
 
         return DB::transaction(function () use ($tab, $item, $product) {
-            $this->inventoryService->adjustStock($product, $item->quantity, 'cancel', 'pos_tab', $tab->tab_id, 'Removed tab item');
+            if ($product->is_stockable) {
+                $this->inventoryService->adjustStock($product, $item->quantity, 'cancel', 'pos_tab', $tab->tab_id, 'Removed tab item');
+            }
 
             $item->delete();
             $tab->recalculateTotals();
@@ -151,7 +157,7 @@ class PosTabService
             $tab->load('items');
             foreach ($tab->items as $item) {
                 $product = PosProduct::find($item->product_id);
-                if ($product) {
+                if ($product && $product->is_stockable) {
                     $this->inventoryService->adjustStock($product, $item->quantity, 'cancel', 'pos_tab', $tab->tab_id, 'Tab cancelled');
                 }
             }
@@ -223,6 +229,15 @@ class PosTabService
     {
         if ($tab->status !== 'open') {
             throw new RuntimeException('Cannot apply discount to closed tab.');
+        }
+
+        if ($isPercentage && $amount > 100) {
+            throw new RuntimeException('Discount percentage cannot exceed 100%.');
+        }
+
+        $subtotal = round((float) $tab->items()->sum('line_total'), 2);
+        if (! $isPercentage && $amount > $subtotal) {
+            throw new RuntimeException('Discount amount cannot exceed the total sum of the order.');
         }
 
         $tab->update([

@@ -19,6 +19,7 @@ class PosProduct extends Model
         'stock_quantity',
         'low_stock_threshold',
         'is_active',
+        'is_stockable',
     ];
 
     protected function casts(): array
@@ -26,6 +27,7 @@ class PosProduct extends Model
         return [
             'price' => 'decimal:2',
             'is_active' => 'boolean',
+            'is_stockable' => 'boolean',
         ];
     }
 
@@ -55,6 +57,7 @@ class PosProduct extends Model
         $default = PosSetting::defaultLowStockThreshold();
 
         return $query->where('is_active', true)
+            ->where('is_stockable', true)
             ->where(function ($q) use ($default) {
                 $q->where(function ($sub) use ($default) {
                     $sub->whereNull('low_stock_threshold')
@@ -73,6 +76,10 @@ class PosProduct extends Model
 
     public function isLowStock(): bool
     {
+        if (! $this->is_stockable) {
+            return false;
+        }
+
         return $this->stock_quantity <= $this->effectiveLowStockThreshold();
     }
 

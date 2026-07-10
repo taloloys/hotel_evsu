@@ -34,10 +34,10 @@
     const activeTabTotal = document.getElementById('active-tab-total');
     const activeTabBadge = document.getElementById('active-tab-badge');
     const activeTabPendingAlert = document.getElementById('active-tab-pending-alert');
-    
+
     const paymentModal = new bootstrap.Modal(document.getElementById('paymentModal'));
     const paymentModalAmount = document.getElementById('payment-modal-amount');
-    
+
     const cancelTabModal = new bootstrap.Modal(document.getElementById('cancelTabModal'));
     const cancelTabWarningText = document.getElementById('cancel-tab-warning-text');
     const cancelReasonContainer = document.getElementById('cancel-reason-container');
@@ -50,6 +50,29 @@
     function showPosAlert(message) {
         posAlertModalMessage.textContent = message;
         posAlertModal.show();
+    }
+
+    async function confirmItemRemoval() {
+        if (window.Swal) {
+            const result = await Swal.fire({
+                title: 'Are you sure?',
+                text: 'Do you want to remove this item from the cart?',
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonText: 'Yes',
+                cancelButtonText: 'Cancel',
+                focusCancel: true,
+                reverseButtons: true,
+                customClass: {
+                    actions: 'gap-2',
+                    confirmButton: 'btn btn-danger',
+                    cancelButton: 'btn btn-secondary'
+                },
+                buttonsStyling: false
+            });
+            return result.isConfirmed;
+        }
+        return confirm('Are you sure you want to remove this item from the cart?');
     }
 
     // Tab Type inputs
@@ -133,7 +156,7 @@
         }
 
         tabSwitcher.innerHTML = '';
-        
+
         // "+ New Tab" button
         const newBtn = document.createElement('button');
         newBtn.type = 'button';
@@ -148,7 +171,18 @@
         tabs.forEach(tab => {
             const btn = document.createElement('button');
             btn.type = 'button';
-            btn.className = `btn ${tab.tab_id === activeTabId ? 'btn-primary' : 'btn-outline-secondary'}`;
+
+            let btnClass = '';
+            const isActive = tab.tab_id === activeTabId;
+            if (tab.tab_type === 'room') {
+                btnClass = isActive ? 'btn-info text-white' : 'btn-outline-info';
+            } else if (tab.tab_type === 'account') {
+                btnClass = isActive ? 'btn-primary' : 'btn-outline-primary';
+            } else {
+                btnClass = isActive ? 'btn-secondary text-white' : 'btn-outline-secondary';
+            }
+
+            btn.className = `btn ${btnClass}`;
             btn.textContent = `${tab.tab_name} (${formatMoney(tab.total)})`;
             btn.addEventListener('click', () => {
                 activeTabId = tab.tab_id;
@@ -354,7 +388,9 @@
 
         cartItems.querySelectorAll('.remove-item-btn').forEach(btn => {
             btn.addEventListener('click', async () => {
-                await updateItemQuantity(btn.dataset.itemId, 0);
+                if (await confirmItemRemoval()) {
+                    await updateItemQuantity(btn.dataset.itemId, 0);
+                }
             });
         });
     }
@@ -370,13 +406,14 @@
         products.forEach(product => {
             const col = document.createElement('div');
             col.className = 'col-md-3 col-6 product-tile';
-           col.innerHTML = `
-            <div class="coffeeshop-card h-100 ${product.stock_quantity <= 0 ? 'opacity-50' : ''}">
+            const isOutOfStock = product.is_stockable && product.stock_quantity <= 0;
+            col.innerHTML = `
+            <div class="coffeeshop-card h-100 ${isOutOfStock ? 'opacity-50' : ''}">
                 <div class="card-body d-flex flex-column text-center">
 
                     ${product.image_url
-                        ? `<div class="mb-3 rounded w-100 overflow-hidden" style="height: 120px;"><img src="${product.image_url}" class="w-100 h-100" style="object-fit: cover;" alt="${product.name}"></div>`
-                        : `<div class="mb-3 rounded w-100 bg-light d-flex align-items-center justify-content-center" style="height: 120px;"><i class="fa-solid fa-image fa-2x text-secondary opacity-50"></i></div>`}
+                    ? `<div class="mb-3 rounded w-100 overflow-hidden" style="height: 120px;"><img src="${product.image_url}" class="w-100 h-100" style="object-fit: cover;" alt="${product.name}"></div>`
+                    : `<div class="mb-3 rounded w-100 bg-light d-flex align-items-center justify-content-center" style="height: 120px;"><i class="fa-solid fa-image fa-2x text-secondary opacity-50"></i></div>`}
 
                     <div class="fw-semibold">${product.name}</div>
 
@@ -392,15 +429,15 @@
                         ${formatMoney(product.price)}
                     </div>
 
-                    <small class="${product.is_low_stock ? 'text-danger' : 'text-muted'}">
-                        Stock: ${product.stock_quantity}
+                    <small class="${!product.is_stockable ? 'text-success' : (isOutOfStock ? 'text-danger' : 'text-muted')}">
+                        ${!product.is_stockable ? 'Available' : (isOutOfStock ? 'Sold out' : `Stock: ${product.stock_quantity}`)}
                     </small>
 
                     <button
                         type="button"
                         class="btn btn-primary w-100 mt-auto add-product-btn"
                         data-product-id="${product.product_id}"
-                        ${product.stock_quantity <= 0 ? 'disabled' : ''}>
+                        ${isOutOfStock ? 'disabled' : ''}>
                         ADD
                     </button>
 
@@ -412,7 +449,7 @@
 
         bindProductButtons();
     }
-    
+
 
     async function loadProducts() {
         const params = new URLSearchParams();
@@ -526,7 +563,7 @@
     }
     function showReceipt(data) {
         const receiptEl = document.getElementById('receipt-content');
-        
+
         const order = data.order || {};
         const items = order.items || [];
 
@@ -738,7 +775,7 @@
                 method: 'POST',
                 body: JSON.stringify(payload),
             });
-            
+
             tabs.unshift(data.tab);
             activeTabId = data.tab.tab_id;
             document.getElementById('new-tab-name').value = '';
@@ -803,7 +840,7 @@
                 body: JSON.stringify(payload)
             });
             showAlert(data.message);
-            
+
             if (isEmpty || isAdmin) {
                 tabs = tabs.filter(t => t.tab_id !== activeTabId);
                 renderTabs();
@@ -828,7 +865,7 @@
 
             showReceipt(data);
 
-            
+
             tabs = tabs.filter(t => t.tab_id !== activeTabId);
             renderTabs();
             loadProducts();
@@ -890,9 +927,9 @@
 
         if (!tab) return;
 
-        const received = parseFloat(cashReceived.value) || 0;
-
-        const change = received - tab.total;
+        const received = Math.round((parseFloat(cashReceived.value) || 0) * 100) / 100;
+        const total = Math.round(tab.total * 100) / 100;
+        const change = received - total;
 
         cashChange.textContent = formatMoney(
             Math.max(change, 0)
@@ -903,40 +940,41 @@
     // Charge to Room Click (Direct Post via Custom Modal)
 
     document.getElementById('confirm-cash-payment')
-    .addEventListener('click', async () => {
+        .addEventListener('click', async () => {
 
-        const tab = getActiveTab();
+            const tab = getActiveTab();
 
-        if (!tab) return;
+            if (!tab) return;
 
-        const received = parseFloat(
-            document.getElementById('cash-received').value
-        ) || 0;
+            const received = Math.round((parseFloat(
+                document.getElementById('cash-received').value
+            ) || 0) * 100) / 100;
+            const total = Math.round(tab.total * 100) / 100;
 
-        if (received < tab.total) {
+            if (received < total) {
 
-            showAlert('Insufficient cash.', 'danger');
+                showAlert('Insufficient cash.', 'danger');
 
-            return;
-        }
+                return;
+            }
 
-        paymentModal.hide();
+            paymentModal.hide();
 
-        document.getElementById('cash-calculator')
-            .classList.add('d-none');
+            document.getElementById('cash-calculator')
+                .classList.add('d-none');
 
-        document.getElementById('cash-received').value = '';
+            document.getElementById('cash-received').value = '';
 
-        document.getElementById('cash-change').textContent = '₱0.00';
+            document.getElementById('cash-change').textContent = '₱0.00';
 
-        await executeClose({
-            payment_method: 'cash'
+            await executeClose({
+                payment_method: 'cash'
+            });
+
         });
-
-    });
     let roomChargeCallback = null;
     let selectedGuestData = null;
-    
+
     document.getElementById('charge-room-btn').addEventListener('click', async () => {
         const btn = document.getElementById('charge-room-btn');
         const originalLabel = btn.innerHTML;
@@ -967,10 +1005,10 @@
                     }
                 });
                 const data = await response.json();
-                
+
                 const guestSelect = document.getElementById('charge-guest-select');
                 guestSelect.innerHTML = '<option value="">Select a guest...</option>';
-                
+
                 if (data.guests && data.guests.length > 0) {
                     data.guests.forEach(guest => {
                         const option = document.createElement('option');
@@ -1008,7 +1046,7 @@
                     folio_id: selectedGuestData.folio_id
                 });
             };
-            
+
             confirmRoomChargeModal.show();
         } finally {
             btn.disabled = false;
@@ -1082,7 +1120,7 @@
     const transferTypeSelect = document.getElementById('transfer-tab-type');
     const transferRoomPanel = document.getElementById('transfer-room-panel');
     const transferAccountPanel = document.getElementById('transfer-account-panel');
-    
+
     document.getElementById('transfer-tab-btn').addEventListener('click', () => {
         if (!activeTabId) return;
         const currentType = getActiveTab().tab_type;
@@ -1113,7 +1151,7 @@
     document.getElementById('confirm-transfer-tab-btn').addEventListener('click', async () => {
         const type = transferTypeSelect.value;
         const payload = { tab_type: type };
-        
+
         if (type === 'room') {
             const guestVal = document.getElementById('transfer-guest').value;
             if (!guestVal) return showAlert('Select a room.', 'warning');
@@ -1143,26 +1181,135 @@
 
     // Discount Tab
     const discountTabModal = new bootstrap.Modal(document.getElementById('discountTabModal'));
+
+    function validateDiscountInput() {
+        const tab = getActiveTab();
+        if (!tab) return true;
+
+        const amountInput = document.getElementById('discount-amount');
+        const isPercentage = document.getElementById('discount-is-percentage').value === '1';
+        const errorMsg = document.getElementById('discount-error-message');
+        const amount = parseFloat(amountInput.value) || 0;
+        const discountType = document.getElementById('discount-type').value;
+        const isFixedDiscount = (discountType === 'Senior Citizen' || discountType === 'PWD');
+        
+        let isValid = true;
+        let errorMessageText = '';
+
+        if (!isFixedDiscount) {
+            if (isPercentage && amount > 100) {
+                isValid = false;
+                errorMessageText = 'Discount percentage cannot exceed 100%.';
+            } else if (!isPercentage && amount > tab.subtotal) {
+                isValid = false;
+                errorMessageText = 'Discount amount cannot exceed the subtotal.';
+            } else if (amount < 0) {
+                isValid = false;
+                errorMessageText = 'Discount amount cannot be negative.';
+            }
+        }
+
+        if (!isValid) {
+            amountInput.classList.add('is-invalid');
+            errorMsg.textContent = errorMessageText;
+            errorMsg.classList.remove('d-none');
+            return false;
+        } else {
+            amountInput.classList.remove('is-invalid');
+            errorMsg.classList.add('d-none');
+            return true;
+        }
+    }
+
+    document.getElementById('discount-amount').addEventListener('input', validateDiscountInput);
+
+    function applyDiscountTypeDefaults() {
+        const tab = getActiveTab();
+        const discountType = document.getElementById('discount-type').value;
+        const isPercentageSelect = document.getElementById('discount-is-percentage');
+        const amountInput = document.getElementById('discount-amount');
+        const isFixedDiscount = (discountType === 'Senior Citizen' || discountType === 'PWD');
+
+        if (isFixedDiscount) {
+            // Lock to 20%; update amount based on current unit (% or ₱)
+            const subtotal = tab ? tab.subtotal : 0;
+            if (isPercentageSelect.value === '1') {
+                amountInput.value = 20;
+            } else {
+                amountInput.value = (subtotal * 0.20).toFixed(2);
+            }
+            amountInput.readOnly = true;
+            amountInput.classList.add('bg-light');
+        } else {
+            amountInput.readOnly = false;
+            amountInput.classList.remove('bg-light');
+        }
+    }
+
+    document.getElementById('discount-type').addEventListener('change', applyDiscountTypeDefaults);
+
+    document.getElementById('discount-is-percentage').addEventListener('change', () => {
+        const discountType = document.getElementById('discount-type').value;
+        const isFixedDiscount = (discountType === 'Senior Citizen' || discountType === 'PWD');
+        if (isFixedDiscount) {
+            applyDiscountTypeDefaults();
+        }
+        validateDiscountInput();
+    });
+
     document.getElementById('discount-tab-btn').addEventListener('click', () => {
         if (!activeTabId) return;
         const tab = getActiveTab();
         if (tab.discount_amount > 0) {
             document.getElementById('discount-type').value = tab.discount_type;
-            document.getElementById('discount-amount').value = tab.discount_amount;
             document.getElementById('discount-is-percentage').value = tab.is_discount_percentage ? '1' : '0';
+            document.getElementById('discount-amount').value = tab.discount_amount;
+        } else {
+            // Reset to defaults
+            document.getElementById('discount-type').value = 'Senior Citizen';
+            document.getElementById('discount-is-percentage').value = '1';
+            document.getElementById('discount-amount').value = 20;
         }
+        applyDiscountTypeDefaults();
+        validateDiscountInput();
         discountTabModal.show();
     });
 
     document.getElementById('confirm-discount-btn').addEventListener('click', async () => {
+        const tab = getActiveTab();
+        if (!tab) return;
+
+        const isPercentage = document.getElementById('discount-is-percentage').value === '1';
+        let amount = parseFloat(document.getElementById('discount-amount').value) || 0;
+        const discountType = document.getElementById('discount-type').value;
+        const isFixedDiscount = (discountType === 'Senior Citizen' || discountType === 'PWD');
+
+        // Enforce 20% for Senior/PWD
+        if (isFixedDiscount) {
+            if (isPercentage) {
+                amount = 20;
+            } else {
+                amount = parseFloat((tab.subtotal * 0.20).toFixed(2));
+            }
+        }
+
+        if (!validateDiscountInput()) {
+            return;
+        }
+
+        if (amount <= 0) {
+            showAlert('Please enter a valid discount amount.', 'danger');
+            return;
+        }
+
         try {
             discountTabModal.hide();
             const data = await request(`${config.routes.tabItems}/${activeTabId}/discount`, {
                 method: 'POST',
                 body: JSON.stringify({
-                    discount_type: document.getElementById('discount-type').value,
-                    discount_amount: document.getElementById('discount-amount').value,
-                    is_discount_percentage: document.getElementById('discount-is-percentage').value === '1'
+                    discount_type: discountType,
+                    discount_amount: amount,
+                    is_discount_percentage: isPercentage
                 })
             });
             replaceTab(data.tab);

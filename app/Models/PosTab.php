@@ -99,15 +99,17 @@ class PosTab extends Model
 
     public function recalculateTotals(): void
     {
-        $subtotal = $this->items()->sum('line_total');
+        $subtotal = round((float) $this->items()->sum('line_total'), 2);
         $total = $subtotal;
 
         if ($this->discount_amount > 0) {
             if ($this->is_discount_percentage) {
-                $discountValue = $subtotal * ($this->discount_amount / 100);
-                $total = max(0, $subtotal - $discountValue);
+                $percentage = min(100.00, (float) $this->discount_amount);
+                $discountValue = round($subtotal * ($percentage / 100), 2);
+                $total = max(0.00, round($subtotal - $discountValue, 2));
             } else {
-                $total = max(0, $subtotal - $this->discount_amount);
+                $discountValue = min($subtotal, (float) $this->discount_amount);
+                $total = max(0.00, round($subtotal - $discountValue, 2));
             }
         }
 

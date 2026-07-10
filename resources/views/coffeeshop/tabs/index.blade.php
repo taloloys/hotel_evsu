@@ -123,6 +123,16 @@
                                 {{ $tab->tab_name }}
                             </div>
 
+                            <div class="my-1">
+                                @if($tab->tab_type === 'room')
+                                    <span class="badge bg-info text-white" style="font-size: 0.7rem;">Room Charge</span>
+                                @elseif($tab->tab_type === 'account')
+                                    <span class="badge bg-primary text-white" style="font-size: 0.7rem;">Credit Account</span>
+                                @else
+                                    <span class="badge bg-secondary text-white" style="font-size: 0.7rem;">Walk-in</span>
+                                @endif
+                            </div>
+
                             @if($tab->room)
                                 <small class="text-muted">
                                     Room {{ $tab->room->room_number }}

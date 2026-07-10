@@ -77,7 +77,7 @@
                 data-product-id="{{ $product->product_id }}"
                 data-category-id="{{ $product->category_id }}">
 
-                <div class="coffeeshop-card h-100 {{ $product->stock_quantity <= 0 ? 'opacity-50' : '' }}">
+                <div class="coffeeshop-card h-100 {{ ($product->is_stockable && $product->stock_quantity <= 0) ? 'opacity-50' : '' }}">
                     <div class="card-body d-flex flex-column text-center">
 
                         @if($product->image_url)
@@ -104,15 +104,19 @@
                             ₱{{ number_format($product->price, 2) }}
                         </div>
 
-                        <small class="{{ $product->isLowStock() ? 'text-danger' : 'text-muted' }}">
-                            Stock: {{ $product->stock_quantity }}
-                        </small>
+                        @if(!$product->is_stockable)
+                            <small class="text-success">Available</small>
+                        @elseif($product->stock_quantity <= 0)
+                            <small class="text-danger">Sold out</small>
+                        @else
+                            <small class="text-muted">Stock: {{ $product->stock_quantity }}</small>
+                        @endif
 
                         <button
                             type="button"
                             class="btn btn-primary w-100 mt-auto add-product-btn"
                             data-product-id="{{ $product->product_id }}"
-                            {{ $product->stock_quantity <= 0 ? 'disabled' : '' }}>
+                            {{ ($product->is_stockable && $product->stock_quantity <= 0) ? 'disabled' : '' }}>
                             ADD
                         </button>
 
@@ -524,6 +528,7 @@
                             <option value="0">₱</option>
                         </select>
                     </div>
+                    <div id="discount-error-message" class="text-danger small mt-1 d-none">Discount amount cannot exceed the total amount.</div>
                 </div>
             </div>
             <div class="modal-footer border-0">

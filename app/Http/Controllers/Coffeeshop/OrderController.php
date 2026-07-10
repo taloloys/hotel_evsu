@@ -37,13 +37,13 @@ class OrderController extends Controller
 
         $orders = $status === 'active_tabs'
             ? collect()
-            : $ordersQuery->paginate(20)->withQueryString();
+            : $ordersQuery->paginate(10)->withQueryString();
 
         $activeTabs = PosTab::open()
             ->with(['items.product', 'room', 'approvalRequests'])
             ->when($request->filled('search'), fn ($q) => $q->where('tab_name', 'like', '%'.$request->search.'%'))
             ->orderByDesc('opened_at')
-            ->paginate(20, ['*'], 'tabs_page')
+            ->paginate(10, ['*'], 'tabs_page')
             ->withQueryString();
 
         return view('coffeeshop.orders.index', compact('orders', 'activeTabs', 'status'));

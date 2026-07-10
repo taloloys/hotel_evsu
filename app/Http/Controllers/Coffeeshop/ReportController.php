@@ -34,16 +34,19 @@ class ReportController extends Controller
     {
         [$query, $dateFrom, $dateTo, $paymentMethod] = $this->buildReportQuery($request);
 
-        $orders = $query->get();
+        $allOrders = clone $query;
+        $ordersAll = $allOrders->get();
 
         $summary = [
-            'total_sales' => (float) $orders->sum('total'),
-            'order_count' => $orders->count(),
-            'cash_total' => (float) $orders->where('payment_method', 'cash')->sum('total'),
-            'gcash_total' => (float) $orders->where('payment_method', 'gcash')->sum('total'),
-            'card_total' => (float) $orders->where('payment_method', 'card')->sum('total'),
-            'room_total' => (float) $orders->where('payment_method', 'room_charge')->sum('total'),
+            'total_sales' => (float) $ordersAll->sum('total'),
+            'order_count' => $ordersAll->count(),
+            'cash_total' => (float) $ordersAll->where('payment_method', 'cash')->sum('total'),
+            'gcash_total' => (float) $ordersAll->where('payment_method', 'gcash')->sum('total'),
+            'card_total' => (float) $ordersAll->where('payment_method', 'card')->sum('total'),
+            'room_total' => (float) $ordersAll->where('payment_method', 'room_charge')->sum('total'),
         ];
+
+        $orders = $query->paginate(10)->withQueryString();
 
         return view('coffeeshop.reports.index', compact('orders', 'summary', 'dateFrom', 'dateTo', 'paymentMethod'));
     }

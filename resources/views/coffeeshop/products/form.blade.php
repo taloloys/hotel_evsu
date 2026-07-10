@@ -86,6 +86,23 @@
         @endif
     </div>
 
+    {{-- STOCKABLE STATUS --}}
+    <div class="col-md-6 d-flex align-items-end">
+        <div class="form-check form-switch ps-0">
+            <input type="hidden" name="is_stockable" value="0">
+            <input class="form-check-input ms-0"
+                   type="checkbox"
+                   name="is_stockable"
+                   id="is_stockable"
+                   value="1"
+                   @checked(old('is_stockable', optional($product ?? null)->is_stockable ?? true))>
+
+            <label class="form-check-label ms-2" for="is_stockable">
+                Stockable Product (Tracks inventory)
+            </label>
+        </div>
+    </div>
+
     {{-- STATUS --}}
     <div class="col-md-6 d-flex align-items-end">
         <div class="form-check form-switch ps-0">
@@ -103,3 +120,30 @@
     </div>
 
 </div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const isStockableCheckbox = document.getElementById('is_stockable');
+        const stockQtyInput = document.querySelector('input[name="stock_quantity"]');
+        const lowStockInput = document.querySelector('input[name="low_stock_threshold"]');
+
+        function toggleStockFields() {
+            if (isStockableCheckbox && isStockableCheckbox.checked) {
+                stockQtyInput.disabled = false;
+                stockQtyInput.required = true;
+                lowStockInput.disabled = false;
+            } else if (isStockableCheckbox) {
+                stockQtyInput.disabled = true;
+                stockQtyInput.required = false;
+                stockQtyInput.value = 0;
+                lowStockInput.disabled = true;
+                lowStockInput.value = '';
+            }
+        }
+
+        if (isStockableCheckbox) {
+            isStockableCheckbox.addEventListener('change', toggleStockFields);
+            toggleStockFields(); // initial run
+        }
+    });
+</script>

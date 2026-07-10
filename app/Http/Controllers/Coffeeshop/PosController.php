@@ -21,7 +21,14 @@ class PosController extends Controller
     public function index(): View
     {
         $categories = PosCategory::active()->orderBy('sort_order')->get();
-        $products = PosProduct::with('category')->active()->orderBy('name')->get();
+        $products = PosProduct::with('category')
+            ->active()
+            ->where(function ($q) {
+                $q->where('is_stockable', false)
+                    ->orWhere('stock_quantity', '>', 0);
+            })
+            ->orderBy('name')
+            ->get();
         $openTabs = PosTab::open()->with(['items.product', 'room', 'creditAccount'])->orderByDesc('opened_at')->get();
         $creditAccounts = CreditAccount::orderBy('account_name')->get();
 
@@ -45,6 +52,11 @@ class PosController extends Controller
                     ->orWhere('description', 'like', "%{$query}%")
                     ->orWhereHas('category', fn ($cq) => $cq->where('name', 'like', "%{$query}%"));
             });
+        } else {
+            $products->where(function ($q) {
+                $q->where('is_stockable', false)
+                    ->orWhere('stock_quantity', '>', 0);
+            });
         }
 
         $results = $products->orderBy('name')->limit(40)->get()->map(fn (PosProduct $product) => [
@@ -53,6 +65,7 @@ class PosController extends Controller
             'description' => $product->description,
             'price' => (float) $product->price,
             'stock_quantity' => $product->stock_quantity,
+            'is_stockable' => (bool) $product->is_stockable,
             'category' => $product->category?->name,
             'image_url' => $product->image_url,
             'is_low_stock' => $product->isLowStock(),

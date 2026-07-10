@@ -48,7 +48,20 @@
                 <div class="col-md-3">
                     <small class="text-muted d-block">Payment</small>
                     <div class="fw-semibold">
-                        {{ $order->payment_method ? str_replace('_',' ',strtoupper($order->payment_method)) : 'N/A' }}
+                        @if($order->payment_method)
+                            @php
+                                $paymentBadge = match($order->payment_method) {
+                                    'room_charge' => 'bg-info',
+                                    'account_charge' => 'bg-primary',
+                                    default => 'bg-secondary'
+                                };
+                            @endphp
+                            <span class="badge {{ $paymentBadge }} text-white">
+                                {{ str_replace('_',' ',strtoupper($order->payment_method)) }}
+                            </span>
+                        @else
+                            N/A
+                        @endif
                     </div>
                 </div>
 

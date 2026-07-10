@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Coffeeshop;
 
 use App\Http\Controllers\Controller;
+use App\Models\ActivityLog;
 use App\Models\PosProduct;
 use App\Models\PosSetting;
 use App\Services\Coffeeshop\PosInventoryService;
@@ -71,7 +72,7 @@ class InventoryController extends Controller
                 break;
 
             case 'out_of_stock':
-                $query->where('stock_quantity', 0);
+                $query->where('is_stockable', true)->where('stock_quantity', 0);
                 break;
 
             case 'well_stocked':
@@ -88,15 +89,15 @@ class InventoryController extends Controller
         }
 
         $products = $query->orderBy('stock_quantity', 'asc')
-            ->paginate(20)
+            ->paginate(10)
             ->withQueryString();
 
         $allProducts = PosProduct::all();
 
-        $criticalCount = $allProducts->filter(fn ($p) => $p->stock_quantity <= $p->effectiveLowStockThreshold())->count();
-        $lowCount = $allProducts->filter(fn ($p) => $p->stock_quantity > $p->effectiveLowStockThreshold() && $p->stock_quantity <= (int) ($p->effectiveLowStockThreshold() * 1.4))->count();
-        $healthyCount = $allProducts->filter(fn ($p) => $p->stock_quantity > (int) ($p->effectiveLowStockThreshold() * 1.4) && $p->stock_quantity <= (int) ($p->effectiveLowStockThreshold() * 2))->count();
-        $outOfStockCount = $allProducts->where('stock_quantity', 0)->count();
+        $criticalCount = $allProducts->filter(fn ($p) => $p->is_stockable && $p->stock_quantity <= $p->effectiveLowStockThreshold())->count();
+        $lowCount = $allProducts->filter(fn ($p) => $p->is_stockable && $p->stock_quantity > $p->effectiveLowStockThreshold() && $p->stock_quantity <= (int) ($p->effectiveLowStockThreshold() * 1.4))->count();
+        $healthyCount = $allProducts->filter(fn ($p) => $p->is_stockable && $p->stock_quantity > (int) ($p->effectiveLowStockThreshold() * 1.4) && $p->stock_quantity <= (int) ($p->effectiveLowStockThreshold() * 2))->count();
+        $outOfStockCount = $allProducts->where('is_stockable', true)->where('stock_quantity', 0)->count();
 
         $lowStockProducts = $inventoryService->lowStockProducts();
 
@@ -119,6 +120,8 @@ class InventoryController extends Controller
             'notes' => ['nullable', 'string', 'max:255'],
         ]);
 
+        $originalStock = $product->stock_quantity;
+
         try {
             $inventoryService->adjustStock(
                 $product,
@@ -131,6 +134,17 @@ class InventoryController extends Controller
         } catch (\RuntimeException $e) {
             return back()->withErrors(['quantity' => $e->getMessage()]);
         }
+
+        $product->refresh();
+        $newStock = $product->stock_quantity;
+
+        $actionType = $validated['adjustment_type'] === 'restock' ? 'RESTOCK_PRODUCT' : 'ADJUST_PRODUCT';
+        $logMsg = ucfirst($validated['adjustment_type'])."ed product \"{$product->name}\": quantity adjusted by {$validated['quantity']} units (Stock: {$originalStock} -> {$newStock}).";
+        if (! empty($validated['notes'])) {
+            $logMsg .= " Notes: {$validated['notes']}";
+        }
+
+        ActivityLog::log($actionType, $logMsg);
 
         return back()->with('success', 'Inventory updated successfully.');
     }

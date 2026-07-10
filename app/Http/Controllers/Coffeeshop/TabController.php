@@ -26,7 +26,7 @@ class TabController extends Controller
             $query->where('tab_name', 'like', '%'.$request->search.'%');
         }
 
-        $tabs = $query->paginate(20)->withQueryString();
+        $tabs = $query->paginate(10)->withQueryString();
 
         return view('coffeeshop.tabs.index', compact('tabs', 'status'));
     }

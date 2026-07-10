@@ -154,7 +154,7 @@ class PosOrderService
 
             foreach ($order->items as $item) {
                 $product = $item->product ?? PosProduct::find($item->product_id);
-                if ($product) {
+                if ($product && $product->is_stockable) {
                     $this->inventoryService->restoreForRefund($product, $item->quantity, $order->order_id);
                 }
             }

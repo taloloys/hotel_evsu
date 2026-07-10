@@ -33,7 +33,7 @@ class ProductController extends Controller
             $query->where('is_active', $request->status === 'active');
         }
 
-        $products = $query->orderBy('name')->paginate(20)->withQueryString();
+        $products = $query->orderBy('name')->paginate(10)->withQueryString();
         $categories = PosCategory::orderBy('sort_order')->get();
 
         return view('coffeeshop.products.index', compact('products', 'categories'));
@@ -82,11 +82,39 @@ class ProductController extends Controller
             $validated['image_path'] = $imageService->compressAndStore($request->file('image'), 'pos/products');
         }
 
+        $oldName = $product->name;
         $product->update($validated);
+        $changes = $product->getChanges();
+        unset($changes['updated_at']);
+
+        if (empty($changes)) {
+            $changeDesc = 'No fields changed.';
+        } else {
+            $parts = [];
+            foreach ($changes as $key => $val) {
+                if ($key === 'category_id') {
+                    $oldCat = PosCategory::find($product->getOriginal('category_id'))?->name ?? 'None';
+                    $newCat = PosCategory::find($val)?->name ?? 'None';
+                    $parts[] = "category changed from '{$oldCat}' to '{$newCat}'";
+                } elseif ($key === 'is_active') {
+                    $oldStatus = $product->getOriginal('is_active') ? 'Active' : 'Inactive';
+                    $newStatus = $val ? 'Active' : 'Inactive';
+                    $parts[] = "status changed from '{$oldStatus}' to '{$newStatus}'";
+                } elseif ($key === 'is_stockable') {
+                    $oldStockable = $product->getOriginal('is_stockable') ? 'Stockable' : 'Non-stockable';
+                    $newStockable = $val ? 'Stockable' : 'Non-stockable';
+                    $parts[] = "type changed from '{$oldStockable}' to '{$newStockable}'";
+                } else {
+                    $oldVal = $product->getOriginal($key);
+                    $parts[] = "{$key} changed from '{$oldVal}' to '{$val}'";
+                }
+            }
+            $changeDesc = implode(', ', $parts);
+        }
 
         ActivityLog::log(
             'EDIT_PRODUCT',
-            "Updated coffeeshop product: {$product->name}"
+            "Updated coffeeshop product: {$oldName}. Changes: {$changeDesc}."
         );
 
         return redirect()->route('coffeeshop.products')->with('success', 'Product updated successfully.');
@@ -121,15 +149,26 @@ class ProductController extends Controller
 
     private function validatedProduct(Request $request, ?int $productId = null): array
     {
-        return $request->validate([
+        $validated = $request->validate([
             'category_id' => ['required', 'exists:pos_categories,category_id'],
             'name' => ['required', 'string', 'max:150'],
             'description' => ['nullable', 'string', 'max:1000'],
             'price' => ['required', 'numeric', 'min:0'],
-            'stock_quantity' => ['required', 'integer', 'min:0'],
+            'stock_quantity' => [$request->boolean('is_stockable', true) ? 'required' : 'nullable', 'integer', 'min:0'],
             'low_stock_threshold' => ['nullable', 'integer', 'min:0'],
             'is_active' => ['nullable', 'boolean'],
+            'is_stockable' => ['nullable', 'boolean'],
             'image' => ['nullable', 'image', 'max:10240'],
-        ]) + ['is_active' => $request->boolean('is_active', true)];
+        ]);
+
+        $validated['is_active'] = $request->boolean('is_active', true);
+        $validated['is_stockable'] = $request->boolean('is_stockable', true);
+
+        if (! $validated['is_stockable']) {
+            $validated['stock_quantity'] = 0;
+            $validated['low_stock_threshold'] = null;
+        }
+
+        return $validated;
     }
 }
