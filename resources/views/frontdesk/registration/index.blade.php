@@ -123,22 +123,10 @@
             <!-- Card Body -->
             <div class="card-body">
 
-                <div class="row mb-4">
-                    <div class="col-12 position-relative">
-                        <label class="form-label fw-semibold text-primary" for="guest_search">
-                            <i class="fa-solid fa-magnifying-glass me-1"></i> Search Existing Guest (Optional)
-                        </label>
-                        <input type="text" class="form-control shadow-none border-primary" id="guest_search" placeholder="Search by name to autofill..." style="height:46px; background-color: #f8fbff;">
-                        <ul class="list-group position-absolute w-100 mt-1 shadow d-none" id="guest_suggestions" style="z-index: 1050; max-height: 250px; overflow-y: auto;">
-                        </ul>
-                    </div>
-                </div>
-                <hr class="mb-4">
-
                 <div class="row g-4">
 
                     <!-- First Name -->
-                    <div class="col-md-6">
+                    <div class="col-md-6 position-relative">
                         <label class="form-label fw-semibold" for="first_name">
                             First Name
                             <span class="text-danger">*</span>
@@ -153,7 +141,11 @@
                             maxlength="50"
                             placeholder="Enter first name"
                             style="height:46px; border:1px solid #ced4da;"
+                            autocomplete="off"
                             required>
+                            
+                        <ul class="list-group position-absolute w-100 mt-1 shadow d-none" id="guest_suggestions" style="z-index: 1050; max-height: 250px; overflow-y: auto;">
+                        </ul>
 
                         @error('first_name')
                             <div class="invalid-feedback">
@@ -712,14 +704,14 @@
             });
         }
 
-        // Guest Autocomplete
-        const guestSearch = document.getElementById('guest_search');
+        // Guest Autocomplete on First Name
+        const firstNameInput = document.getElementById('first_name');
         const guestSuggestions = document.getElementById('guest_suggestions');
         
         let searchTimeout;
 
-        if (guestSearch && guestSuggestions) {
-            guestSearch.addEventListener('input', function() {
+        if (firstNameInput && guestSuggestions) {
+            firstNameInput.addEventListener('input', function() {
                 clearTimeout(searchTimeout);
                 const query = this.value.trim();
 
@@ -758,12 +750,11 @@
                                 if (detailsDiv.textContent) li.appendChild(detailsDiv);
 
                                 li.addEventListener('click', () => {
-                                    document.getElementById('first_name').value = guest.first_name || '';
+                                    firstNameInput.value = guest.first_name || '';
                                     document.getElementById('last_name').value = guest.last_name || '';
                                     document.getElementById('address_line1').value = guest.address_line1 || '';
                                     document.getElementById('contact_number').value = guest.contact_number || '';
                                     
-                                    guestSearch.value = `${guest.first_name} ${guest.last_name}`;
                                     guestSuggestions.classList.add('d-none');
                                 });
 
@@ -780,7 +771,7 @@
 
             // Hide suggestions when clicking outside
             document.addEventListener('click', function(e) {
-                if (!guestSearch.contains(e.target) && !guestSuggestions.contains(e.target)) {
+                if (!firstNameInput.contains(e.target) && !guestSuggestions.contains(e.target)) {
                     guestSuggestions.classList.add('d-none');
                 }
             });
