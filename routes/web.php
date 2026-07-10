@@ -197,6 +197,9 @@ Route::middleware('auth')->group(function () {
         Route::middleware('can:view-accounting-audit')->get('/audit', [AuditController::class, 'index'])
             ->name('accounting.audit');
 
+        Route::middleware('can:view-accounting-dashboard')->get('/analytics/data', [App\Http\Controllers\Accounting\AnalyticsController::class, 'data'])
+            ->name('accounting.analytics.data');
+
     });
 
     Route::prefix('coffeeshop')->middleware('can:manage-inventory')->group(function () {

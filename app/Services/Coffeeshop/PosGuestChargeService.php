@@ -56,6 +56,7 @@ class PosGuestChargeService
             'reference_notes' => "POS Order {$order->order_number}: {$itemSummary}",
             'charge_amount' => $order->total,
             'credit_amount' => 0.00,
+            'department' => 'COFFEE_SHOP',
         ]);
 
         ActivityLog::log(
@@ -92,6 +93,7 @@ class PosGuestChargeService
             'reference_notes' => $notes,
             'charge_amount' => $order->total,
             'credit_amount' => 0.00,
+            'department' => 'COFFEE_SHOP',
         ]);
 
         $txPaymentMethod = ($paymentMethod === 'card') ? 'CREDIT_CARD' : 'CASH';
@@ -107,6 +109,7 @@ class PosGuestChargeService
             'reference_notes' => "{$methodLabel} payment for {$order->order_number}",
             'charge_amount' => 0.00,
             'credit_amount' => $order->total,
+            'department' => 'COFFEE_SHOP',
         ]);
 
         ActivityLog::log(

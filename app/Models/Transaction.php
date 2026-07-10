@@ -24,6 +24,7 @@ class Transaction extends Model
         'reference_notes',
         'charge_amount',
         'credit_amount',
+        'department',
     ];
 
     protected function casts(): array
