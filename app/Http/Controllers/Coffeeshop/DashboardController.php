@@ -7,6 +7,7 @@ use App\Models\PosOrder;
 use App\Models\PosOrderItem;
 use App\Models\PosProduct;
 use App\Models\PosTab;
+use App\Models\Expense;
 use App\Services\Coffeeshop\PosAnalyticsService;
 use App\Services\Coffeeshop\PosInventoryService;
 use Carbon\Carbon;
@@ -154,11 +155,17 @@ class DashboardController extends Controller
             });
         }
 
+        // Deduct expenses for CAFETERIA
+        $todayExpenses = (float) Expense::where('funding_source', 'CAFETERIA')->where('status', 'APPROVED')->whereDate('created_at', Carbon::today())->sum('amount');
+        $weeklyExpenses = (float) Expense::where('funding_source', 'CAFETERIA')->where('status', 'APPROVED')->whereBetween('created_at', [Carbon::now()->startOfWeek(), Carbon::now()->endOfWeek()])->sum('amount');
+        $monthlyExpenses = (float) Expense::where('funding_source', 'CAFETERIA')->where('status', 'APPROVED')->whereBetween('created_at', [Carbon::now()->startOfMonth(), Carbon::now()->endOfMonth()])->sum('amount');
+
         // 3. Sales Overview stats
         $salesOverview = [
-            'today_revenue' => (float) PosOrder::closed()->whereDate('closed_at', Carbon::today())->sum('total'),
-            'weekly_revenue' => (float) PosOrder::closed()->whereBetween('closed_at', [Carbon::now()->startOfWeek(), Carbon::now()->endOfWeek()])->sum('total'),
-            'monthly_revenue' => (float) PosOrder::closed()->whereBetween('closed_at', [Carbon::now()->startOfMonth(), Carbon::now()->endOfMonth()])->sum('total'),
+            'today_revenue' => (float) PosOrder::closed()->whereDate('closed_at', Carbon::today())->sum('total') - $todayExpenses,
+            'weekly_revenue' => (float) PosOrder::closed()->whereBetween('closed_at', [Carbon::now()->startOfWeek(), Carbon::now()->endOfWeek()])->sum('total') - $weeklyExpenses,
+            'monthly_revenue' => (float) PosOrder::closed()->whereBetween('closed_at', [Carbon::now()->startOfMonth(), Carbon::now()->endOfMonth()])->sum('total') - $monthlyExpenses,
+            'today_expenses' => $todayExpenses,
             'today_orders' => PosOrder::whereDate('created_at', Carbon::today())->count(),
             'pending_orders' => PosOrder::whereIn('status', ['open', 'active'])->count(),
             'completed_today' => PosOrder::closed()->whereDate('closed_at', Carbon::today())->count(),

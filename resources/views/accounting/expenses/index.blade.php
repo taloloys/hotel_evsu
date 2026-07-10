@@ -113,6 +113,7 @@
                 Search
             </button>
 
+            @if(in_array(auth()->user()?->role?->role_name, ['ADMIN', 'MANAGER', 'ACCOUNTING', 'FRONT_DESK', 'CAFETERIA']))
             <!-- ADD EXPENSE -->
             <button
                 type="button"
@@ -124,6 +125,7 @@
                 Add Expense
 
             </button>
+            @endif
 
         </div>
 
@@ -141,10 +143,11 @@
 
             <thead class="table-light">
                 <tr>
-                    <th>Date</th>
+                    <th class="ps-4">Date</th>
                     <th>Department</th>
-                    <th>Description</th>
+                    <th>Purpose / Description</th>
                     <th>Category</th>
+                    <th>Funded By</th>
                     <th>Status</th>
                     <th class="text-end">Amount</th>
                     <th class="text-center">Action</th>
@@ -157,8 +160,15 @@
                     <tr>
                         <td>{{ $exp->expense_date->toDateString() }}</td>
                         <td>{{ $exp->department }}</td>
-                        <td>{{ $exp->description }}</td>
+                        <td>{{ $exp->purpose }}</td>
                         <td>{{ $exp->category }}</td>
+                        <td>
+                            @if($exp->funding_source === 'FRONT DESK')
+                                <span class="badge bg-primary text-white">Front Desk</span>
+                            @else
+                                <span class="badge bg-secondary text-white">Cafeteria</span>
+                            @endif
+                        </td>
                         <td>
                             @if($exp->status === 'APPROVED')
                                 <span class="badge bg-success">Approved</span>
@@ -187,7 +197,7 @@
                     </tr>
                 @empty
                     <tr>
-                        <td colspan="7" class="text-center text-muted py-4">No operational expenses found.</td>
+                        <td colspan="8" class="text-center text-muted py-4">No operational expenses found.</td>
                     </tr>
                 @endforelse
 
@@ -217,14 +227,35 @@
                         <input type="date" name="expense_date" class="form-control" value="{{ now()->toDateString() }}" required>
                     </div>
                     <div class="col-md-6">
-                        <label class="form-label small text-muted">Department *</label>
-                        <input type="text" name="department" class="form-control" placeholder="Housekeeping, Maintenance, HR..." required>
+                        <label class="form-label small text-muted">Target Department *</label>
+                        <select name="department" class="form-select" required>
+                            <option value="">Select Target...</option>
+                            <option value="Front Office">Front Office</option>
+                            <option value="Housekeeping">Housekeeping</option>
+                            <option value="Maintenance">Maintenance</option>
+                            <option value="Purchasing">Purchasing</option>
+                            <option value="Food & Beverage">Food & Beverage</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="row mb-3">
+                    <div class="col-md-6">
+                        <label class="form-label small text-muted">Funding Source *</label>
+                        <select name="funding_source" class="form-select" required>
+                            <option value="FRONT DESK">Front Desk</option>
+                            <option value="CAFETERIA">Cafeteria</option>
+                        </select>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label small text-muted">Requested By *</label>
+                        <input type="text" name="requested_by" class="form-control" placeholder="Name or Office In-Charge..." required>
                     </div>
                 </div>
 
                 <div class="mb-3">
-                    <label class="form-label small text-muted">Description *</label>
-                    <input type="text" name="description" class="form-control" placeholder="Office Stationery, AC Repair, Electricity Bill..." required>
+                    <label class="form-label small text-muted">Purpose *</label>
+                    <input type="text" name="purpose" class="form-control" placeholder="Rush need for supplies..." required>
                 </div>
 
                 <div class="row mb-0">

@@ -436,16 +436,16 @@ body {
                                 <div class="flex-grow-1 d-flex flex-column justify-content-center">
                                     <div class="row g-1 text-center mb-2 border-bottom pb-2">
                                         <div class="col-4 border-end">
-                                            <div class="text-muted small" style="font-size: 0.65rem; text-transform: uppercase;">Today</div>
+                                            <div class="text-muted small" style="font-size: 0.65rem; text-transform: uppercase;">Today (Net)</div>
                                             <div class="fw-bold text-brown" style="font-size: 0.8rem;">₱{{ number_format($salesOverview['today_revenue'], 2) }}</div>
                                         </div>
                                         <div class="col-4 border-end">
-                                            <div class="text-muted small" style="font-size: 0.65rem; text-transform: uppercase;">Weekly</div>
+                                            <div class="text-muted small" style="font-size: 0.65rem; text-transform: uppercase;">Weekly (Net)</div>
                                             <div class="fw-bold text-brown" style="font-size: 0.8rem;">₱{{ number_format($salesOverview['weekly_revenue'], 2) }}</div>
                                         </div>
                                         <div class="col-4">
-                                            <div class="text-muted small" style="font-size: 0.65rem; text-transform: uppercase;">Monthly</div>
-                                            <div class="fw-bold text-brown" style="font-size: 0.8rem;">₱{{ number_format($salesOverview['monthly_revenue'], 2) }}</div>
+                                            <div class="text-muted small" style="font-size: 0.65rem; text-transform: uppercase;">Expenses (Today)</div>
+                                            <div class="fw-bold text-danger" style="font-size: 0.8rem;">₱{{ number_format($salesOverview['today_expenses'], 2) }}</div>
                                         </div>
                                     </div>
                                     <div class="row g-2">

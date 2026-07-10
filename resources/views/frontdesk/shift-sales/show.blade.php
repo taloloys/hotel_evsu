@@ -130,6 +130,10 @@
                 <div class="text-info small fw-semibold mb-1">Rooms Billed</div>
                 <div class="fw-bold fs-5 text-info">{{ $totals['checkin_count'] }}</div>
             </div>
+            <div class="stat-badge bg-danger bg-opacity-10 border border-danger border-opacity-25">
+                <div class="text-danger small fw-semibold mb-1">Expenses (Front Desk)</div>
+                <div class="fw-bold fs-5 text-danger">₱{{ number_format($totals['shift_expenses'], 2) }}</div>
+            </div>
             <div class="stat-badge {{ $totals['net_income'] >= 0 ? 'bg-dark bg-opacity-10 border border-dark border-opacity-25' : 'bg-danger bg-opacity-10 border border-danger border-opacity-25' }}">
                 <div class="{{ $totals['net_income'] >= 0 ? 'text-dark' : 'text-danger' }} small fw-semibold mb-1">Net Balance</div>
                 <div class="fw-bold fs-5 {{ $totals['net_income'] >= 0 ? '' : 'text-danger' }}">
@@ -255,17 +259,19 @@
         {{-- Summary Grid --}}
         <table style="width: 100%; border-collapse: collapse; font-size: 12px; margin-bottom: 16px;">
             <tr style="background: #f0f0f0;">
-                <th style="border: 1px solid #000; padding: 6px 10px; width: 20%;">Rooms Billed</th>
-                <th style="border: 1px solid #000; padding: 6px 10px; width: 20%;">Room Charges</th>
-                <th style="border: 1px solid #000; padding: 6px 10px; width: 20%;">Additional Charges</th>
-                <th style="border: 1px solid #000; padding: 6px 10px; width: 20%;">Payments Collected</th>
-                <th style="border: 1px solid #000; padding: 6px 10px; width: 20%;">Net Balance</th>
+                <th style="border: 1px solid #000; padding: 6px 10px; width: 16%;">Rooms Billed</th>
+                <th style="border: 1px solid #000; padding: 6px 10px; width: 16%;">Room Charges</th>
+                <th style="border: 1px solid #000; padding: 6px 10px; width: 17%;">Additional Charges</th>
+                <th style="border: 1px solid #000; padding: 6px 10px; width: 17%;">Payments Collected</th>
+                <th style="border: 1px solid #000; padding: 6px 10px; width: 17%; color: red;">Expenses</th>
+                <th style="border: 1px solid #000; padding: 6px 10px; width: 17%;">Net Balance</th>
             </tr>
             <tr>
                 <td style="border: 1px solid #000; padding: 6px 10px; text-align: center; font-size: 16px; font-weight: bold;">{{ $totals['checkin_count'] }}</td>
                 <td style="border: 1px solid #000; padding: 6px 10px; text-align: right; font-weight: bold;">₱{{ number_format($totals['room_charges'], 2) }}</td>
                 <td style="border: 1px solid #000; padding: 6px 10px; text-align: right; font-weight: bold;">₱{{ number_format($totals['additional_charges'], 2) }}</td>
                 <td style="border: 1px solid #000; padding: 6px 10px; text-align: right; font-weight: bold;">₱{{ number_format($totals['payments'], 2) }}</td>
+                <td style="border: 1px solid #000; padding: 6px 10px; text-align: right; font-weight: bold; color: red;">₱{{ number_format($totals['shift_expenses'], 2) }}</td>
                 <td style="border: 1px solid #000; padding: 6px 10px; text-align: right; font-weight: bold;">
                     ₱{{ number_format(abs($totals['net_income']), 2) }}{{ $totals['net_income'] < 0 ? ' CR' : '' }}
                 </td>

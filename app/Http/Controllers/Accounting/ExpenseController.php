@@ -5,9 +5,11 @@ namespace App\Http\Controllers\Accounting;
 use App\Http\Controllers\Controller;
 use App\Models\ActivityLog;
 use App\Models\Expense;
+use App\Services\Accounting\ExpenseService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
+use Illuminate\Support\Facades\Gate;
 
 class ExpenseController extends Controller
 {
@@ -20,7 +22,7 @@ class ExpenseController extends Controller
 
         if ($search) {
             $query->where(function ($q) use ($search) {
-                $q->where('description', 'like', "%{$search}%")
+                $q->where('purpose', 'like', "%{$search}%")
                     ->orWhere('category', 'like', "%{$search}%");
             });
         }
@@ -52,41 +54,40 @@ class ExpenseController extends Controller
         ]);
     }
 
-    public function store(Request $request): RedirectResponse
+    public function store(Request $request, ExpenseService $expenseService): RedirectResponse
     {
-        $request->validate([
+        $user = auth()->user();
+        if (!$user || !in_array($user->role?->role_name, ['ADMIN', 'MANAGER', 'ACCOUNTING', 'FRONT_DESK', 'CAFETERIA'])) {
+            abort(403, 'Unauthorized action.');
+        }
+
+        $validated = $request->validate([
             'expense_date' => ['required', 'date'],
-            'department' => ['required', 'string', 'max:100'],
-            'description' => ['required', 'string', 'max:255'],
+            'department' => ['required', 'string', 'in:Front Office,Housekeeping,Maintenance,Purchasing,Food & Beverage'],
+            'purpose' => ['required', 'string', 'max:255'],
             'category' => ['required', 'string', 'max:100'],
             'amount' => ['required', 'numeric', 'min:0.01'],
+            'funding_source' => ['required', 'string', 'in:FRONT DESK,CAFETERIA'],
+            'requested_by' => ['required', 'string', 'max:100'],
         ]);
 
-        $expense = Expense::create([
-            'expense_date' => $request->expense_date,
-            'department' => $request->department,
-            'description' => $request->description,
-            'category' => $request->category,
-            'status' => 'APPROVED', // Approve directly by default in early stage
-            'amount' => $request->amount,
-            'user_id' => auth()->id() ?? 1,
-        ]);
-
-        ActivityLog::log(
-            'ADD_CHARGE',
-            "Recorded operating expense: {$request->description} under {$request->department} - ₱".number_format($request->amount, 2)
-        );
+        $expenseService->createExpense($validated);
 
         return redirect()->route('accounting.expenses')->with('success', 'Expense recorded successfully!');
     }
 
     public function approve(Expense $expense): RedirectResponse
     {
+        $user = auth()->user();
+        if (!$user || !in_array($user->role?->role_name, ['ADMIN', 'MANAGER', 'ACCOUNTING'])) {
+            abort(403, 'Unauthorized action.');
+        }
+
         $expense->update(['status' => 'APPROVED']);
 
         ActivityLog::log(
             'ADD_CHARGE',
-            "Approved operating expense #{$expense->expense_id}: {$expense->description} - ₱".number_format($expense->amount, 2)
+            "Approved operating expense #{$expense->expense_id}: {$expense->purpose} - ₱".number_format($expense->amount, 2)
         );
 
         return redirect()->route('accounting.expenses')->with('success', 'Expense approved successfully!');

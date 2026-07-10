@@ -12,11 +12,13 @@ class Expense extends Model
     protected $fillable = [
         'expense_date',
         'department',
-        'description',
+        'purpose',
         'category',
         'status',
         'amount',
         'user_id',
+        'funding_source',
+        'requested_by',
     ];
 
     protected function casts(): array

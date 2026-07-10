@@ -56,8 +56,8 @@ class DashboardController extends Controller
 
         $cashInCard = (clone $txQuery)->where('payment_method', 'CREDIT_CARD')->sum('credit_amount');
 
-        // Cash Out: approved expenses
-        $cashOut = $approvedExpenses;
+        // Cash Out: approved expenses (from Front Desk)
+        $cashOut = (clone $expenseQuery)->where('status', 'APPROVED')->where('funding_source', 'FRONT DESK')->sum('amount');
         $netFlow = ($cashIn + $cashInCard) - $cashOut;
 
         // 3. Recent Transactions

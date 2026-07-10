@@ -7,8 +7,10 @@ use App\Models\ChargeCode;
 use App\Models\Shift;
 use App\Models\Transaction;
 use App\Models\User;
+use App\Models\Expense;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Gate;
+use Carbon\Carbon;
 
 class ShiftSalesController extends Controller
 {
@@ -78,6 +80,7 @@ class ShiftSalesController extends Controller
             'room_charges' => 0.00,
             'additional_charges' => 0.00,
             'checkin_count' => 0,
+            'shift_expenses' => 0.00,
             'net_income' => 0.00,
         ];
 
@@ -94,7 +97,26 @@ class ShiftSalesController extends Controller
             $totals['additional_charges'] = $transactions->filter(fn ($tx) => ! in_array($tx->chargeCode?->category, ['HOTEL', 'TAX_SERVICE']))
                 ->sum('charge_amount');
             $totals['checkin_count'] = $transactions->pluck('folio_id')->filter()->unique()->count();
-            $totals['net_income'] = $totals['payments'] - $totals['total_charges'];
+
+            // Calculate expenses if filtering by shift or date
+            $expenseQuery = Expense::where('funding_source', 'FRONT DESK')->where('status', 'APPROVED');
+            if ($dateFrom) {
+                $expenseQuery->whereDate('created_at', '>=', $dateFrom);
+            }
+            if ($dateUntil) {
+                $expenseQuery->whereDate('created_at', '<=', $dateUntil);
+            }
+            // Note: If filtering by shift, we need the exact times. But since we don't have shift_id in expenses,
+            // we will approximate based on date filters or active shift in the view if needed.
+            if ($request->filled('shift_id')) {
+                $selectedShift = Shift::find($request->shift_id);
+                if ($selectedShift) {
+                    $expenseQuery->whereBetween('created_at', [$selectedShift->start_time, $selectedShift->end_time ?? Carbon::now()]);
+                }
+            }
+            $totals['shift_expenses'] = $expenseQuery->sum('amount');
+
+            $totals['net_income'] = $totals['payments'] - $totals['total_charges'] - $totals['shift_expenses'];
         }
 
         $activeShift = Shift::where('user_id', auth()->id())
@@ -156,8 +178,13 @@ class ShiftSalesController extends Controller
             'additional_charges' => $transactions->filter(fn ($tx) => ! in_array($tx->chargeCode?->category, ['HOTEL', 'TAX_SERVICE']))
                 ->sum('charge_amount'),
             'checkin_count' => $transactions->pluck('folio_id')->filter()->unique()->count(),
-            'net_income' => $transactions->sum('credit_amount') - $transactions->sum('charge_amount'),
+            'shift_expenses' => Expense::where('funding_source', 'FRONT DESK')
+                ->where('status', 'APPROVED')
+                ->whereBetween('created_at', [$shift->start_time, $shift->end_time ?? Carbon::now()])
+                ->sum('amount'),
+            'net_income' => 0.00, // calculated below
         ];
+        $totals['net_income'] = $totals['payments'] - $totals['total_charges'] - $totals['shift_expenses'];
 
         return view('frontdesk.shift-sales.show', [
             'shift' => $shift,
