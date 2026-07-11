@@ -330,21 +330,27 @@
                         @enderror
                     </div>
 
-                    <!-- Open Stay toggle -->
-                    <div class="col-12">
-                        <div class="form-check">
+                    <!-- Open Stay Toggle -->
+                    <div class="col-12 mt-3 mb-3">
+                        <div class="form-check form-switch d-flex align-items-center gap-2">
                             <input
                                 class="form-check-input"
                                 type="checkbox"
                                 id="reg_open_stay"
                                 name="open_stay"
                                 value="1"
-                                @checked(old('open_stay'))>
-                            <label class="form-check-label fw-semibold" for="reg_open_stay">
-                                Open Stay <span class="text-muted fw-normal">(no check-out date — billed daily by the system)</span>
+                                style="width: 2.8rem; height: 1.5rem;"
+                            >
+
+                            <label class="form-check-label fw-semibold fs-6 mb-0" for="reg_open_stay">
+                                <span class="text-primary">Open Stay</span>
+                                <small class="d-block text-muted fw-normal">
+                                    No check-out date — billed daily by the system.
+                                </small>
                             </label>
                         </div>
                     </div>
+
 
                     <!-- Number of Guests -->
                     <div class="col-md-3">

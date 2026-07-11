@@ -65,7 +65,7 @@ class ReportController extends Controller
 
             foreach ($orders as $order) {
                 $closedAt = $order->closed_at ?: $order->created_at;
-                $closedAt = optional($closedAt)->format('Y-m-d H:i:s');
+                $closedAt = "'" . date('M d, Y h:i A', strtotime($closedAt));
 
                 fputcsv($handle, [
                     $order->order_number,

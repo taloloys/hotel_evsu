@@ -84,18 +84,18 @@ class ActivityLogController extends Controller
             // Add BOM for Excel compatibility with UTF-8
             fprintf($file, chr(0xEF).chr(0xBB).chr(0xBF));
 
-            fputcsv($file, ['Log ID', 'User', 'Username', 'Role', 'Action Type', 'Description', 'Timestamp']);
+            fputcsv($file, ['Log ID', 'User', 'Username', 'Action Type', 'Description', 'Timestamp']);
 
             foreach ($logs as $log) {
                 fputcsv($file, [
                     $log->log_id,
-                    $log->user?->full_name ?? 'System',
-                    $log->user?->username ?? 'N/A',
-                    $log->user?->role?->label ?? 'N/A',
+                    $log->user ? $log->user->full_name : 'N/A',
+                    $log->user ? $log->user->username : 'N/A',
                     $log->action_type,
                     $log->description,
-                    $log->timestamp ? $log->timestamp->format('Y-m-d H:i:s') : 'N/A',
+                    "'" . date('M d, Y h:i A', strtotime($log->timestamp))
                 ]);
+            
             }
 
             fclose($file);

@@ -95,10 +95,10 @@
                     {{-- Filter Mode Tabs --}}
                     @if($isAdmin)
                     <div class="d-flex gap-2 mb-4" id="modeTabs">
-                        <button type="button" class="mode-tab {{ !isset($filters['shift_id']) ? 'active' : '' }}" onclick="switchMode('date')">
+                        <button type="button" class="mode-tab {{ empty($filters['shift_id']) ? 'active' : '' }}" onclick="switchMode('date')">
                             <i class="fa-solid fa-calendar-range me-1"></i> By Date Range
                         </button>
-                        <button type="button" class="mode-tab {{ isset($filters['shift_id']) ? 'active' : '' }}" onclick="switchMode('shift')">
+                        <button type="button" class="mode-tab {{ !empty($filters['shift_id']) ? 'active' : '' }}" onclick="switchMode('shift')">
                             <i class="fa-solid fa-clock-rotate-left me-1"></i> By Shift
                         </button>
                     </div>
@@ -107,7 +107,9 @@
                     <form action="{{ request()->routeIs('admin.*') ? route('admin.shift-sales') : route('frontdesk.shift-sales') }}" method="GET" id="reportForm">
 
                         {{-- ============ DATE RANGE MODE ============ --}}
-                        <div id="datePanel" class="filter-panel {{ !$isAdmin || !isset($filters['shift_id']) ? 'active' : '' }}">
+                        {{-- ============ DATE RANGE MODE ============ --}}
+                        {{-- ============ DATE RANGE MODE ============ --}}
+                        <div id="datePanel" class="filter-panel {{ !$isAdmin || empty($filters['shift_id']) ? 'active' : '' }}">
 
                             {{-- Charge Code Range --}}
                             <div class="row mb-3 align-items-center">
@@ -198,7 +200,7 @@
 
                         {{-- ============ SHIFT SELECTOR MODE ============ --}}
                         @if($isAdmin)
-                        <div id="shiftPanel" class="filter-panel {{ isset($filters['shift_id']) ? 'active' : '' }}">
+                        <div id="shiftPanel" class="filter-panel {{ !empty($filters['shift_id']) ? 'active' : '' }}">
                             <div class="row mb-2 align-items-center">
                                 <div class="col-md-3">
                                     <label class="form-label fw-semibold">Select Shift</label>
@@ -266,7 +268,7 @@
         {{-- ======================================================= --}}
         @if($hasSearched)
 
-            {{-- Shift Info Banner (when viewing a specific shift) --}}
+            {{-- Shift / Filter Info Banner --}}
             @if($selectedShift)
                 <div class="col-lg-12 mb-3">
                     <div class="card border-0 shadow-sm rounded-4 bg-dark text-white">
@@ -309,6 +311,60 @@
                                     <i class="fa-solid fa-arrow-up-right-from-square me-1"></i> Full Report View
                                 </a>
                             </div>
+                        </div>
+                    </div>
+                </div>
+            @else
+                <div class="col-lg-12 mb-3">
+                    <div class="card border-0 shadow-sm rounded-4 bg-dark text-white">
+                        <div class="card-body px-4 py-3 d-flex flex-wrap align-items-center gap-4">
+                            <div>
+                                <div class="text-white-50 small">Report Scope</div>
+                                <div class="fw-bold fs-6">Date Range Report</div>
+                            </div>
+                            <div>
+                                <div class="text-white-50 small">Employee / Cashier</div>
+                                <div class="fw-bold fs-6">
+                                    @php
+                                        $empName = 'All Employees';
+                                        if (isset($filters['employee_id']) && $filters['employee_id']) {
+                                            $emp = $users->firstWhere('user_id', $filters['employee_id']);
+                                            if ($emp) {
+                                                $empName = $emp->full_name;
+                                            }
+                                        } elseif (!$isAdmin) {
+                                            $empName = auth()->user()->full_name;
+                                        }
+                                    @endphp
+                                    {{ $empName }}
+                                </div>
+                            </div>
+                            <div>
+                                <div class="text-white-50 small">Date Period</div>
+                                <div class="fw-bold fs-6">
+                                    {{ !empty($filters['date_from']) ? \Carbon\Carbon::parse($filters['date_from'])->format('M d, Y') : 'Any' }}
+                                    –
+                                    {{ !empty($filters['date_until']) ? \Carbon\Carbon::parse($filters['date_until'])->format('M d, Y') : 'Any' }}
+                                </div>
+                            </div>
+                            <div>
+                                <div class="text-white-50 small">Category</div>
+                                <div class="fw-bold fs-6">
+                                    @if(isset($filters['report_type']))
+                                        {{ $filters['report_type'] === 'hotel' ? 'Hotel Charges' : ($filters['report_type'] === 'restaurant' ? 'Restaurant / Coffee Shop' : 'All Transactions') }}
+                                    @else
+                                        Hotel Charges
+                                    @endif
+                                </div>
+                            </div>
+                            @if(!empty($filters['charge_code_from']) || !empty($filters['charge_code_until']))
+                            <div>
+                                <div class="text-white-50 small">Charge Codes</div>
+                                <div class="fw-bold fs-6">
+                                    {{ $filters['charge_code_from'] ?? 'Any' }} – {{ $filters['charge_code_until'] ?? 'Any' }}
+                                </div>
+                            </div>
+                            @endif
                         </div>
                     </div>
                 </div>
@@ -566,6 +622,22 @@
         <div>
             <div><strong style="display: inline-block; min-width: 130px;">REPORT DATE:</strong> {{ now()->format('m/d/Y') }}</div>
             <div><strong style="display: inline-block; min-width: 130px;">REPORT TIME:</strong> {{ now()->format('g:i A') }}</div>
+            @if(!$reportShift)
+                <div>
+                    <strong style="display: inline-block; min-width: 130px;">CATEGORY:</strong>
+                    @if(isset($filters['report_type']))
+                        {{ $filters['report_type'] === 'hotel' ? 'HOTEL CHARGES' : ($filters['report_type'] === 'restaurant' ? 'RESTAURANT' : 'ALL') }}
+                    @else
+                        HOTEL CHARGES
+                    @endif
+                </div>
+                @if(!empty($filters['charge_code_from']) || !empty($filters['charge_code_until']))
+                <div>
+                    <strong style="display: inline-block; min-width: 130px;">CHARGE CODES:</strong>
+                    {{ $filters['charge_code_from'] ?? 'ANY' }} – {{ $filters['charge_code_until'] ?? 'ANY' }}
+                </div>
+                @endif
+            @endif
         </div>
     </div>
 
@@ -685,11 +757,11 @@
 
 @push('scripts')
 <script>
-    const datePanel = document.getElementById('datePanel');
-    const shiftPanel = document.getElementById('shiftPanel');
-    const tabs = document.querySelectorAll('.mode-tab');
+    window.switchMode = function(mode) {
+        const datePanel = document.getElementById('datePanel');
+        const shiftPanel = document.getElementById('shiftPanel');
+        const tabs = document.querySelectorAll('.mode-tab');
 
-    function switchMode(mode) {
         const isDate = mode === 'date';
         if (datePanel) {
             datePanel.classList.toggle('active', isDate);
@@ -708,7 +780,7 @@
         } else {
             document.querySelectorAll('#datePanel input, #datePanel select').forEach(el => el.value = '');
         }
-    }
+    };
 </script>
 @endpush
 

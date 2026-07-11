@@ -49,7 +49,7 @@ class Transaction extends Model
 
     public function shift(): BelongsTo
     {
-        return $this->belongsTo(Shift::class);
+        return $this->belongsTo(Shift::class, 'shift_id', 'shift_id');
     }
 
     public function user(): BelongsTo
