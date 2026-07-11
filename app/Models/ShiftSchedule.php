@@ -17,17 +17,30 @@ class ShiftSchedule extends Model
     protected $fillable = [
         'user_id',
         'shift_name',
-        'shift_date',
+        'is_monday',
+        'is_tuesday',
+        'is_wednesday',
+        'is_thursday',
+        'is_friday',
+        'is_saturday',
+        'is_sunday',
+        'is_active',
         'scheduled_start_time',
         'scheduled_end_time',
         'notes',
-        'status',
     ];
 
     protected function casts(): array
     {
         return [
-            'shift_date' => 'date',
+            'is_monday' => 'boolean',
+            'is_tuesday' => 'boolean',
+            'is_wednesday' => 'boolean',
+            'is_thursday' => 'boolean',
+            'is_friday' => 'boolean',
+            'is_saturday' => 'boolean',
+            'is_sunday' => 'boolean',
+            'is_active' => 'boolean',
         ];
     }
 

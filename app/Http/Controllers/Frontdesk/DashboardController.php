@@ -24,10 +24,13 @@ class DashboardController extends Controller
             ->with('schedule')
             ->first();
 
-        // Available schedules for today that haven't started yet
+        $dayOfWeek = strtolower(now()->englishDayOfWeek); // e.g., 'monday', 'tuesday'
+        $columnName = 'is_' . $dayOfWeek;
+
+        // Available schedules for today
         $todaySchedules = ShiftSchedule::where('user_id', $userId)
-            ->whereDate('shift_date', $today)
-            ->where('status', 'SCHEDULED')
+            ->where('is_active', true)
+            ->where($columnName, true)
             ->get();
 
         // Shift sales totals

@@ -2,8 +2,12 @@
 
 namespace App\Providers;
 
+use App\Listeners\ShiftLifecycleListener;
 use App\Models\User;
+use Illuminate\Auth\Events\Login;
+use Illuminate\Auth\Events\Logout;
 use Illuminate\Pagination\Paginator;
+use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\ServiceProvider;
 
@@ -27,5 +31,8 @@ class AppServiceProvider extends ServiceProvider
         Gate::before(function (User $user, string $ability) {
             return $user->hasPermission($ability) ? true : null;
         });
+
+        Event::listen(Login::class, [ShiftLifecycleListener::class, 'handleLogin']);
+        Event::listen(Logout::class, [ShiftLifecycleListener::class, 'handleLogout']);
     }
 }

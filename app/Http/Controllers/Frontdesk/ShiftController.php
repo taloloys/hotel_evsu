@@ -36,8 +36,8 @@ class ShiftController extends Controller
                 ->where('id', $scheduleId)
                 ->first();
 
-            if (! $schedule || in_array($schedule->status, ['ACTIVE', 'COMPLETED'])) {
-                return back()->withErrors(['shift' => 'Invalid or already started shift schedule.']);
+            if (! $schedule || ! $schedule->is_active) {
+                return back()->withErrors(['shift' => 'Invalid or inactive shift schedule.']);
             }
         }
 
@@ -49,9 +49,7 @@ class ShiftController extends Controller
             'end_time' => null,
         ]);
 
-        if ($schedule) {
-            $schedule->update(['status' => 'ACTIVE']);
-        }
+        // Status is no longer updated as schedules are recurring
 
         ActivityLog::log(
             'CHECK_IN',
@@ -81,22 +79,23 @@ class ShiftController extends Controller
         $totalPayments = Transaction::where('shift_id', $shift->shift_id)
             ->sum('credit_amount');
 
+        $expenses = \App\Models\Expense::where('user_id', $userId)
+            ->where('funding_source', 'FRONT DESK')
+            ->where('created_at', '>=', $shift->start_time)
+            ->sum('amount');
+
         // Close shift
         $shift->update([
             'end_time' => Carbon::now(),
         ]);
 
-        // Complete the schedule if exists
-        if ($shift->schedule_id) {
-            $schedule = ShiftSchedule::find($shift->schedule_id);
-            if ($schedule) {
-                $schedule->update(['status' => 'COMPLETED']);
-            }
-        }
+        // Status is no longer updated as schedules are recurring
+
+        $netCashOut = $totalPayments - $expenses;
 
         ActivityLog::log(
             'CLOSE_SHIFT',
-            "Closed Shift #{$shift->shift_id}. Total sales cash out: ₱".number_format($totalPayments, 2).'.'
+            "Closed Shift #{$shift->shift_id}. Sales: ₱".number_format($totalPayments, 2).", Expenses: ₱".number_format($expenses, 2).", Net Cash Out: ₱".number_format($netCashOut, 2).'.'
         );
 
         return back()->with('success', 'Shift session closed successfully.');

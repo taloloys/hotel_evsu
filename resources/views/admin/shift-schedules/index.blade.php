@@ -2,42 +2,19 @@
 
 @section('title', 'Shift Scheduling')
 @section('pageTitle', 'Shift Scheduling')
-@section('pageSubtitle', 'Assign and manage staff work shifts')
+@section('pageSubtitle', 'Assign and manage staff recurring shift rules')
 
 @section('content')
 
-{{-- TOAST CONTAINER --}}
-<div class="toast-container position-fixed bottom-0 end-0 p-3" style="z-index: 1100;">
-    @if(session('success'))
-        <div id="successToast" class="toast align-items-center text-white bg-success border-0 shadow" role="alert" aria-live="assertive" aria-atomic="true" data-bs-delay="4000">
-            <div class="d-flex">
-                <div class="toast-body">
-                    <i class="fa-solid fa-circle-check me-2"></i>{{ session('success') }}
-                </div>
-                <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
-            </div>
-        </div>
-    @endif
 
-    @if($errors->any())
-        <div id="errorToast" class="toast align-items-center text-white bg-danger border-0 shadow" role="alert" aria-live="assertive" aria-atomic="true" data-bs-delay="5000">
-            <div class="d-flex">
-                <div class="toast-body">
-                    <i class="fa-solid fa-triangle-exclamation me-2"></i>{{ $errors->first() }}
-                </div>
-                <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
-            </div>
-        </div>
-    @endif
-</div>
 
 <!-- SUMMARY CARDS -->
 <div class="row g-3 mb-4">
-    <div class="col-lg-3">
+    <div class="col-lg-4">
         <div class="card border-1 shadow-sm">
             <div class="card-body d-flex justify-content-between align-items-center">
                 <div>
-                    <div class="text-muted large">Total Schedules</div>
+                    <div class="text-muted large">Total Rules</div>
                     <h4 class="mb-0 fw-bold">{{ $schedules->count() }}</h4>
                 </div>
                 <div class="bg-primary-subtle text-primary rounded-circle d-flex align-items-center justify-content-center" style="width: 48px; height: 48px;">
@@ -47,43 +24,29 @@
         </div>
     </div>
 
-    <div class="col-lg-3">
+    <div class="col-lg-4">
         <div class="card border-1 shadow-sm">
             <div class="card-body d-flex justify-content-between align-items-center">
                 <div>
-                    <div class="text-muted large">Active Shifts</div>
-                    <h4 class="mb-0 fw-bold text-success">{{ $schedules->where('status', 'ACTIVE')->count() }}</h4>
+                    <div class="text-muted large">Active Rules</div>
+                    <h4 class="mb-0 fw-bold text-success">{{ $schedules->where('is_active', true)->count() }}</h4>
                 </div>
                 <div class="bg-success-subtle text-success rounded-circle d-flex align-items-center justify-content-center" style="width: 48px; height: 48px;">
-                    <i class="fa-solid fa-business-time fs-4"></i>
+                    <i class="fa-solid fa-check fs-4"></i>
                 </div>
             </div>
         </div>
     </div>
 
-    <div class="col-lg-3">
+    <div class="col-lg-4">
         <div class="card border-1 shadow-sm">
             <div class="card-body d-flex justify-content-between align-items-center">
                 <div>
-                    <div class="text-muted large">Scheduled (Upcoming)</div>
-                    <h4 class="mb-0 fw-bold text-warning">{{ $schedules->where('status', 'SCHEDULED')->count() }}</h4>
-                </div>
-                <div class="bg-warning-subtle text-warning rounded-circle d-flex align-items-center justify-content-center" style="width: 48px; height: 48px;">
-                    <i class="fa-solid fa-clock fs-4"></i>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <div class="col-lg-3">
-        <div class="card border-1 shadow-sm">
-            <div class="card-body d-flex justify-content-between align-items-center">
-                <div>
-                    <div class="text-muted large">Completed</div>
-                    <h4 class="mb-0 fw-bold text-secondary">{{ $schedules->where('status', 'COMPLETED')->count() }}</h4>
+                    <div class="text-muted large">Inactive Rules</div>
+                    <h4 class="mb-0 fw-bold text-secondary">{{ $schedules->where('is_active', false)->count() }}</h4>
                 </div>
                 <div class="bg-secondary-subtle text-secondary rounded-circle d-flex align-items-center justify-content-center" style="width: 48px; height: 48px;">
-                    <i class="fa-solid fa-circle-check fs-4"></i>
+                    <i class="fa-solid fa-pause fs-4"></i>
                 </div>
             </div>
         </div>
@@ -101,10 +64,10 @@
             <!-- TITLE -->
             <div>
                 <h5 class="fw-bold mb-0">Shift Schedules</h5>
-                <small class="text-muted">Create, edit and monitor employee shift schedules</small>
+                <small class="text-muted">Create, edit and manage recurring staff shift rules</small>
             </div>
 
-            <!-- ADD BUTTON (FIXED: OUTSIDE FORM) -->
+            <!-- ADD BUTTON -->
             <button class="btn btn-primary d-flex align-items-center gap-2 px-3"
                     style="height: 38px; border-radius: 6px;"
                     data-bs-toggle="modal"
@@ -122,32 +85,6 @@
             <form method="GET"
                   action="{{ route('admin.shift-schedules') }}"
                   class="d-flex align-items-center gap-2 flex-wrap justify-content-end m-0">
-
-                <!-- DATE FROM -->
-                <div class="input-group"
-                     style="width: 170px; border: 1px solid #000000; border-radius: 6px; overflow: hidden; height: 38px;">
-
-                    <span class="input-group-text bg-white border-0 text-muted small">From</span>
-
-                    <input type="date"
-                           name="date_from"
-                           value="{{ $filters['date_from'] ?? '' }}"
-                           class="form-control border-0 shadow-none"
-                           onchange="this.form.submit()">
-                </div>
-
-                <!-- DATE TO -->
-                <div class="input-group"
-                     style="width: 170px; border: 1px solid #000000; border-radius: 6px; overflow: hidden; height: 38px;">
-
-                    <span class="input-group-text bg-white border-0 text-muted small">To</span>
-
-                    <input type="date"
-                           name="date_to"
-                           value="{{ $filters['date_to'] ?? '' }}"
-                           class="form-control border-0 shadow-none"
-                           onchange="this.form.submit()">
-                </div>
 
                 <!-- EMPLOYEE -->
                 <select name="user_id"
@@ -172,22 +109,17 @@
                         onchange="this.form.submit()">
 
                     <option value="">All Statuses</option>
-                    <option value="SCHEDULED" {{ ($filters['status'] ?? '') === 'SCHEDULED' ? 'selected' : '' }}>Scheduled</option>
                     <option value="ACTIVE" {{ ($filters['status'] ?? '') === 'ACTIVE' ? 'selected' : '' }}>Active</option>
-                    <option value="COMPLETED" {{ ($filters['status'] ?? '') === 'COMPLETED' ? 'selected' : '' }}>Completed</option>
-                    <option value="MISSED" {{ ($filters['status'] ?? '') === 'MISSED' ? 'selected' : '' }}>Missed</option>
-
+                    <option value="INACTIVE" {{ ($filters['status'] ?? '') === 'INACTIVE' ? 'selected' : '' }}>Inactive</option>
                 </select>
 
-                <!-- RESET (FIXED CONDITION) -->
-                @if(request()->hasAny(['date_from','date_to','user_id','status']))
+                <!-- RESET -->
+                @if(request()->hasAny(['user_id','status']))
                     <a href="{{ route('admin.shift-schedules') }}"
                        class="btn btn-outline-danger d-flex align-items-center gap-2"
                        style="height: 38px; border-radius: 6px;">
-
                         <i class="fa-solid fa-rotate"></i>
                         <span>Reset</span>
-
                     </a>
                 @endif
 
@@ -197,7 +129,7 @@
 
     </div>
 
-    <!-- TABLE BODY (UNCHANGED) -->
+    <!-- TABLE BODY -->
     <div class="card-body p-0">
         <div class="table-responsive">
             <table class="table table-hover align-middle mb-0">
@@ -206,9 +138,8 @@
                     <tr>
                         <th class="ps-3">Employee</th>
                         <th>Shift Details</th>
-                        <th>Date</th>
+                        <th>Days Active</th>
                         <th>Scheduled Time</th>
-                        <th>Actual Hours</th>
                         <th>Status</th>
                         <th class="text-center" style="width: 160px;">Action</th>
                     </tr>
@@ -217,14 +148,18 @@
                 <tbody>
                     @forelse($schedules as $sched)
                         @php
-                            $statusBadge = match($sched->status) {
-                                'SCHEDULED' => 'bg-warning text-dark',
-                                'ACTIVE' => 'bg-success',
-                                'COMPLETED' => 'bg-secondary',
-                                'MISSED' => 'bg-danger',
-                                default => 'bg-info'
-                            };
-                            $actualShift = $sched->actualShift;
+                            $statusBadge = $sched->is_active ? 'bg-success' : 'bg-secondary';
+                            $statusText = $sched->is_active ? 'ACTIVE' : 'INACTIVE';
+                            
+                            $days = [];
+                            if($sched->is_monday) $days[] = 'M';
+                            if($sched->is_tuesday) $days[] = 'T';
+                            if($sched->is_wednesday) $days[] = 'W';
+                            if($sched->is_thursday) $days[] = 'Th';
+                            if($sched->is_friday) $days[] = 'F';
+                            if($sched->is_saturday) $days[] = 'Sa';
+                            if($sched->is_sunday) $days[] = 'Su';
+                            $daysStr = implode('-', $days);
                         @endphp
 
                         <tr>
@@ -242,7 +177,10 @@
                             </td>
 
                             <td>{{ $sched->shift_name }}</td>
-                            <td>{{ $sched->shift_date->format('M d, Y') }}</td>
+                            
+                            <td>
+                                <span class="badge bg-light text-dark border">{{ $daysStr ?: 'None' }}</span>
+                            </td>
 
                             <td>
                                 {{ Carbon\Carbon::parse($sched->scheduled_start_time)->format('g:i A') }}
@@ -251,42 +189,41 @@
                             </td>
 
                             <td>
-                                @if($actualShift)
-                                    {{ $actualShift->start_time->format('g:i A') }} -
-                                    {{ $actualShift->end_time ? $actualShift->end_time->format('g:i A') : 'Active' }}
-                                @else
-                                    <span class="text-muted">—</span>
-                                @endif
-                            </td>
-
-                            <td>
-                                <span class="badge {{ $statusBadge }}">{{ $sched->status }}</span>
+                                <span class="badge {{ $statusBadge }}">{{ $statusText }}</span>
                             </td>
 
                             <td class="text-center">
                                 <div class="d-flex justify-content-center gap-1">
-                                    <a href="{{ route('admin.shift-schedules.report', $sched) }}"
-                                       class="btn btn-outline-primary btn-sm px-2">
-                                        <i class="fa-solid fa-file-invoice-dollar"></i>
-                                    </a>
+                                    <button class="btn btn-outline-warning btn-sm px-2"
+                                            data-bs-toggle="modal"
+                                            data-bs-target="#editScheduleModal"
+                                            data-id="{{ $sched->id }}"
+                                            data-user-id="{{ $sched->user_id }}"
+                                            data-shift-name="{{ $sched->shift_name }}"
+                                            data-start-time="{{ $sched->scheduled_start_time }}"
+                                            data-end-time="{{ $sched->scheduled_end_time }}"
+                                            data-is-monday="{{ $sched->is_monday ? '1' : '0' }}"
+                                            data-is-tuesday="{{ $sched->is_tuesday ? '1' : '0' }}"
+                                            data-is-wednesday="{{ $sched->is_wednesday ? '1' : '0' }}"
+                                            data-is-thursday="{{ $sched->is_thursday ? '1' : '0' }}"
+                                            data-is-friday="{{ $sched->is_friday ? '1' : '0' }}"
+                                            data-is-saturday="{{ $sched->is_saturday ? '1' : '0' }}"
+                                            data-is-sunday="{{ $sched->is_sunday ? '1' : '0' }}"
+                                            data-is-active="{{ $sched->is_active ? '1' : '0' }}"
+                                            data-notes="{{ $sched->notes }}"
+                                            data-update-url="{{ route('admin.shift-schedules.update', $sched) }}">
+                                        <i class="fa-solid fa-pen"></i>
+                                    </button>
 
-                                    @if($sched->status === 'SCHEDULED')
-                                        <button class="btn btn-outline-warning btn-sm px-2"
-                                                data-bs-toggle="modal"
-                                                data-bs-target="#editScheduleModal">
-                                            <i class="fa-solid fa-pen"></i>
+                                    <form action="{{ route('admin.shift-schedules.delete', $sched) }}"
+                                            method="POST"
+                                            class="d-inline m-0">
+                                        @csrf
+                                        @method('DELETE')
+                                        <button class="btn btn-outline-danger btn-sm px-2">
+                                            <i class="fa-solid fa-trash"></i>
                                         </button>
-
-                                        <form action="{{ route('admin.shift-schedules.delete', $sched) }}"
-                                              method="POST"
-                                              class="d-inline m-0">
-                                            @csrf
-                                            @method('DELETE')
-                                            <button class="btn btn-outline-danger btn-sm px-2">
-                                                <i class="fa-solid fa-trash"></i>
-                                            </button>
-                                        </form>
-                                    @endif
+                                    </form>
                                 </div>
                             </td>
 
@@ -294,7 +231,7 @@
 
                     @empty
                         <tr>
-                            <td colspan="7" class="text-center py-4 text-muted">
+                            <td colspan="6" class="text-center py-4 text-muted">
                                 No shift schedules found.
                             </td>
                         </tr>
@@ -306,8 +243,9 @@
     </div>
 
 </div>
+
 <!-- =========================================================
-     ADD SCHEDULE MODAL (UI IMPROVED ONLY)
+     ADD SCHEDULE MODAL
      ========================================================= -->
 <div class="modal fade" id="addScheduleModal" tabindex="-1" aria-labelledby="addScheduleModalLabel" aria-hidden="true">
     
@@ -353,14 +291,39 @@
                                required>
                     </div>
 
-                    <!-- DATE -->
+                    <!-- RECURRING DAYS -->
                     <div class="mb-3">
-                        <label for="add_shift_date" class="form-label fw-semibold">Shift Date</label>
-                        <input type="date"
-                               id="add_shift_date"
-                               name="shift_date"
-                               class="form-control form-control-lg"
-                               required>
+                        <label class="form-label fw-semibold">Recurring Days</label>
+                        <div class="d-flex flex-wrap gap-3">
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" name="days[]" value="monday" id="add_day_mon">
+                                <label class="form-check-label" for="add_day_mon">Monday</label>
+                            </div>
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" name="days[]" value="tuesday" id="add_day_tue">
+                                <label class="form-check-label" for="add_day_tue">Tuesday</label>
+                            </div>
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" name="days[]" value="wednesday" id="add_day_wed">
+                                <label class="form-check-label" for="add_day_wed">Wednesday</label>
+                            </div>
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" name="days[]" value="thursday" id="add_day_thu">
+                                <label class="form-check-label" for="add_day_thu">Thursday</label>
+                            </div>
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" name="days[]" value="friday" id="add_day_fri">
+                                <label class="form-check-label" for="add_day_fri">Friday</label>
+                            </div>
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" name="days[]" value="saturday" id="add_day_sat">
+                                <label class="form-check-label" for="add_day_sat">Saturday</label>
+                            </div>
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" name="days[]" value="sunday" id="add_day_sun">
+                                <label class="form-check-label" for="add_day_sun">Sunday</label>
+                            </div>
+                        </div>
                     </div>
 
                     <!-- TIME -->
@@ -384,14 +347,22 @@
                         </div>
                     </div>
 
-                    <!-- NOTES -->
-                    <div class="mb-2">
-                        <label for="add_notes" class="form-label fw-semibold">Notes (Optional)</label>
-                        <textarea id="add_notes"
-                                  name="notes"
-                                  class="form-control"
-                                  rows="3"
-                                  placeholder="Shift duties, drawer keys, etc."></textarea>
+                    <!-- STATUS & NOTES -->
+                    <div class="row g-3 mb-2">
+                        <div class="col-12">
+                            <div class="form-check form-switch mt-2">
+                                <input class="form-check-input" type="checkbox" id="add_is_active" name="is_active" value="1" checked>
+                                <label class="form-check-label fw-semibold" for="add_is_active">Schedule is Active</label>
+                            </div>
+                        </div>
+                        <div class="col-12 mt-3">
+                            <label for="add_notes" class="form-label fw-semibold">Notes (Optional)</label>
+                            <textarea id="add_notes"
+                                      name="notes"
+                                      class="form-control"
+                                      rows="3"
+                                      placeholder="Shift duties, drawer keys, etc."></textarea>
+                        </div>
                     </div>
 
                 </div>
@@ -414,7 +385,7 @@
 </div>
 
 <!-- =========================================================
-     EDIT SCHEDULE MODAL (UI IMPROVED ONLY)
+     EDIT SCHEDULE MODAL
      ========================================================= -->
 <div class="modal fade" id="editScheduleModal" tabindex="-1" aria-labelledby="editScheduleModalLabel" aria-hidden="true">
 
@@ -470,17 +441,39 @@
                                required>
                     </div>
 
-                    <!-- DATE -->
+                    <!-- RECURRING DAYS -->
                     <div class="mb-3">
-                        <label for="edit_shift_date" class="form-label fw-semibold">
-                            Shift Date
-                        </label>
-
-                        <input type="date"
-                               id="edit_shift_date"
-                               name="shift_date"
-                               class="form-control form-control-lg"
-                               required>
+                        <label class="form-label fw-semibold">Recurring Days</label>
+                        <div class="d-flex flex-wrap gap-3">
+                            <div class="form-check">
+                                <input class="form-check-input edit-day-checkbox" type="checkbox" name="days[]" value="monday" id="edit_day_mon">
+                                <label class="form-check-label" for="edit_day_mon">Monday</label>
+                            </div>
+                            <div class="form-check">
+                                <input class="form-check-input edit-day-checkbox" type="checkbox" name="days[]" value="tuesday" id="edit_day_tue">
+                                <label class="form-check-label" for="edit_day_tue">Tuesday</label>
+                            </div>
+                            <div class="form-check">
+                                <input class="form-check-input edit-day-checkbox" type="checkbox" name="days[]" value="wednesday" id="edit_day_wed">
+                                <label class="form-check-label" for="edit_day_wed">Wednesday</label>
+                            </div>
+                            <div class="form-check">
+                                <input class="form-check-input edit-day-checkbox" type="checkbox" name="days[]" value="thursday" id="edit_day_thu">
+                                <label class="form-check-label" for="edit_day_thu">Thursday</label>
+                            </div>
+                            <div class="form-check">
+                                <input class="form-check-input edit-day-checkbox" type="checkbox" name="days[]" value="friday" id="edit_day_fri">
+                                <label class="form-check-label" for="edit_day_fri">Friday</label>
+                            </div>
+                            <div class="form-check">
+                                <input class="form-check-input edit-day-checkbox" type="checkbox" name="days[]" value="saturday" id="edit_day_sat">
+                                <label class="form-check-label" for="edit_day_sat">Saturday</label>
+                            </div>
+                            <div class="form-check">
+                                <input class="form-check-input edit-day-checkbox" type="checkbox" name="days[]" value="sunday" id="edit_day_sun">
+                                <label class="form-check-label" for="edit_day_sun">Sunday</label>
+                            </div>
+                        </div>
                     </div>
 
                     <!-- TIME -->
@@ -512,16 +505,24 @@
 
                     </div>
 
-                    <!-- NOTES -->
-                    <div class="mb-2">
-                        <label for="edit_notes" class="form-label fw-semibold">
-                            Notes (Optional)
-                        </label>
+                    <!-- STATUS & NOTES -->
+                    <div class="row g-3 mb-2">
+                        <div class="col-12">
+                            <div class="form-check form-switch mt-2">
+                                <input class="form-check-input" type="checkbox" id="edit_is_active" name="is_active" value="1">
+                                <label class="form-check-label fw-semibold" for="edit_is_active">Schedule is Active</label>
+                            </div>
+                        </div>
+                        <div class="col-12 mt-3">
+                            <label for="edit_notes" class="form-label fw-semibold">
+                                Notes (Optional)
+                            </label>
 
-                        <textarea id="edit_notes"
-                                  name="notes"
-                                  class="form-control"
-                                  rows="3"></textarea>
+                            <textarea id="edit_notes"
+                                      name="notes"
+                                      class="form-control"
+                                      rows="3"></textarea>
+                        </div>
                     </div>
 
                 </div>
@@ -553,10 +554,6 @@
 @push('scripts')
 <script>
     (function () {
-        // Auto show toasts
-        document.querySelectorAll('.toast').forEach(function (el) {
-            new bootstrap.Toast(el).show();
-        });
 
         // Populate Edit Modal
         const editScheduleModal = document.getElementById('editScheduleModal');
@@ -565,10 +562,20 @@
                 const btn = event.relatedTarget;
                 document.getElementById('edit_user_id').value = btn.dataset.userId;
                 document.getElementById('edit_shift_name').value = btn.dataset.shiftName;
-                document.getElementById('edit_shift_date').value = btn.dataset.shiftDate;
                 document.getElementById('edit_start_time').value = btn.dataset.startTime;
                 document.getElementById('edit_end_time').value = btn.dataset.endTime;
                 document.getElementById('edit_notes').value = btn.dataset.notes || '';
+                
+                document.getElementById('edit_day_mon').checked = btn.dataset.isMonday === '1';
+                document.getElementById('edit_day_tue').checked = btn.dataset.isTuesday === '1';
+                document.getElementById('edit_day_wed').checked = btn.dataset.isWednesday === '1';
+                document.getElementById('edit_day_thu').checked = btn.dataset.isThursday === '1';
+                document.getElementById('edit_day_fri').checked = btn.dataset.isFriday === '1';
+                document.getElementById('edit_day_sat').checked = btn.dataset.isSaturday === '1';
+                document.getElementById('edit_day_sun').checked = btn.dataset.isSunday === '1';
+                
+                document.getElementById('edit_is_active').checked = btn.dataset.isActive === '1';
+
                 document.getElementById('editScheduleForm').action = btn.dataset.updateUrl;
             });
         }
