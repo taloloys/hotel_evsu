@@ -882,9 +882,17 @@
                             <span class="text-muted">Total Card Payments:</span>
                             <span class="fw-bold text-primary">₱{{ number_format($shiftSales['card'], 2) }}</span>
                         </div>
+                        <div class="d-flex justify-content-between mb-1 small text-danger">
+                            <span>Total Cash Expenses:</span>
+                            <span class="fw-bold">- ₱{{ number_format($shiftSales['expenses'], 2) }}</span>
+                        </div>
                         <div class="d-flex justify-content-between border-top pt-2 mt-2 fw-bold">
                             <span>Total Sales Collected:</span>
                             <span>₱{{ number_format($shiftSales['payments'], 2) }}</span>
+                        </div>
+                        <div class="d-flex justify-content-between pt-1 mt-1 fw-bold text-success">
+                            <span>Expected Cash in Drawer:</span>
+                            <span>₱{{ number_format($shiftSales['cash'] - $shiftSales['expenses'], 2) }}</span>
                         </div>
                         <div class="d-flex justify-content-between text-danger mt-1 small">
                             <span>Charges Posted to Rooms:</span>

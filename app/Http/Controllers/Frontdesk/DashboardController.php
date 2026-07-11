@@ -39,6 +39,7 @@ class DashboardController extends Controller
             'payments' => 0.00,
             'cash' => 0.00,
             'card' => 0.00,
+            'expenses' => 0.00,
         ];
 
         if ($activeShift) {
@@ -52,6 +53,10 @@ class DashboardController extends Controller
             $shiftSales['card'] = Transaction::where('shift_id', $activeShift->shift_id)
                 ->where('payment_method', 'CREDIT_CARD')
                 ->sum('credit_amount');
+            $shiftSales['expenses'] = \App\Models\Expense::where('user_id', $userId)
+                ->where('funding_source', 'FRONT DESK')
+                ->where('created_at', '>=', $activeShift->start_time)
+                ->sum('amount');
         }
 
         // Get today's arrivals
