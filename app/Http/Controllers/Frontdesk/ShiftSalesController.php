@@ -34,48 +34,68 @@ class ShiftSalesController extends Controller
         $dateUntil = $request->input('date_until');
 
         if ($request->filled('shift_id')) {
+            // By Shift mode: filter strictly by the selected shift_id only
             $query->where('shift_id', $request->shift_id);
         } else {
+            // By Date Range mode: determine which user's transactions to show
             if (! $isAdmin) {
                 $targetUserId = auth()->id();
             } else {
                 $targetUserId = $request->input('employee_id');
             }
 
+            // Apply user filter: match by transaction user_id OR by the shift's owner user_id
+            // Date range is included INSIDE the user group so both branches are date-scoped.
             if ($targetUserId) {
-                $query->where(function ($q) use ($targetUserId) {
-                    $q->where('user_id', $targetUserId)
-                      ->orWhereHas('shift', function ($sub) use ($targetUserId) {
-                          $sub->where('user_id', $targetUserId);
-                      });
+                $query->where(function ($q) use ($targetUserId, $dateFrom, $dateUntil) {
+                    $q->where(function ($branch) use ($targetUserId, $dateFrom, $dateUntil) {
+                        $branch->where('user_id', $targetUserId);
+                        if ($dateFrom) {
+                            $branch->whereDate('transaction_date', '>=', $dateFrom);
+                        }
+                        if ($dateUntil) {
+                            $branch->whereDate('transaction_date', '<=', $dateUntil);
+                        }
+                    })->orWhere(function ($branch) use ($targetUserId, $dateFrom, $dateUntil) {
+                        $branch->whereHas('shift', function ($sub) use ($targetUserId) {
+                            $sub->where('user_id', $targetUserId);
+                        });
+                        if ($dateFrom) {
+                            $branch->whereDate('transaction_date', '>=', $dateFrom);
+                        }
+                        if ($dateUntil) {
+                            $branch->whereDate('transaction_date', '<=', $dateUntil);
+                        }
+                    });
                 });
+            } else {
+                // No specific user: just apply date range
+                if ($dateFrom) {
+                    $query->whereDate('transaction_date', '>=', $dateFrom);
+                }
+                if ($dateUntil) {
+                    $query->whereDate('transaction_date', '<=', $dateUntil);
+                }
             }
+        }
 
-            if ($dateFrom) {
-                $query->whereDate('transaction_date', '>=', $dateFrom);
-            }
-            if ($dateUntil) {
-                $query->whereDate('transaction_date', '<=', $dateUntil);
-            }
+        // Category filter — always applied strictly regardless of mode
+        if ($request->filled('report_type') && $request->report_type !== 'all') {
+            $query->whereHas('chargeCode', function ($sub) use ($request) {
+                if ($request->report_type === 'hotel') {
+                    $sub->whereIn('category', ['HOTEL', 'TAX_SERVICE']);
+                } elseif ($request->report_type === 'restaurant') {
+                    $sub->where('category', 'RESTAURANT');
+                }
+            });
+        }
 
-            // Report Type (Category) filter
-            if ($request->filled('report_type') && $request->report_type !== 'all') {
-                $query->whereHas('chargeCode', function ($sub) use ($request) {
-                    if ($request->report_type === 'hotel') {
-                        $sub->whereIn('category', ['HOTEL', 'TAX_SERVICE']);
-                    } elseif ($request->report_type === 'restaurant') {
-                        $sub->where('category', 'RESTAURANT');
-                    }
-                });
-            }
-
-            // Charge Code From/Until range filters
-            if ($request->filled('charge_code_from')) {
-                $query->where('charge_code', '>=', $request->charge_code_from);
-            }
-            if ($request->filled('charge_code_until')) {
-                $query->where('charge_code', '<=', $request->charge_code_until);
-            }
+        // Charge Code range filters — always applied strictly
+        if ($request->filled('charge_code_from')) {
+            $query->where('charge_code', '>=', $request->charge_code_from);
+        }
+        if ($request->filled('charge_code_until')) {
+            $query->where('charge_code', '<=', $request->charge_code_until);
         }
 
         $transactions = collect();
