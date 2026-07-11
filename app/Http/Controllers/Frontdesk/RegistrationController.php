@@ -91,7 +91,7 @@ class RegistrationController extends Controller
 
         $guestName = trim($validated['first_name'].' '.$validated['last_name']);
 
-        DB::transaction(function () use ($validated, $room) {
+        DB::transaction(function () use ($validated, $room, $isOpenStay) {
             $guest = Guest::create([
                 'first_name' => $validated['first_name'],
                 'last_name' => $validated['last_name'],

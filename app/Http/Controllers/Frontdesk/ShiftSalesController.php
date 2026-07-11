@@ -30,46 +30,52 @@ class ShiftSalesController extends Controller
         $query = Transaction::query()
             ->with(['user', 'chargeCode', 'folio.guest']);
 
-        if (! $isAdmin) {
-            $query->where('user_id', auth()->id());
-        } elseif ($request->filled('employee_id')) {
-            $query->where('user_id', $request->employee_id);
-        }
-
-        // Default dates to today if not provided but request is submitted
         $dateFrom = $request->input('date_from');
         $dateUntil = $request->input('date_until');
 
-        if ($dateFrom) {
-            $query->whereDate('transaction_date', '>=', $dateFrom);
-        }
-        if ($dateUntil) {
-            $query->whereDate('transaction_date', '<=', $dateUntil);
-        }
-
-        // Report Type (Category) filter
-        if ($request->filled('report_type') && $request->report_type !== 'all') {
-            if ($request->report_type === 'hotel') {
-                $query->whereHas('chargeCode', function ($q) {
-                    $q->whereIn('category', ['HOTEL', 'TAX_SERVICE']);
-                });
-            } elseif ($request->report_type === 'restaurant') {
-                $query->whereHas('chargeCode', function ($q) {
-                    $q->where('category', 'RESTAURANT');
-                });
-            }
-        }
-
-        // Charge Code From/Until range filters
-        if ($request->filled('charge_code_from')) {
-            $query->where('charge_code', '>=', $request->charge_code_from);
-        }
-        if ($request->filled('charge_code_until')) {
-            $query->where('charge_code', '<=', $request->charge_code_until);
-        }
-
         if ($request->filled('shift_id')) {
             $query->where('shift_id', $request->shift_id);
+        } else {
+            if (! $isAdmin) {
+                $targetUserId = auth()->id();
+            } else {
+                $targetUserId = $request->input('employee_id');
+            }
+
+            if ($targetUserId) {
+                $query->where(function ($q) use ($targetUserId) {
+                    $q->where('user_id', $targetUserId)
+                      ->orWhereHas('shift', function ($sub) use ($targetUserId) {
+                          $sub->where('user_id', $targetUserId);
+                      });
+                });
+            }
+
+            if ($dateFrom) {
+                $query->whereDate('transaction_date', '>=', $dateFrom);
+            }
+            if ($dateUntil) {
+                $query->whereDate('transaction_date', '<=', $dateUntil);
+            }
+
+            // Report Type (Category) filter
+            if ($request->filled('report_type') && $request->report_type !== 'all') {
+                $query->whereHas('chargeCode', function ($sub) use ($request) {
+                    if ($request->report_type === 'hotel') {
+                        $sub->whereIn('category', ['HOTEL', 'TAX_SERVICE']);
+                    } elseif ($request->report_type === 'restaurant') {
+                        $sub->where('category', 'RESTAURANT');
+                    }
+                });
+            }
+
+            // Charge Code From/Until range filters
+            if ($request->filled('charge_code_from')) {
+                $query->where('charge_code', '>=', $request->charge_code_from);
+            }
+            if ($request->filled('charge_code_until')) {
+                $query->where('charge_code', '<=', $request->charge_code_until);
+            }
         }
 
         $transactions = collect();
@@ -85,7 +91,7 @@ class ShiftSalesController extends Controller
         ];
 
         // Only run report if form has been submitted
-        $hasSearched = $request->has('report_type') || $request->has('date_from') || $request->has('shift_id');
+        $hasSearched = $request->has('report_type') || $request->has('date_from') || $request->has('shift_id') || $request->has('employee_id') || $request->has('charge_code_from') || $request->has('charge_code_until');
 
         if ($hasSearched) {
             $transactions = $query->orderBy('timestamp')->get();
@@ -100,18 +106,17 @@ class ShiftSalesController extends Controller
 
             // Calculate expenses if filtering by shift or date
             $expenseQuery = Expense::where('funding_source', 'FRONT DESK')->where('status', 'APPROVED');
-            if ($dateFrom) {
-                $expenseQuery->whereDate('created_at', '>=', $dateFrom);
-            }
-            if ($dateUntil) {
-                $expenseQuery->whereDate('created_at', '<=', $dateUntil);
-            }
-            // Note: If filtering by shift, we need the exact times. But since we don't have shift_id in expenses,
-            // we will approximate based on date filters or active shift in the view if needed.
             if ($request->filled('shift_id')) {
                 $selectedShift = Shift::find($request->shift_id);
                 if ($selectedShift) {
                     $expenseQuery->whereBetween('created_at', [$selectedShift->start_time, $selectedShift->end_time ?? Carbon::now()]);
+                }
+            } else {
+                if ($dateFrom) {
+                    $expenseQuery->whereDate('created_at', '>=', $dateFrom);
+                }
+                if ($dateUntil) {
+                    $expenseQuery->whereDate('created_at', '<=', $dateUntil);
                 }
             }
             $totals['shift_expenses'] = $expenseQuery->sum('amount');
