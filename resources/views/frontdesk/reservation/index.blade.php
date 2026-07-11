@@ -177,7 +177,7 @@
                                 @endif
                             </td>
                             <td>
-                                {{ $reservation->departure_date->format('m/d/Y') }}
+                                {{ $reservation->departure_date ? $reservation->departure_date->format('m/d/Y') : '—' }}
                                 @if($reservation->departure_time)
                                     <small class="text-muted d-block">{{ \Carbon\Carbon::parse($reservation->departure_time)->format('g:i A') }}</small>
                                 @endif
@@ -215,7 +215,7 @@
                                         data-registration="{{ $reservation->folio->registration_number }}"
                                         data-arrival="{{ $reservation->arrival_date->format('M d, Y') }}"
                                         data-arrival-time="{{ $reservation->arrival_time ? \Carbon\Carbon::parse($reservation->arrival_time)->format('g:i A') : '—' }}"
-                                        data-departure="{{ $reservation->departure_date->format('M d, Y') }}"
+                                        data-departure="{{ $reservation->departure_date ? $reservation->departure_date->format('M d, Y') : 'Open Stay' }}"
                                         data-departure-time="{{ $reservation->departure_time ? \Carbon\Carbon::parse($reservation->departure_time)->format('g:i A') : '—' }}"
                                         data-status="{{ $reservation->status }}"
                                         data-pax="{{ $reservation->folio->num_pax }}"
@@ -572,7 +572,7 @@
                         <div class="col-md-6">
                             <label class="form-label fw-semibold" for="departure_date">
                                 Departure Date
-                                <span class="text-danger">*</span>
+                                <span class="text-danger reservation-departure-required">*</span>
                             </label>
 
                             <input
@@ -589,7 +589,7 @@
                         <div class="col-md-6">
                             <label class="form-label fw-semibold" for="departure_time">
                                 Departure Time
-                                <span class="text-danger">*</span>
+                                <span class="text-danger reservation-departure-required">*</span>
                             </label>
 
                             <input
@@ -600,6 +600,22 @@
                                 value="{{ old('departure_time', '12:00') }}"
                                 style="height:46px; border:1px solid #000000;"
                                 required>
+                        </div>
+
+                        <!-- Open Stay -->
+                        <div class="col-12">
+                            <div class="form-check">
+                                <input
+                                    class="form-check-input"
+                                    type="checkbox"
+                                    id="reservation_open_stay"
+                                    name="open_stay"
+                                    value="1"
+                                    @checked(old('open_stay'))>
+                                <label class="form-check-label fw-semibold" for="reservation_open_stay">
+                                    Open Stay (no checkout date)
+                                </label>
+                            </div>
                         </div>
 
                         <!-- Information -->
@@ -865,6 +881,37 @@
 
         const arrivalDate = document.getElementById('arrival_date');
         const departureDate = document.getElementById('departure_date');
+        const departureTime = document.getElementById('departure_time');
+        const openStayCheckbox = document.getElementById('reservation_open_stay');
+
+        function toggleReservationOpenStay() {
+            const isOpenStay = openStayCheckbox && openStayCheckbox.checked;
+
+            if (departureDate) {
+                departureDate.disabled = isOpenStay;
+                departureDate.required = !isOpenStay;
+                if (isOpenStay) {
+                    departureDate.value = '';
+                }
+            }
+
+            if (departureTime) {
+                departureTime.disabled = isOpenStay;
+                departureTime.required = !isOpenStay;
+                if (isOpenStay) {
+                    departureTime.value = '';
+                }
+            }
+
+            document.querySelectorAll('.reservation-departure-required').forEach(function(el) {
+                el.classList.toggle('d-none', isOpenStay);
+            });
+        }
+
+        if (openStayCheckbox) {
+            openStayCheckbox.addEventListener('change', toggleReservationOpenStay);
+            toggleReservationOpenStay();
+        }
 
         if (arrivalDate && departureDate) {
             arrivalDate.addEventListener('change', function() {

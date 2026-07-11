@@ -45,6 +45,8 @@ class RegistrationController extends Controller
 
     public function store(Request $request): RedirectResponse
     {
+        $isOpenStay = (bool) $request->input('open_stay', false);
+
         $validated = $request->validate([
             'first_name' => ['required', 'string', 'max:50'],
             'last_name' => ['required', 'string', 'max:50'],
@@ -64,11 +66,12 @@ class RegistrationController extends Controller
             'breakfast_code' => ['nullable', 'string', 'max:20'],
             'payment_method' => ['nullable', 'string', 'in:Cash,Credit Card'],
             'net_rate' => ['nullable', 'numeric', 'min:0'],
+            'open_stay' => ['nullable', 'boolean'],
             'room_id' => ['required', 'integer', 'exists:rooms,room_id'],
             'arrival_date' => ['required', 'date', 'after_or_equal:today'],
             'arrival_time' => ['required', 'date_format:H:i'],
-            'departure_date' => ['required', 'date', 'after:arrival_date'],
-            'departure_time' => ['required', 'date_format:H:i'],
+            'departure_date' => $isOpenStay ? ['nullable'] : ['required', 'date', 'after:arrival_date'],
+            'departure_time' => $isOpenStay ? ['nullable'] : ['required', 'date_format:H:i'],
         ]);
 
         $today = Carbon::now()->toDateString();
@@ -80,7 +83,7 @@ class RegistrationController extends Controller
                 ->withErrors(['room_id' => 'Selected room is not available. It may be occupied, reserved, or under maintenance.']);
         }
 
-        if ($this->roomHasConflict($room->room_id, $validated['arrival_date'], $validated['departure_date'])) {
+        if (! $isOpenStay && $this->roomHasConflict($room->room_id, $validated['arrival_date'], $validated['departure_date'])) {
             return back()
                 ->withInput()
                 ->withErrors(['room_id' => 'Selected room already has a booking for these dates.']);
@@ -125,8 +128,8 @@ class RegistrationController extends Controller
                 'room_id' => $room->room_id,
                 'arrival_date' => $validated['arrival_date'],
                 'arrival_time' => $validated['arrival_time'],
-                'departure_date' => $validated['departure_date'],
-                'departure_time' => $validated['departure_time'],
+                'departure_date' => $isOpenStay ? null : ($validated['departure_date'] ?? null),
+                'departure_time' => $isOpenStay ? null : ($validated['departure_time'] ?? null),
                 'actual_check_in' => Carbon::now(),
                 'status' => 'CHECKED_IN',
             ]);

@@ -67,7 +67,7 @@ class ReportController extends Controller
 
         // 4. Detailed transaction list
         $transactions = Transaction::whereBetween('transaction_date', [$dateFrom, $dateTo])
-            ->with(['folio.guest', 'chargeCode'])
+            ->with(['folio.guest', 'chargeCode', 'user'])
             ->orderBy('timestamp', 'desc')
             ->get();
 

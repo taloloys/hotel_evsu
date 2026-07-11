@@ -295,7 +295,7 @@
                     <div class="col-md-3">
                         <label class="form-label fw-semibold" for="departure_date">
                             Departure Date
-                            <span class="text-danger">*</span>
+                            <span class="text-danger departure-required">*</span>
                         </label>
 
                         <input
@@ -316,7 +316,7 @@
                     <div class="col-md-3">
                         <label class="form-label fw-semibold" for="departure_time">
                             Departure Time
-                            <span class="text-danger">*</span>
+                            <span class="text-danger departure-required">*</span>
                         </label>
 
                         <input
@@ -331,6 +331,25 @@
                         @error('departure_time')
                             <div class="invalid-feedback">{{ $message }}</div>
                         @enderror
+                    </div>
+
+                    <!-- Open Stay -->
+                    <div class="col-12">
+                        <div class="form-check">
+                            <input
+                                class="form-check-input"
+                                type="checkbox"
+                                id="open_stay"
+                                name="open_stay"
+                                value="1"
+                                @checked(old('open_stay'))>
+                            <label class="form-check-label fw-semibold" for="open_stay">
+                                Open Stay (no checkout date)
+                            </label>
+                            <div class="text-muted small">
+                                Guest checkout date is unknown. Room charges will be posted daily at midnight.
+                            </div>
+                        </div>
                     </div>
 
                     <!-- Number of Pax -->
@@ -701,6 +720,37 @@
         const netRateInput = document.getElementById('net_rate');
         const arrivalDate = document.getElementById('arrival_date');
         const departureDate = document.getElementById('departure_date');
+        const departureTime = document.getElementById('departure_time');
+        const openStayCheckbox = document.getElementById('open_stay');
+
+        function toggleOpenStay() {
+            const isOpenStay = openStayCheckbox && openStayCheckbox.checked;
+
+            if (departureDate) {
+                departureDate.disabled = isOpenStay;
+                departureDate.required = !isOpenStay;
+                if (isOpenStay) {
+                    departureDate.value = '';
+                }
+            }
+
+            if (departureTime) {
+                departureTime.disabled = isOpenStay;
+                departureTime.required = !isOpenStay;
+                if (isOpenStay) {
+                    departureTime.value = '';
+                }
+            }
+
+            document.querySelectorAll('.departure-required').forEach(function(el) {
+                el.classList.toggle('d-none', isOpenStay);
+            });
+        }
+
+        if (openStayCheckbox) {
+            openStayCheckbox.addEventListener('change', toggleOpenStay);
+            toggleOpenStay();
+        }
 
         function setGuestDetails(guest, folioNum) {
             displayGuestName.textContent = `${guest.last_name}, ${guest.first_name}`;

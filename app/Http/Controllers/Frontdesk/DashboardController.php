@@ -113,6 +113,14 @@ class DashboardController extends Controller
             ->orderBy('departure_time')
             ->get();
 
+        // Overdue guests: still checked in but departure date has already passed
+        $overdueGuests = $guestBookingsQuery()
+            ->where('status', 'CHECKED_IN')
+            ->whereNotNull('departure_date')
+            ->whereDate('departure_date', '<', $today)
+            ->orderBy('departure_date')
+            ->get();
+
         // Rooms ready for guests: available status with no active reservation or occupancy
         $vacantRooms = Room::query()
             ->where('is_active', true)
@@ -135,8 +143,11 @@ class DashboardController extends Controller
             ->orderBy('room_type')
             ->orderBy('room_number')
             ->get()
-            ->map(function (Room $room) {
+            ->map(function (Room $room) use ($today) {
                 $activeBooking = $room->bookings->first();
+                $isOverdue = $activeBooking
+                    && $activeBooking->departure_date !== null
+                    && $activeBooking->departure_date->lt(Carbon::parse($today));
 
                 return [
                     'room_id' => $room->room_id,
@@ -150,6 +161,7 @@ class DashboardController extends Controller
                         : null,
                     'folio_number' => $activeBooking?->folio?->folio_number,
                     'departure_date' => $activeBooking?->departure_date,
+                    'is_overdue' => $isOverdue,
                 ];
             });
 
@@ -163,6 +175,7 @@ class DashboardController extends Controller
             'roomsByType' => $roomsByType,
             'todayCheckIns' => $todayCheckIns,
             'todayCheckOuts' => $todayCheckOuts,
+            'overdueGuests' => $overdueGuests,
             'vacantRooms' => $vacantRooms,
             'occupiedRoomList' => $occupiedRoomList,
             'totalRooms' => Room::where('is_active', true)->count(),

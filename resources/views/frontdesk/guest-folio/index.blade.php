@@ -260,6 +260,29 @@
 
                 <div class="modal-body">
 
+                    @php
+                        $isOverdueGuest = $booking
+                            && $booking->status === 'CHECKED_IN'
+                            && $booking->departure_date
+                            && $booking->departure_date->lt(now()->startOfDay());
+                        $daysPastDue = $isOverdueGuest
+                            ? $booking->departure_date->diffInDays(now())
+                            : 0;
+                    @endphp
+
+                    @if($isOverdueGuest)
+                    <div class="alert alert-danger border-0 rounded-3 d-flex align-items-start gap-3 mb-4">
+                        <i class="fa-solid fa-triangle-exclamation fs-5 mt-1 flex-shrink-0"></i>
+                        <div>
+                            <strong>Guest is Overdue — {{ $daysPastDue }} {{ Str::plural('day', $daysPastDue) }} past departure</strong>
+                            <div class="small mt-1">
+                                Scheduled departure was <strong>{{ $booking->departure_date->format('M d, Y') }}</strong>.
+                                Use the <em>Stay Extension</em> controls below to update the departure date and bill for additional nights.
+                            </div>
+                        </div>
+                    </div>
+                    @endif
+
                     {{-- Guest & Stay Info --}}
                     <div class="row g-3 mb-4">
                         <div class="col-md-3">
@@ -348,6 +371,45 @@
                             </div>
                         @endif
                     </div>
+
+                    {{-- Stay / Transfer History --}}
+                    @if($folio->bookings->count() > 1)
+                    <div class="card border shadow-sm mb-4">
+                        <div class="card-header bg-white py-2">
+                            <h6 class="mb-0 fw-semibold text-dark">
+                                <i class="fa-solid fa-clock-rotate-left text-primary me-2"></i> Stay & Room Transfer History
+                            </h6>
+                        </div>
+                        <div class="table-responsive">
+                            <table class="table table-sm table-hover align-middle mb-0 small">
+                                <thead class="table-light">
+                                    <tr>
+                                        <th class="ps-3">Room</th>
+                                        <th>Period</th>
+                                        <th>Status</th>
+                                        <th>Check-In</th>
+                                        <th>Check-Out</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach($folio->bookings->sortBy('booking_id') as $b)
+                                    <tr>
+                                        <td class="ps-3 fw-semibold">Room {{ $b->room?->room_number }} <span class="text-muted fw-normal">({{ $b->room?->room_type }})</span></td>
+                                        <td>{{ $b->arrival_date?->format('M d, Y') }} &rarr; {{ $b->departure_date?->format('M d, Y') ?? 'Open' }}</td>
+                                        <td>
+                                            <span class="badge bg-{{ $b->status === 'CHECKED_IN' ? 'success' : ($b->status === 'CHECKED_OUT' ? 'secondary' : 'warning') }}-subtle text-{{ $b->status === 'CHECKED_IN' ? 'success' : ($b->status === 'CHECKED_OUT' ? 'secondary' : 'dark') }}">
+                                                {{ $b->status }}
+                                            </span>
+                                        </td>
+                                        <td>{{ $b->actual_check_in ? $b->actual_check_in->format('M d, Y h:i A') : '—' }}</td>
+                                        <td>{{ $b->actual_check_out ? $b->actual_check_out->format('M d, Y h:i A') : '—' }}</td>
+                                    </tr>
+                                    @endforeach
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                    @endif
 
                     {{-- Front Desk Controls Panel --}}
                     <div class="card border-0 bg-light mb-4 shadow-sm">
@@ -496,10 +558,13 @@
 
                                                         @csrf
 
+                                                        @php
+                                                            $checkInDefaultRate = $folio->net_rate ?? ($room?->base_rate ?? '0.00');
+                                                        @endphp
                                                         <button
                                                             type="button"
                                                             class="btn btn-primary btn-sm"
-                                                            onclick="swalConfirmCheckIn(this, '{{ $folio->guest?->first_name }}', '{{ $room?->room_number }}')">
+                                                            onclick="swalConfirmCheckIn(this, '{{ $folio->guest?->first_name }}', '{{ $room?->room_number }}', '{{ $checkInDefaultRate }}')">  
 
                                                             <i class="fa-solid fa-door-open me-1"></i>
                                                             Check In
@@ -803,6 +868,60 @@
 
                                     </div>
 
+                                    @endif
+
+                                    {{-- Stay Extension Card --}}
+                                    @if($folio->status=='OPEN' && $booking && $booking->status=='CHECKED_IN')
+                                    <div class="card border mb-3 shadow-sm mt-3">
+                                        <div class="card-header bg-white py-2">
+                                            <strong>Stay Extension</strong>
+                                        </div>
+                                        <div class="card-body">
+                                            <form method="POST" action="{{ route('frontdesk.guest-folio.extend', $booking->booking_id) }}">
+                                                @csrf
+                                                <div class="mb-3">
+                                                    <label class="form-label fw-semibold mb-1">New Departure Date</label>
+                                                    <div class="w-100 border border-dark rounded">
+                                                @php
+                                                    $minExtensionDate = $booking->departure_date
+                                                        ? max(
+                                                            $booking->departure_date->copy()->addDay()->toDateString(),
+                                                            now()->addDay()->toDateString()
+                                                          )
+                                                        : now()->addDay()->toDateString();
+                                                    $defaultExtensionDate = $booking->departure_date
+                                                        ? max(
+                                                            $booking->departure_date->copy()->addDay()->toDateString(),
+                                                            now()->addDay()->toDateString()
+                                                          )
+                                                        : '';
+                                                @endphp
+                                                        <input type="date" name="departure_date" class="form-control border-0" required
+                                                            min="{{ $minExtensionDate }}"
+                                                            value="{{ $defaultExtensionDate }}">
+                                                    </div>
+                                                </div>
+                                                <div class="mb-3">
+                                                    <label class="form-label fw-semibold mb-1">New Departure Time</label>
+                                                    <div class="w-100 border border-dark rounded">
+                                                        <input type="time" name="departure_time" class="form-control border-0" value="{{ $booking->departure_time ? \Carbon\Carbon::parse($booking->departure_time)->format('H:i') : '12:00' }}">
+                                                    </div>
+                                                </div>
+                                                <div class="mb-3">
+                                                    <label class="form-label fw-semibold mb-1">Net Rate Override (Optional)</label>
+                                                    <div class="input-group">
+                                                        <span class="input-group-text">₱</span>
+                                                        <input type="number" name="net_rate" class="form-control" placeholder="{{ $folio->net_rate ?? ($room?->base_rate ?? '0.00') }}" min="0" step="0.01">
+                                                    </div>
+                                                </div>
+                                                <div class="text-end">
+                                                    <button type="button" class="btn btn-warning" onclick="swalConfirmExtension(this)">
+                                                        <i class="fa-solid fa-clock me-1"></i> Extend Stay
+                                                    </button>
+                                                </div>
+                                            </form>
+                                        </div>
+                                    </div>
                                     @endif
 
                                 </div>
@@ -1222,10 +1341,17 @@
             <tr>
                 <td style="width: 13%; font-weight: bold; vertical-align: top;">DATE</td>
                 <td style="width: 37%; vertical-align: top;">: {{ now()->format('m/d/Y') }}</td>
-                <td style="width: 13%; font-weight: bold; vertical-align: top;">ROOM</td>
+                <td style="width: 13%; font-weight: bold; vertical-align: top;">ROOM(S)</td>
                 <td style="width: 37%; vertical-align: top;" colspan="3">
-                    : {{ $booking?->room?->room_number ?? 'N/A' }}<br>
-                    &nbsp;&nbsp;<strong>{{ number_format($folio->net_rate ?? ($booking?->room?->base_rate ?? 0), 2) }}</strong>
+                    : @if($folio->bookings->count() > 1)
+                        @foreach($folio->bookings->sortBy('booking_id') as $b)
+                            Room {{ $b->room?->room_number }} [{{ $b->arrival_date?->format('m/d') }} to {{ $b->departure_date?->format('m/d') ?? 'Open' }}]{{ !$loop->last ? '; ' : '' }}
+                        @endforeach
+                      @else
+                        Room {{ $booking?->room?->room_number ?? 'N/A' }}
+                      @endif
+                    <br>
+                    &nbsp;&nbsp;Rate: <strong>₱{{ number_format($folio->net_rate ?? ($booking?->room?->base_rate ?? 0), 2) }}</strong>
                 </td>
             </tr>
             <tr>
@@ -1643,20 +1769,32 @@
         });
 
         // SweetAlert2 helpers — Module 6
-        window.swalConfirmCheckIn = function(btn, guestName, roomNumber) {
+        window.swalConfirmCheckIn = function(btn, guestName, roomNumber, currentNetRate) {
             Swal.fire({
                 icon: 'question',
                 title: 'Confirm Check-In',
-                html: 'Check in <strong>' + (guestName || 'guest') + '</strong> to Room <strong>' + (roomNumber || '—') + '</strong>?',
+                html: 'Check in <strong>' + (guestName || 'guest') + '</strong> to Room <strong>' + (roomNumber || '—') + '</strong>?<br><br>' +
+                     '<label class="form-label fw-semibold small text-start d-block mb-1">Net Rate Override (Optional)</label>' +
+                     '<input id="swal-net-rate" type="number" class="form-control" placeholder="' + (currentNetRate || '0.00') + '" min="0" step="0.01">',
                 showCancelButton: true,
                 confirmButtonText: '<i class="fa-solid fa-door-open me-1"></i> Check In',
                 cancelButtonText: 'Cancel',
                 confirmButtonColor: '#0d6efd',
                 reverseButtons: true,
+                preConfirm: function() {
+                    return document.getElementById('swal-net-rate').value;
+                }
             }).then(function(result) {
                 if (result.isConfirmed) {
                     var form = btn.closest('form');
                     if (form) {
+                        if (result.value) {
+                            var rateInput = document.createElement('input');
+                            rateInput.type = 'hidden';
+                            rateInput.name = 'net_rate';
+                            rateInput.value = result.value;
+                            form.appendChild(rateInput);
+                        }
                         sessionStorage.setItem('openModalId', form.closest('.modal').id);
                         form.submit();
                     }
@@ -1687,6 +1825,39 @@
                 html: 'Transfer guest to <strong>' + selectedText + '</strong>?',
                 showCancelButton: true,
                 confirmButtonText: '<i class="fa-solid fa-right-left me-1"></i> Transfer',
+                cancelButtonText: 'Cancel',
+                confirmButtonColor: '#0d6efd',
+                reverseButtons: true,
+            }).then(function(result) {
+                if (result.isConfirmed) {
+                    if (form) {
+                        sessionStorage.setItem('openModalId', form.closest('.modal').id);
+                        form.submit();
+                    }
+                }
+            });
+        };
+
+        window.swalConfirmExtension = function(btn) {
+            var form = btn.closest('form');
+            var depDate = form ? form.querySelector('input[name="departure_date"]').value : null;
+
+            if (!depDate) {
+                Swal.fire({
+                    icon: 'warning',
+                    title: 'No Date Selected',
+                    text: 'Please select a new departure date before extending.',
+                    confirmButtonColor: '#ffc107',
+                });
+                return;
+            }
+
+            Swal.fire({
+                icon: 'question',
+                title: 'Confirm Stay Extension',
+                html: 'Extend stay to <strong>' + depDate + '</strong>?',
+                showCancelButton: true,
+                confirmButtonText: '<i class="fa-solid fa-clock me-1"></i> Extend',
                 cancelButtonText: 'Cancel',
                 confirmButtonColor: '#0d6efd',
                 reverseButtons: true,

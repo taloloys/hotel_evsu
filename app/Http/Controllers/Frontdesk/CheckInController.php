@@ -58,6 +58,8 @@ class CheckInController extends Controller
      */
     public function store(Request $request): RedirectResponse
     {
+        $isOpenStay = $request->boolean('open_stay');
+
         $validated = $request->validate([
             'guest_id' => ['required', 'integer', 'exists:guests,guest_id'],
             'folio_number' => [
@@ -86,8 +88,9 @@ class CheckInController extends Controller
             'room_id' => ['required', 'integer', 'exists:rooms,room_id'],
             'arrival_date' => ['required', 'date', 'after_or_equal:today'],
             'arrival_time' => ['required', 'date_format:H:i'],
-            'departure_date' => ['required', 'date', 'after:arrival_date'],
-            'departure_time' => ['required', 'date_format:H:i'],
+            'open_stay' => ['nullable', 'boolean'],
+            'departure_date' => [$isOpenStay ? 'nullable' : 'required', 'date', 'after:arrival_date'],
+            'departure_time' => [$isOpenStay ? 'nullable' : 'required', 'date_format:H:i'],
         ]);
 
         $today = Carbon::now()->toDateString();
@@ -99,7 +102,9 @@ class CheckInController extends Controller
                 ->withErrors(['room_id' => 'Selected room is not available. It may be occupied, reserved, or under maintenance.']);
         }
 
-        if ($this->roomHasConflict($room->room_id, $validated['arrival_date'], $validated['departure_date'])) {
+        $departureDate = $isOpenStay ? null : ($validated['departure_date'] ?? null);
+
+        if ($this->roomHasConflict($room->room_id, $validated['arrival_date'], $departureDate)) {
             return back()
                 ->withInput()
                 ->withErrors(['room_id' => 'Selected room already has a booking for these dates.']);
@@ -108,7 +113,7 @@ class CheckInController extends Controller
         $guest = Guest::findOrFail($validated['guest_id']);
         $guestName = trim($guest->first_name.' '.$guest->last_name);
 
-        DB::transaction(function () use ($validated, $room, $guest) {
+        DB::transaction(function () use ($validated, $room, $guest, $isOpenStay) {
             $folio = Folio::create([
                 'folio_number' => ! empty($validated['folio_number'])
                     ? $validated['folio_number']
@@ -137,8 +142,8 @@ class CheckInController extends Controller
                 'room_id' => $room->room_id,
                 'arrival_date' => $validated['arrival_date'],
                 'arrival_time' => $validated['arrival_time'],
-                'departure_date' => $validated['departure_date'],
-                'departure_time' => $validated['departure_time'],
+                'departure_date' => $isOpenStay ? null : $validated['departure_date'],
+                'departure_time' => $isOpenStay ? null : $validated['departure_time'],
                 'actual_check_in' => Carbon::now(),
                 'status' => 'CHECKED_IN',
                 'checked_in_by' => auth()->id(),
@@ -167,7 +172,10 @@ class CheckInController extends Controller
             ->where('status', 'AVAILABLE')
             ->whereDoesntHave('bookings', function ($query) use ($today) {
                 $query->whereIn('status', ['RESERVED', 'CHECKED_IN'])
-                    ->whereDate('departure_date', '>=', $today);
+                    ->where(function ($bookingQuery) use ($today) {
+                        $bookingQuery->whereNull('departure_date')
+                            ->orWhereDate('departure_date', '>=', $today);
+                    });
             })
             ->orderBy('room_type')
             ->orderBy('room_number')
@@ -189,20 +197,34 @@ class CheckInController extends Controller
 
         return ! $room->bookings()
             ->whereIn('status', ['RESERVED', 'CHECKED_IN'])
-            ->whereDate('departure_date', '>=', $today)
+            ->where(function ($query) use ($today) {
+                $query->whereNull('departure_date')
+                    ->orWhereDate('departure_date', '>=', $today);
+            })
             ->exists();
     }
 
     /**
      * Check if room has conflict for selected dates.
      */
-    private function roomHasConflict(int $roomId, string $arrivalDate, string $departureDate): bool
+    private function roomHasConflict(int $roomId, string $arrivalDate, ?string $departureDate): bool
     {
         return Booking::query()
             ->where('room_id', $roomId)
             ->whereIn('status', ['RESERVED', 'CHECKED_IN'])
-            ->whereDate('arrival_date', '<', $departureDate)
-            ->whereDate('departure_date', '>', $arrivalDate)
+            ->where(function ($query) use ($arrivalDate, $departureDate) {
+                $query->where(function ($specificStayQuery) use ($arrivalDate, $departureDate) {
+                    $specificStayQuery->whereNotNull('departure_date')
+                        ->whereDate('arrival_date', '<', $departureDate ?? '9999-12-31')
+                        ->whereDate('departure_date', '>', $arrivalDate);
+                })->orWhere(function ($openStayQuery) use ($departureDate) {
+                    $openStayQuery->whereNull('departure_date');
+
+                    if ($departureDate !== null) {
+                        $openStayQuery->whereDate('arrival_date', '<', $departureDate);
+                    }
+                });
+            })
             ->exists();
     }
 

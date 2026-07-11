@@ -174,6 +174,10 @@ class GuestFolioController extends Controller
             return back()->withErrors(['checkin' => 'Only reserved bookings can be checked in.']);
         }
 
+        $validated = $request->validate([
+            'net_rate' => ['nullable', 'numeric', 'min:0'],
+        ]);
+
         $room = $booking->room;
 
         if (! $room) {
@@ -184,7 +188,7 @@ class GuestFolioController extends Controller
             return back()->withErrors(['checkin' => "Room {$room->room_number} is not available for check-in (status: {$room->status})."]);
         }
 
-        DB::transaction(function () use ($booking, $room) {
+        DB::transaction(function () use ($booking, $room, $validated) {
             $booking->update([
                 'actual_check_in' => Carbon::now(),
                 'status' => 'CHECKED_IN',
@@ -193,8 +197,12 @@ class GuestFolioController extends Controller
 
             $room->update(['status' => 'OCCUPIED']);
 
-            if ($booking->folio && $booking->folio->net_rate === null) {
-                $booking->folio->update(['net_rate' => $room->base_rate]);
+            if ($booking->folio) {
+                $rate = (isset($validated['net_rate']) && $validated['net_rate'] !== null && $validated['net_rate'] !== '')
+                    ? (float) $validated['net_rate']
+                    : ($booking->folio->net_rate ?? $room->base_rate);
+
+                $booking->folio->update(['net_rate' => $rate]);
             }
 
             $booking->load('folio.guest');
@@ -202,7 +210,6 @@ class GuestFolioController extends Controller
                 ? ($booking->folio->guest->first_name.' '.$booking->folio->guest->last_name)
                 : 'Guest';
 
-            // Post room charges night-by-night automatically
             $booking->postRoomCharges();
 
             ActivityLog::log(
@@ -235,42 +242,173 @@ class GuestFolioController extends Controller
             return back()->withErrors(['room' => 'Only checked-in guests can be transferred to another room.']);
         }
 
-        DB::transaction(function () use ($booking, $oldRoom, $newRoom, $validated) {
-            // Update old room to CLEANING
+        $today = Carbon::today()->toDateString();
+        $isSameDayTransfer = $booking->arrival_date->toDateString() === $today;
+
+        DB::transaction(function () use ($booking, $oldRoom, $newRoom, $validated, $today, $isSameDayTransfer) {
             if ($oldRoom) {
                 $oldRoom->update(['status' => 'CLEANING']);
             }
 
-            // Update new room to OCCUPIED
             $newRoom->update(['status' => 'OCCUPIED']);
 
-            // Update booking room
-            $booking->update([
-                'room_id' => $newRoom->room_id,
-            ]);
+            $rate = (isset($validated['net_rate']) && $validated['net_rate'] !== null && $validated['net_rate'] !== '')
+                ? (float) $validated['net_rate']
+                : (float) $newRoom->base_rate;
 
-            // Update folio net_rate — use provided rate or fall back to new room's base rate
             if ($booking->folio) {
-                $rate = (isset($validated['net_rate']) && $validated['net_rate'] !== null && $validated['net_rate'] !== '')
-                    ? (float) $validated['net_rate']
-                    : (float) $newRoom->base_rate;
-
-                $booking->folio->update([
-                    'net_rate' => $rate,
-                ]);
+                $booking->folio->update(['net_rate' => $rate]);
             }
 
             $guestName = $booking->folio?->guest
                 ? ($booking->folio->guest->first_name.' '.$booking->folio->guest->last_name)
                 : 'Guest';
 
-            ActivityLog::log(
-                'ROOM_TRANSFER',
-                "Room Transfer: Transferred {$guestName} from Room ".($oldRoom ? $oldRoom->room_number : 'N/A')." to Room {$newRoom->room_number}."
-            );
+            if ($isSameDayTransfer) {
+                $booking->update(['room_id' => $newRoom->room_id]);
+
+                Transaction::where('folio_id', $booking->folio_id)
+                    ->where('charge_code', 100)
+                    ->where('charge_number', 'like', 'RM-'.$booking->booking_id.'-%')
+                    ->update(['charge_amount' => $rate]);
+
+                ActivityLog::log(
+                    'ROOM_TRANSFER',
+                    "Room Transfer (Same-Day): Transferred {$guestName} from Room ".($oldRoom ? $oldRoom->room_number : 'N/A')." to Room {$newRoom->room_number}."
+                );
+            } else {
+                $originalDepartureDate = $booking->departure_date;
+                $originalDepartureTime = $booking->departure_time;
+
+                $booking->update([
+                    'departure_date' => $today,
+                    'departure_time' => Carbon::now()->format('H:i'),
+                ]);
+
+                Transaction::where('folio_id', $booking->folio_id)
+                    ->where('charge_code', 100)
+                    ->where('charge_number', 'like', 'RM-'.$booking->booking_id.'-%')
+                    ->whereDate('transaction_date', '>=', $today)
+                    ->delete();
+
+                $newBooking = Booking::create([
+                    'folio_id' => $booking->folio_id,
+                    'room_id' => $newRoom->room_id,
+                    'arrival_date' => $today,
+                    'arrival_time' => Carbon::now()->format('H:i'),
+                    'departure_date' => $originalDepartureDate,
+                    'departure_time' => $originalDepartureTime,
+                    'actual_check_in' => Carbon::now(),
+                    'status' => 'CHECKED_IN',
+                    'checked_in_by' => auth()->id(),
+                ]);
+
+                $newBooking->postRoomCharges();
+
+                ActivityLog::log(
+                    'ROOM_TRANSFER',
+                    "Room Transfer (Multi-Day): Transferred {$guestName} from Room ".($oldRoom ? $oldRoom->room_number : 'N/A')." to Room {$newRoom->room_number}. New booking #{$newBooking->booking_id} created for remainder of stay."
+                );
+            }
         });
 
         return back()->with('success', 'Room transfer completed successfully!');
+    }
+
+    /**
+     * Extend a checked-in guest's stay with optional rate override.
+     */
+    public function extendStay(Request $request, Booking $booking): RedirectResponse
+    {
+        if ($booking->status !== 'CHECKED_IN') {
+            return back()->withErrors(['extend' => 'Only checked-in guests can extend their stay.']);
+        }
+
+        $validated = $request->validate([
+            'departure_date' => ['required', 'date', 'after:today'],
+            'departure_time' => ['nullable', 'date_format:H:i'],
+            'net_rate' => ['nullable', 'numeric', 'min:0'],
+        ]);
+
+        $booking->load(['room', 'folio']);
+
+        $newDeparture = $validated['departure_date'];
+
+        if ($booking->departure_date && Carbon::parse($newDeparture)->lte($booking->departure_date)) {
+            return back()->withErrors(['extend' => 'New departure date must be after the current departure date.']);
+        }
+
+        $extensionStart = $booking->departure_date
+            ? $booking->departure_date->toDateString()
+            : Carbon::today()->toDateString();
+
+        if ($this->roomHasConflictExcluding(
+            $booking->room_id,
+            $booking->booking_id,
+            $extensionStart,
+            $newDeparture
+        )) {
+            return back()->withErrors(['extend' => 'Room is not available for the extension period.']);
+        }
+
+        DB::transaction(function () use ($booking, $validated, $newDeparture) {
+            $booking->update([
+                'departure_date' => $newDeparture,
+                'departure_time' => $validated['departure_time'] ?? $booking->departure_time ?? '12:00',
+            ]);
+
+            if ($booking->folio) {
+                if (isset($validated['net_rate']) && $validated['net_rate'] !== null && $validated['net_rate'] !== '') {
+                    $booking->folio->update(['net_rate' => (float) $validated['net_rate']]);
+                }
+
+                if ($booking->folio->net_rate !== null) {
+                    Transaction::where('folio_id', $booking->folio_id)
+                        ->where('charge_code', 100)
+                        ->where('charge_number', 'like', 'RM-'.$booking->booking_id.'-%')
+                        ->update(['charge_amount' => $booking->folio->net_rate]);
+                }
+            }
+
+            $booking->postRoomCharges();
+
+            $guestName = $booking->folio?->guest
+                ? ($booking->folio->guest->first_name.' '.$booking->folio->guest->last_name)
+                : 'Guest';
+
+            ActivityLog::log(
+                'STAY_EXTENDED',
+                "Extended stay for {$guestName} to {$newDeparture} (Booking #{$booking->booking_id})."
+            );
+        });
+
+        return back()->with('success', 'Stay extended successfully!');
+    }
+
+    /**
+     * Check room availability for an extension period, excluding the current booking.
+     */
+    private function roomHasConflictExcluding(
+        int $roomId,
+        int $excludeBookingId,
+        string $fromDate,
+        string $toDate
+    ): bool {
+        return Booking::query()
+            ->where('room_id', $roomId)
+            ->where('booking_id', '!=', $excludeBookingId)
+            ->whereIn('status', ['RESERVED', 'CHECKED_IN'])
+            ->where(function ($query) use ($fromDate, $toDate) {
+                $query->where(function ($specificStayQuery) use ($fromDate, $toDate) {
+                    $specificStayQuery->whereNotNull('departure_date')
+                        ->whereDate('arrival_date', '<', $toDate)
+                        ->whereDate('departure_date', '>', $fromDate);
+                })->orWhere(function ($openStayQuery) use ($toDate) {
+                    $openStayQuery->whereNull('departure_date')
+                        ->whereDate('arrival_date', '<', $toDate);
+                });
+            })
+            ->exists();
     }
 
     /**

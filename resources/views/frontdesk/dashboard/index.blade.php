@@ -168,6 +168,46 @@
     </div>
 @endif
 
+@if($overdueGuests->count() > 0)
+<div class="alert alert-danger border-0 shadow-sm mb-4 rounded-3" role="alert">
+    <div class="d-flex align-items-start gap-3">
+        <i class="fa-solid fa-triangle-exclamation fs-4 mt-1 flex-shrink-0"></i>
+        <div class="flex-grow-1">
+            <h6 class="fw-bold mb-2">
+                {{ $overdueGuests->count() }} Overdue {{ Str::plural('Guest', $overdueGuests->count()) }} — Past Departure Date
+            </h6>
+            <div class="table-responsive">
+                <table class="table table-sm table-borderless mb-0 align-middle">
+                    <tbody>
+                        @foreach($overdueGuests as $b)
+                        <tr>
+                            <td class="ps-0 fw-semibold">
+                                {{ $b->folio?->guest?->first_name }} {{ $b->folio?->guest?->last_name }}
+                            </td>
+                            <td>
+                                <span class="badge bg-dark">Room {{ $b->room?->room_number }}</span>
+                            </td>
+                            <td class="text-danger fw-semibold">
+                                Due out: {{ $b->departure_date->format('M d, Y') }}
+                            </td>
+                            <td>
+                                @if($b->folio)
+                                    <a href="{{ route('frontdesk.guest-folio.show', $b->folio->folio_id) }}"
+                                       class="btn btn-sm btn-outline-light">
+                                        <i class="fa-solid fa-clock me-1"></i> Extend Stay
+                                    </a>
+                                @endif
+                            </td>
+                        </tr>
+                        @endforeach
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+@endif
+
 <!-- SHIFT MANAGEMENT BAR -->
 <div class="card border-0 shadow-sm mb-4 rounded-4 {{ $activeShift ? 'border-start border-4 border-success' : 'border-start border-4 border-warning' }}">
     <div class="card-body p-4">
@@ -346,7 +386,7 @@
                                     @endif
                                 </td>
                                 <td>{{ $booking->arrival_date->format('M d') }} @ {{ $booking->arrival_time }}</td>
-                                <td>{{ $booking->departure_date->format('M d') }} @ {{ $booking->departure_time }}</td>
+                                <td>{{ $booking->departure_date?->format('M d') ?? 'Open' }} @ {{ $booking->departure_time ?? '—' }}</td>
                                 <td>
                                     @if($booking->status === 'RESERVED')
                                         <button class="btn btn-sm btn-success check-in-btn" 
@@ -505,7 +545,12 @@
                                 <td>{{ $room['room_type'] }}</td>
                                 <td><strong>{{ $room['guest_name'] ?: '—' }}</strong></td>
                                 <td>{{ $room['folio_number'] ?: '—' }}</td>
-                                <td>{{ $room['departure_date']?->format('M d, Y') ?? '—' }}</td>
+                                <td>
+                                    @if($room['is_overdue'])
+                                        <span class="badge bg-danger me-1">OVERDUE</span>
+                                    @endif
+                                    {{ $room['departure_date']?->format('M d, Y') ?? 'Open Stay' }}
+                                </td>
                             </tr>
                         @endforeach
                     </tbody>
@@ -574,14 +619,21 @@
                                     <span class="badge bg-secondary">{{ $booking->room->room_number }}</span>
                                 </td>
                                 <td>{{ $booking->room->room_type }}</td>
+                                @php
+                                    $isOverdueRow = $booking->status === 'CHECKED_IN'
+                                        && $booking->departure_date
+                                        && $booking->departure_date->lt(now()->startOfDay());
+                                @endphp
                                 <td>
-                                    @if($booking->status === 'CHECKED_IN')
+                                    @if($isOverdueRow)
+                                        <span class="badge bg-danger">OVERDUE</span>
+                                    @elseif($booking->status === 'CHECKED_IN')
                                         <span class="badge bg-info">PENDING CHECK-OUT</span>
                                     @elseif($booking->status === 'CHECKED_OUT')
                                         <span class="badge bg-success">CHECKED OUT</span>
                                     @endif
                                 </td>
-                                <td>{{ $booking->departure_date->format('M d') }} @ {{ $booking->departure_time }}</td>
+                                <td>{{ $booking->departure_date?->format('M d') ?? 'Open' }} @ {{ $booking->departure_time ?? '—' }}</td>
                                 <td>
                                     @if($booking->status === 'CHECKED_OUT' && $booking->actual_check_out)
                                         {{ $booking->actual_check_out->format('g:i A') }}
@@ -731,8 +783,16 @@
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body">
-                <p class="mb-0">Are you sure you want to check in <strong id="checkInConfirmGuestName"></strong> to Room <span class="badge bg-secondary px-2 py-1 fs-6" id="checkInConfirmRoomNumber"></span>?</p>
-                <p class="text-muted small mt-2 mb-0">This will change the room status to <strong>OCCUPIED</strong> and automatically post the room charge for the first night.</p>
+                <p class="mb-3">Are you sure you want to check in <strong id="checkInConfirmGuestName"></strong> to Room <span class="badge bg-secondary px-2 py-1 fs-6" id="checkInConfirmRoomNumber"></span>?</p>
+                <div class="mb-3">
+                    <label for="checkInNetRate" class="form-label fw-semibold small">Agreed Room Rate (optional override)</label>
+                    <div class="input-group">
+                        <span class="input-group-text">₱</span>
+                        <input type="number" class="form-control" id="checkInNetRate" min="0" step="0.01" placeholder="Leave blank for default rate">
+                        <span class="input-group-text text-muted">/night</span>
+                    </div>
+                </div>
+                <p class="text-muted small mb-0">This will change the room status to <strong>OCCUPIED</strong> and post room charges for the stay.</p>
             </div>
             <div class="modal-footer border-0">
                 <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
@@ -1296,7 +1356,13 @@
         if (!pendingCheckInBookingId) return;
         checkInConfirmModal.hide();
 
-        postJson('{{ route("frontdesk.booking.check-in") }}', { booking_id: pendingCheckInBookingId })
+        const payload = { booking_id: pendingCheckInBookingId };
+        const netRateInput = document.getElementById('checkInNetRate');
+        if (netRateInput && netRateInput.value) {
+            payload.net_rate = netRateInput.value;
+        }
+
+        postJson('{{ route("frontdesk.booking.check-in") }}', payload)
             .then(data => {
                 showAlert('success', data.message);
                 setTimeout(() => location.reload(), 1200);

@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\Accounting\AnalyticsController;
 use App\Http\Controllers\Accounting\AuditController;
 use App\Http\Controllers\Accounting\BillingController;
 use App\Http\Controllers\Accounting\ExpenseController;
@@ -127,6 +128,9 @@ Route::middleware('auth')->group(function () {
                 Route::post('/guest-folio/booking/{booking}/transfer', [GuestFolioController::class, 'transferRoom'])
                     ->name('frontdesk.guest-folio.transfer');
 
+                Route::post('/guest-folio/booking/{booking}/extend', [GuestFolioController::class, 'extendStay'])
+                    ->name('frontdesk.guest-folio.extend');
+
                 Route::post('/guest-folio/booking/{booking}/check-in', [GuestFolioController::class, 'checkInBooking'])
                     ->name('frontdesk.guest-folio.checkin');
 
@@ -197,7 +201,7 @@ Route::middleware('auth')->group(function () {
         Route::middleware('can:view-accounting-audit')->get('/audit', [AuditController::class, 'index'])
             ->name('accounting.audit');
 
-        Route::middleware('can:view-accounting-dashboard')->get('/analytics/data', [App\Http\Controllers\Accounting\AnalyticsController::class, 'data'])
+        Route::middleware('can:view-accounting-dashboard')->get('/analytics/data', [AnalyticsController::class, 'data'])
             ->name('accounting.analytics.data');
 
     });

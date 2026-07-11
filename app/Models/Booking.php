@@ -63,10 +63,10 @@ class Booking extends Model
         }
 
         $folio = $this->folio ?? $this->folio()->first();
-        $rate = ($folio && $folio->net_rate) ? $folio->net_rate : ($this->room?->base_rate ?? 0.00);
+        $rate = ($folio && $folio->net_rate !== null) ? $folio->net_rate : ($this->room?->base_rate ?? 0.00);
 
         // Dynamic user fallback to prevent foreign key issues in tests or CLI
-        $userId = auth()->id() ?: (User::first()?->user_id ?: 1);
+        $userId = auth()->id() ?: (User::where('username', 'system')->value('user_id') ?: (User::first()?->user_id ?: 1));
 
         $activeShift = Shift::where('user_id', $userId)
             ->whereNull('end_time')
@@ -93,16 +93,11 @@ class Booking extends Model
             ]);
         }
 
-        $todayStr = Carbon::today()->toDateString();
         $totalCharged = 0.00;
         $newChargesCount = 0;
 
         for ($i = 0; $i < $nights; $i++) {
             $chargeDate = $arrival->copy()->addDays($i)->toDateString();
-
-            if ($chargeDate > $todayStr) {
-                continue;
-            }
 
             $chargeNo = 'RM-'.$this->booking_id.'-'.($i + 1);
 

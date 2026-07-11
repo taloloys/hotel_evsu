@@ -289,10 +289,10 @@
                     </div>
 
                     <!-- Departure Date -->
-                    <div class="col-md-3">
+                    <div class="col-md-3" id="departure_date_group">
                         <label class="form-label fw-semibold" for="departure_date">
                             Departure Date
-                            <span class="text-danger">*</span>
+                            <span class="text-danger" id="departure_required_star">*</span>
                         </label>
 
                         <input
@@ -310,10 +310,10 @@
                     </div>
 
                     <!-- Departure Time -->
-                    <div class="col-md-3">
+                    <div class="col-md-3" id="departure_time_group">
                         <label class="form-label fw-semibold" for="departure_time">
                             Departure Time
-                            <span class="text-danger">*</span>
+                            <span class="text-danger" id="departure_time_required_star">*</span>
                         </label>
 
                         <input
@@ -328,6 +328,22 @@
                         @error('departure_time')
                             <div class="invalid-feedback">{{ $message }}</div>
                         @enderror
+                    </div>
+
+                    <!-- Open Stay toggle -->
+                    <div class="col-12">
+                        <div class="form-check">
+                            <input
+                                class="form-check-input"
+                                type="checkbox"
+                                id="reg_open_stay"
+                                name="open_stay"
+                                value="1"
+                                @checked(old('open_stay'))>
+                            <label class="form-check-label fw-semibold" for="reg_open_stay">
+                                Open Stay <span class="text-muted fw-normal">(no check-out date — billed daily by the system)</span>
+                            </label>
+                        </div>
                     </div>
 
                     <!-- Number of Guests -->
@@ -702,6 +718,36 @@
                     departureDate.value = nextDay.toISOString().split('T')[0];
                 }
             });
+        }
+
+        // Open Stay toggle
+        const openStayCheckbox = document.getElementById('reg_open_stay');
+        const departureDateGroup = document.getElementById('departure_date_group');
+        const departureTimeGroup = document.getElementById('departure_time_group');
+        const departureDateInput = document.getElementById('departure_date');
+        const departureTimeInput = document.getElementById('departure_time');
+        const depRequiredStar = document.getElementById('departure_required_star');
+        const depTimeRequiredStar = document.getElementById('departure_time_required_star');
+
+        function toggleOpenStay() {
+            const isOpen = openStayCheckbox && openStayCheckbox.checked;
+            if (departureDateGroup) departureDateGroup.style.opacity = isOpen ? '0.4' : '1';
+            if (departureTimeGroup) departureTimeGroup.style.opacity = isOpen ? '0.4' : '1';
+            if (departureDateInput) {
+                departureDateInput.required = !isOpen;
+                departureDateInput.disabled = isOpen;
+            }
+            if (departureTimeInput) {
+                departureTimeInput.required = !isOpen;
+                departureTimeInput.disabled = isOpen;
+            }
+            if (depRequiredStar) depRequiredStar.style.display = isOpen ? 'none' : '';
+            if (depTimeRequiredStar) depTimeRequiredStar.style.display = isOpen ? 'none' : '';
+        }
+
+        if (openStayCheckbox) {
+            openStayCheckbox.addEventListener('change', toggleOpenStay);
+            toggleOpenStay(); // apply on page load (e.g. after validation error with old input)
         }
 
         // Guest Autocomplete on First Name

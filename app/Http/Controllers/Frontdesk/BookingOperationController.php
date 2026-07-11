@@ -20,6 +20,7 @@ class BookingOperationController extends Controller
     {
         $request->validate([
             'booking_id' => ['required', 'exists:bookings,booking_id'],
+            'net_rate' => ['nullable', 'numeric', 'min:0'],
         ]);
 
         $booking = Booking::with(['room', 'folio'])->findOrFail($request->booking_id);
@@ -45,7 +46,7 @@ class BookingOperationController extends Controller
             ], 422);
         }
 
-        DB::transaction(function () use ($booking) {
+        DB::transaction(function () use ($booking, $request) {
             $booking->update([
                 'actual_check_in' => Carbon::now(),
                 'status' => 'CHECKED_IN',
@@ -55,8 +56,12 @@ class BookingOperationController extends Controller
                 $booking->room->update(['status' => 'OCCUPIED']);
             }
 
-            if ($booking->folio && $booking->folio->net_rate === null) {
-                $booking->folio->update(['net_rate' => $booking->room?->base_rate]);
+            if ($booking->folio) {
+                $rate = $request->filled('net_rate')
+                    ? (float) $request->net_rate
+                    : ($booking->folio->net_rate ?? $booking->room?->base_rate);
+
+                $booking->folio->update(['net_rate' => $rate]);
             }
         });
 

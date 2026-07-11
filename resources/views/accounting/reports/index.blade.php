@@ -257,6 +257,7 @@
                             <th>Guest</th>
                             <th>Date</th>
                             <th class="text-end">Amount</th>
+                            <th>Posted By</th>
                         </tr>
                     </thead>
 
@@ -288,10 +289,19 @@
                                         ₱{{ number_format($t->charge_amount, 2) }}
                                     @endif
                                 </td>
+                                <td>
+                                    @if($t->user && $t->user->username === 'system')
+                                        System
+                                    @elseif($t->user)
+                                        {{ $t->user->full_name ?? $t->user->username }}
+                                    @else
+                                        <span class="text-muted">—</span>
+                                    @endif
+                                </td>
                             </tr>
                         @empty
                             <tr>
-                                <td colspan="6" class="text-center text-muted py-3">No transactions found for the selected date range.</td>
+                                <td colspan="7" class="text-center text-muted py-3">No transactions found for the selected date range.</td>
                             </tr>
                         @endforelse
 
