@@ -120,6 +120,8 @@ Route::middleware('auth')->group(function () {
         Route::middleware('can:view-guest-folio')->group(function () {
             Route::get('/guest-folio', [GuestFolioController::class, 'index'])
                 ->name('frontdesk.guest-folio');
+            Route::get('/guest-folio/{folio}', [GuestFolioController::class, 'show'])
+                ->name('frontdesk.guest-folio.show');
 
             Route::middleware('can:manage-guest-folio')->group(function () {
                 Route::post('/guest-folio/{folio}/transaction', [GuestFolioController::class, 'postTransaction'])
