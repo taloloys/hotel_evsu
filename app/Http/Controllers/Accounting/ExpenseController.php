@@ -9,7 +9,6 @@ use App\Services\Accounting\ExpenseService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
-use Illuminate\Support\Facades\Gate;
 
 class ExpenseController extends Controller
 {
@@ -17,8 +16,12 @@ class ExpenseController extends Controller
     {
         $search = $request->input('search');
         $departmentFilter = $request->input('department');
+        $periodFilter = $request->input('period', 'Today');
+        $user = auth()->user();
 
-        $query = Expense::with('user');
+        $query = Expense::with('user')
+            ->byRoleAccess($user)
+            ->byPeriod($periodFilter);
 
         if ($search) {
             $query->where(function ($q) use ($search) {
@@ -31,16 +34,17 @@ class ExpenseController extends Controller
             $query->where('department', $departmentFilter);
         }
 
-        $expenses = $query->orderBy('expense_date', 'desc')->get();
+        // Calculate KPIs using the filtered query context
+        $kpiQuery = clone $query;
+        $totalExpenses = (clone $kpiQuery)->where('status', 'APPROVED')->sum('amount');
+        $utilities = (clone $kpiQuery)->where('status', 'APPROVED')->where('category', 'Utilities')->sum('amount');
+        $salaries = (clone $kpiQuery)->where('status', 'APPROVED')->where('category', 'Payroll')->sum('amount');
+        $supplies = (clone $kpiQuery)->where('status', 'APPROVED')->where('category', 'Supplies')->sum('amount');
 
-        // Calculate KPIs
-        $totalExpenses = Expense::where('status', 'APPROVED')->sum('amount');
-        $utilities = Expense::where('status', 'APPROVED')->where('category', 'Utilities')->sum('amount');
-        $salaries = Expense::where('status', 'APPROVED')->where('category', 'Payroll')->sum('amount');
-        $supplies = Expense::where('status', 'APPROVED')->where('category', 'Supplies')->sum('amount');
+        $expenses = $query->orderBy('expense_date', 'desc')->paginate(10)->withQueryString();
 
         // Fetch distinct departments for the filter dropdown
-        $departments = Expense::select('department')->distinct()->pluck('department');
+        $departments = Expense::byRoleAccess($user)->select('department')->distinct()->pluck('department');
 
         return view('accounting.expenses.index', [
             'expenses' => $expenses,
@@ -51,13 +55,14 @@ class ExpenseController extends Controller
             'departments' => $departments,
             'search' => $search,
             'departmentFilter' => $departmentFilter,
+            'periodFilter' => $periodFilter,
         ]);
     }
 
     public function store(Request $request, ExpenseService $expenseService): RedirectResponse
     {
         $user = auth()->user();
-        if (!$user || !in_array($user->role?->role_name, ['ADMIN', 'MANAGER', 'ACCOUNTING', 'FRONT_DESK', 'CAFETERIA'])) {
+        if (! $user || ! in_array($user->role?->role_name, ['ADMIN', 'MANAGER', 'ACCOUNTING', 'FRONT_DESK', 'CAFETERIA'])) {
             abort(403, 'Unauthorized action.');
         }
 
@@ -79,7 +84,7 @@ class ExpenseController extends Controller
     public function approve(Expense $expense): RedirectResponse
     {
         $user = auth()->user();
-        if (!$user || !in_array($user->role?->role_name, ['ADMIN', 'MANAGER', 'ACCOUNTING'])) {
+        if (! $user || ! in_array($user->role?->role_name, ['ADMIN', 'MANAGER', 'ACCOUNTING'])) {
             abort(403, 'Unauthorized action.');
         }
 

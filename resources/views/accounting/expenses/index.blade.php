@@ -68,6 +68,20 @@
 
         <div class="d-flex align-items-center gap-3 flex-wrap">
 
+            @if(in_array(auth()->user()?->role?->role_name, ['ADMIN', 'MANAGER', 'ACCOUNTING']))
+            <!-- PERIOD FILTER -->
+            <div style="width: 160px; border: 1px solid #000000; border-radius: .375rem;">
+                <select
+                    name="period"
+                    class="form-select border-0"
+                    onchange="this.form.requestSubmit ? this.form.requestSubmit() : this.form.submit()">
+                    <option value="Today" {{ $periodFilter === 'Today' ? 'selected' : '' }}>Today</option>
+                    <option value="This Week" {{ $periodFilter === 'This Week' ? 'selected' : '' }}>This Week</option>
+                    <option value="Monthly" {{ $periodFilter === 'Monthly' ? 'selected' : '' }}>Monthly</option>
+                </select>
+            </div>
+            @endif
+
             <!-- FILTER -->
             <div style="width: 220px; border: 1px solid #000000; border-radius: .375rem;">
                 <select
@@ -207,6 +221,11 @@
 
     </div>
 
+</div>
+
+<!-- PAGINATION -->
+<div class="d-flex justify-content-end mt-3">
+    {{ $expenses->links('pagination::bootstrap-5') }}
 </div>
 
 <!-- ADD EXPENSE MODAL -->
