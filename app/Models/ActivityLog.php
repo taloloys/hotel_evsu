@@ -38,8 +38,13 @@ class ActivityLog extends Model
      */
     public static function log(string $actionType, string $description, ?int $userId = null): self
     {
+        $resolvedUserId = $userId ?? auth()->id();
+        if (!$resolvedUserId) {
+            $resolvedUserId = \App\Models\User::first()?->user_id ?? 1;
+        }
+
         return self::create([
-            'user_id' => $userId ?? auth()->id() ?? 1,
+            'user_id' => $resolvedUserId,
             'action_type' => $actionType,
             'description' => $description,
         ]);

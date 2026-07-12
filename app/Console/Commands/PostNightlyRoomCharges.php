@@ -2,7 +2,7 @@
 
 namespace App\Console\Commands;
 
-use App\Models\Booking;
+use App\Services\RoomChargeService;
 use Illuminate\Console\Command;
 
 class PostNightlyRoomCharges extends Command
@@ -26,17 +26,13 @@ class PostNightlyRoomCharges extends Command
      */
     public function handle(): int
     {
-        $bookings = Booking::where('status', 'CHECKED_IN')->get();
+        $this->info('Starting catch-up process for checked-in bookings...');
 
-        $this->info('Found '.$bookings->count().' checked-in bookings to process.');
-
-        foreach ($bookings as $booking) {
-            try {
-                $booking->postRoomCharges();
-                $this->line("Processed room charges for Booking #{$booking->booking_id}");
-            } catch (\Exception $e) {
-                $this->error("Failed to process room charges for Booking #{$booking->booking_id}: {$e->getMessage()}");
-            }
+        try {
+            app(RoomChargeService::class)->processCatchUpCharges();
+            $this->info('Successfully processed room charges for all active bookings.');
+        } catch (\Exception $e) {
+            $this->error("Failed to process room charges: {$e->getMessage()}");
         }
 
         $this->info('Completed posting nightly room charges.');

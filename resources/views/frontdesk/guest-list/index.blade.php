@@ -145,7 +145,7 @@
                                 <td class="text-center small">
                                     @if($lastBooking)
                                         {{ $lastBooking->arrival_date->format('M d, Y') }}
-                                        <div class="text-muted">→ {{ $lastBooking->departure_date->format('M d, Y') }}</div>
+                                        <div class="text-muted">→ {{ $lastBooking->departure_date ? $lastBooking->departure_date->format('M d, Y') : 'Open Stay' }}</div>
                                     @else
                                         <span class="text-muted">—</span>
                                     @endif
@@ -413,7 +413,7 @@
 
                                             <td>{{ $booking->arrival_date->format('M d, Y') }}</td>
 
-                                            <td>{{ $booking->departure_date->format('M d, Y') }}</td>
+                                            <td>{{ $booking->departure_date ? $booking->departure_date->format('M d, Y') : 'Open Stay' }}</td>
 
                                             <td>{{ $folio->payment_method ?? '—' }}</td>
 

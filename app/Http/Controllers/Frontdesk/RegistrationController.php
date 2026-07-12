@@ -7,6 +7,7 @@ use App\Models\Booking;
 use App\Models\Folio;
 use App\Models\Guest;
 use App\Models\Room;
+use App\Services\RoomChargeService;
 use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Http\RedirectResponse;
@@ -18,6 +19,9 @@ class RegistrationController extends Controller
 {
     public function index(): View
     {
+        // Catch up on any missed room charges when initializing the dashboard
+        app(RoomChargeService::class)->processCatchUpCharges();
+
         $today = Carbon::now()->toDateString();
 
         $assignableRooms = $this->assignableRooms($today);
@@ -136,8 +140,8 @@ class RegistrationController extends Controller
 
             $room->update(['status' => 'OCCUPIED']);
 
-            // Post room charges night-by-night automatically
-            $booking->postRoomCharges();
+            // Post room charges using the new service
+            app(RoomChargeService::class)->processCatchUpCharges($booking->booking_id);
         });
 
         return redirect()
@@ -190,8 +194,8 @@ class RegistrationController extends Controller
 
     private function generateFolioNumber(): string
     {
-        $year = now()->year;
-        $prefix = "REG-{$year}";
+        $date = now()->format('Ymd');
+        $prefix = "REG-{$date}-";
 
         $latest = Folio::query()
             ->where('folio_number', 'like', "{$prefix}%")
@@ -199,11 +203,11 @@ class RegistrationController extends Controller
             ->value('folio_number');
 
         if (! $latest) {
-            return $prefix.'001';
+            return $prefix.'0001';
         }
 
         $sequence = (int) substr($latest, strlen($prefix)) + 1;
 
-        return $prefix.str_pad((string) $sequence, 3, '0', STR_PAD_LEFT);
+        return $prefix.str_pad((string) $sequence, 4, '0', STR_PAD_LEFT);
     }
 }

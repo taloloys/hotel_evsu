@@ -283,6 +283,8 @@ class GuestFolioController extends Controller
                 $booking->update([
                     'departure_date' => $today,
                     'departure_time' => Carbon::now()->format('H:i'),
+                    'actual_check_out' => Carbon::now(),
+                    'status' => 'CHECKED_OUT',
                 ]);
 
                 Transaction::where('folio_id', $booking->folio_id)

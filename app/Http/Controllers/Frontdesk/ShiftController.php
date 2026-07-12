@@ -4,9 +4,11 @@ namespace App\Http\Controllers\Frontdesk;
 
 use App\Http\Controllers\Controller;
 use App\Models\ActivityLog;
+use App\Models\Expense;
 use App\Models\Shift;
 use App\Models\ShiftSchedule;
 use App\Models\Transaction;
+use App\Services\RoomChargeService;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 
@@ -56,6 +58,9 @@ class ShiftController extends Controller
             "Opened Shift #{$shift->shift_id} for ".auth()->user()->full_name.'.'
         );
 
+        // Catch up on any missed room charges when opening a shift
+        app(RoomChargeService::class)->processCatchUpCharges();
+
         return back()->with('success', 'Shift session started successfully. You can now post transactions.');
     }
 
@@ -79,7 +84,7 @@ class ShiftController extends Controller
         $totalPayments = Transaction::where('shift_id', $shift->shift_id)
             ->sum('credit_amount');
 
-        $expenses = \App\Models\Expense::where('user_id', $userId)
+        $expenses = Expense::where('user_id', $userId)
             ->where('funding_source', 'FRONT DESK')
             ->where('created_at', '>=', $shift->start_time)
             ->sum('amount');
@@ -95,7 +100,7 @@ class ShiftController extends Controller
 
         ActivityLog::log(
             'CLOSE_SHIFT',
-            "Closed Shift #{$shift->shift_id}. Sales: ₱".number_format($totalPayments, 2).", Expenses: ₱".number_format($expenses, 2).", Net Cash Out: ₱".number_format($netCashOut, 2).'.'
+            "Closed Shift #{$shift->shift_id}. Sales: ₱".number_format($totalPayments, 2).', Expenses: ₱'.number_format($expenses, 2).', Net Cash Out: ₱'.number_format($netCashOut, 2).'.'
         );
 
         return back()->with('success', 'Shift session closed successfully.');

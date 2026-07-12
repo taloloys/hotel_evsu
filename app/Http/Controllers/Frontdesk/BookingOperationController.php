@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\ActivityLog;
 use App\Models\Booking;
 use App\Models\Room;
+use App\Services\RoomChargeService;
 use Carbon\Carbon;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -70,7 +71,7 @@ class BookingOperationController extends Controller
         $roomNumber = $booking->room?->room_number ?? 'N/A';
 
         // Post room charges night-by-night automatically
-        $booking->postRoomCharges();
+        app(RoomChargeService::class)->processCatchUpCharges($booking->booking_id);
 
         ActivityLog::log(
             'CHECK_IN',
