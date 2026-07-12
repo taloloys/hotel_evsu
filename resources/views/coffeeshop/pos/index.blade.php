@@ -21,6 +21,7 @@
     <div class="col-lg-8">
 
         <!-- Suggested Pairings -->
+        @if(!empty($suggestedPairings))
         <div class="coffeeshop-card mb-3 p-3">
             <div class="card-header border-0 bg-transparent">
                 <strong>
@@ -33,27 +34,21 @@
 
                 <div id="suggested-pairings" class="d-flex flex-wrap gap-2">
 
-                    <button class="btn btn-outline-success btn-sm pairing-btn"
-                        data-items="Americano,Cookies">
-                        Americano + Cookies
-                    </button>
-
-                    <button class="btn btn-outline-success pairing-btn" data-items="Cappuccino,Cookies">
-                        Cappuccino + Cookies
-                    </button>
-
-                    <button class="btn btn-outline-success btn-sm pairing-btn" data-items="Latte,Cookies">
-                        Latte + Cookies
-                    </button>
-
-                    <button class="btn btn-outline-success btn-sm pairing-btn" data-items="Americano,Fresh Milk">
-                        Americano + Fresh Milk
-                    </button>
+                    @foreach($suggestedPairings as $pairing)
+                        @php
+                            $items = explode(',', $pairing);
+                            $displayName = implode(' + ', $items);
+                        @endphp
+                        <button class="btn btn-outline-success btn-sm pairing-btn" data-items="{{ $pairing }}">
+                            {{ $displayName }}
+                        </button>
+                    @endforeach
 
                 </div>
 
             </div>
         </div>
+        @endif
         <div class="coffeeshop-card mb-3">
             <div class="card-body">
                 <div class="d-flex flex-wrap gap-2 justify-content-between align-items-center">

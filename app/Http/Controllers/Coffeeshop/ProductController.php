@@ -6,7 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\ActivityLog;
 use App\Models\PosCategory;
 use App\Models\PosProduct;
-use App\Services\ImageService;
+use App\Services\ImageUploadService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
@@ -46,13 +46,11 @@ class ProductController extends Controller
         return view('coffeeshop.products.create', compact('categories'));
     }
 
-    public function store(Request $request, ImageService $imageService): RedirectResponse
+    public function store(Request $request, ImageUploadService $imageUploadService): RedirectResponse
     {
         $validated = $this->validatedProduct($request);
 
-        if ($request->hasFile('image')) {
-            $validated['image_path'] = $imageService->compressAndStore($request->file('image'), 'pos/products');
-        }
+        $validated['image_path'] = $imageUploadService->handleUpload($request, 'image', 'pos/products');
 
         $product = PosProduct::create($validated);
 
@@ -71,16 +69,16 @@ class ProductController extends Controller
         return view('coffeeshop.products.edit', compact('product', 'categories'));
     }
 
-    public function update(Request $request, PosProduct $product, ImageService $imageService): RedirectResponse
+    public function update(Request $request, PosProduct $product, ImageUploadService $imageUploadService): RedirectResponse
     {
         $validated = $this->validatedProduct($request, $product->product_id);
 
-        if ($request->hasFile('image')) {
-            if ($product->image_path) {
-                $imageService->deleteImage($product->image_path);
-            }
-            $validated['image_path'] = $imageService->compressAndStore($request->file('image'), 'pos/products');
-        }
+        $validated['image_path'] = $imageUploadService->handleUpload(
+            $request,
+            'image',
+            'pos/products',
+            $product->image_path
+        );
 
         $oldName = $product->name;
         $product->update($validated);
@@ -158,7 +156,7 @@ class ProductController extends Controller
             'low_stock_threshold' => ['nullable', 'integer', 'min:0'],
             'is_active' => ['nullable', 'boolean'],
             'is_stockable' => ['nullable', 'boolean'],
-            'image' => ['nullable', 'image', 'max:10240'],
+            // Image validation is now handled in ImageUploadService
         ]);
 
         $validated['is_active'] = $request->boolean('is_active', true);
