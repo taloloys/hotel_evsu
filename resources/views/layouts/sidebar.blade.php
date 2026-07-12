@@ -88,6 +88,11 @@
                     <i class="fa-solid fa-check-double me-2"></i>
                     POS Approvals
                 </a>
+                <a href="{{ route('admin.backup-restore') }}"
+                   class="nav-link {{ request()->routeIs('admin.backup-restore*') ? 'active' : '' }}">
+                    <i class="fa-solid fa-hard-drive me-2"></i>
+                    Backup & Restore
+                </a>
                 @endcan
             </nav>
         </div>

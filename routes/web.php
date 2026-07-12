@@ -8,6 +8,7 @@ use App\Http\Controllers\Accounting\PaymentController;
 use App\Http\Controllers\Accounting\ReceivableController;
 use App\Http\Controllers\Accounting\ReportController;
 use App\Http\Controllers\Admin\ActivityLogController;
+use App\Http\Controllers\Admin\BackupRestoreController;
 use App\Http\Controllers\Admin\ChargeCodeController;
 use App\Http\Controllers\Admin\CreditAccountController;
 use App\Http\Controllers\Admin\DashboardController;
@@ -392,6 +393,14 @@ Route::middleware('auth')->group(function () {
                 ->name('admin.pos-approvals.approve');
             Route::post('/pos-approvals/{request}/reject', [PosApprovalController::class, 'reject'])
                 ->name('admin.pos-approvals.reject');
+
+            // BACKUP & RESTORE
+            Route::get('/backup-restore', [BackupRestoreController::class, 'index'])
+                ->name('admin.backup-restore');
+            Route::get('/backup-restore/backup', [BackupRestoreController::class, 'backup'])
+                ->name('admin.backup-restore.backup');
+            Route::post('/backup-restore/restore', [BackupRestoreController::class, 'restore'])
+                ->name('admin.backup-restore.restore');
         });
 
         Route::middleware('can:manage-shifts')->group(function () {
