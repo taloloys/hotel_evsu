@@ -319,20 +319,67 @@
                     cancelButtonText: 'Cancel'
                 }).then((result) => {
                     if (result.isConfirmed) {
-                        const backupBtn = document.getElementById('backup-btn');
-                        if (backupBtn) {
-                            backupBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Preparing download...';
-                            backupBtn.disabled = true;
-                            
-                            // Re-enable after download starts/timeout
-                            setTimeout(() => {
-                                backupBtn.innerHTML = '<i class="fa-solid fa-download me-2"></i>Download Backup';
-                                backupBtn.disabled = false;
-                            }, 5000);
-                        }
-                        
-                        // Trigger actual download redirect
-                        window.location.href = "{{ route('admin.backup-restore.backup') }}";
+                        Swal.fire({
+                            title: 'Creating Backup...',
+                            text: 'Please wait while we generate the database dump file.',
+                            allowOutsideClick: false,
+                            allowEscapeKey: false,
+                            didOpen: () => {
+                                Swal.showLoading();
+                            }
+                        });
+
+                        fetch("{{ route('admin.backup-restore.backup') }}", {
+                            headers: {
+                                'Accept': 'application/json',
+                                'X-Requested-With': 'XMLHttpRequest'
+                            }
+                        })
+                        .then(response => {
+                            if (!response.ok) {
+                                throw new Error('Network response was not ok');
+                            }
+                            return response.json();
+                        })
+                        .then(data => {
+                            Swal.close();
+                            if (data.success) {
+                                Swal.fire({
+                                    title: 'Backup Successful',
+                                    text: 'Database backup created on server. Your browser download will start shortly.',
+                                    icon: 'success',
+                                    confirmButtonColor: '#2563eb',
+                                    timer: 2000,
+                                    timerProgressBar: true
+                                }).then(() => {
+                                    if (window.Turbo) {
+                                        window.Turbo.visit(window.location.href, { action: 'replace' });
+                                    } else {
+                                        window.location.reload();
+                                    }
+                                });
+
+                                // Trigger actual browser download
+                                const downloadUrl = "{{ route('admin.backup-restore.download-local', ':filename') }}".replace(':filename', encodeURIComponent(data.filename));
+                                window.location.href = downloadUrl;
+                            } else {
+                                Swal.fire({
+                                    title: 'Backup Failed',
+                                    text: data.error || 'An unknown error occurred.',
+                                    icon: 'error',
+                                    confirmButtonColor: '#2563eb'
+                                });
+                            }
+                        })
+                        .catch(error => {
+                            Swal.close();
+                            Swal.fire({
+                                title: 'Backup Error',
+                                text: 'Failed to communicate with backup server.',
+                                icon: 'error',
+                                confirmButtonColor: '#2563eb'
+                            });
+                        });
                     }
                 });
             }

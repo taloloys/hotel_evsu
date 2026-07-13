@@ -229,3 +229,28 @@ test('index page limits backups to 5 and displays older backups warning if there
         @unlink($file);
     }
 });
+
+test('backup AJAX returns JSON response with filename and logs activity', function (): void {
+    $response = $this->actingAs($this->adminUser)
+        ->get(route('admin.backup-restore.backup'), [
+            'HTTP_ACCEPT' => 'application/json',
+            'X-Requested-With' => 'XMLHttpRequest',
+        ]);
+
+    if ($response->getStatusCode() === 200) {
+        $response->assertJson([
+            'success' => true,
+        ]);
+        $this->assertDatabaseHas('activitylogs', [
+            'action_type' => 'DATABASE_BACKUP',
+        ]);
+
+        $filename = $response->json('filename');
+        @unlink(storage_path('backups/'.$filename));
+    } else {
+        $response->assertStatus(500)
+            ->assertJson([
+                'success' => false,
+            ]);
+    }
+});

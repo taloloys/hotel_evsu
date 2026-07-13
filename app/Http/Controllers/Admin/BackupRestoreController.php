@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\ActivityLog;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
@@ -61,7 +62,7 @@ class BackupRestoreController extends Controller
      * Run mysqldump and stream the result directly as a file download.
      * The user's browser save-dialog will appear so they can choose where to save it.
      */
-    public function backup(): BinaryFileResponse|RedirectResponse
+    public function backup(Request $request): BinaryFileResponse|RedirectResponse|JsonResponse
     {
         $now = now();
         $filename = $now->format('F j Y g-i A').'.sql'; // e.g. "July 12 2026 7-34 PM.sql"
@@ -98,6 +99,13 @@ class BackupRestoreController extends Controller
             @unlink($serverFilePath);
             $errorDetail = implode(' ', $output);
 
+            if ($request->wantsJson()) {
+                return response()->json([
+                    'success' => false,
+                    'error' => 'Backup failed: '.$errorDetail,
+                ], 500);
+            }
+
             return redirect()
                 ->route('admin.backup-restore')
                 ->with('error', 'Backup failed: '.$errorDetail);
@@ -107,6 +115,13 @@ class BackupRestoreController extends Controller
             'DATABASE_BACKUP',
             'Database backup created and saved: '.$filename
         );
+
+        if ($request->wantsJson()) {
+            return response()->json([
+                'success' => true,
+                'filename' => $filename,
+            ]);
+        }
 
         return response()->download($serverFilePath, $filename, [
             'Content-Type' => 'application/octet-stream',
