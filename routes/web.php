@@ -401,6 +401,12 @@ Route::middleware('auth')->group(function () {
                 ->name('admin.backup-restore.backup');
             Route::post('/backup-restore/restore', [BackupRestoreController::class, 'restore'])
                 ->name('admin.backup-restore.restore');
+            Route::post('/backup-restore/restore-local', [BackupRestoreController::class, 'restoreLocal'])
+                ->name('admin.backup-restore.restore-local');
+            Route::get('/backup-restore/download/{filename}', [BackupRestoreController::class, 'downloadLocal'])
+                ->name('admin.backup-restore.download-local');
+            Route::delete('/backup-restore/delete/{filename}', [BackupRestoreController::class, 'deleteLocal'])
+                ->name('admin.backup-restore.delete-local');
         });
 
         Route::middleware('can:manage-shifts')->group(function () {

@@ -126,7 +126,7 @@
 
                     <div class="warning-badge mb-4">
                         <i class="fa-solid fa-triangle-exclamation me-1"></i>
-                        <strong>Warning:</strong> This will overwrite the current database. This cannot be undone.
+                        <strong>Warning:</strong> Restoring a backup will overwrite all current data. All users, including you, may be logged out.
                     </div>
 
                     <form
@@ -168,6 +168,93 @@
             </div>
         </div>
 
+    </div>
+
+    {{-- SERVER BACKUPS LIST --}}
+    <div class="card br-card mt-4">
+        <div class="card-body p-4">
+            <div class="d-flex align-items-center mb-4">
+                <div class="br-icon-wrap bg-success bg-opacity-10 me-3">
+                    <i class="fa-solid fa-server text-success"></i>
+                </div>
+                <div>
+                    <div class="fw-bold fs-6">Stored Server Backups</div>
+                    <div class="text-muted small">List of backup copies saved locally on the server (<code>storage/backups/</code>)</div>
+                </div>
+            </div>
+
+            @if(count($backups) > 0)
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Filename</th>
+                                <th>Created At</th>
+                                <th>File Size</th>
+                                <th class="text-end">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach($backups as $backup)
+                                <tr>
+                                    <td class="font-monospace text-dark fw-semibold" style="font-size: 0.9rem;">
+                                        {{ $backup['filename'] }}
+                                    </td>
+                                    <td>
+                                        <span class="text-muted" style="font-size: 0.85rem;">{{ $backup['created_at'] }}</span>
+                                    </td>
+                                    <td>
+                                        <span class="badge bg-secondary bg-opacity-10 text-secondary" style="font-size: 0.82rem;">
+                                            {{ $backup['size'] }}
+                                        </span>
+                                    </td>
+                                    <td class="text-end">
+                                        <div class="d-inline-flex gap-2">
+                                            <a href="{{ route('admin.backup-restore.download-local', $backup['filename']) }}" 
+                                               class="btn btn-sm btn-outline-primary"
+                                               title="Download to PC"
+                                            >
+                                                <i class="fa-solid fa-download"></i>
+                                            </a>
+
+                                            <button type="button" 
+                                                    class="btn btn-sm btn-outline-warning text-dark"
+                                                    onclick="confirmServerRestore('{{ $backup['filename'] }}')"
+                                                    title="Restore Database"
+                                            >
+                                                <i class="fa-solid fa-rotate-left"></i>
+                                            </button>
+
+                                            <form id="delete-form-{{ md5($backup['filename']) }}" 
+                                                  action="{{ route('admin.backup-restore.delete-local', $backup['filename']) }}" 
+                                                  method="POST" 
+                                                  class="d-none"
+                                            >
+                                                @csrf
+                                                @method('DELETE')
+                                            </form>
+                                            
+                                            <button type="button" 
+                                                    class="btn btn-sm btn-outline-danger"
+                                                    onclick="confirmServerDelete('{{ $backup['filename'] }}', '{{ md5($backup['filename']) }}')"
+                                                    title="Delete Backup from Server"
+                                            >
+                                                <i class="fa-solid fa-trash-can"></i>
+                                            </button>
+                                        </div>
+                                    </td>
+                                </tr>
+                            @endforeach
+                        </tbody>
+                    </table>
+                </div>
+            @else
+                <div class="text-center py-4 text-muted">
+                    <i class="fa-solid fa-folder-open mb-2 text-muted bg-light p-3 rounded-circle" style="font-size: 1.8rem;"></i>
+                    <p class="mb-0 small">No backup files found in server storage.</p>
+                </div>
+            @endif
+        </div>
     </div>
 
     @push('scripts')
@@ -253,7 +340,7 @@
 
                 Swal.fire({
                     title: 'Are you sure?',
-                    html: `You are about to restore the database from: <strong>${fileInput.files[0].name}</strong>.<br><br><span class="text-danger fw-bold"><i class="fa-solid fa-triangle-exclamation"></i> WARNING: This will completely OVERWRITE the current database!</span>`,
+                    html: `You are about to restore the database from: <strong>${fileInput.files[0].name}</strong>.<br><br><span class="text-danger fw-bold"><i class="fa-solid fa-triangle-exclamation"></i> WARNING: This will completely OVERWRITE the current database! All users, including you, may be logged out.</span>`,
                     icon: 'warning',
                     showCancelButton: true,
                     confirmButtonColor: '#e53935',
@@ -278,6 +365,69 @@
                         });
                         
                         document.getElementById('restore-form').submit();
+                    }
+                });
+            }
+
+            function confirmServerRestore(filename) {
+                Swal.fire({
+                    title: 'Restore Server Backup?',
+                    html: `You are about to restore the database from server file: <strong>${filename}</strong>.<br><br><span class="text-danger fw-bold"><i class="fa-solid fa-triangle-exclamation"></i> WARNING: This will completely OVERWRITE the current database! All users, including you, may be logged out.</span>`,
+                    icon: 'warning',
+                    showCancelButton: true,
+                    confirmButtonColor: '#e53935',
+                    cancelButtonColor: '#6c757d',
+                    confirmButtonText: 'Yes, Restore',
+                    cancelButtonText: 'Cancel',
+                    reverseButtons: true
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        Swal.fire({
+                            title: 'Restoring Database...',
+                            text: 'Please wait, do not close or refresh this page.',
+                            allowOutsideClick: false,
+                            allowEscapeKey: false,
+                            didOpen: () => {
+                                Swal.showLoading();
+                            }
+                        });
+
+                        // Submit via hidden form
+                        const form = document.createElement('form');
+                        form.method = 'POST';
+                        form.action = "{{ route('admin.backup-restore.restore-local') }}";
+                        
+                        const csrfInput = document.createElement('input');
+                        csrfInput.type = 'hidden';
+                        csrfInput.name = '_token';
+                        csrfInput.value = "{{ csrf_token() }}";
+                        form.appendChild(csrfInput);
+
+                        const fileInput = document.createElement('input');
+                        fileInput.type = 'hidden';
+                        fileInput.name = 'filename';
+                        fileInput.value = filename;
+                        form.appendChild(fileInput);
+
+                        document.body.appendChild(form);
+                        form.submit();
+                    }
+                });
+            }
+
+            function confirmServerDelete(filename, md5Id) {
+                Swal.fire({
+                    title: 'Delete Server Backup?',
+                    html: `Are you sure you want to delete the backup file <strong>${filename}</strong> from server storage?`,
+                    icon: 'warning',
+                    showCancelButton: true,
+                    confirmButtonColor: '#dc2626',
+                    cancelButtonColor: '#6c757d',
+                    confirmButtonText: 'Yes, Delete',
+                    cancelButtonText: 'Cancel'
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        document.getElementById('delete-form-' + md5Id).submit();
                     }
                 });
             }

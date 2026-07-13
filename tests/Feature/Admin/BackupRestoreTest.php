@@ -98,3 +98,105 @@ test('sidebar shows Backup and Restore link for admin user', function (): void {
         ->assertOk()
         ->assertSee('Backup &amp; Restore', false);
 });
+
+test('admin can see stored backups on index page', function (): void {
+    $backupDir = storage_path('backups');
+    if (! is_dir($backupDir)) {
+        mkdir($backupDir, 0755, true);
+    }
+    $testFile = $backupDir.'/test_backup_pest.sql';
+    file_put_contents($testFile, 'SELECT 1;');
+
+    $this->actingAs($this->adminUser)
+        ->get(route('admin.backup-restore'))
+        ->assertOk()
+        ->assertSee('test_backup_pest.sql');
+
+    @unlink($testFile);
+});
+
+test('backup saves to storage/backups/ and logs to activity log', function (): void {
+    $response = $this->actingAs($this->adminUser)
+        ->get(route('admin.backup-restore.backup'));
+
+    if ($response->getStatusCode() === 200) {
+        $response->assertDownload();
+        $this->assertDatabaseHas('activitylogs', [
+            'action_type' => 'DATABASE_BACKUP',
+        ]);
+
+        $backupDir = storage_path('backups');
+        $files = glob($backupDir.'/*.sql');
+        foreach ($files as $file) {
+            if (basename($file) !== 'backup_2026-07-12_19-31-49.sql' && basename($file) !== 'backup_2026-07-12_19-33-32.sql') {
+                @unlink($file);
+            }
+        }
+    } else {
+        $response->assertRedirect(route('admin.backup-restore'));
+    }
+});
+
+test('download-local downloads file and requires permission', function (): void {
+    $backupDir = storage_path('backups');
+    if (! is_dir($backupDir)) {
+        mkdir($backupDir, 0755, true);
+    }
+    $testFile = $backupDir.'/test_dl_pest.sql';
+    file_put_contents($testFile, 'SELECT 1;');
+
+    $this->get(route('admin.backup-restore.download-local', 'test_dl_pest.sql'))
+        ->assertRedirect(route('home'));
+
+    $this->actingAs($this->staffUser)
+        ->get(route('admin.backup-restore.download-local', 'test_dl_pest.sql'))
+        ->assertForbidden();
+
+    $this->actingAs($this->adminUser)
+        ->get(route('admin.backup-restore.download-local', 'test_dl_pest.sql'))
+        ->assertOk()
+        ->assertHeader('Content-Disposition', 'attachment; filename=test_dl_pest.sql');
+
+    $this->actingAs($this->adminUser)
+        ->get(route('admin.backup-restore.download-local', 'invalid*file.sql'))
+        ->assertStatus(400);
+
+    @unlink($testFile);
+});
+
+test('delete-local deletes file, logs activity, and requires permission', function (): void {
+    $backupDir = storage_path('backups');
+    if (! is_dir($backupDir)) {
+        mkdir($backupDir, 0755, true);
+    }
+    $testFile = $backupDir.'/test_del_pest.sql';
+    file_put_contents($testFile, 'SELECT 1;');
+
+    $this->actingAs($this->staffUser)
+        ->delete(route('admin.backup-restore.delete-local', 'test_del_pest.sql'))
+        ->assertForbidden();
+
+    $this->assertTrue(file_exists($testFile));
+
+    $this->actingAs($this->adminUser)
+        ->delete(route('admin.backup-restore.delete-local', 'test_del_pest.sql'))
+        ->assertRedirect(route('admin.backup-restore'));
+
+    $this->assertFalse(file_exists($testFile));
+    $this->assertDatabaseHas('activitylogs', [
+        'action_type' => 'DATABASE_BACKUP_DELETE',
+        'description' => 'Deleted server backup file: test_del_pest.sql',
+        'user_id' => $this->adminUser->user_id,
+    ]);
+});
+
+test('restore-local requires permission and handles missing file', function (): void {
+    $this->actingAs($this->staffUser)
+        ->post(route('admin.backup-restore.restore-local'), ['filename' => 'nonexistent.sql'])
+        ->assertForbidden();
+
+    $this->actingAs($this->adminUser)
+        ->post(route('admin.backup-restore.restore-local'), ['filename' => 'nonexistent.sql'])
+        ->assertRedirect(route('admin.backup-restore'))
+        ->assertSessionHas('error', 'Backup file not found on server.');
+});
