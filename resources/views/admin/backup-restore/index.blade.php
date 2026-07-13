@@ -248,6 +248,17 @@
                         </tbody>
                     </table>
                 </div>
+                @if($hasOlderBackups)
+                    <div class="mt-4 p-3 rounded-3 bg-light border border-200 d-flex align-items-start gap-3">
+                        <i class="fa-solid fa-circle-info text-info mt-1" style="font-size: 1.1rem;"></i>
+                        <div>
+                            <div class="fw-semibold text-dark mb-1" style="font-size: 0.88rem;">Older backups are hidden</div>
+                            <p class="text-muted mb-0 small">
+                                Only the 5 most recent backups are displayed here. Older backup files remain stored in the server's directory at <code>storage/backups/</code>. To manage older backups, you can access this directory in the server's files to archive, move, or delete them manually to free up disk space.
+                            </p>
+                        </div>
+                    </div>
+                @endif
             @else
                 <div class="text-center py-4 text-muted">
                     <i class="fa-solid fa-folder-open mb-2 text-muted bg-light p-3 rounded-circle" style="font-size: 1.8rem;"></i>

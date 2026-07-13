@@ -35,7 +35,10 @@ class BackupRestoreController extends Controller
             usort($backups, fn ($a, $b) => strcmp($b['created_at'], $a['created_at']));
         }
 
-        return view('admin.backup-restore.index', compact('backups'));
+        $hasOlderBackups = count($backups) > 5;
+        $backups = array_slice($backups, 0, 5);
+
+        return view('admin.backup-restore.index', compact('backups', 'hasOlderBackups'));
     }
 
     /**

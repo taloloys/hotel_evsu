@@ -200,3 +200,32 @@ test('restore-local requires permission and handles missing file', function (): 
         ->assertRedirect(route('admin.backup-restore'))
         ->assertSessionHas('error', 'Backup file not found on server.');
 });
+
+test('index page limits backups to 5 and displays older backups warning if there are more than 5', function (): void {
+    $backupDir = storage_path('backups');
+    if (! is_dir($backupDir)) {
+        mkdir($backupDir, 0755, true);
+    }
+
+    $files = [];
+    for ($i = 1; $i <= 6; $i++) {
+        $file = $backupDir."/test_limit_{$i}.sql";
+        file_put_contents($file, "SELECT {$i};");
+        touch($file, time() - ($i * 10));
+        $files[] = $file;
+    }
+
+    $response = $this->actingAs($this->adminUser)
+        ->get(route('admin.backup-restore'));
+
+    $response->assertOk();
+
+    $response->assertSee('test_limit_1.sql');
+    $response->assertSee('test_limit_5.sql');
+    $response->assertDontSee('test_limit_6.sql');
+    $response->assertSee('Older backups are hidden');
+
+    foreach ($files as $file) {
+        @unlink($file);
+    }
+});
