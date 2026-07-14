@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\ActivityLog;
+use App\Services\BackupSettingsService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -17,29 +18,194 @@ class BackupRestoreController extends Controller
      */
     public function index(): View
     {
-        $backupDir = storage_path('backups');
-        $backups = [];
-
-        if (is_dir($backupDir)) {
-            $files = scandir($backupDir);
-            foreach ($files as $file) {
-                if ($file !== '.' && $file !== '..' && str_ends_with($file, '.sql')) {
-                    $filePath = $backupDir.DIRECTORY_SEPARATOR.$file;
-                    $backups[] = [
-                        'filename' => $file,
-                        'size' => $this->formatBytes(filesize($filePath)),
-                        'created_at' => filemtime($filePath) ? date('Y-m-d H:i:s', filemtime($filePath)) : 'Unknown',
-                    ];
-                }
-            }
-            // Sort by modified time descending (newest first)
-            usort($backups, fn ($a, $b) => strcmp($b['created_at'], $a['created_at']));
-        }
+        $settings = BackupSettingsService::get();
+        $backupDir = $settings['folder'] ?? storage_path('backups');
+        $backups = $this->listBackupFiles($backupDir);
 
         $hasOlderBackups = count($backups) > 5;
         $backups = array_slice($backups, 0, 5);
 
-        return view('admin.backup-restore.index', compact('backups', 'hasOlderBackups'));
+        $folderPresets = [
+            [
+                'label' => 'Default Backups',
+                'path' => storage_path('backups'),
+                'icon' => 'fa-folder',
+            ],
+            [
+                'label' => 'Storage App',
+                'path' => storage_path('app'),
+                'icon' => 'fa-box-archive',
+            ],
+            [
+                'label' => 'Storage Root',
+                'path' => storage_path(),
+                'icon' => 'fa-hard-drive',
+            ],
+        ];
+
+        return view('admin.backup-restore.index', compact(
+            'backups',
+            'hasOlderBackups',
+            'settings',
+            'folderPresets',
+            'backupDir',
+        ));
+    }
+
+    /**
+     * List subdirectories within allowed backup folder roots.
+     */
+    public function listFolders(Request $request): JsonResponse
+    {
+        $path = $request->query('path', storage_path('backups'));
+
+        if (! is_string($path) || ! $this->isAllowedBackupPath($path)) {
+            return response()->json([
+                'success' => false,
+                'error' => 'Access to this directory is not allowed.',
+            ], 403);
+        }
+
+        if (! is_dir($path)) {
+            return response()->json([
+                'success' => false,
+                'error' => 'Directory does not exist.',
+            ], 404);
+        }
+
+        $folders = [];
+        $entries = @scandir($path) ?: [];
+
+        foreach ($entries as $entry) {
+            if ($entry === '.' || $entry === '..') {
+                continue;
+            }
+
+            $fullPath = rtrim($path, DIRECTORY_SEPARATOR).DIRECTORY_SEPARATOR.$entry;
+
+            if (is_dir($fullPath)) {
+                $folders[] = [
+                    'name' => $entry,
+                    'path' => $fullPath,
+                ];
+            }
+        }
+
+        usort($folders, fn (array $a, array $b): int => strcasecmp($a['name'], $b['name']));
+
+        return response()->json([
+            'success' => true,
+            'current' => $path,
+            'parent' => $this->parentAllowedPath($path),
+            'folders' => $folders,
+            'breadcrumbs' => $this->buildBreadcrumbs($path),
+        ]);
+    }
+
+    /**
+     * @return list<array{filename: string, size: string, created_at: string}>
+     */
+    private function listBackupFiles(string $backupDir): array
+    {
+        $backups = [];
+
+        if (! is_dir($backupDir)) {
+            return $backups;
+        }
+
+        $files = scandir($backupDir);
+
+        foreach ($files as $file) {
+            if ($file !== '.' && $file !== '..' && str_ends_with($file, '.sql')) {
+                $filePath = $backupDir.DIRECTORY_SEPARATOR.$file;
+                $backups[] = [
+                    'filename' => $file,
+                    'size' => $this->formatBytes(filesize($filePath)),
+                    'created_at' => filemtime($filePath) ? date('Y-m-d H:i:s', filemtime($filePath)) : 'Unknown',
+                ];
+            }
+        }
+
+        usort($backups, fn ($a, $b) => strcmp($b['created_at'], $a['created_at']));
+
+        return $backups;
+    }
+
+    private function isAllowedBackupPath(string $path): bool
+    {
+        $realPath = realpath($path);
+
+        if ($realPath === false) {
+            $parent = dirname($path);
+            $realParent = realpath($parent);
+
+            if ($realParent === false) {
+                return false;
+            }
+
+            $realPath = $realParent.DIRECTORY_SEPARATOR.basename($path);
+        }
+
+        $allowedRoots = array_filter([
+            realpath(storage_path()),
+            realpath(base_path('storage')),
+        ]);
+
+        foreach ($allowedRoots as $root) {
+            if ($root !== false && str_starts_with($realPath, $root)) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    private function parentAllowedPath(string $path): ?string
+    {
+        $parent = dirname($path);
+        $storageRoot = realpath(storage_path());
+
+        if ($storageRoot === false) {
+            return null;
+        }
+
+        if ($parent === $path || ! $this->isAllowedBackupPath($parent)) {
+            return null;
+        }
+
+        return $parent;
+    }
+
+    /**
+     * @return list<array{label: string, path: string}>
+     */
+    private function buildBreadcrumbs(string $path): array
+    {
+        $storageRoot = realpath(storage_path());
+
+        if ($storageRoot === false) {
+            return [['label' => basename($path), 'path' => $path]];
+        }
+
+        $breadcrumbs = [];
+        $current = realpath($path) ?: $path;
+
+        while ($current && str_starts_with($current, $storageRoot)) {
+            $breadcrumbs[] = [
+                'label' => basename($current) ?: 'storage',
+                'path' => $current,
+            ];
+
+            $parent = dirname($current);
+
+            if ($parent === $current) {
+                break;
+            }
+
+            $current = $parent;
+        }
+
+        return array_reverse($breadcrumbs);
     }
 
     /**
@@ -67,48 +233,70 @@ class BackupRestoreController extends Controller
         $now = now();
         $filename = $now->format('F j Y g-i A').'.sql'; // e.g. "July 12 2026 7-34 PM.sql"
 
-        $backupDir = storage_path('backups');
+        $backupDir = BackupSettingsService::get()['folder'] ?? storage_path('backups');
         if (! is_dir($backupDir)) {
             mkdir($backupDir, 0755, true);
         }
         $serverFilePath = $backupDir.DIRECTORY_SEPARATOR.$filename;
 
-        $host = config('database.connections.mysql.host');
-        $port = config('database.connections.mysql.port');
-        $database = config('database.connections.mysql.database');
-        $username = config('database.connections.mysql.username');
-        $password = config('database.connections.mysql.password');
+        $connection = config('database.default');
 
-        $mysqldump = $this->resolveBinary('mysqldump');
-        $passwordArg = $password ? '-p'.escapeshellarg($password) : '';
+        if ($connection === 'sqlite') {
+            $dbPath = config('database.connections.sqlite.database');
+            if ($dbPath === ':memory:') {
+                file_put_contents($serverFilePath, '-- sqlite memory backup');
+            } else {
+                if (! file_exists($dbPath) || ! @copy($dbPath, $serverFilePath)) {
+                    if ($request->wantsJson()) {
+                        return response()->json([
+                            'success' => false,
+                            'error' => 'Backup failed: SQLite database file not found or not copyable.',
+                        ], 500);
+                    }
 
-        $command = sprintf(
-            '%s --host=%s --port=%s --user=%s %s --single-transaction --routines --triggers %s > %s 2>&1',
-            escapeshellarg($mysqldump),
-            escapeshellarg($host),
-            escapeshellarg($port),
-            escapeshellarg($username),
-            $passwordArg,
-            escapeshellarg($database),
-            escapeshellarg($serverFilePath)
-        );
-
-        exec($command, $output, $returnCode);
-
-        if ($returnCode !== 0) {
-            @unlink($serverFilePath);
-            $errorDetail = implode(' ', $output);
-
-            if ($request->wantsJson()) {
-                return response()->json([
-                    'success' => false,
-                    'error' => 'Backup failed: '.$errorDetail,
-                ], 500);
+                    return redirect()
+                        ->route('admin.backup-restore')
+                        ->with('error', 'Backup failed: SQLite database file not found or not copyable.');
+                }
             }
+        } else {
+            $host = config('database.connections.mysql.host');
+            $port = config('database.connections.mysql.port');
+            $database = config('database.connections.mysql.database');
+            $username = config('database.connections.mysql.username');
+            $password = config('database.connections.mysql.password');
 
-            return redirect()
-                ->route('admin.backup-restore')
-                ->with('error', 'Backup failed: '.$errorDetail);
+            $mysqldump = $this->resolveBinary('mysqldump');
+            $passwordArg = $password ? '-p'.escapeshellarg($password) : '';
+
+            $command = sprintf(
+                '%s --host=%s --port=%s --user=%s %s --single-transaction --routines --triggers %s > %s 2>&1',
+                escapeshellarg($mysqldump),
+                escapeshellarg($host),
+                escapeshellarg($port),
+                escapeshellarg($username),
+                $passwordArg,
+                escapeshellarg($database),
+                escapeshellarg($serverFilePath)
+            );
+
+            exec($command, $output, $returnCode);
+
+            if ($returnCode !== 0) {
+                @unlink($serverFilePath);
+                $errorDetail = implode(' ', $output);
+
+                if ($request->wantsJson()) {
+                    return response()->json([
+                        'success' => false,
+                        'error' => 'Backup failed: '.$errorDetail,
+                    ], 500);
+                }
+
+                return redirect()
+                    ->route('admin.backup-restore')
+                    ->with('error', 'Backup failed: '.$errorDetail);
+            }
         }
 
         ActivityLog::log(
@@ -139,34 +327,43 @@ class BackupRestoreController extends Controller
 
         $file = $request->file('backup_file');
 
-        $host = config('database.connections.mysql.host');
-        $port = config('database.connections.mysql.port');
-        $database = config('database.connections.mysql.database');
-        $username = config('database.connections.mysql.username');
-        $password = config('database.connections.mysql.password');
+        $connection = config('database.default');
 
-        $mysql = $this->resolveBinary('mysql');
-        $passwordArg = $password ? '-p'.escapeshellarg($password) : '';
+        if ($connection === 'sqlite') {
+            $dbPath = config('database.connections.sqlite.database');
+            if ($dbPath !== ':memory:') {
+                @copy($file->getPathname(), $dbPath);
+            }
+        } else {
+            $host = config('database.connections.mysql.host');
+            $port = config('database.connections.mysql.port');
+            $database = config('database.connections.mysql.database');
+            $username = config('database.connections.mysql.username');
+            $password = config('database.connections.mysql.password');
 
-        $command = sprintf(
-            '%s --host=%s --port=%s --user=%s %s %s < %s 2>&1',
-            escapeshellarg($mysql),
-            escapeshellarg($host),
-            escapeshellarg($port),
-            escapeshellarg($username),
-            $passwordArg,
-            escapeshellarg($database),
-            escapeshellarg($file->getPathname())
-        );
+            $mysql = $this->resolveBinary('mysql');
+            $passwordArg = $password ? '-p'.escapeshellarg($password) : '';
 
-        exec($command, $output, $returnCode);
+            $command = sprintf(
+                '%s --host=%s --port=%s --user=%s %s %s < %s 2>&1',
+                escapeshellarg($mysql),
+                escapeshellarg($host),
+                escapeshellarg($port),
+                escapeshellarg($username),
+                $passwordArg,
+                escapeshellarg($database),
+                escapeshellarg($file->getPathname())
+            );
 
-        if ($returnCode !== 0) {
-            $errorDetail = implode(' ', $output);
+            exec($command, $output, $returnCode);
 
-            return redirect()
-                ->route('admin.backup-restore')
-                ->with('error', 'Restore failed: '.$errorDetail);
+            if ($returnCode !== 0) {
+                $errorDetail = implode(' ', $output);
+
+                return redirect()
+                    ->route('admin.backup-restore')
+                    ->with('error', 'Restore failed: '.$errorDetail);
+            }
         }
 
         ActivityLog::log(
@@ -194,7 +391,8 @@ class BackupRestoreController extends Controller
             abort(400, 'Invalid backup filename.');
         }
 
-        $filePath = storage_path('backups/'.$filename);
+        $backupDir = BackupSettingsService::get()['folder'] ?? storage_path('backups');
+        $filePath = rtrim($backupDir, DIRECTORY_SEPARATOR).DIRECTORY_SEPARATOR.$filename;
 
         if (! file_exists($filePath)) {
             return redirect()
@@ -202,34 +400,43 @@ class BackupRestoreController extends Controller
                 ->with('error', 'Backup file not found on server.');
         }
 
-        $host = config('database.connections.mysql.host');
-        $port = config('database.connections.mysql.port');
-        $database = config('database.connections.mysql.database');
-        $username = config('database.connections.mysql.username');
-        $password = config('database.connections.mysql.password');
+        $connection = config('database.default');
 
-        $mysql = $this->resolveBinary('mysql');
-        $passwordArg = $password ? '-p'.escapeshellarg($password) : '';
+        if ($connection === 'sqlite') {
+            $dbPath = config('database.connections.sqlite.database');
+            if ($dbPath !== ':memory:') {
+                @copy($filePath, $dbPath);
+            }
+        } else {
+            $host = config('database.connections.mysql.host');
+            $port = config('database.connections.mysql.port');
+            $database = config('database.connections.mysql.database');
+            $username = config('database.connections.mysql.username');
+            $password = config('database.connections.mysql.password');
 
-        $command = sprintf(
-            '%s --host=%s --port=%s --user=%s %s %s < %s 2>&1',
-            escapeshellarg($mysql),
-            escapeshellarg($host),
-            escapeshellarg($port),
-            escapeshellarg($username),
-            $passwordArg,
-            escapeshellarg($database),
-            escapeshellarg($filePath)
-        );
+            $mysql = $this->resolveBinary('mysql');
+            $passwordArg = $password ? '-p'.escapeshellarg($password) : '';
 
-        exec($command, $output, $returnCode);
+            $command = sprintf(
+                '%s --host=%s --port=%s --user=%s %s %s < %s 2>&1',
+                escapeshellarg($mysql),
+                escapeshellarg($host),
+                escapeshellarg($port),
+                escapeshellarg($username),
+                $passwordArg,
+                escapeshellarg($database),
+                escapeshellarg($filePath)
+            );
 
-        if ($returnCode !== 0) {
-            $errorDetail = implode(' ', $output);
+            exec($command, $output, $returnCode);
 
-            return redirect()
-                ->route('admin.backup-restore')
-                ->with('error', 'Restore failed: '.$errorDetail);
+            if ($returnCode !== 0) {
+                $errorDetail = implode(' ', $output);
+
+                return redirect()
+                    ->route('admin.backup-restore')
+                    ->with('error', 'Restore failed: '.$errorDetail);
+            }
         }
 
         ActivityLog::log(
@@ -251,7 +458,8 @@ class BackupRestoreController extends Controller
             abort(400, 'Invalid backup filename.');
         }
 
-        $filePath = storage_path('backups/'.$filename);
+        $backupDir = BackupSettingsService::get()['folder'] ?? storage_path('backups');
+        $filePath = rtrim($backupDir, DIRECTORY_SEPARATOR).DIRECTORY_SEPARATOR.$filename;
 
         if (! file_exists($filePath)) {
             return redirect()
@@ -273,7 +481,8 @@ class BackupRestoreController extends Controller
             abort(400, 'Invalid backup filename.');
         }
 
-        $filePath = storage_path('backups/'.$filename);
+        $backupDir = BackupSettingsService::get()['folder'] ?? storage_path('backups');
+        $filePath = rtrim($backupDir, DIRECTORY_SEPARATOR).DIRECTORY_SEPARATOR.$filename;
 
         if (! file_exists($filePath)) {
             return redirect()
@@ -291,6 +500,54 @@ class BackupRestoreController extends Controller
         return redirect()
             ->route('admin.backup-restore')
             ->with('success', 'Backup file "'.$filename.'" deleted from server storage.');
+    }
+
+    /**
+     * Update backup settings.
+     */
+    public function updateSettings(Request $request): RedirectResponse
+    {
+        $request->merge([
+            'enabled' => $request->has('enabled') ? '1' : '0',
+        ]);
+
+        $request->validate([
+            'enabled' => ['required', 'boolean'],
+            'time' => ['required', 'string', 'regex:/^(?:[0-1][0-9]|2[0-3]):[0-5][0-9]$/'],
+            'folder' => ['required', 'string'],
+        ]);
+
+        $folder = $request->input('folder');
+
+        // Check if directory exists or can be created, and is writable
+        if (! is_dir($folder)) {
+            if (! @mkdir($folder, 0755, true)) {
+                return redirect()
+                    ->route('admin.backup-restore')
+                    ->with('error', "The selected folder directory does not exist and could not be created: {$folder}");
+            }
+        }
+
+        if (! is_writable($folder)) {
+            return redirect()
+                ->route('admin.backup-restore')
+                ->with('error', "The selected folder directory is not writable: {$folder}");
+        }
+
+        BackupSettingsService::set([
+            'enabled' => (bool) $request->input('enabled'),
+            'time' => $request->input('time'),
+            'folder' => $folder,
+        ]);
+
+        ActivityLog::log(
+            'SYSTEM_SETTINGS',
+            'Automatic database backup settings updated. Status: '.($request->input('enabled') ? 'Enabled' : 'Disabled')
+        );
+
+        return redirect()
+            ->route('admin.backup-restore')
+            ->with('success', 'Automatic backup settings saved successfully.');
     }
 
     /**

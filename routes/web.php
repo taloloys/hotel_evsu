@@ -397,6 +397,10 @@ Route::middleware('auth')->group(function () {
             // BACKUP & RESTORE
             Route::get('/backup-restore', [BackupRestoreController::class, 'index'])
                 ->name('admin.backup-restore');
+            Route::post('/backup-restore/settings', [BackupRestoreController::class, 'updateSettings'])
+                ->name('admin.backup-restore.settings');
+            Route::get('/backup-restore/list-folders', [BackupRestoreController::class, 'listFolders'])
+                ->name('admin.backup-restore.list-folders');
             Route::get('/backup-restore/backup', [BackupRestoreController::class, 'backup'])
                 ->name('admin.backup-restore.backup');
             Route::post('/backup-restore/restore', [BackupRestoreController::class, 'restore'])

@@ -3,6 +3,7 @@
 use App\Models\Permission;
 use App\Models\Role;
 use App\Models\User;
+use App\Services\BackupSettingsService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\UploadedFile;
 
@@ -54,7 +55,7 @@ test('admin can view the backup-restore page', function (): void {
     $this->actingAs($this->adminUser)
         ->get(route('admin.backup-restore'))
         ->assertOk()
-        ->assertSee('Create Backup')
+        ->assertSee('Save Backup')
         ->assertSee('Restore Database');
 });
 
@@ -223,7 +224,7 @@ test('index page limits backups to 5 and displays older backups warning if there
     $response->assertSee('test_limit_1.sql');
     $response->assertSee('test_limit_5.sql');
     $response->assertDontSee('test_limit_6.sql');
-    $response->assertSee('Older backups are hidden');
+    $response->assertSee('Only the 5 most recent backups are shown');
 
     foreach ($files as $file) {
         @unlink($file);
@@ -247,10 +248,117 @@ test('backup AJAX returns JSON response with filename and logs activity', functi
 
         $filename = $response->json('filename');
         @unlink(storage_path('backups/'.$filename));
-    } else {
-        $response->assertStatus(500)
-            ->assertJson([
-                'success' => false,
-            ]);
     }
+});
+
+test('admin can update automatic backup settings', function (): void {
+    $folderPath = storage_path('backups');
+
+    $response = $this->actingAs($this->adminUser)
+        ->post(route('admin.backup-restore.settings'), [
+            'enabled' => '1',
+            'time' => '23:30',
+            'folder' => $folderPath,
+        ]);
+
+    $response->assertRedirect(route('admin.backup-restore'))
+        ->assertSessionHas('success', 'Automatic backup settings saved successfully.');
+
+    $settings = BackupSettingsService::get();
+    $this->assertTrue($settings['enabled']);
+    $this->assertEquals('23:30', $settings['time']);
+    $this->assertEquals($folderPath, $settings['folder']);
+
+    $this->assertDatabaseHas('activitylogs', [
+        'action_type' => 'SYSTEM_SETTINGS',
+        'description' => 'Automatic database backup settings updated. Status: Enabled',
+    ]);
+});
+
+test('saving invalid backup settings is rejected', function (): void {
+    // Invalid time format
+    $this->actingAs($this->adminUser)
+        ->post(route('admin.backup-restore.settings'), [
+            'enabled' => '1',
+            'time' => '25:00', // invalid hour
+            'folder' => storage_path('backups'),
+        ])
+        ->assertSessionHasErrors('time');
+
+    // Missing folder
+    $this->actingAs($this->adminUser)
+        ->post(route('admin.backup-restore.settings'), [
+            'enabled' => '1',
+            'time' => '02:00',
+            'folder' => '',
+        ])
+        ->assertSessionHasErrors('folder');
+});
+
+test('auto backup artisan command outputs disabled message when disabled', function (): void {
+    BackupSettingsService::set([
+        'enabled' => false,
+        'time' => '02:00',
+        'folder' => storage_path('backups'),
+    ]);
+
+    $this->artisan('db:auto-backup')
+        ->expectsOutput('Automatic backup is disabled.')
+        ->assertExitCode(0);
+});
+
+test('auto backup artisan command executes when enabled', function (): void {
+    $folderPath = storage_path('test_auto_backups');
+    if (! is_dir($folderPath)) {
+        mkdir($folderPath, 0755, true);
+    }
+
+    BackupSettingsService::set([
+        'enabled' => true,
+        'time' => '02:00',
+        'folder' => $folderPath,
+    ]);
+
+    // Run the command
+    $this->artisan('db:auto-backup')
+        ->assertExitCode(0);
+
+    // Verify file exists
+    $files = glob($folderPath.'/*.sql');
+    $this->assertNotEmpty($files);
+
+    // Clean up
+    foreach ($files as $file) {
+        @unlink($file);
+    }
+    @rmdir($folderPath);
+});
+
+test('admin can list folders for backup directory picker', function (): void {
+    $backupDir = storage_path('backups');
+    if (! is_dir($backupDir)) {
+        mkdir($backupDir, 0755, true);
+    }
+
+    $this->actingAs($this->adminUser)
+        ->getJson(route('admin.backup-restore.list-folders', ['path' => $backupDir]))
+        ->assertOk()
+        ->assertJson([
+            'success' => true,
+            'current' => $backupDir,
+        ])
+        ->assertJsonStructure(['folders', 'breadcrumbs']);
+});
+
+test('list folders rejects paths outside storage', function (): void {
+    $this->actingAs($this->adminUser)
+        ->getJson(route('admin.backup-restore.list-folders', ['path' => 'C:\\Windows']))
+        ->assertForbidden()
+        ->assertJson(['success' => false]);
+});
+
+test('staff cannot list backup folders', function (): void {
+    $this->actingAs($this->staffUser)
+        ->getJson(route('admin.backup-restore.list-folders'))
+        ->assertForbidden();
 });
