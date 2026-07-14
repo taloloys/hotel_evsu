@@ -290,13 +290,15 @@ class GuestFolioController extends Controller
                 Transaction::where('folio_id', $booking->folio_id)
                     ->where('charge_code', 100)
                     ->where('charge_number', 'like', 'RM-'.$booking->booking_id.'-%')
-                    ->whereDate('transaction_date', '>=', $today)
+                    ->whereDate('transaction_date', '>', $today)
                     ->delete();
+
+                $tomorrow = Carbon::tomorrow()->toDateString();
 
                 $newBooking = Booking::create([
                     'folio_id' => $booking->folio_id,
                     'room_id' => $newRoom->room_id,
-                    'arrival_date' => $today,
+                    'arrival_date' => $tomorrow,
                     'arrival_time' => Carbon::now()->format('H:i'),
                     'departure_date' => $originalDepartureDate,
                     'departure_time' => $originalDepartureTime,

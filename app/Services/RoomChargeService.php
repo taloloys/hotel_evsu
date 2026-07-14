@@ -68,8 +68,17 @@ class RoomChargeService
 
         // Calculate nights between arrival date and today.
         // Add 1 so the current active night is immediately charged up-front.
-        $nightsPassed = $arrival->diffInDays($today);
+        $nightsPassed = (int) $arrival->diffInDays($today);
         $nightsToCharge = $nightsPassed + 1;
+
+        // For fixed-stay bookings, charge all nights from arrival to departure up-front.
+        if ($booking->departure_date) {
+            $totalNights = $arrival->diffInDays($booking->departure_date);
+            $nightsToCharge = max($nightsToCharge, $totalNights);
+        } elseif ($nightsPassed === 0) {
+            // Open stay on arrival day: skip charging; daily command handles it.
+            return;
+        }
 
         $folio = $booking->folio;
         $rate = ($folio && $folio->net_rate !== null) ? $folio->net_rate : ($booking->room?->base_rate ?? 0.00);
