@@ -2,6 +2,7 @@
 
 namespace App\Providers;
 
+use App\Listeners\CheckArchiveStatusListener;
 use App\Listeners\ShiftLifecycleListener;
 use App\Models\User;
 use Illuminate\Auth\Events\Login;
@@ -33,6 +34,7 @@ class AppServiceProvider extends ServiceProvider
         });
 
         Event::listen(Login::class, [ShiftLifecycleListener::class, 'handleLogin']);
+        Event::listen(Login::class, CheckArchiveStatusListener::class);
         Event::listen(Logout::class, [ShiftLifecycleListener::class, 'handleLogout']);
     }
 }

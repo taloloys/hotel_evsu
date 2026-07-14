@@ -7,6 +7,7 @@ use App\Models\Expense;
 use App\Models\Transaction;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Illuminate\View\View;
 
 class ReportController extends Controller
@@ -17,27 +18,46 @@ class ReportController extends Controller
         $dateTo = $request->input('date_to', Carbon::now()->toDateString());
         $reportType = $request->input('report_type', 'ALL');
 
-        // 1. Profit & Loss data
-        $revenue = Transaction::whereBetween('transaction_date', [$dateFrom, $dateTo])
-            ->sum('charge_amount');
+        $needsArchive = Carbon::parse($dateFrom)->diffInDays(Carbon::now()) > 365;
+        $transactionColumns = ['transaction_id', 'folio_id', 'charge_code', 'shift_id', 'user_id', 'transaction_date', 'charge_number', 'payment_method', 'reference_notes', 'charge_amount', 'credit_amount', 'department', 'timestamp'];
 
-        $expenses = Expense::where('status', 'APPROVED')
-            ->whereBetween('expense_date', [$dateFrom, $dateTo])
-            ->sum('amount');
+        // 1. Profit & Loss data
+        $revenue = Transaction::whereBetween('transaction_date', [$dateFrom, $dateTo])->sum('charge_amount');
+        if ($needsArchive) {
+            $revenue += DB::table('archived_transactions')->whereBetween('transaction_date', [$dateFrom, $dateTo])->sum('charge_amount');
+        }
+
+        $expenses = Expense::where('status', 'APPROVED')->whereBetween('expense_date', [$dateFrom, $dateTo])->sum('amount');
+        if ($needsArchive) {
+            $expenses += DB::table('archived_expenses')->where('status', 'APPROVED')->whereBetween('expense_date', [$dateFrom, $dateTo])->sum('amount');
+        }
 
         $netProfit = $revenue - $expenses;
 
         // 2. Cash Flow data
-        $cashIn = Transaction::whereBetween('transaction_date', [$dateFrom, $dateTo])
-            ->sum('credit_amount');
+        $cashIn = Transaction::whereBetween('transaction_date', [$dateFrom, $dateTo])->sum('credit_amount');
+        if ($needsArchive) {
+            $cashIn += DB::table('archived_transactions')->whereBetween('transaction_date', [$dateFrom, $dateTo])->sum('credit_amount');
+        }
 
         $cashOut = $expenses; // Assuming approved operational expenses represent cash outflow
         $netCashFlow = $cashIn - $cashOut;
 
         // 3. Revenue Breakdown by category
-        $revenueGrouped = Transaction::where('charge_amount', '>', 0)
-            ->whereBetween('transaction_date', [$dateFrom, $dateTo])
-            ->with('chargeCode')
+        $revenueGroupedQuery = Transaction::where('charge_amount', '>', 0)
+            ->whereBetween('transaction_date', [$dateFrom, $dateTo]);
+
+        if ($needsArchive) {
+            $archivedRevenue = DB::table('archived_transactions')
+                ->select($transactionColumns)
+                ->where('charge_amount', '>', 0)
+                ->whereBetween('transaction_date', [$dateFrom, $dateTo]);
+
+            $revenueGroupedQuery = clone $revenueGroupedQuery; // Clone to avoid modifying the original query if it was used elsewhere, though it's not.
+            $revenueGroupedQuery = $revenueGroupedQuery->select($transactionColumns)->unionAll($archivedRevenue);
+        }
+
+        $revenueGrouped = $revenueGroupedQuery->with('chargeCode')
             ->get()
             ->groupBy(function ($tx) {
                 return $tx->chargeCode ? $tx->chargeCode->category : 'OTHER';
@@ -66,8 +86,17 @@ class ReportController extends Controller
         $totalRevenueBreakdown = array_sum($revenueBreakdown);
 
         // 4. Detailed transaction list
-        $transactions = Transaction::whereBetween('transaction_date', [$dateFrom, $dateTo])
-            ->with(['folio.guest', 'chargeCode', 'user'])
+        $transactionsQuery = Transaction::whereBetween('transaction_date', [$dateFrom, $dateTo]);
+
+        if ($needsArchive) {
+            $archivedTxs = DB::table('archived_transactions')
+                ->select($transactionColumns)
+                ->whereBetween('transaction_date', [$dateFrom, $dateTo]);
+
+            $transactionsQuery = $transactionsQuery->select($transactionColumns)->unionAll($archivedTxs);
+        }
+
+        $transactions = $transactionsQuery->with(['folio.guest', 'chargeCode', 'user'])
             ->orderBy('timestamp', 'desc')
             ->get();
 

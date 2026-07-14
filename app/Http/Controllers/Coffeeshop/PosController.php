@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\CreditAccount;
 use App\Models\PosApprovalRequest;
 use App\Models\PosCategory;
+use App\Models\PosOrderItem;
 use App\Models\PosProduct;
 use App\Models\PosTab;
 use App\Services\Coffeeshop\PosGuestChargeService;
@@ -14,6 +15,7 @@ use App\Services\Coffeeshop\PosTabService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\DB;
 use Illuminate\View\View;
 
 class PosController extends Controller
@@ -40,12 +42,12 @@ class PosController extends Controller
     protected function getDynamicPairings(): array
     {
         // 1. Try to find actual frequently bought together pairs
-        $pairings = \Illuminate\Support\Facades\DB::table('pos_order_items as a')
+        $pairings = DB::table('pos_order_items as a')
             ->join('pos_order_items as b', function ($join) {
                 $join->on('a.order_id', '=', 'b.order_id')
-                     ->whereColumn('a.product_id', '<', 'b.product_id');
+                    ->whereColumn('a.product_id', '<', 'b.product_id');
             })
-            ->select('a.product_name as product1', 'b.product_name as product2', \Illuminate\Support\Facades\DB::raw('count(*) as frequency'))
+            ->select('a.product_name as product1', 'b.product_name as product2', DB::raw('count(*) as frequency'))
             ->groupBy('a.product_name', 'b.product_name')
             ->orderByDesc('frequency')
             ->limit(4)
@@ -53,12 +55,12 @@ class PosController extends Controller
 
         $suggested = [];
         foreach ($pairings as $pair) {
-            $suggested[] = $pair->product1 . ',' . $pair->product2;
+            $suggested[] = $pair->product1.','.$pair->product2;
         }
 
         // 2. If we don't have enough pairs, fallback to top selling individual products combined
         if (count($suggested) < 4) {
-            $topProducts = \App\Models\PosOrderItem::select('product_name', \Illuminate\Support\Facades\DB::raw('SUM(quantity) as total_sold'))
+            $topProducts = PosOrderItem::select('product_name', DB::raw('SUM(quantity) as total_sold'))
                 ->groupBy('product_name')
                 ->orderByDesc('total_sold')
                 ->limit(4)
@@ -71,20 +73,28 @@ class PosController extends Controller
             }
 
             if (count($topProducts) >= 2) {
-                $combo1 = $topProducts[0] . ',' . $topProducts[1];
-                if (!in_array($combo1, $suggested) && count($suggested) < 4) $suggested[] = $combo1;
-                
-                if (count($topProducts) >= 3) {
-                    $combo2 = $topProducts[0] . ',' . $topProducts[2];
-                    if (!in_array($combo2, $suggested) && count($suggested) < 4) $suggested[] = $combo2;
+                $combo1 = $topProducts[0].','.$topProducts[1];
+                if (! in_array($combo1, $suggested) && count($suggested) < 4) {
+                    $suggested[] = $combo1;
                 }
-                
+
+                if (count($topProducts) >= 3) {
+                    $combo2 = $topProducts[0].','.$topProducts[2];
+                    if (! in_array($combo2, $suggested) && count($suggested) < 4) {
+                        $suggested[] = $combo2;
+                    }
+                }
+
                 if (count($topProducts) >= 4) {
-                    $combo3 = $topProducts[1] . ',' . $topProducts[3];
-                    if (!in_array($combo3, $suggested) && count($suggested) < 4) $suggested[] = $combo3;
-                    
-                    $combo4 = $topProducts[2] . ',' . $topProducts[3];
-                    if (!in_array($combo4, $suggested) && count($suggested) < 4) $suggested[] = $combo4;
+                    $combo3 = $topProducts[1].','.$topProducts[3];
+                    if (! in_array($combo3, $suggested) && count($suggested) < 4) {
+                        $suggested[] = $combo3;
+                    }
+
+                    $combo4 = $topProducts[2].','.$topProducts[3];
+                    if (! in_array($combo4, $suggested) && count($suggested) < 4) {
+                        $suggested[] = $combo4;
+                    }
                 }
             }
         }
@@ -95,7 +105,7 @@ class PosController extends Controller
                 'Americano,Cookies',
                 'Cappuccino,Cookies',
                 'Latte,Cookies',
-                'Americano,Fresh Milk'
+                'Americano,Fresh Milk',
             ];
         }
 

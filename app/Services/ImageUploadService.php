@@ -8,6 +8,8 @@ use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
+use Intervention\Image\Drivers\Gd\Driver;
+use Intervention\Image\ImageManager;
 
 class ImageUploadService
 {
@@ -58,7 +60,7 @@ class ImageUploadService
 
         try {
             // Initialize the ImageManager with the GD driver
-            $manager = new \Intervention\Image\ImageManager(new \Intervention\Image\Drivers\Gd\Driver());
+            $manager = new ImageManager(new Driver);
 
             // Read the image from the uploaded file's temporary path
             $image = $manager->read($file->getRealPath());

@@ -3,11 +3,11 @@
 namespace App\Http\Controllers\Coffeeshop;
 
 use App\Http\Controllers\Controller;
+use App\Models\Expense;
 use App\Models\PosOrder;
 use App\Models\PosOrderItem;
 use App\Models\PosProduct;
 use App\Models\PosTab;
-use App\Models\Expense;
 use App\Services\Coffeeshop\PosAnalyticsService;
 use App\Services\Coffeeshop\PosInventoryService;
 use Carbon\Carbon;

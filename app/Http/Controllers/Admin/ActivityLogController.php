@@ -93,9 +93,9 @@ class ActivityLogController extends Controller
                     $log->user ? $log->user->username : 'N/A',
                     $log->action_type,
                     $log->description,
-                    "'" . date('M d, Y h:i A', strtotime($log->timestamp))
+                    "'".date('M d, Y h:i A', strtotime($log->timestamp)),
                 ]);
-            
+
             }
 
             fclose($file);

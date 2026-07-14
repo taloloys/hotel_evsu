@@ -39,7 +39,7 @@ class AnalyticsController extends Controller
             ->orderBy('transaction_date')
             ->get();
 
-        $trendLabels = $revenueTrend->pluck('transaction_date')->map(fn($date) => Carbon::parse($date)->format('M d'));
+        $trendLabels = $revenueTrend->pluck('transaction_date')->map(fn ($date) => Carbon::parse($date)->format('M d'));
         $trendData = $revenueTrend->pluck('total');
 
         // 2. Payment Method Breakdown (Donut Chart)
@@ -49,7 +49,7 @@ class AnalyticsController extends Controller
             ->groupBy('payment_method')
             ->get();
 
-        $paymentLabels = $paymentMethods->pluck('payment_method')->map(fn($method) => str_replace('_', ' ', $method));
+        $paymentLabels = $paymentMethods->pluck('payment_method')->map(fn ($method) => str_replace('_', ' ', $method));
         $paymentData = $paymentMethods->pluck('total');
 
         // 3. Department Breakdown (Donut Chart)
@@ -58,7 +58,7 @@ class AnalyticsController extends Controller
             ->groupBy('department')
             ->get();
 
-        $deptLabels = $departmentRevenue->pluck('department')->map(fn($dept) => str_replace('_', ' ', $dept));
+        $deptLabels = $departmentRevenue->pluck('department')->map(fn ($dept) => str_replace('_', ' ', $dept));
         $deptData = $departmentRevenue->pluck('total');
 
         return response()->json([

@@ -4,6 +4,10 @@ namespace App\Http\Controllers\Accounting;
 
 use App\Http\Controllers\Controller;
 use App\Models\Folio;
+use App\Models\PosOrder;
+use App\Models\PosSetting;
+use App\Models\Transaction;
+use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\View\View;
@@ -17,35 +21,35 @@ class BillingController extends Controller
         $tab = $request->input('tab', 'front_desk');
         $statusFilter = $request->input('status', 'ALL');
         $search = $request->input('search');
-        
+
         $dateRange = $request->input('date_range', 'today'); // 'specific', 'today', 'weekly', 'monthly', 'yearly', 'all'
-        $date = $request->input('date', \Carbon\Carbon::today()->toDateString());
+        $date = $request->input('date', Carbon::today()->toDateString());
 
         $startDate = null;
-        $endDate = \Carbon\Carbon::now()->endOfDay();
-        
+        $endDate = Carbon::now()->endOfDay();
+
         if ($dateRange === 'today') {
-            $startDate = \Carbon\Carbon::today()->startOfDay();
-            $endDate = \Carbon\Carbon::today()->endOfDay();
+            $startDate = Carbon::today()->startOfDay();
+            $endDate = Carbon::today()->endOfDay();
         } elseif ($dateRange === 'weekly') {
-            $startDate = \Carbon\Carbon::today()->startOfWeek();
+            $startDate = Carbon::today()->startOfWeek();
         } elseif ($dateRange === 'monthly') {
-            $startDate = \Carbon\Carbon::today()->startOfMonth();
+            $startDate = Carbon::today()->startOfMonth();
         } elseif ($dateRange === 'yearly') {
-            $startDate = \Carbon\Carbon::today()->startOfYear();
+            $startDate = Carbon::today()->startOfYear();
         } elseif ($dateRange === 'specific' && $date) {
-            $startDate = \Carbon\Carbon::parse($date)->startOfDay();
-            $endDate = \Carbon\Carbon::parse($date)->endOfDay();
+            $startDate = Carbon::parse($date)->startOfDay();
+            $endDate = Carbon::parse($date)->endOfDay();
         }
 
         if ($tab === 'pos') {
-            $query = \App\Models\PosOrder::with(['folio.guest', 'user']);
-            
+            $query = PosOrder::with(['folio.guest', 'user']);
+
             if ($search) {
                 $query->where(function ($q) use ($search) {
                     $q->where('order_number', 'like', "%{$search}%")
-                      ->orWhere('customer_name', 'like', "%{$search}%")
-                      ->orWhere('room_number', 'like', "%{$search}%");
+                        ->orWhere('customer_name', 'like', "%{$search}%")
+                        ->orWhere('room_number', 'like', "%{$search}%");
                 });
             }
 
@@ -59,7 +63,7 @@ class BillingController extends Controller
 
             $posOrders = $query->orderBy('order_id', 'desc')->paginate(10)->withQueryString();
 
-            $txQuery = \App\Models\Transaction::where('department', 'COFFEE_SHOP');
+            $txQuery = Transaction::where('department', 'COFFEE_SHOP');
             if ($startDate) {
                 $txQuery->whereBetween('transaction_date', [$startDate->toDateString(), $endDate->toDateString()]);
             }
@@ -67,8 +71,8 @@ class BillingController extends Controller
             $cashSales = (float) (clone $txQuery)->where('payment_method', 'CASH')->sum('credit_amount');
             $creditSales = (float) (clone $txQuery)->where('payment_method', 'CREDIT_CARD')->sum('credit_amount');
             $totalSales = $cashSales + $creditSales;
-            
-            $unpaidBalance = \App\Models\PosOrder::whereIn('status', ['open', 'active'])->sum('total');
+
+            $unpaidBalance = PosOrder::whereIn('status', ['open', 'active'])->sum('total');
 
             return view('accounting.billing.index', [
                 'tab' => $tab,
@@ -86,7 +90,7 @@ class BillingController extends Controller
 
         $query = Folio::withBalances()->with(['guest', 'bookings.room']);
 
-        $walkInFolioId = \App\Models\PosSetting::walkInFolioId();
+        $walkInFolioId = PosSetting::walkInFolioId();
         if ($walkInFolioId) {
             $query->where('folios.folio_id', '!=', $walkInFolioId);
         }
@@ -102,12 +106,12 @@ class BillingController extends Controller
         }
 
         if ($startDate) {
-            $query->where(function($q) use ($startDate, $endDate) {
+            $query->where(function ($q) use ($startDate, $endDate) {
                 $q->whereHas('transactions', function ($tQ) use ($startDate, $endDate) {
                     $tQ->whereBetween('transaction_date', [$startDate->toDateString(), $endDate->toDateString()]);
-                })->orWhereHas('bookings', function($bQ) use ($startDate, $endDate) {
+                })->orWhereHas('bookings', function ($bQ) use ($startDate, $endDate) {
                     $bQ->whereDate('arrival_date', '<=', $endDate->toDateString())
-                      ->whereDate('departure_date', '>=', $startDate->toDateString());
+                        ->whereDate('departure_date', '>=', $startDate->toDateString());
                 });
             });
         }
@@ -146,10 +150,10 @@ class BillingController extends Controller
                     'total_amount' => $totalCharges,
                     'balance' => $balance,
                     'status' => $folio->status,
-                ]
+                ],
             ]);
         });
-        
+
         $foliosPaginator->setCollection($folios);
 
         if ($statusFilter === 'PAID') {
@@ -160,7 +164,7 @@ class BillingController extends Controller
             $foliosPaginator->setCollection($filtered);
         }
 
-        $txQuery = \App\Models\Transaction::where('department', 'FRONT_DESK');
+        $txQuery = Transaction::where('department', 'FRONT_DESK');
         if ($startDate) {
             $txQuery->whereBetween('transaction_date', [$startDate->toDateString(), $endDate->toDateString()]);
         }
@@ -168,7 +172,7 @@ class BillingController extends Controller
         $cashSales = (float) (clone $txQuery)->where('payment_method', 'CASH')->sum('credit_amount');
         $creditSales = (float) (clone $txQuery)->where('payment_method', 'CREDIT_CARD')->sum('credit_amount');
         $totalSales = $cashSales + $creditSales;
-        
+
         // Exclude walk-in folio balance if any (should be 0 anyway, but to be strict)
         $unpaidBalanceQuery = Folio::where('status', 'OPEN');
         if ($walkInFolioId) {

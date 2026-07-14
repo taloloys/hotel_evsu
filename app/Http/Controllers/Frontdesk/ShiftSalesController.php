@@ -4,13 +4,13 @@ namespace App\Http\Controllers\Frontdesk;
 
 use App\Http\Controllers\Controller;
 use App\Models\ChargeCode;
+use App\Models\Expense;
 use App\Models\Shift;
 use App\Models\Transaction;
 use App\Models\User;
-use App\Models\Expense;
+use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Gate;
-use Carbon\Carbon;
 
 class ShiftSalesController extends Controller
 {

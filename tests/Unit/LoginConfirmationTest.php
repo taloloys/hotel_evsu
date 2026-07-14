@@ -1,7 +1,7 @@
 <?php
 
 use App\Http\Controllers\Auth\LoginController;
-use App\Models\ActivityLog;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Session;
@@ -36,8 +36,8 @@ it('sets a login confirmation flash after successful authentication', function (
 
     $request->setLaravelSession(app('session.store'));
 
-    $response = (new LoginController())->store($request);
+    $response = (new LoginController)->store($request);
 
-    expect($response)->toBeInstanceOf(\Illuminate\Http\RedirectResponse::class);
+    expect($response)->toBeInstanceOf(RedirectResponse::class);
     expect($response->getSession()->get('show_login_confirmation'))->toBeTrue();
 });

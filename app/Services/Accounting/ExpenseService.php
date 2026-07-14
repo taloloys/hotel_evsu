@@ -4,8 +4,8 @@ namespace App\Services\Accounting;
 
 use App\Models\ActivityLog;
 use App\Models\Expense;
-use Illuminate\Support\Facades\DB;
 use Carbon\Carbon;
+use Illuminate\Support\Facades\DB;
 
 class ExpenseService
 {
@@ -29,7 +29,7 @@ class ExpenseService
 
             ActivityLog::log(
                 'ADD_CHARGE',
-                "Recorded operating expense: {$expense->purpose} under {$expense->department} (Funded by {$expense->funding_source}) - ₱" . number_format($expense->amount, 2)
+                "Recorded operating expense: {$expense->purpose} under {$expense->department} (Funded by {$expense->funding_source}) - ₱".number_format($expense->amount, 2)
             );
 
             return $expense;

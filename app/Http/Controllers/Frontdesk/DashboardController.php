@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Frontdesk;
 
 use App\Http\Controllers\Controller;
 use App\Models\Booking;
+use App\Models\Expense;
 use App\Models\Room;
 use App\Models\Shift;
 use App\Models\ShiftSchedule;
@@ -25,7 +26,7 @@ class DashboardController extends Controller
             ->first();
 
         $dayOfWeek = strtolower(now()->englishDayOfWeek); // e.g., 'monday', 'tuesday'
-        $columnName = 'is_' . $dayOfWeek;
+        $columnName = 'is_'.$dayOfWeek;
 
         // Available schedules for today
         $todaySchedules = ShiftSchedule::where('user_id', $userId)
@@ -53,7 +54,7 @@ class DashboardController extends Controller
             $shiftSales['card'] = Transaction::where('shift_id', $activeShift->shift_id)
                 ->where('payment_method', 'CREDIT_CARD')
                 ->sum('credit_amount');
-            $shiftSales['expenses'] = \App\Models\Expense::where('user_id', $userId)
+            $shiftSales['expenses'] = Expense::where('user_id', $userId)
                 ->where('funding_source', 'FRONT DESK')
                 ->where('created_at', '>=', $activeShift->start_time)
                 ->sum('amount');

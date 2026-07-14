@@ -22,7 +22,7 @@ class StatisticsController extends Controller
             : Carbon::today();
 
         return view('coffeeshop.statistics.index', [
-            
+
             // ✅ NOW FILTERED STATS (IMPORTANT FIX)
             'stats' => $analytics->dashboardStats($from, $to),
 
