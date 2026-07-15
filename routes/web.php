@@ -438,3 +438,14 @@ Route::middleware('auth')->group(function () {
         });
     });
 });
+
+Route::get('/test-gd', function () {
+    return response()->json([
+        'extension_loaded_gd' => extension_loaded('gd'),
+        'function_exists_imagecreate' => function_exists('imagecreate'),
+        'function_exists_gd_info' => function_exists('gd_info'),
+        'loaded_ini' => php_ini_loaded_file(),
+        'binary' => PHP_BINARY,
+        'extensions' => get_loaded_extensions(),
+    ]);
+});
