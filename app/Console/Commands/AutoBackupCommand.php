@@ -88,7 +88,7 @@ class AutoBackupCommand extends Command
                 escapeshellarg($database)
             );
 
-            Log::info("Executing backup command: " . $command);
+            Log::info('Executing backup command: '.$command);
             exec($command, $output, $returnCode);
 
             if ($returnCode !== 0) {
@@ -117,6 +117,8 @@ class AutoBackupCommand extends Command
 
         $this->info("Backup created successfully at: {$zipFilepath}");
         Log::info("Automatic database backup created successfully: {$zipFilename}");
+
+        $this->call('db:clean-backups');
 
         return 0;
     }

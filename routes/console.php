@@ -19,3 +19,5 @@ $backupSettings = BackupSettingsService::get();
 if ($backupSettings['enabled'] ?? false) {
     Schedule::command('db:auto-backup')->dailyAt($backupSettings['time'] ?? '02:00');
 }
+
+Schedule::command('db:clean-backups')->dailyAt('03:00');
