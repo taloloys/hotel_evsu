@@ -302,7 +302,7 @@ class BackupRestoreController extends Controller
             }
         }
 
-        $zip = new ZipArchive();
+        $zip = new ZipArchive;
         if ($zip->open($serverZipFilePath, ZipArchive::CREATE | ZipArchive::OVERWRITE) === true) {
             $zip->addFile($serverSqlFilePath, $sqlFilename);
             $zip->close();
@@ -389,6 +389,19 @@ class BackupRestoreController extends Controller
         }
 
         $connection = config('database.default');
+
+        try {
+            $this->createSafetyBackup();
+        } catch (\Exception $e) {
+            if ($tempExtractPath) {
+                @unlink($tempExtractPath);
+                @rmdir(dirname($tempExtractPath));
+            }
+
+            return redirect()
+                ->route('admin.backup-restore')
+                ->with('error', 'Restore aborted: Failed to create safety backup. Error: '.$e->getMessage());
+        }
 
         if ($connection === 'sqlite') {
             $dbPath = config('database.connections.sqlite.database');
@@ -510,6 +523,19 @@ class BackupRestoreController extends Controller
         }
 
         $connection = config('database.default');
+
+        try {
+            $this->createSafetyBackup();
+        } catch (\Exception $e) {
+            if ($tempExtractPath) {
+                @unlink($tempExtractPath);
+                @rmdir(dirname($tempExtractPath));
+            }
+
+            return redirect()
+                ->route('admin.backup-restore')
+                ->with('error', 'Restore aborted: Failed to create safety backup. Error: '.$e->getMessage());
+        }
 
         if ($connection === 'sqlite') {
             $dbPath = config('database.connections.sqlite.database');
@@ -667,6 +693,80 @@ class BackupRestoreController extends Controller
         return redirect()
             ->route('admin.backup-restore')
             ->with('success', 'Automatic backup settings saved successfully.');
+    }
+
+    /**
+     * Creates a safety backup of the current database state before restoring.
+     * Throws an Exception on failure.
+     */
+    private function createSafetyBackup(): void
+    {
+        $now = now();
+        $sqlFilename = 'safety_temp_'.$now->format('Y-m-d_H-i-s').'.sql';
+        $zipFilename = 'safety-backup-'.$now->format('Y-m-d_H-i-s').'.zip';
+
+        $backupDir = BackupSettingsService::get()['folder'] ?? storage_path('backups');
+        if (! is_dir($backupDir)) {
+            mkdir($backupDir, 0755, true);
+        }
+
+        $serverSqlFilePath = $backupDir.DIRECTORY_SEPARATOR.$sqlFilename;
+        $serverZipFilePath = $backupDir.DIRECTORY_SEPARATOR.$zipFilename;
+
+        $connection = config('database.default');
+
+        if ($connection === 'sqlite') {
+            $dbPath = config('database.connections.sqlite.database');
+            if ($dbPath !== ':memory:') {
+                if (! file_exists($dbPath) || ! @copy($dbPath, $serverSqlFilePath)) {
+                    throw new \Exception('SQLite database file not found or not copyable.');
+                }
+            } else {
+                file_put_contents($serverSqlFilePath, '-- sqlite memory backup');
+            }
+        } else {
+            $host = config('database.connections.mysql.host');
+            $port = config('database.connections.mysql.port');
+            $database = config('database.connections.mysql.database');
+            $username = config('database.connections.mysql.username');
+            $password = config('database.connections.mysql.password');
+
+            $mysqldump = $this->resolveBinary('mysqldump');
+            $passwordArg = $password ? '-p'.escapeshellarg($password) : '';
+
+            $command = sprintf(
+                '%s --host=%s --port=%s --user=%s %s --single-transaction --routines --triggers --result-file=%s %s 2>&1',
+                escapeshellarg($mysqldump),
+                escapeshellarg($host),
+                escapeshellarg($port),
+                escapeshellarg($username),
+                $passwordArg,
+                escapeshellarg($serverSqlFilePath),
+                escapeshellarg($database)
+            );
+
+            exec($command, $output, $returnCode);
+
+            if ($returnCode !== 0) {
+                @unlink($serverSqlFilePath);
+                throw new \Exception(implode(' ', $output));
+            }
+        }
+
+        $zip = new ZipArchive;
+        if ($zip->open($serverZipFilePath, ZipArchive::CREATE | ZipArchive::OVERWRITE) === true) {
+            $zip->addFile($serverSqlFilePath, $sqlFilename);
+            $zip->close();
+            @unlink($serverSqlFilePath);
+        } else {
+            @unlink($serverSqlFilePath);
+            throw new \Exception('Unable to create ZIP file.');
+        }
+
+        ActivityLog::log(
+            'DATABASE_BACKUP',
+            'Safety backup created automatically before restore: '.$zipFilename
+        );
     }
 
     /**
