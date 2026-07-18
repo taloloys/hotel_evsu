@@ -49,7 +49,7 @@
 
 
 <!-- ACTION BAR -->
-<form action="{{ route('accounting.receivables') }}" method="GET" class="card border-1 shadow-sm mb-3">
+<form action="{{ route('accounting.receivables') }}" method="GET" class="card border-1 shadow-sm mb-3" id="receivablesFilterForm">
 
     <div class="card-body d-flex justify-content-between align-items-center">
 
@@ -58,56 +58,57 @@
             <small class="text-muted">Guest balances requiring settlement</small>
         </div>
 
-        <div class="d-flex align-items-center gap-3">
+        <div class="d-flex align-items-center gap-2">
 
-            <!-- FILTER -->
-            <div style="width: 220px; border: 1px solid #000000; border-radius: .375rem;">
-                <select
-                    name="status"
-                    class="form-select border-0"
-                    onchange="this.form.requestSubmit ? this.form.requestSubmit() : this.form.submit()">
-
-                    <option value="ALL" {{ $statusFilter === 'ALL' ? 'selected' : '' }}>
-                        All Status
-                    </option>
-
-                    <option value="CURRENT" {{ $statusFilter === 'CURRENT' ? 'selected' : '' }}>
-                        Current
-                    </option>
-
-                    <option value="OVERDUE" {{ $statusFilter === 'OVERDUE' ? 'selected' : '' }}>
-                        Overdue
-                    </option>
-
-                    <option value="CRITICAL" {{ $statusFilter === 'CRITICAL' ? 'selected' : '' }}>
-                        Critical
-                    </option>
-
-                </select>
-            </div>
-
-            <!-- SEARCH -->
-            <div style="width: 340px; border: 1px solid #000000; border-radius: .375rem;">
-                <div class="input-group">
-                    <span class="input-group-text bg-white border-0">
-                        <i class="fa-solid fa-search text-muted"></i>
+            <!-- SEARCH (live) -->
+            <div style="width: 320px; border: 1px solid #000000; border-radius: .375rem; height: 45px;">
+                <div class="input-group" style="height: 100%;">
+                    <span class="input-group-text bg-white border-0 px-3">
+                        <i class="fa-solid fa-magnifying-glass text-muted fs-5"></i>
                     </span>
-
                     <input
                         type="text"
                         name="search"
-                        class="form-control border-0"
+                        id="receivablesSearch"
+                        class="form-control border-0 shadow-none py-2"
+                        style="font-size: 1.05rem;"
                         placeholder="Search guest or room..."
                         value="{{ $search }}"
                         autocomplete="off">
                 </div>
             </div>
 
-            <!-- SEARCH BUTTON -->
-            <button type="submit" class="btn btn-primary px-4">
-                <i class="fa-solid fa-search me-1"></i>
-                Search
-            </button>
+            <!-- FILTER DROPDOWN -->
+            <div class="dropdown">
+                <button class="btn btn-outline-dark d-flex align-items-center gap-2 px-3 position-relative"
+                        type="button"
+                        data-bs-toggle="dropdown"
+                        data-bs-auto-close="outside"
+                        style="height: 45px; border-radius: 6px; border: 1px solid black; font-size: 1.05rem;">
+                    <i class="fa-solid fa-filter fs-5"></i>
+                    <span>Filter</span>
+                    @if($statusFilter !== 'ALL')
+                        <span class="position-absolute top-0 start-100 translate-middle p-1 bg-danger border border-light rounded-circle"></span>
+                    @endif
+                </button>
+                <div class="dropdown-menu dropdown-menu-end p-3 shadow-sm"
+                     onclick="event.stopPropagation()"
+                     style="min-width: 260px; border-radius: 8px; z-index: 1055;">
+
+                    <label class="form-label small mb-1 fw-semibold text-muted">Age Status</label>
+                    <select name="status" class="form-select mb-3 shadow-none" style="height:38px; border-radius:4px; border: 1px solid black;">
+                        <option value="ALL" {{ $statusFilter === 'ALL' ? 'selected' : '' }}>All Status</option>
+                        <option value="CURRENT" {{ $statusFilter === 'CURRENT' ? 'selected' : '' }}>Current (0–30 days)</option>
+                        <option value="OVERDUE" {{ $statusFilter === 'OVERDUE' ? 'selected' : '' }}>Overdue (31–60 days)</option>
+                        <option value="CRITICAL" {{ $statusFilter === 'CRITICAL' ? 'selected' : '' }}>Critical (>60 days)</option>
+                    </select>
+
+                    <div class="d-flex gap-2">
+                        <button type="submit" class="btn btn-primary w-50" style="height: 38px;">Apply</button>
+                        <a href="{{ route('accounting.receivables') }}" class="btn btn-light w-50 d-flex align-items-center justify-content-center" style="height: 38px;">Reset</a>
+                    </div>
+                </div>
+            </div>
 
         </div>
 
@@ -183,5 +184,21 @@
     @endif
 
 </div>
+
+@push('scripts')
+<script>
+(function () {
+    const input = document.getElementById('receivablesSearch');
+    if (!input) return;
+    let timer;
+    input.addEventListener('input', function () {
+        clearTimeout(timer);
+        timer = setTimeout(function () {
+            input.closest('form').requestSubmit();
+        }, 400);
+    });
+})();
+</script>
+@endpush
 
 @endsection

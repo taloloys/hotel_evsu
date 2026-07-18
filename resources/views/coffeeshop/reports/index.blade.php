@@ -32,12 +32,12 @@
 
         <!-- FILTER DROPDOWN -->
         <div class="dropdown">
-            <button class="btn btn-outline-dark d-flex align-items-center gap-1 px-3 position-relative"
+            <button class="btn btn-outline-dark d-flex align-items-center gap-2 px-3 position-relative"
                     type="button"
                     data-bs-toggle="dropdown"
                     data-bs-auto-close="outside"
-                    style="height: 38px; border-radius: 4px; border: 1px solid black;">
-                <i class="fa-solid fa-filter"></i>
+                    style="height: 45px; border-radius: 6px; border: 1px solid black; font-size: 1.05rem;">
+                <i class="fa-solid fa-filter fs-5"></i>
                 <span>Filter</span>
                 @if($paymentMethod !== 'all' || $dateFrom !== Carbon\Carbon::today()->subDays(7)->toDateString() || $dateTo !== Carbon\Carbon::today()->toDateString())
                     <span class="position-absolute top-0 start-100 translate-middle p-1 bg-danger border border-light rounded-circle"></span>

@@ -24,21 +24,21 @@
 
         <!-- SEARCH -->
         <div style="width: 320px;">
-            <div class="input-group coffeeshop-form-control" style="border: 1px solid black; border-radius: 4px; height: 38px;">
-                <span class="input-group-text bg-white border-0">
-                    <i class="fa-solid fa-magnifying-glass text-muted"></i>
+            <div class="input-group coffeeshop-form-control" style="border: 1px solid black; border-radius: 6px; height: 45px;">
+                <span class="input-group-text bg-white border-0 px-3">
+                    <i class="fa-solid fa-magnifying-glass text-muted fs-5"></i>
                 </span>
-                <input type="text" name="search" id="productSearch" value="{{ request('search') }}" class="form-control border-0 shadow-none" placeholder="Search products..." autocomplete="off">
+                <input type="text" name="search" id="productSearch" value="{{ request('search') }}" class="form-control border-0 shadow-none py-2" placeholder="Search products..." autocomplete="off" style="font-size: 1.05rem;">
             </div>
         </div>
 
         <!-- FILTER DROPDOWN -->
         <div class="dropdown">
-            <button class="btn btn-outline-dark d-flex align-items-center gap-1 px-3 position-relative"
+            <button class="btn btn-outline-dark d-flex align-items-center gap-2 px-3 position-relative"
                     type="button"
                     data-bs-toggle="dropdown"
-                    style="height: 38px; border-radius: 4px; border: 1px solid black;">
-                <i class="fa-solid fa-filter"></i>
+                    style="height: 45px; border-radius: 6px; border: 1px solid black; font-size: 1.05rem;">
+                <i class="fa-solid fa-filter fs-5"></i>
                 <span>Filter</span>
                 @if(request('category_id') && request('category_id') !== 'all' || request('status') && request('status') !== 'all')
                     <span class="position-absolute top-0 start-100 translate-middle p-1 bg-danger border border-light rounded-circle"></span>

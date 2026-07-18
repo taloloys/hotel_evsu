@@ -6,119 +6,79 @@
 
 @section('content')
 
-<!-- FILTER PANEL (SEPARATE FROM ACTIONS) -->
-<form action="{{ route('accounting.audit') }}" method="GET" class="card border-0 shadow-sm mb-4">
-    <div class="card-body">
+<!-- FILTER / ACTION BAR -->
+<form action="{{ route('accounting.audit') }}" method="GET" class="card border-0 shadow-sm mb-4" id="auditFilterForm">
+    <div class="card-body d-flex justify-content-between align-items-center">
 
-        <div class="row g-3 align-items-end">
+        <div>
+            <h5 class="fw-bold mb-0">Audit Logs</h5>
+            <small class="text-muted">Complete system activity tracking</small>
+        </div>
 
-            <!-- USER FILTER -->
-            <div class="col-lg-3">
-                <label class="form-label fw-semibold mb-2">
-                    User
-                </label>
+        <div class="d-flex align-items-center gap-2">
 
-                <div style="border:1px solid #000; border-radius:.375rem;">
-                    <select
-                        name="user_id"
-                        class="form-select border-0"
-                        onchange="this.form.requestSubmit ? this.form.requestSubmit() : this.form.submit()">
+            <!-- SEARCH (live) -->
+            <div style="width: 320px; border:1px solid #000; border-radius:.375rem; height: 45px;">
+                <div class="input-group" style="height: 100%;">
+                    <span class="input-group-text bg-white border-0 px-3">
+                        <i class="fa-solid fa-magnifying-glass text-muted fs-5"></i>
+                    </span>
+                    <input
+                        type="text"
+                        name="search"
+                        id="auditSearch"
+                        class="form-control border-0 shadow-none py-2"
+                        style="font-size: 1.05rem;"
+                        placeholder="Search activity logs..."
+                        value="{{ $search }}"
+                        autocomplete="off">
+                </div>
+            </div>
 
-                        <option value="ALL" {{ $userIdFilter === 'ALL' ? 'selected' : '' }}>
-                            All Users
-                        </option>
+            <!-- FILTER DROPDOWN -->
+            <div class="dropdown">
+                <button class="btn btn-outline-dark d-flex align-items-center gap-2 px-3 position-relative"
+                        type="button"
+                        data-bs-toggle="dropdown"
+                        data-bs-auto-close="outside"
+                        style="height: 45px; border-radius: 6px; border: 1px solid black; font-size: 1.05rem;">
+                    <i class="fa-solid fa-filter fs-5"></i>
+                    <span>Filter</span>
+                    @if($userIdFilter !== 'ALL' || $actionFilter !== 'ALL')
+                        <span class="position-absolute top-0 start-100 translate-middle p-1 bg-danger border border-light rounded-circle"></span>
+                    @endif
+                </button>
+                <div class="dropdown-menu dropdown-menu-end p-3 shadow-sm"
+                     onclick="event.stopPropagation()"
+                     style="min-width: 280px; border-radius: 8px; z-index: 1055;">
 
+                    <label class="form-label small mb-1 fw-semibold text-muted">User</label>
+                    <select name="user_id" class="form-select mb-3 shadow-none" style="height:38px; border-radius:4px; border: 1px solid black;">
+                        <option value="ALL" {{ $userIdFilter === 'ALL' ? 'selected' : '' }}>All Users</option>
                         @foreach($users as $u)
-                            <option
-                                value="{{ $u->user_id }}"
-                                {{ $userIdFilter == $u->user_id ? 'selected' : '' }}>
-                                {{ $u->full_name }}
-                            </option>
+                            <option value="{{ $u->user_id }}" {{ $userIdFilter == $u->user_id ? 'selected' : '' }}>{{ $u->full_name }}</option>
                         @endforeach
-
                     </select>
-                </div>
-            </div>
 
-            <!-- ACTION FILTER -->
-            <div class="col-lg-3">
-                <label class="form-label fw-semibold mb-2">
-                    Action Type
-                </label>
-
-                <div style="border:1px solid #000; border-radius:.375rem;">
-                    <select
-                        name="action_type"
-                        class="form-select border-0"
-                        onchange="this.form.requestSubmit ? this.form.requestSubmit() : this.form.submit()">
-
-                        <option value="ALL" {{ $actionFilter === 'ALL' ? 'selected' : '' }}>
-                            All Actions
-                        </option>
-
+                    <label class="form-label small mb-1 fw-semibold text-muted">Action Type</label>
+                    <select name="action_type" class="form-select mb-3 shadow-none" style="height:38px; border-radius:4px; border: 1px solid black;">
+                        <option value="ALL" {{ $actionFilter === 'ALL' ? 'selected' : '' }}>All Actions</option>
                         @foreach($actionTypes as $type)
-                            <option
-                                value="{{ $type }}"
-                                {{ $actionFilter === $type ? 'selected' : '' }}>
-                                {{ $type }}
-                            </option>
+                            <option value="{{ $type }}" {{ $actionFilter === $type ? 'selected' : '' }}>{{ $type }}</option>
                         @endforeach
-
                     </select>
-                </div>
-            </div>
 
-            <!-- SEARCH -->
-            <div class="col-lg-4">
-                <label class="form-label fw-semibold mb-2">
-                    Search
-                </label>
-
-                <div style="border:1px solid #000; border-radius:.375rem;">
-                    <div class="input-group">
-
-                        <span class="input-group-text bg-white border-0">
-                            <i class="fa-solid fa-search text-muted"></i>
-                        </span>
-
-                        <input
-                            type="text"
-                            name="search"
-                            class="form-control border-0"
-                            placeholder="Search activity logs..."
-                            value="{{ $search }}"
-                            autocomplete="off">
-
+                    <div class="d-flex gap-2">
+                        <button type="submit" class="btn btn-primary w-50" style="height: 38px;">Apply</button>
+                        <a href="{{ route('accounting.audit') }}" class="btn btn-light w-50 d-flex align-items-center justify-content-center" style="height: 38px;">Reset</a>
                     </div>
                 </div>
             </div>
 
-            <!-- BUTTON -->
-            <div class="col-lg-2">
-                <button
-                    type="submit"
-                    class="btn btn-primary w-100 py-2">
-
-                    <i class="fa-solid fa-magnifying-glass me-1"></i>
-                    Search
-
-                </button>
-            </div>
-
         </div>
-
     </div>
 </form>
 
-<!-- HEADER -->
-<div class="d-flex justify-content-between align-items-center mb-3">
-
-    <div>
-        <h5 class="fw-bold mb-0">Audit Logs</h5>
-        <small class="text-muted">Complete system activity tracking</small>
-    </div>
-
-</div>
 
 <!-- LOG TABLE -->
 <div class="card border-0 shadow-sm mb-3">
@@ -172,5 +132,21 @@
 <div class="d-flex justify-content-center mt-3">
     {{ $logs->appends(request()->query())->links() }}
 </div>
+
+@push('scripts')
+<script>
+(function () {
+    const input = document.getElementById('auditSearch');
+    if (!input) return;
+    let timer;
+    input.addEventListener('input', function () {
+        clearTimeout(timer);
+        timer = setTimeout(function () {
+            input.closest('form').requestSubmit();
+        }, 400);
+    });
+})();
+</script>
+@endpush
 
 @endsection

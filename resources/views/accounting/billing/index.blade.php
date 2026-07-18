@@ -58,7 +58,7 @@
 </ul>
 
 <!-- ACTION BAR -->
-<form action="{{ route('accounting.billing') }}" method="GET" class="card border-1 shadow-sm mb-3">
+<form action="{{ route('accounting.billing') }}" method="GET" class="card border-1 shadow-sm mb-3" id="billingFilterForm">
     <input type="hidden" name="tab" value="{{ $tab }}">
     <div class="card-body d-flex justify-content-between align-items-center">
 
@@ -67,78 +67,72 @@
             <small class="text-muted">All {{ $tab === 'pos' ? 'Coffee Shop' : 'Front Desk' }} billing records</small>
         </div>
 
-        <div class="d-flex align-items-center gap-3">
+        <div class="d-flex align-items-center gap-2">
 
-            {{-- Date Range Dropdown --}}
-            <div style="width: 140px; border: 1px solid #ced4da; border-radius: .25rem;">
-                <select
-                    name="date_range"
-                    id="dateRangeSelect"
-                    class="form-select border-0"
-                    style="height: 38px;">
-                    <option value="today" {{ $dateRange === 'today' ? 'selected' : '' }}>Today</option>
-                    <option value="weekly" {{ $dateRange === 'weekly' ? 'selected' : '' }}>This Week</option>
-                    <option value="monthly" {{ $dateRange === 'monthly' ? 'selected' : '' }}>This Month</option>
-                    <option value="yearly" {{ $dateRange === 'yearly' ? 'selected' : '' }}>This Year</option>
-                    <option value="all" {{ $dateRange === 'all' ? 'selected' : '' }}>All Time</option>
-                    <option value="specific" {{ $dateRange === 'specific' ? 'selected' : '' }}>Specific Date:</option>
-                </select>
-            </div>
-
-            {{-- Date Picker --}}
-            <div style="width: 140px;">
-                <input
-                    type="date"
-                    name="date"
-                    class="form-control"
-                    style="height: 38px;"
-                    value="{{ $date }}"
-                    onchange="document.getElementById('dateRangeSelect').value = 'specific';"
-                    title="Pick a date to view its exact sales">
-            </div>
-
-            {{-- Filter --}}
-            <div style="width: 140px; border: 1px solid #ced4da; border-radius: .25rem;">
-                <select
-                    name="status"
-                    class="form-select border-0"
-                    style="height: 38px;">
-
-                    <option value="ALL" {{ $statusFilter === 'ALL' ? 'selected' : '' }}>
-                        All Status
-                    </option>
-                    <option value="PAID" {{ $statusFilter === 'PAID' ? 'selected' : '' }}>
-                        Paid
-                    </option>
-                    <option value="UNPAID" {{ $statusFilter === 'UNPAID' ? 'selected' : '' }}>
-                        Unpaid / Pending
-                    </option>
-                </select>
-            </div>
-
-            {{-- Search --}}
-            <div style="width: 250px; border: 1px solid #ced4da; border-radius: .25rem;">
-                <div class="input-group">
-                    <span class="input-group-text bg-white border-0">
-                        <i class="fa-solid fa-search text-muted"></i>
+            {{-- Search (live) --}}
+            <div style="width: 280px; border: 1px solid #ced4da; border-radius: .375rem; height: 45px;">
+                <div class="input-group" style="height: 100%;">
+                    <span class="input-group-text bg-white border-0 px-3">
+                        <i class="fa-solid fa-magnifying-glass text-muted fs-5"></i>
                     </span>
                     <input
                         type="text"
                         name="search"
-                        class="form-control border-0"
-                        style="height: 38px;"
+                        id="billingSearch"
+                        class="form-control border-0 shadow-none py-2"
+                        style="font-size: 1.05rem;"
                         placeholder="Search invoice no. or guest..."
                         value="{{ $search }}"
                         autocomplete="off">
                 </div>
             </div>
 
-            {{-- Search Button --}}
-            <button type="submit" class="btn btn-primary px-4" style="height: 40px;">
-                <i class="fa-solid fa-search me-1"></i>
-                Search
-            </button>
-            <a href="{{ route('accounting.billing', ['tab' => $tab]) }}" class="btn btn-outline-secondary" style="height: 40px; display: flex; align-items: center;">Clear</a>
+            {{-- Filter Dropdown --}}
+            <div class="dropdown">
+                <button class="btn btn-outline-dark d-flex align-items-center gap-2 px-3 position-relative"
+                        type="button"
+                        data-bs-toggle="dropdown"
+                        data-bs-auto-close="outside"
+                        style="height: 45px; border-radius: 6px; border: 1px solid black; font-size: 1.05rem;">
+                    <i class="fa-solid fa-filter fs-5"></i>
+                    <span>Filter</span>
+                    @if($dateRange !== 'today' || $statusFilter !== 'ALL')
+                        <span class="position-absolute top-0 start-100 translate-middle p-1 bg-danger border border-light rounded-circle"></span>
+                    @endif
+                </button>
+                <div class="dropdown-menu dropdown-menu-end p-3 shadow-sm"
+                     onclick="event.stopPropagation()"
+                     style="min-width: 290px; border-radius: 8px; z-index: 1055;">
+
+                    <label class="form-label small mb-1 fw-semibold text-muted">Date Range</label>
+                    <select name="date_range" id="dateRangeSelect" class="form-select mb-2 shadow-none" style="height:38px; border-radius:4px; border: 1px solid black;">
+                        <option value="today" {{ $dateRange === 'today' ? 'selected' : '' }}>Today</option>
+                        <option value="weekly" {{ $dateRange === 'weekly' ? 'selected' : '' }}>This Week</option>
+                        <option value="monthly" {{ $dateRange === 'monthly' ? 'selected' : '' }}>This Month</option>
+                        <option value="yearly" {{ $dateRange === 'yearly' ? 'selected' : '' }}>This Year</option>
+                        <option value="all" {{ $dateRange === 'all' ? 'selected' : '' }}>All Time</option>
+                        <option value="specific" {{ $dateRange === 'specific' ? 'selected' : '' }}>Specific Date</option>
+                    </select>
+
+                    <label class="form-label small mb-1 fw-semibold text-muted">Specific Date</label>
+                    <input type="date" name="date" class="form-control mb-3 shadow-none"
+                           style="height:38px; border-radius:4px; border: 1px solid black;"
+                           value="{{ $date }}"
+                           onchange="document.getElementById('dateRangeSelect').value = 'specific';">
+
+                    <label class="form-label small mb-1 fw-semibold text-muted">Status</label>
+                    <select name="status" class="form-select mb-3 shadow-none" style="height:38px; border-radius:4px; border: 1px solid black;">
+                        <option value="ALL" {{ $statusFilter === 'ALL' ? 'selected' : '' }}>All Status</option>
+                        <option value="PAID" {{ $statusFilter === 'PAID' ? 'selected' : '' }}>Paid</option>
+                        <option value="UNPAID" {{ $statusFilter === 'UNPAID' ? 'selected' : '' }}>Unpaid / Pending</option>
+                    </select>
+
+                    <div class="d-flex gap-2">
+                        <button type="submit" class="btn btn-primary w-50" style="height: 38px;">Apply</button>
+                        <a href="{{ route('accounting.billing', ['tab' => $tab]) }}" class="btn btn-light w-50 d-flex align-items-center justify-content-center" style="height: 38px;">Reset</a>
+                    </div>
+                </div>
+            </div>
 
         </div>
     </div>
@@ -239,5 +233,21 @@
         {{ $folios->links() }}
     @endif
 </div>
+
+@push('scripts')
+<script>
+(function () {
+    const input = document.getElementById('billingSearch');
+    if (!input) return;
+    let timer;
+    input.addEventListener('input', function () {
+        clearTimeout(timer);
+        timer = setTimeout(function () {
+            input.closest('form').requestSubmit();
+        }, 400);
+    });
+})();
+</script>
+@endpush
 
 @endsection

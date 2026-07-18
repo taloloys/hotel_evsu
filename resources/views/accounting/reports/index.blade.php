@@ -6,100 +6,55 @@
 
 @section('content')
 
-<!-- TOP CONTROL BAR (CLEAN FILTER AREA) -->
-<form action="{{ route('accounting.reports') }}" method="GET" class="card border-0 shadow-sm mb-4">
-    <div class="card-body">
-        <div class="row g-3 align-items-end">
-
-            <!-- DATE FROM -->
-            <div class="col-lg-3 col-md-6">
-                <label class="form-label fw-semibold mb-2">
-                    Date From
-                </label>
-
-                <div class="w-100 border border-dark rounded">
-                    <input
-                        type="date"
-                        name="date_from"
-                        class="form-control border-0"
-                        value="{{ $dateFrom }}">
-                </div>
-            </div>
-
-            <!-- DATE TO -->
-            <div class="col-lg-3 col-md-6">
-                <label class="form-label fw-semibold mb-2">
-                    Date To
-                </label>
-
-                <div class="w-100 border border-dark rounded">
-                    <input
-                        type="date"
-                        name="date_to"
-                        class="form-control border-0"
-                        value="{{ $dateTo }}">
-                </div>
-            </div>
-
-            <!-- REPORT TYPE -->
-            <div class="col-lg-3 col-md-6">
-                <label class="form-label fw-semibold mb-2">
-                    Report Type
-                </label>
-
-                <div class="w-100 border border-dark rounded">
-                    <select
-                        name="report_type"
-                        class="form-select border-0">
-
-                        <option value="ALL" {{ $reportType === 'ALL' ? 'selected' : '' }}>
-                            All Reports
-                        </option>
-
-                        <option value="PL" {{ $reportType === 'PL' ? 'selected' : '' }}>
-                            Profit & Loss
-                        </option>
-
-                        <option value="CASH" {{ $reportType === 'CASH' ? 'selected' : '' }}>
-                            Cash Flow
-                        </option>
-
-                        <option value="REVENUE" {{ $reportType === 'REVENUE' ? 'selected' : '' }}>
-                            Revenue Breakdown
-                        </option>
-
-                        <option value="TX" {{ $reportType === 'TX' ? 'selected' : '' }}>
-                            Transactions List
-                        </option>
-
-                    </select>
-                </div>
-            </div>
-            <!-- GENERATE -->
-            <div class="col-lg-3 col-md-6">
-                <button
-                    type="submit"
-                    class="btn btn-primary w-30 py-2">
-
-                    <i class="fa-solid fa-filter me-2"></i>
-                    Generate Report
-
-                </button>
-            </div>
-
-        </div>
-    </div>
-</form>
-
-<!-- HEADER ACTIONS -->
-<div class="d-flex justify-content-between align-items-center mb-3">
-
-    <!-- LEFT -->
+<!-- TOP CONTROL BAR -->
+<div class="d-flex justify-content-between align-items-center mb-4">
     <div>
         <h5 class="fw-bold mb-0">Financial Reports</h5>
         <small class="text-muted">Statement details from {{ $dateFrom }} to {{ $dateTo }}</small>
     </div>
+    <form action="{{ route('accounting.reports') }}" method="GET" id="reportsFilterForm">
+        <div class="dropdown">
+            <button class="btn btn-outline-dark d-flex align-items-center gap-2 px-3 position-relative"
+                    type="button"
+                    data-bs-toggle="dropdown"
+                    data-bs-auto-close="outside"
+                    style="height: 45px; border-radius: 6px; border: 1px solid black; font-size: 1.05rem;">
+                <i class="fa-solid fa-filter fs-5"></i>
+                <span>Filter</span>
+                @if($reportType !== 'ALL')
+                    <span class="position-absolute top-0 start-100 translate-middle p-1 bg-danger border border-light rounded-circle"></span>
+                @endif
+            </button>
+            <div class="dropdown-menu dropdown-menu-end p-3 shadow-sm"
+                 onclick="event.stopPropagation()"
+                 style="min-width: 300px; border-radius: 8px; z-index: 1055;">
 
+                <label class="form-label small mb-1 fw-semibold text-muted">Date From</label>
+                <input type="date" name="date_from" value="{{ $dateFrom }}"
+                       class="form-control mb-3 shadow-none"
+                       style="height:38px; border-radius:4px; border: 1px solid black;">
+
+                <label class="form-label small mb-1 fw-semibold text-muted">Date To</label>
+                <input type="date" name="date_to" value="{{ $dateTo }}"
+                       class="form-control mb-3 shadow-none"
+                       style="height:38px; border-radius:4px; border: 1px solid black;">
+
+                <label class="form-label small mb-1 fw-semibold text-muted">Report Type</label>
+                <select name="report_type" class="form-select mb-3 shadow-none" style="height:38px; border-radius:4px; border: 1px solid black;">
+                    <option value="ALL" {{ $reportType === 'ALL' ? 'selected' : '' }}>All Reports</option>
+                    <option value="PL" {{ $reportType === 'PL' ? 'selected' : '' }}>Profit &amp; Loss</option>
+                    <option value="CASH" {{ $reportType === 'CASH' ? 'selected' : '' }}>Cash Flow</option>
+                    <option value="REVENUE" {{ $reportType === 'REVENUE' ? 'selected' : '' }}>Revenue Breakdown</option>
+                    <option value="TX" {{ $reportType === 'TX' ? 'selected' : '' }}>Transactions List</option>
+                </select>
+
+                <div class="d-flex gap-2">
+                    <button type="submit" class="btn btn-primary w-50" style="height: 38px;">Apply</button>
+                    <a href="{{ route('accounting.reports') }}" class="btn btn-light w-50 d-flex align-items-center justify-content-center" style="height: 38px;">Reset</a>
+                </div>
+            </div>
+        </div>
+    </form>
 </div>
 
 <!-- TABS (CLEAN STYLE) -->

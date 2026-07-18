@@ -57,7 +57,7 @@
 
 
 <!-- ACTION BAR -->
-<form action="{{ route('accounting.expenses') }}" method="GET" class="card border-1 shadow-sm mb-3">
+<form action="{{ route('accounting.expenses') }}" method="GET" class="card border-1 shadow-sm mb-3" id="expensesFilterForm">
 
     <div class="card-body d-flex justify-content-between align-items-center">
 
@@ -66,74 +66,75 @@
             <small class="text-muted">Operational spending by department</small>
         </div>
 
-        <div class="d-flex align-items-center gap-3 flex-wrap">
+        <div class="d-flex align-items-center gap-2 flex-wrap">
 
-            @if(in_array(auth()->user()?->role?->role_name, ['ADMIN', 'MANAGER', 'ACCOUNTING']))
-            <!-- PERIOD FILTER -->
-            <div style="width: 160px; border: 1px solid #000000; border-radius: .375rem;">
-                <select
-                    name="period"
-                    class="form-select border-0"
-                    onchange="this.form.requestSubmit ? this.form.requestSubmit() : this.form.submit()">
-                    <option value="Today" {{ $periodFilter === 'Today' ? 'selected' : '' }}>Today</option>
-                    <option value="This Week" {{ $periodFilter === 'This Week' ? 'selected' : '' }}>This Week</option>
-                    <option value="Monthly" {{ $periodFilter === 'Monthly' ? 'selected' : '' }}>Monthly</option>
-                </select>
-            </div>
-            @endif
-
-            <!-- FILTER -->
-            <div style="width: 220px; border: 1px solid #000000; border-radius: .375rem;">
-                <select
-                    name="department"
-                    class="form-select border-0"
-                    onchange="this.form.requestSubmit ? this.form.requestSubmit() : this.form.submit()">
-
-                    <option value="All Departments"
-                        {{ $departmentFilter === 'All Departments' ? 'selected' : '' }}>
-                        All Departments
-                    </option>
-
-                    @foreach($departments as $dept)
-                        <option value="{{ $dept }}"
-                            {{ $departmentFilter === $dept ? 'selected' : '' }}>
-                            {{ $dept }}
-                        </option>
-                    @endforeach
-
-                </select>
-            </div>
-
-            <!-- SEARCH -->
-            <div style="width: 340px; border: 1px solid #000000; border-radius: .375rem;">
-                <div class="input-group">
-                    <span class="input-group-text bg-white border-0">
-                        <i class="fa-solid fa-search text-muted"></i>
+            <!-- SEARCH (live) -->
+            <div style="width: 320px; border: 1px solid #000000; border-radius: .375rem; height: 45px;">
+                <div class="input-group" style="height: 100%;">
+                    <span class="input-group-text bg-white border-0 px-3">
+                        <i class="fa-solid fa-magnifying-glass text-muted fs-5"></i>
                     </span>
-
                     <input
                         type="text"
                         name="search"
-                        class="form-control border-0"
+                        id="expensesSearch"
+                        class="form-control border-0 shadow-none py-2"
+                        style="font-size: 1.05rem;"
                         placeholder="Search expense or category..."
                         value="{{ $search }}"
                         autocomplete="off">
                 </div>
             </div>
 
-            <!-- SEARCH BUTTON -->
-            <button type="submit" class="btn btn-primary px-3">
-                <i class="fa-solid fa-search me-1"></i>
-                Search
-            </button>
+            <!-- FILTER DROPDOWN -->
+            <div class="dropdown">
+                <button class="btn btn-outline-dark d-flex align-items-center gap-2 px-3 position-relative"
+                        type="button"
+                        data-bs-toggle="dropdown"
+                        data-bs-auto-close="outside"
+                        style="height: 45px; border-radius: 6px; border: 1px solid black; font-size: 1.05rem;">
+                    <i class="fa-solid fa-filter fs-5"></i>
+                    <span>Filter</span>
+                    @if($departmentFilter !== 'All Departments' || (in_array(auth()->user()?->role?->role_name, ['ADMIN', 'MANAGER', 'ACCOUNTING']) && $periodFilter !== 'Today'))
+                        <span class="position-absolute top-0 start-100 translate-middle p-1 bg-danger border border-light rounded-circle"></span>
+                    @endif
+                </button>
+                <div class="dropdown-menu dropdown-menu-end p-3 shadow-sm"
+                     onclick="event.stopPropagation()"
+                     style="min-width: 280px; border-radius: 8px; z-index: 1055;">
+
+                    @if(in_array(auth()->user()?->role?->role_name, ['ADMIN', 'MANAGER', 'ACCOUNTING']))
+                    <label class="form-label small mb-1 fw-semibold text-muted">Period</label>
+                    <select name="period" class="form-select mb-3 shadow-none" style="height:38px; border-radius:4px; border: 1px solid black;">
+                        <option value="Today" {{ $periodFilter === 'Today' ? 'selected' : '' }}>Today</option>
+                        <option value="This Week" {{ $periodFilter === 'This Week' ? 'selected' : '' }}>This Week</option>
+                        <option value="Monthly" {{ $periodFilter === 'Monthly' ? 'selected' : '' }}>Monthly</option>
+                    </select>
+                    @endif
+
+                    <label class="form-label small mb-1 fw-semibold text-muted">Department</label>
+                    <select name="department" class="form-select mb-3 shadow-none" style="height:38px; border-radius:4px; border: 1px solid black;">
+                        <option value="All Departments" {{ $departmentFilter === 'All Departments' ? 'selected' : '' }}>All Departments</option>
+                        @foreach($departments as $dept)
+                            <option value="{{ $dept }}" {{ $departmentFilter === $dept ? 'selected' : '' }}>{{ $dept }}</option>
+                        @endforeach
+                    </select>
+
+                    <div class="d-flex gap-2">
+                        <button type="submit" class="btn btn-primary w-50" style="height: 38px;">Apply</button>
+                        <a href="{{ route('accounting.expenses') }}" class="btn btn-light w-50 d-flex align-items-center justify-content-center" style="height: 38px;">Reset</a>
+                    </div>
+                </div>
+            </div>
 
             @if(in_array(auth()->user()?->role?->role_name, ['ADMIN', 'MANAGER', 'ACCOUNTING', 'FRONT_DESK', 'CAFETERIA']))
             <!-- ADD EXPENSE -->
             <button
                 type="button"
-                class="btn btn-primary px-3"
+                class="btn btn-primary px-3 d-flex align-items-center justify-content-center"
                 data-bs-toggle="modal"
-                data-bs-target="#addExpenseModal">
+                data-bs-target="#addExpenseModal"
+                style="height: 45px; font-size: 1.05rem;">
 
                 <i class="fa-solid fa-plus me-1"></i>
                 Add Expense
@@ -305,6 +306,22 @@
         </form>
     </div>
 </div>
+@endpush
+
+@push('scripts')
+<script>
+(function () {
+    const input = document.getElementById('expensesSearch');
+    if (!input) return;
+    let timer;
+    input.addEventListener('input', function () {
+        clearTimeout(timer);
+        timer = setTimeout(function () {
+            input.closest('form').requestSubmit();
+        }, 400);
+    });
+})();
+</script>
 @endpush
 
 @endsection

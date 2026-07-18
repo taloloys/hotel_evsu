@@ -9,15 +9,36 @@
 <!-- HEADER ROW -->
 <div class="d-flex justify-content-between align-items-center mb-4">
     <h5 class="mb-0 text-muted">Overview</h5>
-    <form method="GET" action="{{ route('accounting.dashboard') }}" class="d-flex align-items-center" data-turbo="true">
-        <label for="filter" class="me-2 text-muted mb-0 small">Filter:</label>
-        <select name="filter" id="filter" class="form-select form-select-sm" style="width: 220px;" onchange="this.form.requestSubmit()">
-            <option value="all" {{ ($filter ?? '') == 'all' ? 'selected' : '' }}>All Time</option>
-            <option value="today" {{ ($filter ?? 'today') == 'today' ? 'selected' : '' }}>Today</option>
-            <option value="weekly" {{ ($filter ?? '') == 'weekly' ? 'selected' : '' }}>This Week</option>
-            <option value="monthly" {{ ($filter ?? '') == 'monthly' ? 'selected' : '' }}>This Month</option>
-            <option value="yearly" {{ ($filter ?? '') == 'yearly' ? 'selected' : '' }}>This Year</option>
-        </select>
+    <form method="GET" action="{{ route('accounting.dashboard') }}" id="dashboardFilterForm" data-turbo="true">
+        <div class="dropdown">
+            <button class="btn btn-outline-dark d-flex align-items-center gap-2 px-3 position-relative"
+                    type="button"
+                    data-bs-toggle="dropdown"
+                    data-bs-auto-close="outside"
+                    style="height: 45px; border-radius: 6px; border: 1px solid black; font-size: 1.05rem;">
+                <i class="fa-solid fa-filter fs-5"></i>
+                <span>Filter</span>
+                @if(isset($filter) && !in_array($filter, ['today', '']))
+                    <span class="position-absolute top-0 start-100 translate-middle p-1 bg-danger border border-light rounded-circle"></span>
+                @endif
+            </button>
+            <div class="dropdown-menu dropdown-menu-end p-3 shadow-sm"
+                 onclick="event.stopPropagation()"
+                 style="min-width: 240px; border-radius: 8px; z-index: 1055;">
+                <label class="form-label small mb-1 fw-semibold text-muted">Time Period</label>
+                <select name="filter" id="filter" class="form-select mb-3 shadow-none" style="height:38px; border-radius:4px; border: 1px solid black;">
+                    <option value="all" {{ ($filter ?? '') == 'all' ? 'selected' : '' }}>All Time</option>
+                    <option value="today" {{ ($filter ?? 'today') == 'today' ? 'selected' : '' }}>Today</option>
+                    <option value="weekly" {{ ($filter ?? '') == 'weekly' ? 'selected' : '' }}>This Week</option>
+                    <option value="monthly" {{ ($filter ?? '') == 'monthly' ? 'selected' : '' }}>This Month</option>
+                    <option value="yearly" {{ ($filter ?? '') == 'yearly' ? 'selected' : '' }}>This Year</option>
+                </select>
+                <div class="d-flex gap-2">
+                    <button type="submit" class="btn btn-primary w-50" style="height: 38px;">Apply</button>
+                    <a href="{{ route('accounting.dashboard') }}" class="btn btn-light w-50 d-flex align-items-center justify-content-center" style="height: 38px;">Reset</a>
+                </div>
+            </div>
+        </div>
     </form>
 </div>
 
