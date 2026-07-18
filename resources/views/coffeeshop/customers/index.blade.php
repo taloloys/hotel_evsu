@@ -17,6 +17,64 @@
         </div>
     </div>
 
+    {{-- ===================== FILTER (RIGHT ALIGNED) ===================== --}}
+    <div class="d-flex justify-content-end">
+
+        <form method="GET" class="d-flex align-items-center gap-2 flex-wrap" id="customersFilterForm">
+
+            <!-- SEARCH -->
+            <div style="width: 320px;">
+                <div class="input-group" style="border: 1px solid black; border-radius: 4px; height: 38px;">
+                    <span class="input-group-text bg-white border-0">
+                        <i class="fa-solid fa-magnifying-glass text-muted"></i>
+                    </span>
+                    <input type="text"
+                        name="search"
+                        id="customerSearch"
+                        value="{{ request('search') }}"
+                        class="form-control border-0 shadow-none"
+                        placeholder="Search customer or order..."
+                        autocomplete="off">
+                </div>
+            </div>
+
+            <!-- FILTER DROPDOWN -->
+            <div class="dropdown">
+                <button class="btn btn-outline-dark d-flex align-items-center gap-1 px-3 position-relative"
+                        type="button"
+                        data-bs-toggle="dropdown"
+                        style="height: 38px; border-radius: 4px; border: 1px solid black;">
+                    <i class="fa-solid fa-filter"></i>
+                    <span>Filter</span>
+                    @if(request('status'))
+                        <span class="position-absolute top-0 start-100 translate-middle p-1 bg-danger border border-light rounded-circle"></span>
+                    @endif
+                </button>
+                <div class="dropdown-menu dropdown-menu-end p-3 shadow-sm"
+                     onclick="event.stopPropagation()"
+                     style="min-width: 280px; border-radius: 8px; z-index: 1055;">
+
+                    <!-- Status Filter -->
+                    <label class="form-label small mb-1 fw-semibold text-muted">Status</label>
+                    <select name="status" class="form-select mb-3 shadow-none" style="height:38px; border-radius:4px; border: 1px solid black;">
+                        <option value="">All Records</option>
+                        <option value="open" @selected($status === 'open')>Open Tabs</option>
+                        <option value="closed" @selected($status === 'closed')>Closed Orders</option>
+                        <option value="cancelled" @selected($status === 'cancelled')>Cancelled</option>
+                        <option value="refunded" @selected($status === 'refunded')>Refunded</option>
+                    </select>
+
+                    <div class="d-flex gap-2">
+                        <button type="submit" class="btn btn-primary w-50" style="height: 38px;">Apply</button>
+                        <a href="{{ route('coffeeshop.customers') }}" class="btn btn-light w-50 d-flex align-items-center justify-content-center" style="height: 38px;">Reset</a>
+                    </div>
+                </div>
+            </div>
+
+        </form>
+
+    </div>
+
     <div class="coffeeshop-panel">
 
     <div class="card-body p-3">
@@ -27,59 +85,6 @@
             <div class="col-md-3 col-6"><div class="coffeeshop-card p-4 text-center h-100"><div class="text-muted small">Active Tabs</div><div class="fw-bold fs-5 text-info">{{ $tabs->where('status', 'open')->count() }}</div></div></div>
             <div class="col-md-3 col-6"><div class="coffeeshop-card p-4 text-center h-100"><div class="text-muted small">Completed</div><div class="fw-bold fs-5 text-success">{{ $orders->where('status', 'closed')->count() }}</div></div></div>
             <div class="col-md-3 col-6"><div class="coffeeshop-card p-4 text-center h-100"><div class="text-muted small">Refunded</div><div class="fw-bold fs-5 text-danger">{{ $orders->where('status', 'refunded')->count() }}</div></div></div>
-        </div>
-
-        {{-- ===================== FILTER (RIGHT ALIGNED) ===================== --}}
-        <div class="d-flex justify-content-end mb-4">
-
-            <form method="GET">
-
-                <div class="d-flex gap-2 flex-wrap align-items-center">
-
-                    {{-- SEARCH --}}
-                    <div class="input-group" style="width: 450px; border: 1px solid;">
-                        <span class="input-group-text bg-white">
-                            <i class="fa-solid fa-magnifying-glass text-muted"></i>
-                        </span>
-
-                        <input type="text"
-                            name="search"
-                            value="{{ request('search') }}"
-                            class="form-control"
-                            placeholder="Search customer or order..."
-                            onkeydown="if(event.key==='Enter'){ event.preventDefault(); if(this.form.requestSubmit){ this.form.requestSubmit(); }else{ this.form.submit(); } }">
-                    </div>
-
-                    {{-- STATUS FILTER --}}
-                    <select name="status"
-                            class="form-select"
-                            style="width: 220px; border: 1px solid;"
-                            onchange="this.form.requestSubmit ? this.form.requestSubmit() : this.form.submit()">
-
-                        <option value="">All Records</option>
-
-                        <option value="open" @selected($status === 'open')>
-                            Open Tabs
-                        </option>
-
-                        <option value="closed" @selected($status === 'closed')>
-                            Closed Orders
-                        </option>
-
-                        <option value="cancelled" @selected($status === 'cancelled')>
-                            Cancelled
-                        </option>
-
-                        <option value="refunded" @selected($status === 'refunded')>
-                            Refunded
-                        </option>
-
-                    </select>
-
-                </div>
-
-            </form>
-
         </div>
 
         {{-- ===================== CONTENT (ORDER-STYLE TABS) ===================== --}}
@@ -328,3 +333,55 @@
     </div>
 </div>
 @endsection
+
+@push('scripts')
+<script>
+    (function () {
+        const searchInput = document.getElementById('customerSearch');
+        if (searchInput) {
+            function debounce(func, wait) {
+                let timeout;
+                return function (...args) {
+                    clearTimeout(timeout);
+                    timeout = setTimeout(() => func.apply(this, args), wait);
+                };
+            }
+
+            const form = searchInput.closest('form');
+            if (form) {
+                searchInput.addEventListener('input', debounce(function () {
+                    if (form.requestSubmit) {
+                        form.requestSubmit();
+                    } else {
+                        form.submit();
+                    }
+                }, 500));
+            }
+        }
+    })();
+
+    // Close dropdown on form submit (handles Turbo dynamic page load preservation)
+    (function () {
+        const form = document.getElementById('customersFilterForm');
+        if (form) {
+            form.addEventListener('submit', function () {
+                const dropdownEl = form.querySelector('[data-bs-toggle="dropdown"]');
+                if (dropdownEl) {
+                    try {
+                        const dropdown = bootstrap.Dropdown.getOrCreateInstance(dropdownEl);
+                        if (dropdown) {
+                            dropdown.hide();
+                        }
+                    } catch (e) {}
+                    dropdownEl.classList.remove('show');
+                    dropdownEl.setAttribute('aria-expanded', 'false');
+                    const menu = dropdownEl.nextElementSibling;
+                    if (menu) {
+                        menu.classList.remove('show');
+                    }
+                }
+            });
+        }
+    })();
+</script>
+@endpush

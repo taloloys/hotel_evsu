@@ -44,19 +44,37 @@
     </div>
     @endif
 
-    <div class="coffeeshop-panel p-2 p-lg-4">
-        <form method="GET" class="row g-2 align-items-end mb-3">
-            <div class="col-lg-5"></div>
-            <div class="col-lg-4">
-                <label class="form-label small text-muted mb-1">Search</label>
-                <div class="input-group coffeeshop-form-control" style="border: 1px solid black; border-radius: 4px;">
-                    <span class="input-group-text bg-white border-0"><i class="fa-solid fa-magnifying-glass text-muted"></i></span>
-                    <input type="text" name="search" value="{{ request('search') }}" class="form-control border-0" placeholder="Search products..." onkeydown="if(event.key==='Enter'){ event.preventDefault(); if(this.form.requestSubmit){ this.form.requestSubmit(); }else{ this.form.submit(); } }">
-                </div>
+    <form method="GET" class="d-flex align-items-center gap-2 flex-wrap justify-content-end" id="inventoryFilterForm">
+
+        <!-- SEARCH -->
+        <div style="width: 320px;">
+            <div class="input-group coffeeshop-form-control" style="border: 1px solid black; border-radius: 4px; height: 38px;">
+                <span class="input-group-text bg-white border-0">
+                    <i class="fa-solid fa-magnifying-glass text-muted"></i>
+                </span>
+                <input type="text" name="search" id="inventorySearch" value="{{ request('search') }}" class="form-control border-0 shadow-none" placeholder="Search products..." autocomplete="off">
             </div>
-            <div class="col-lg-3">
-                <label class="form-label small text-muted mb-1">Filter</label>
-                <select name="filter" class="form-select coffeeshop-form-control" onchange="this.form.requestSubmit ? this.form.requestSubmit() : this.form.submit()" style="border: 1px solid black;">
+        </div>
+
+        <!-- FILTER DROPDOWN -->
+        <div class="dropdown">
+            <button class="btn btn-outline-dark d-flex align-items-center gap-1 px-3 position-relative"
+                    type="button"
+                    data-bs-toggle="dropdown"
+                    style="height: 38px; border-radius: 4px; border: 1px solid black;">
+                <i class="fa-solid fa-filter"></i>
+                <span>Filter</span>
+                @if(request('filter'))
+                    <span class="position-absolute top-0 start-100 translate-middle p-1 bg-danger border border-light rounded-circle"></span>
+                @endif
+            </button>
+            <div class="dropdown-menu dropdown-menu-end p-3 shadow-sm"
+                 onclick="event.stopPropagation()"
+                 style="min-width: 280px; border-radius: 8px; z-index: 1055;">
+
+                <!-- Stock Status -->
+                <label class="form-label small mb-1 fw-semibold text-muted">Stock Status</label>
+                <select name="filter" class="form-select mb-3 shadow-none" style="height:38px; border-radius:4px; border: 1px solid black;">
                     <option value="">All Inventory</option>
                     <option value="out_of_stock" @selected(request('filter')=='out_of_stock')>Out of Stock</option>
                     <option value="critical_stock" @selected(request('filter')=='critical_stock')>Low Stock (≤ Threshold)</option>
@@ -64,8 +82,17 @@
                     <option value="healthy_stock" @selected(request('filter')=='healthy_stock')>Well Stocked</option>
                     <option value="well_stocked" @selected(request('filter')=='well_stocked')>Over Stocked</option>
                 </select>
+
+                <div class="d-flex gap-2">
+                    <button type="submit" class="btn btn-primary w-50" style="height: 38px;">Apply</button>
+                    <a href="{{ route('coffeeshop.inventory') }}" class="btn btn-light w-50 d-flex align-items-center justify-content-center" style="height: 38px;">Reset</a>
+                </div>
             </div>
-        </form>
+        </div>
+
+    </form>
+
+    <div class="coffeeshop-panel p-2 p-lg-4">
 
         <div class="card border-1 shadow-sm rounded-4 overflow-hidden">
             <div class="table-responsive">
@@ -106,3 +133,55 @@
 </div>
 
 @endsection
+
+@push('scripts')
+<script>
+    (function () {
+        const searchInput = document.getElementById('inventorySearch');
+        if (searchInput) {
+            function debounce(func, wait) {
+                let timeout;
+                return function (...args) {
+                    clearTimeout(timeout);
+                    timeout = setTimeout(() => func.apply(this, args), wait);
+                };
+            }
+
+            const form = searchInput.closest('form');
+            if (form) {
+                searchInput.addEventListener('input', debounce(function () {
+                    if (form.requestSubmit) {
+                        form.requestSubmit();
+                    } else {
+                        form.submit();
+                    }
+                }, 500));
+            }
+        }
+    })();
+
+    // Close dropdown on form submit (handles Turbo dynamic page load preservation)
+    (function () {
+        const form = document.getElementById('inventoryFilterForm');
+        if (form) {
+            form.addEventListener('submit', function () {
+                const dropdownEl = form.querySelector('[data-bs-toggle="dropdown"]');
+                if (dropdownEl) {
+                    try {
+                        const dropdown = bootstrap.Dropdown.getOrCreateInstance(dropdownEl);
+                        if (dropdown) {
+                            dropdown.hide();
+                        }
+                    } catch (e) {}
+                    dropdownEl.classList.remove('show');
+                    dropdownEl.setAttribute('aria-expanded', 'false');
+                    const menu = dropdownEl.nextElementSibling;
+                    if (menu) {
+                        menu.classList.remove('show');
+                    }
+                }
+            });
+        }
+    })();
+</script>
+@endpush
