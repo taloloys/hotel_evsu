@@ -33,12 +33,38 @@ class ReceivableController extends Controller
             });
         }
 
-        $folios = $query->orderBy('folio_id', 'desc')->get();
-
         $now = Carbon::now();
 
-        // Map and compute balances and age
-        $receivables = $folios->map(function ($folio) use ($now) {
+        // Fetch ALL folios (no pagination) for accurate KPI totals
+        $allFolios = (clone $query)->orderBy('folio_id', 'desc')->get();
+
+        $allReceivables = $allFolios->map(function ($folio) use ($now) {
+            $balance = $folio->balance;
+            $arrivalDate = $folio->bookings->first() ? Carbon::parse($folio->bookings->first()->arrival_date) : $now;
+            $daysOld = $now->diffInDays($arrivalDate);
+
+            if ($daysOld <= 30) {
+                $status = 'Current';
+            } elseif ($daysOld <= 60) {
+                $status = 'Overdue';
+            } else {
+                $status = 'Critical';
+            }
+
+            return (object) ['balance' => $balance, 'status' => $status];
+        })->filter(fn ($r) => $r->balance > 0);
+
+        // Compute KPIs from ALL receivables
+        $totalReceivables = $allReceivables->sum('balance');
+        $currentReceivables = $allReceivables->filter(fn ($r) => $r->status === 'Current')->sum('balance');
+        $overdueReceivables = $allReceivables->filter(fn ($r) => $r->status === 'Overdue')->sum('balance');
+        $criticalReceivables = $allReceivables->filter(fn ($r) => $r->status === 'Critical')->sum('balance');
+
+        // Paginate folios for the list display
+        $folios = $query->orderBy('folio_id', 'desc')->paginate(15)->withQueryString();
+
+        // Map and compute balances and age (current page only)
+        $receivables = $folios->getCollection()->map(function ($folio) use ($now) {
             $totalCharges = $folio->total_charges;
             $totalCredits = $folio->total_credits;
             $balance = $folio->balance;
@@ -66,27 +92,18 @@ class ReceivableController extends Controller
                 'status' => $status,
                 'balance' => $balance,
             ];
-        })->filter(function ($folio) {
-            // Only include folios that have an actual outstanding balance
-            return $folio->balance > 0;
-        });
+        })->filter(fn ($folio) => $folio->balance > 0);
 
-        // Apply aging status filter
+        // Apply aging status filter to page items
         if ($statusFilter !== 'ALL') {
             $receivables = $receivables->filter(function ($r) use ($statusFilter) {
                 return strtoupper($r->status) === strtoupper($statusFilter);
             });
         }
 
-        // Compute KPIs
-        $totalReceivables = $receivables->sum('balance');
-
-        $currentReceivables = $receivables->filter(fn ($r) => $r->status === 'Current')->sum('balance');
-        $overdueReceivables = $receivables->filter(fn ($r) => $r->status === 'Overdue')->sum('balance');
-        $criticalReceivables = $receivables->filter(fn ($r) => $r->status === 'Critical')->sum('balance');
-
         return view('accounting.receivables.index', [
             'receivables' => $receivables,
+            'folios' => $folios,
             'totalReceivables' => $totalReceivables,
             'currentReceivables' => $currentReceivables,
             'overdueReceivables' => $overdueReceivables,

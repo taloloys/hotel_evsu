@@ -11,7 +11,7 @@
     <h5 class="mb-0 text-muted">Overview</h5>
     <form method="GET" action="{{ route('accounting.dashboard') }}" class="d-flex align-items-center" data-turbo="true">
         <label for="filter" class="me-2 text-muted mb-0 small">Filter:</label>
-        <select name="filter" id="filter" class="form-select form-select-sm w-auto" onchange="this.form.requestSubmit()">
+        <select name="filter" id="filter" class="form-select form-select-sm" style="width: 220px;" onchange="this.form.requestSubmit()">
             <option value="all" {{ ($filter ?? '') == 'all' ? 'selected' : '' }}>All Time</option>
             <option value="today" {{ ($filter ?? 'today') == 'today' ? 'selected' : '' }}>Today</option>
             <option value="weekly" {{ ($filter ?? '') == 'weekly' ? 'selected' : '' }}>This Week</option>

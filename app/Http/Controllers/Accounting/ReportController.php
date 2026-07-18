@@ -98,7 +98,7 @@ class ReportController extends Controller
 
         $transactions = $transactionsQuery->with(['folio.guest', 'chargeCode', 'user'])
             ->orderBy('timestamp', 'desc')
-            ->get();
+            ->paginate(20)->withQueryString();
 
         return view('accounting.reports.index', [
             'dateFrom' => $dateFrom,

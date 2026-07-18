@@ -36,7 +36,7 @@ class PaymentController extends Controller
             $query->where('payment_method', strtoupper($methodFilter));
         }
 
-        $payments = $query->orderBy('timestamp', 'desc')->get();
+        $payments = $query->orderBy('timestamp', 'desc')->paginate(15)->withQueryString();
 
         // Open folios for the "Record Payment" dropdown
         $openFolios = Folio::where('status', 'OPEN')->with('guest')->get();
