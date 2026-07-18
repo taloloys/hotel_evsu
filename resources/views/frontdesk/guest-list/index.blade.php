@@ -8,63 +8,76 @@
 
 <div class="container-fluid d-print-none">
 
-    {{-- Search Bar --}}
+    {{-- Search and Filter Bar --}}
     <div class="card border-1 shadow-sm mb-4">
-        <div class="card-body">
-            <form method="GET" action="{{ route('frontdesk.guest-list') }}" id="searchForm">
-                <div class="row g-3 align-items-end">
-                    <div class="col-md-5">
-                        <label class="form-label fw-semibold" for="search">Search Guest</label>
-                        <div class="input-group">
-                            <span class="input-group-text bg-white">
-                                <i class="fa-solid fa-magnifying-glass text-muted"></i>
-                            </span>
-                            <input
-                                type="text"
-                                class="form-control"
-                                id="search"
-                                name="search"s
-                                value="{{ $search }}"
-                                placeholder="Search by name..."
-                                autocomplete="off"
-                            >
-                            @if($search)
-                                <a href="{{ route('frontdesk.guest-list', ['status' => $status]) }}" class="btn btn-outline-secondary">
-                                    <i class="fa-solid fa-xmark"></i> Clear
-                                </a>
-                            @endif
-                        </div>
+        <div class="card-body py-3">
+            <form method="GET" action="{{ route('frontdesk.guest-list') }}" id="searchForm" class="d-flex align-items-center gap-2 flex-wrap justify-content-end m-0">
+                
+                <!-- SEARCH -->
+                <div style="width: 320px;">
+                    <div class="input-group" style="border: 1px solid #000000; border-radius: 6px; overflow: hidden; height: 38px;">
+                        <span class="input-group-text bg-white border-0">
+                            <i class="fa-solid fa-magnifying-glass text-muted"></i>
+                        </span>
+                        <input
+                            type="text"
+                            class="form-control border-0 shadow-none"
+                            id="search"
+                            name="search"
+                            value="{{ $search }}"
+                            placeholder="Search by name..."
+                            autocomplete="off"
+                        >
                     </div>
-                    <div class="col-md-3">
-                        <label class="form-label fw-semibold" for="status">Status</label>
-                        <select class="form-select" id="status" name="status" onchange="const form = document.getElementById('searchForm'); if(form.requestSubmit){ form.requestSubmit(); }else{ form.submit(); }">
+                </div>
+
+                <!-- FILTER DROPDOWN -->
+                <div class="dropdown">
+                    <button class="btn btn-outline-secondary d-flex align-items-center gap-1 px-3 position-relative"
+                            type="button"
+                            data-bs-toggle="dropdown"
+                            style="height: 38px; border-radius: 6px; border: 1px solid;">
+                        <i class="fa-solid fa-filter"></i>
+                        <span>Filter</span>
+                        @if($status !== '' && $status !== null)
+                            <span class="position-absolute top-0 start-100 translate-middle p-1 bg-danger border border-light rounded-circle"></span>
+                        @endif
+                    </button>
+                    <div class="dropdown-menu dropdown-menu-end p-3 shadow-sm"
+                         onclick="event.stopPropagation()"
+                         style="min-width: 280px; border-radius: 8px;">
+
+                        <!-- Status -->
+                        <label class="form-label small mb-1 fw-semibold" for="status">Status</label>
+                        <select class="form-select mb-3" id="status" name="status" style="height:38px;border-radius:6px;">
                             <option value="" {{ $status === '' || $status === null ? 'selected' : '' }}>All Statuses</option>
                             <option value="checked_in" {{ $status === 'checked_in' ? 'selected' : '' }}>Checked In (In-House)</option>
                             <option value="checked_out" {{ $status === 'checked_out' ? 'selected' : '' }}>Checked Out</option>
                         </select>
-                    </div>
-                    <div class="col-md-2">
-                        <button type="submit" class="btn btn-primary w-100">
-                            <i class="fa-solid fa-search me-1"></i> Search
-                        </button>
-                    </div>
-                    <div class="col-md-2">
-                        @php
-                            $printText = 'Guest List';
-                            $printBtnClass = 'btn-outline-secondary';
-                            if ($status === 'checked_in') {
-                                $printText = 'Checked In';
-                                $printBtnClass = 'btn-outline-success';
-                            } elseif ($status === 'checked_out') {
-                                $printText = 'Checked Out';
-                                $printBtnClass = 'btn-outline-success';
-                            }
-                        @endphp
-                        <button type="button" class="btn {{ $printBtnClass }} w-100" onclick="window.print()">
-                            <i class="fa-solid fa-print me-1"></i> {{ $printText }}
-                        </button>
+
+                        <div class="d-flex gap-2">
+                            <button type="submit" class="btn btn-primary w-50" style="height: 38px;">Apply</button>
+                            <a href="{{ route('frontdesk.guest-list') }}" class="btn btn-light w-50 d-flex align-items-center justify-content-center" style="height: 38px;">Reset</a>
+                        </div>
                     </div>
                 </div>
+
+                <!-- PRINT BUTTON -->
+                @php
+                    $printText = 'Print Guest List';
+                    $printBtnClass = 'btn-outline-secondary';
+                    if ($status === 'checked_in') {
+                        $printText = 'Print Checked In';
+                        $printBtnClass = 'btn-outline-success';
+                    } elseif ($status === 'checked_out') {
+                        $printText = 'Print Checked Out';
+                        $printBtnClass = 'btn-outline-success';
+                    }
+                @endphp
+                <button type="button" class="btn {{ $printBtnClass }}" style="height: 38px; border-radius: 6px;" onclick="window.print()">
+                    <i class="fa-solid fa-print me-1"></i> {{ $printText }}
+                </button>
+
             </form>
         </div>
     </div>
@@ -489,4 +502,32 @@
         }
     }
 </style>
+@endpush
+
+@push('scripts')
+<script>
+    (function () {
+        const searchInput = document.getElementById('search');
+        if (searchInput) {
+            function debounce(func, wait) {
+                let timeout;
+                return function (...args) {
+                    clearTimeout(timeout);
+                    timeout = setTimeout(() => func.apply(this, args), wait);
+                };
+            }
+
+            const form = searchInput.closest('form');
+            if (form) {
+                searchInput.addEventListener('input', debounce(function () {
+                    if (form.requestSubmit) {
+                        form.requestSubmit();
+                    } else {
+                        form.submit();
+                    }
+                }, 500));
+            }
+        }
+    })();
+</script>
 @endpush

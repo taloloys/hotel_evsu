@@ -467,8 +467,16 @@
             }
         }
 
+        function debounce(func, wait) {
+            let timeout;
+            return function (...args) {
+                clearTimeout(timeout);
+                timeout = setTimeout(() => func.apply(this, args), wait);
+            };
+        }
+
         if (searchInput) {
-            searchInput.addEventListener('input', applyFilters);
+            searchInput.addEventListener('input', debounce(applyFilters, 400));
         }
 
         if (applyBtn) {

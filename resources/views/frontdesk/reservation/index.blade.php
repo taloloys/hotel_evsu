@@ -50,98 +50,83 @@
 
         <form method="GET"
             action="{{ route('frontdesk.reservation') }}"
-            class="card shadow-sm border mb-4">
+            class="d-flex align-items-center gap-2 flex-wrap justify-content-end mb-4"
+            id="reservationFilterForm">
 
+            <!-- Search -->
+            <div style="width: 320px;">
+                <div class="input-group"
+                    style="border: 1px solid #000000; border-radius: 6px; overflow: hidden; height: 38px;">
+                    <span class="input-group-text bg-white border-0">
+                        <i class="fa-solid fa-search text-muted"></i>
+                    </span>
 
-            <div class="card-body">
+                    <input
+                        type="text"
+                        class="form-control border-0 shadow-none"
+                        id="filterSearch"
+                        name="search"
+                        value="{{ $filters['search'] }}"
+                        placeholder="Guest name or folio..."
+                        autocomplete="off">
+                </div>
+            </div>
 
-                <div class="row g-3 align-items-end">
-
-                    <!-- Search -->
-                    <div class="col-lg-4">
-                        <label class="form-label fw-semibold">Search Guest / Folio</label>
-
-                        <div class="input-group"
-                            style="border:1px solid #000000;border-radius:.5rem;overflow:hidden;">
-                            <span class="input-group-text bg-white border-0">
-                                <i class="fa-solid fa-search text-muted"></i>
-                            </span>
-
-                            <input
-                                type="text"
-                                class="form-control border-0 shadow-none"
-                                id="filterSearch"
-                                name="search"
-                                value="{{ $filters['search'] }}"
-                                placeholder="Guest name or folio..."
-                                style="height:46px;">
-                        </div>
-                    </div>
+            <!-- FILTER DROPDOWN -->
+            <div class="dropdown">
+                <button class="btn btn-outline-secondary d-flex align-items-center gap-1 px-3 position-relative"
+                        type="button"
+                        data-bs-toggle="dropdown"
+                        style="height: 38px; border-radius: 6px; border: 1px solid;">
+                    <i class="fa-solid fa-filter"></i>
+                    <span>Filter</span>
+                    @if($filters['status'] !== 'all' || !empty($filters['date_from']) || !empty($filters['date_to']))
+                        <span class="position-absolute top-0 start-100 translate-middle p-1 bg-danger border border-light rounded-circle"></span>
+                    @endif
+                </button>
+                <div class="dropdown-menu dropdown-menu-end p-3 shadow-sm"
+                     onclick="event.stopPropagation()"
+                     style="min-width: 280px; border-radius: 8px;">
 
                     <!-- Status -->
-                    <div class="col-lg-2">
-                        <label class="form-label fw-semibold">Status</label>
-
-                        <select
-                            class="form-select shadow-none"
-                            id="filterStatus"
-                            name="status"
-                            style="height:46px;border:1px solid #030404;">
-                            <option value="all" @selected($filters['status'] === 'all')>All</option>
-                            <option value="RESERVED" @selected($filters['status'] === 'RESERVED')>Reserved</option>
-                            <option value="CHECKED_IN" @selected($filters['status'] === 'CHECKED_IN')>Checked In</option>
-                            <option value="CHECKED_OUT" @selected($filters['status'] === 'CHECKED_OUT')>Checked Out</option>
-                            <option value="CANCELLED" @selected($filters['status'] === 'CANCELLED')>Cancelled</option>
-                        </select>
-                    </div>
+                    <label class="form-label small mb-1 fw-semibold">Status</label>
+                    <select
+                        class="form-select mb-3 shadow-none"
+                        id="filterStatus"
+                        name="status"
+                        style="height:38px;border-radius:6px;">
+                        <option value="all" @selected($filters['status'] === 'all')>All</option>
+                        <option value="RESERVED" @selected($filters['status'] === 'RESERVED')>Reserved</option>
+                        <option value="CHECKED_IN" @selected($filters['status'] === 'CHECKED_IN')>Checked In</option>
+                        <option value="CHECKED_OUT" @selected($filters['status'] === 'CHECKED_OUT')>Checked Out</option>
+                        <option value="CANCELLED" @selected($filters['status'] === 'CANCELLED')>Cancelled</option>
+                    </select>
 
                     <!-- Date From -->
-                    <div class="col-lg-2">
-                        <label class="form-label fw-semibold">Date From</label>
-
-                        <input
-                            type="date"
-                            class="form-control shadow-none"
-                            id="filterDateFrom"
-                            name="date_from"
-                            value="{{ $filters['date_from'] }}"
-                            style="height:46px;border:1px solid #000000;">
-                    </div>
+                    <label class="form-label small mb-1 fw-semibold">Date From</label>
+                    <input
+                        type="date"
+                        class="form-control mb-3 shadow-none"
+                        id="filterDateFrom"
+                        name="date_from"
+                        value="{{ $filters['date_from'] }}"
+                        style="height:38px;border-radius:6px;">
 
                     <!-- Date To -->
-                    <div class="col-lg-2">
-                        <label class="form-label fw-semibold">Date To</label>
+                    <label class="form-label small mb-1 fw-semibold">Date To</label>
+                    <input
+                        type="date"
+                        class="form-control mb-3 shadow-none"
+                        id="filterDateTo"
+                        name="date_to"
+                        value="{{ $filters['date_to'] }}"
+                        style="height:38px;border-radius:6px;">
 
-                        <input
-                            type="date"
-                            class="form-control shadow-none"
-                            id="filterDateTo"
-                            name="date_to"
-                            value="{{ $filters['date_to'] }}"
-                            style="height:46px;border:1px solid #000000;">
+                    <div class="d-flex gap-2">
+                        <button type="submit" class="btn btn-primary w-50" style="height: 38px;">Apply</button>
+                        <a href="{{ route('frontdesk.reservation') }}" class="btn btn-light w-50 d-flex align-items-center justify-content-center" style="height: 38px;">Reset</a>
                     </div>
-
-                    <!-- Buttons -->
-                    <div class="col-lg-2 d-flex gap-2">
-
-                        <button
-                            type="submit"
-                            class="btn btn-primary flex-fill"
-                            style="height:46px;">
-                            <i class="fa-solid fa-filter me-1"></i>
-                            Apply
-                        </button>
-
-                        <a href="{{ route('frontdesk.reservation') }}"
-                        class="btn btn-outline-secondary"
-                        style="height:46px;display:flex;align-items:center;">
-                            <i class="fa-solid fa-rotate-left"></i>
-                        </a>
-
-                    </div>
-
                 </div>
-
             </div>
 
         </form>
@@ -941,6 +926,29 @@
                 }
             });
         };
+
+        // Debounce auto-submit for server-side search input
+        const searchInput = document.getElementById('filterSearch');
+        if (searchInput) {
+            function debounce(func, wait) {
+                let timeout;
+                return function (...args) {
+                    clearTimeout(timeout);
+                    timeout = setTimeout(() => func.apply(this, args), wait);
+                };
+            }
+
+            const form = searchInput.closest('form');
+            if (form) {
+                searchInput.addEventListener('input', debounce(function () {
+                    if (form.requestSubmit) {
+                        form.requestSubmit();
+                    } else {
+                        form.submit();
+                    }
+                }, 500));
+            }
+        }
     })();
 </script>
 @endpush

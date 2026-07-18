@@ -729,6 +729,29 @@
                 document.getElementById('editRoomForm').action    = btn.dataset.updateUrl;
             });
         }
+
+        // Debounce auto-submit for server-side search input
+        const searchInput = document.getElementById('roomSearchInput');
+        if (searchInput) {
+            function debounce(func, wait) {
+                let timeout;
+                return function (...args) {
+                    clearTimeout(timeout);
+                    timeout = setTimeout(() => func.apply(this, args), wait);
+                };
+            }
+
+            const form = searchInput.closest('form');
+            if (form) {
+                searchInput.addEventListener('input', debounce(function () {
+                    if (form.requestSubmit) {
+                        form.requestSubmit();
+                    } else {
+                        form.submit();
+                    }
+                }, 500));
+            }
+        }
     })();
 </script>
 @endpush

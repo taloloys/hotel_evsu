@@ -101,42 +101,51 @@
                     </div>
                 </div>
 
-                <!-- EMPLOYEE -->
-                <select name="user_id"
-                        class="form-select"
-                        style="width: 180px; height: 38px; border-radius: 6px; border: 1px solid #000000;"
-                        onchange="this.form.submit()">
+                <!-- FILTER DROPDOWN -->
+                <div class="dropdown">
+                    <button class="btn btn-outline-secondary d-flex align-items-center gap-1 px-3 position-relative"
+                            type="button"
+                            data-bs-toggle="dropdown"
+                            style="height: 38px; border-radius: 6px; border: 1px solid;">
+                        <i class="fa-solid fa-filter"></i>
+                        <span>Filter</span>
+                        @if(request()->filled('user_id') || request()->filled('status'))
+                            <span class="position-absolute top-0 start-100 translate-middle p-1 bg-danger border border-light rounded-circle"></span>
+                        @endif
+                    </button>
+                    <div class="dropdown-menu dropdown-menu-end p-3 shadow-sm"
+                         style="min-width: 280px; border-radius: 8px;">
 
-                    <option value="">All Employees</option>
-                    @foreach($users as $u)
-                        <option value="{{ $u->user_id }}"
-                            {{ ($filters['user_id'] ?? '') == $u->user_id ? 'selected' : '' }}>
-                            {{ $u->full_name }}
-                        </option>
-                    @endforeach
+                        <!-- EMPLOYEE -->
+                        <label class="form-label small mb-1 fw-semibold">Employee</label>
+                        <select name="user_id"
+                                class="form-select mb-3"
+                                style="height: 38px; border-radius: 6px;">
+                            <option value="">All Employees</option>
+                            @foreach($users as $u)
+                                <option value="{{ $u->user_id }}"
+                                    {{ ($filters['user_id'] ?? '') == $u->user_id ? 'selected' : '' }}>
+                                    {{ $u->full_name }}
+                                </option>
+                            @endforeach
+                        </select>
 
-                </select>
+                        <!-- STATUS -->
+                        <label class="form-label small mb-1 fw-semibold">Status</label>
+                        <select name="status"
+                                class="form-select mb-3"
+                                style="height: 38px; border-radius: 6px;">
+                            <option value="">All Statuses</option>
+                            <option value="ACTIVE" {{ ($filters['status'] ?? '') === 'ACTIVE' ? 'selected' : '' }}>Active</option>
+                            <option value="INACTIVE" {{ ($filters['status'] ?? '') === 'INACTIVE' ? 'selected' : '' }}>Inactive</option>
+                        </select>
 
-                <!-- STATUS -->
-                <select name="status"
-                        class="form-select"
-                        style="width: 160px; height: 38px; border-radius: 6px; border: 1px solid #000000;"
-                        onchange="this.form.submit()">
-
-                    <option value="">All Statuses</option>
-                    <option value="ACTIVE" {{ ($filters['status'] ?? '') === 'ACTIVE' ? 'selected' : '' }}>Active</option>
-                    <option value="INACTIVE" {{ ($filters['status'] ?? '') === 'INACTIVE' ? 'selected' : '' }}>Inactive</option>
-                </select>
-
-                <!-- RESET -->
-                @if(request()->hasAny(['user_id','status']))
-                    <a href="{{ route('admin.shift-schedules') }}"
-                       class="btn btn-outline-danger d-flex align-items-center gap-2"
-                       style="height: 38px; border-radius: 6px;">
-                        <i class="fa-solid fa-rotate"></i>
-                        <span>Reset</span>
-                    </a>
-                @endif
+                        <div class="d-flex gap-2">
+                            <button type="submit" class="btn btn-primary w-50" style="height: 38px;">Apply</button>
+                            <a href="{{ route('admin.shift-schedules') }}" class="btn btn-light w-50 d-flex align-items-center justify-content-center" style="height: 38px;">Reset</a>
+                        </div>
+                    </div>
+                </div>
 
             </form>
 
@@ -624,8 +633,16 @@
             }
         }
 
+        function debounce(func, wait) {
+            let timeout;
+            return function (...args) {
+                clearTimeout(timeout);
+                timeout = setTimeout(() => func.apply(this, args), wait);
+            };
+        }
+
         if (searchInput) {
-            searchInput.addEventListener('input', applyFilters);
+            searchInput.addEventListener('input', debounce(applyFilters, 400));
         }
     })();
 </script>

@@ -30,64 +30,71 @@
 
     {{-- Filters --}}
     <div class="card border-0 shadow-sm mb-4">
-        <div class="card-body">
-            <form method="GET" action="{{ route('frontdesk.guest-folio') }}" id="filterForm">
-                <div class="row g-3 align-items-end">
+        <div class="card-body py-3">
+            <form method="GET" action="{{ route('frontdesk.guest-folio') }}" id="filterForm" class="d-flex align-items-center gap-2 flex-wrap justify-content-end m-0">
 
-                    <div class="col-md-4">
-                        <label class="form-label fw-semibold" for="search">Search</label>
-                        <div class="input-group">
-                            <span class="input-group-text bg-white">
-                                <i class="fa-solid fa-magnifying-glass text-muted"></i>
-                            </span>
-                            <input
-                                type="text"
-                                class="form-control"
-                                id="search"
-                                name="search"
-                                value="{{ $search }}"
-                                placeholder="Guest name, folio #, or room #"
-                                autocomplete="off"
-                            >
-                        </div>
+                <!-- SEARCH -->
+                <div style="width: 320px;">
+                    <div class="input-group" style="border: 1px solid #000000; border-radius: 6px; overflow: hidden; height: 38px;">
+                        <span class="input-group-text bg-white border-0">
+                            <i class="fa-solid fa-magnifying-glass text-muted"></i>
+                        </span>
+                        <input
+                            type="text"
+                            class="form-control border-0 shadow-none"
+                            id="search"
+                            name="search"
+                            value="{{ $search }}"
+                            placeholder="Guest name, folio #, or room #"
+                            autocomplete="off"
+                        >
                     </div>
+                </div>
 
-                    <div class="col-md-2">
-                        <label class="form-label fw-semibold" for="folio_type">Folio Type</label>
-                        <select class="form-select" id="folio_type" name="folio_type">
+                <!-- FILTER DROPDOWN -->
+                <div class="dropdown">
+                    <button class="btn btn-outline-secondary d-flex align-items-center gap-1 px-3 position-relative"
+                            type="button"
+                            data-bs-toggle="dropdown"
+                            style="height: 38px; border-radius: 6px; border: 1px solid;">
+                        <i class="fa-solid fa-filter"></i>
+                        <span>Filter</span>
+                        @if($folioType !== 'ALL' || $statusFilter !== 'ALL')
+                            <span class="position-absolute top-0 start-100 translate-middle p-1 bg-danger border border-light rounded-circle"></span>
+                        @endif
+                    </button>
+                    <div class="dropdown-menu dropdown-menu-end p-3 shadow-sm"
+                         onclick="event.stopPropagation()"
+                         style="min-width: 280px; border-radius: 8px;">
+
+                        <!-- Folio Type -->
+                        <label class="form-label small mb-1 fw-semibold" for="folio_type">Folio Type</label>
+                        <select class="form-select mb-3" id="folio_type" name="folio_type" style="height:38px;border-radius:6px;">
                             <option value="ALL" @selected($folioType === 'ALL')>All Types</option>
                             <option value="GUEST" @selected($folioType === 'GUEST')>Guest</option>
                             <option value="HOUSE" @selected($folioType === 'HOUSE')>House</option>
                         </select>
-                    </div>
 
-                    <div class="col-md-2">
-                        <label class="form-label fw-semibold" for="status">Folio Status</label>
-                        <select class="form-select" id="status" name="status">
+                        <!-- Status -->
+                        <label class="form-label small mb-1 fw-semibold" for="status">Folio Status</label>
+                        <select class="form-select mb-3" id="status" name="status" style="height:38px;border-radius:6px;">
                             <option value="ALL" @selected($statusFilter === 'ALL')>All</option>
                             <option value="OPEN" @selected($statusFilter === 'OPEN')>Open</option>
                             <option value="CLOSED" @selected($statusFilter === 'CLOSED')>Closed</option>
                         </select>
-                    </div>
 
-                    <div class="col-md-2">
-                        <button type="submit" class="btn btn-primary w-100">
-                            <i class="fa-solid fa-filter me-1"></i> Filter
-                        </button>
+                        <div class="d-flex gap-2">
+                            <button type="submit" class="btn btn-primary w-50" style="height: 38px;">Apply</button>
+                            <a href="{{ route('frontdesk.guest-folio') }}" class="btn btn-light w-50 d-flex align-items-center justify-content-center" style="height: 38px;">Reset</a>
+                        </div>
                     </div>
-
-                    <div class="col-md-2 d-flex gap-2">
-                        @if($search || $folioType !== 'ALL' || $statusFilter !== 'ALL')
-                            <a href="{{ route('frontdesk.guest-folio') }}" class="btn btn-outline-secondary flex-fill">
-                                <i class="fa-solid fa-xmark me-1"></i> Clear
-                            </a>
-                        @endif
-                        <button type="button" class="btn btn-outline-secondary flex-fill" onclick="printFolioList()">
-                            <i class="fa-solid fa-print me-1"></i> Print
-                        </button>
-                    </div>
-
                 </div>
+
+                <!-- PRINT BUTTON -->
+                <button type="button" class="btn btn-outline-secondary" style="height: 38px; border-radius: 6px;" onclick="printFolioList()">
+                    <i class="fa-solid fa-print me-1"></i> Print
+                </button>
+
             </form>
         </div>
     </div>
@@ -1870,6 +1877,29 @@
                 }
             });
         };
+
+        // Debounce auto-submit for server-side search input
+        const searchInput = document.getElementById('search');
+        if (searchInput) {
+            function debounce(func, wait) {
+                let timeout;
+                return function (...args) {
+                    clearTimeout(timeout);
+                    timeout = setTimeout(() => func.apply(this, args), wait);
+                };
+            }
+
+            const form = searchInput.closest('form');
+            if (form) {
+                searchInput.addEventListener('input', debounce(function () {
+                    if (form.requestSubmit) {
+                        form.requestSubmit();
+                    } else {
+                        form.submit();
+                    }
+                }, 500));
+            }
+        }
 
     })();
 </script>

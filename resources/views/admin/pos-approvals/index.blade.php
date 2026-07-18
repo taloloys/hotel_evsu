@@ -114,113 +114,94 @@
 
     <!-- RESOLVED HISTORY -->
     <div class="card border-0 shadow-sm">
-        <div class="card-header bg-white border-0 py-3">
+        <div class="card-header bg-white border-0 py-3 d-flex align-items-center justify-content-between flex-wrap gap-3">
             <h5 class="fw-bold mb-0 text-dark"><i class="fa-solid fa-history text-muted me-2"></i>Authorization Log</h5>
-        </div>
+            
+            <div class="d-flex align-items-center gap-2">
+                <form id="posApprovalFilterForm"
+                    action="{{ route('admin.pos-approvals') }}"
+                    method="GET"
+                    class="d-flex align-items-center gap-2 m-0">
 
-        <div class="card-body bg-light border-bottom py-3">
-
-            <form id="posApprovalFilterForm"
-                action="{{ route('admin.pos-approvals') }}"
-                method="GET"
-                class="d-flex flex-wrap align-items-end gap-2">
-
-                <!-- SEARCH -->
-                <div style="width: 320px;">
-                    <label class="form-label small fw-semibold text-muted mb-1">Search</label>
-
-                    <div class="input-group"
-                        style="border: 1px solid #000000; border-radius: 6px; overflow: hidden; height: 38px;">
-
-                        <span class="input-group-text bg-white border-0">
-                            <i class="fa-solid fa-magnifying-glass text-muted"></i>
-                        </span>
-
-                        <input type="text"
-                            name="search"
-                            id="posSearchInput"
-                            class="form-control border-0 shadow-none"
-                            placeholder="Search order, tab, user, reason..."
-                            value="{{ request('search') }}"
-                            autocomplete="off">
+                    <!-- SEARCH -->
+                    <div style="width: 280px;">
+                        <div class="input-group"
+                            style="border: 1px solid #000000; border-radius: 6px; overflow: hidden; height: 38px;">
+                            <span class="input-group-text bg-white border-0">
+                                <i class="fa-solid fa-magnifying-glass text-muted"></i>
+                            </span>
+                            <input type="text"
+                                name="search"
+                                id="posSearchInput"
+                                class="form-control border-0 shadow-none"
+                                placeholder="Search order, tab, user, reason..."
+                                value="{{ request('search') }}"
+                                autocomplete="off">
+                        </div>
                     </div>
-                </div>
 
-                <!-- REQUEST TYPE -->
-                <div style="width: 180px;">
-                    <label class="form-label small fw-semibold text-muted mb-1">Request Type</label>
+                    <!-- FILTER DROPDOWN -->
+                    <div class="dropdown">
+                        <button class="btn btn-outline-secondary d-flex align-items-center gap-1 px-3 position-relative"
+                                type="button"
+                                data-bs-toggle="dropdown"
+                                style="height: 38px; border-radius: 6px; border: 1px solid;">
+                            <i class="fa-solid fa-filter"></i>
+                            <span>Filter</span>
+                            @if(request()->anyFilled(['request_type','status','date_from','date_until']))
+                                <span class="position-absolute top-0 start-100 translate-middle p-1 bg-danger border border-light rounded-circle"></span>
+                            @endif
+                        </button>
+                        <div class="dropdown-menu dropdown-menu-end p-3 shadow-sm"
+                             onclick="event.stopPropagation()"
+                             style="min-width: 280px; border-radius: 8px;">
 
-                    <select name="request_type"
-                            class="form-select auto-filter"
-                            style="height: 38px; border-radius: 6px; border: 1px solid #000000;">
+                            <!-- REQUEST TYPE -->
+                            <label class="form-label small mb-1 fw-semibold">Request Type</label>
+                            <select name="request_type"
+                                    class="form-select mb-3"
+                                    style="height: 38px; border-radius: 6px;">
+                                <option value="all" {{ request('request_type') === 'all' || !request('request_type') ? 'selected' : '' }}>All Types</option>
+                                <option value="cancel_tab" {{ request('request_type') === 'cancel_tab' ? 'selected' : '' }}>Cancel Tab</option>
+                                <option value="refund" {{ request('request_type') === 'refund' ? 'selected' : '' }}>Refund Order</option>
+                                <option value="cancel_order" {{ request('request_type') === 'cancel_order' ? 'selected' : '' }}>Cancel Order</option>
+                            </select>
 
-                        <option value="all" {{ request('request_type') === 'all' || !request('request_type') ? 'selected' : '' }}>All Types</option>
-                        <option value="cancel_tab" {{ request('request_type') === 'cancel_tab' ? 'selected' : '' }}>Cancel Tab</option>
-                        <option value="refund" {{ request('request_type') === 'refund' ? 'selected' : '' }}>Refund Order</option>
-                        <option value="cancel_order" {{ request('request_type') === 'cancel_order' ? 'selected' : '' }}>Cancel Order</option>
+                            <!-- STATUS -->
+                            <label class="form-label small mb-1 fw-semibold">Status</label>
+                            <select name="status"
+                                    class="form-select mb-3"
+                                    style="height: 38px; border-radius: 6px;">
+                                <option value="all" {{ request('status') === 'all' || !request('status') ? 'selected' : '' }}>All</option>
+                                <option value="approved" {{ request('status') === 'approved' ? 'selected' : '' }}>Approved</option>
+                                <option value="rejected" {{ request('status') === 'rejected' ? 'selected' : '' }}>Rejected</option>
+                            </select>
 
-                    </select>
-                </div>
+                            <!-- DATE FROM -->
+                            <label class="form-label small mb-1 fw-semibold">Date From</label>
+                            <input type="date"
+                                name="date_from"
+                                class="form-control mb-3"
+                                style="height: 38px; border-radius: 6px;"
+                                value="{{ request('date_from') }}">
 
-                <!-- STATUS -->
-                <div style="width: 160px;">
-                    <label class="form-label small fw-semibold text-muted mb-1">Status</label>
+                            <!-- DATE UNTIL -->
+                            <label class="form-label small mb-1 fw-semibold">Date Until</label>
+                            <input type="date"
+                                name="date_until"
+                                class="form-control mb-3"
+                                style="height: 38px; border-radius: 6px;"
+                                value="{{ request('date_until') }}">
 
-                    <select name="status"
-                            class="form-select auto-filter"
-                            style="height: 38px; border-radius: 6px; border: 1px solid #000000;">
+                            <div class="d-flex gap-2">
+                                <button type="submit" class="btn btn-primary w-50" style="height: 38px;">Apply</button>
+                                <a href="{{ route('admin.pos-approvals') }}" class="btn btn-light w-50 d-flex align-items-center justify-content-center" style="height: 38px;">Reset</a>
+                            </div>
+                        </div>
+                    </div>
 
-                        <option value="all" {{ request('status') === 'all' || !request('status') ? 'selected' : '' }}>All</option>
-                        <option value="approved" {{ request('status') === 'approved' ? 'selected' : '' }}>Approved</option>
-                        <option value="rejected" {{ request('status') === 'rejected' ? 'selected' : '' }}>Rejected</option>
-
-                    </select>
-                </div>
-
-                <!-- DATE FROM -->
-                <div style="width: 170px;">
-                    <label class="form-label small fw-semibold text-muted mb-1">Date From</label>
-
-                    <input type="date"
-                        name="date_from"
-                        class="form-control auto-filter"
-                        style="height: 38px; border-radius: 6px; border: 1px solid #000000;"
-                        value="{{ request('date_from') }}">
-                </div>
-
-                <!-- DATE UNTIL -->
-                <div style="width: 170px;">
-                    <label class="form-label small fw-semibold text-muted mb-1">Date Until</label>
-
-                    <input type="date"
-                        name="date_until"
-                        class="form-control auto-filter"
-                        style="height: 38px; border-radius: 6px; border: 1px solid #000000;"
-                        value="{{ request('date_until') }}">
-                </div>
-
-                <!-- ACTIONS -->
-                <div class="d-flex gap-2">
-                    <!-- SUBMIT -->
-                    <button type="submit"
-                        class="btn btn-primary d-flex align-items-center justify-content-center"
-                        style="height: 38px; border-radius: 6px; "
-                        title="Apply Filters">
-                        <i class="fa-solid fa-filter me-2"></i>Filter
-                    </button>
-
-                    <!-- RESET (ONLY SHOW IF FILTERS ACTIVE) -->
-                    @if(request()->anyFilled(['search','request_type','status','date_from','date_until']))
-                        <a href="{{ route('admin.pos-approvals') }}"
-                        class="btn btn-outline-danger d-flex align-items-center justify-content-center"
-                        style="height: 38px; width: 42px; border-radius: 6px;"
-                        title="Reset Filters">
-                            <i class="fa-solid fa-rotate"></i>
-                        </a>
-                    @endif
-                </div>
-
-            </form>
+                </form>
+            </div>
         </div>
         <div class="table-responsive">
             <table class="table align-middle mb-0">
