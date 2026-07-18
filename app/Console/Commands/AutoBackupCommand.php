@@ -5,6 +5,7 @@ namespace App\Console\Commands;
 use App\Services\BackupSettingsService;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\Log;
+use ZipArchive;
 
 class AutoBackupCommand extends Command
 {
@@ -47,17 +48,19 @@ class AutoBackupCommand extends Command
         }
 
         $now = now();
-        $filename = $now->format('F j Y g-i A').'.sql';
-        $filepath = rtrim($folder, DIRECTORY_SEPARATOR).DIRECTORY_SEPARATOR.$filename;
+        $sqlFilename = $now->format('Y-m-d_H-i-s').'_temp.sql';
+        $zipFilename = $now->format('F j Y g-i A').'.zip';
+        $sqlFilepath = rtrim($folder, DIRECTORY_SEPARATOR).DIRECTORY_SEPARATOR.$sqlFilename;
+        $zipFilepath = rtrim($folder, DIRECTORY_SEPARATOR).DIRECTORY_SEPARATOR.$zipFilename;
 
         $connection = config('database.default');
 
         if ($connection === 'sqlite') {
             $dbPath = config('database.connections.sqlite.database');
             if ($dbPath === ':memory:') {
-                file_put_contents($filepath, '-- sqlite memory backup');
+                file_put_contents($sqlFilepath, '-- sqlite memory backup');
             } else {
-                if (! file_exists($dbPath) || ! @copy($dbPath, $filepath)) {
+                if (! file_exists($dbPath) || ! @copy($dbPath, $sqlFilepath)) {
                     $this->error('Backup failed: SQLite database file not found or not copyable.');
                     Log::error('Automatic backup failed: SQLite database file not found or not copyable.');
 
@@ -75,29 +78,45 @@ class AutoBackupCommand extends Command
             $passwordArg = $password ? '-p'.escapeshellarg($password) : '';
 
             $command = sprintf(
-                '%s --host=%s --port=%s --user=%s %s --single-transaction --routines --triggers %s > %s 2>&1',
+                '%s --host=%s --port=%s --user=%s %s --single-transaction --routines --triggers --result-file=%s %s 2>&1',
                 escapeshellarg($mysqldump),
                 escapeshellarg($host),
                 escapeshellarg($port),
                 escapeshellarg($username),
                 $passwordArg,
-                escapeshellarg($database),
-                escapeshellarg($filepath)
+                escapeshellarg($sqlFilepath),
+                escapeshellarg($database)
             );
 
+            Log::info("Executing backup command: " . $command);
             exec($command, $output, $returnCode);
 
             if ($returnCode !== 0) {
                 $errorDetail = implode(' ', $output);
                 $this->error("Backup failed: {$errorDetail}");
                 Log::error("Automatic backup failed: {$errorDetail}");
+                @unlink($sqlFilepath);
 
                 return 1;
             }
         }
 
-        $this->info("Backup created successfully at: {$filepath}");
-        Log::info("Automatic database backup created successfully: {$filename}");
+        // Zip the SQL file
+        $zip = new ZipArchive;
+        if ($zip->open($zipFilepath, ZipArchive::CREATE | ZipArchive::OVERWRITE) === true) {
+            $zip->addFile($sqlFilepath, $sqlFilename);
+            $zip->close();
+            @unlink($sqlFilepath); // Delete the original SQL file to save space
+        } else {
+            $this->error("Backup failed: Unable to create ZIP file at {$zipFilepath}");
+            Log::error("Automatic backup failed: Unable to create ZIP file at {$zipFilepath}");
+            @unlink($sqlFilepath);
+
+            return 1;
+        }
+
+        $this->info("Backup created successfully at: {$zipFilepath}");
+        Log::info("Automatic database backup created successfully: {$zipFilename}");
 
         return 0;
     }

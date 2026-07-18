@@ -10,6 +10,7 @@ use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
 use Symfony\Component\HttpFoundation\BinaryFileResponse;
+use ZipArchive;
 
 class BackupRestoreController extends Controller
 {
@@ -116,7 +117,7 @@ class BackupRestoreController extends Controller
         $files = scandir($backupDir);
 
         foreach ($files as $file) {
-            if ($file !== '.' && $file !== '..' && str_ends_with($file, '.sql')) {
+            if ($file !== '.' && $file !== '..' && (str_ends_with($file, '.sql') || str_ends_with($file, '.zip'))) {
                 $filePath = $backupDir.DIRECTORY_SEPARATOR.$file;
                 $backups[] = [
                     'filename' => $file,
@@ -231,22 +232,24 @@ class BackupRestoreController extends Controller
     public function backup(Request $request): BinaryFileResponse|RedirectResponse|JsonResponse
     {
         $now = now();
-        $filename = $now->format('F j Y g-i A').'.sql'; // e.g. "July 12 2026 7-34 PM.sql"
+        $sqlFilename = $now->format('Y-m-d_H-i-s').'_temp.sql';
+        $zipFilename = $now->format('F j Y g-i A').'.zip';
 
         $backupDir = BackupSettingsService::get()['folder'] ?? storage_path('backups');
         if (! is_dir($backupDir)) {
             mkdir($backupDir, 0755, true);
         }
-        $serverFilePath = $backupDir.DIRECTORY_SEPARATOR.$filename;
+        $serverSqlFilePath = $backupDir.DIRECTORY_SEPARATOR.$sqlFilename;
+        $serverZipFilePath = $backupDir.DIRECTORY_SEPARATOR.$zipFilename;
 
         $connection = config('database.default');
 
         if ($connection === 'sqlite') {
             $dbPath = config('database.connections.sqlite.database');
             if ($dbPath === ':memory:') {
-                file_put_contents($serverFilePath, '-- sqlite memory backup');
+                file_put_contents($serverSqlFilePath, '-- sqlite memory backup');
             } else {
-                if (! file_exists($dbPath) || ! @copy($dbPath, $serverFilePath)) {
+                if (! file_exists($dbPath) || ! @copy($dbPath, $serverSqlFilePath)) {
                     if ($request->wantsJson()) {
                         return response()->json([
                             'success' => false,
@@ -270,20 +273,20 @@ class BackupRestoreController extends Controller
             $passwordArg = $password ? '-p'.escapeshellarg($password) : '';
 
             $command = sprintf(
-                '%s --host=%s --port=%s --user=%s %s --single-transaction --routines --triggers %s > %s 2>&1',
+                '%s --host=%s --port=%s --user=%s %s --single-transaction --routines --triggers --result-file=%s %s 2>&1',
                 escapeshellarg($mysqldump),
                 escapeshellarg($host),
                 escapeshellarg($port),
                 escapeshellarg($username),
                 $passwordArg,
-                escapeshellarg($database),
-                escapeshellarg($serverFilePath)
+                escapeshellarg($serverSqlFilePath),
+                escapeshellarg($database)
             );
 
             exec($command, $output, $returnCode);
 
             if ($returnCode !== 0) {
-                @unlink($serverFilePath);
+                @unlink($serverSqlFilePath);
                 $errorDetail = implode(' ', $output);
 
                 if ($request->wantsJson()) {
@@ -299,20 +302,39 @@ class BackupRestoreController extends Controller
             }
         }
 
+        $zip = new ZipArchive();
+        if ($zip->open($serverZipFilePath, ZipArchive::CREATE | ZipArchive::OVERWRITE) === true) {
+            $zip->addFile($serverSqlFilePath, $sqlFilename);
+            $zip->close();
+            @unlink($serverSqlFilePath);
+        } else {
+            @unlink($serverSqlFilePath);
+            if ($request->wantsJson()) {
+                return response()->json([
+                    'success' => false,
+                    'error' => 'Backup failed: Unable to create ZIP file.',
+                ], 500);
+            }
+
+            return redirect()
+                ->route('admin.backup-restore')
+                ->with('error', 'Backup failed: Unable to create ZIP file.');
+        }
+
         ActivityLog::log(
             'DATABASE_BACKUP',
-            'Database backup created and saved: '.$filename
+            'Database backup created and saved: '.$zipFilename
         );
 
         if ($request->wantsJson()) {
             return response()->json([
                 'success' => true,
-                'filename' => $filename,
+                'filename' => $zipFilename,
             ]);
         }
 
-        return response()->download($serverFilePath, $filename, [
-            'Content-Type' => 'application/octet-stream',
+        return response()->download($serverZipFilePath, $zipFilename, [
+            'Content-Type' => 'application/zip',
         ]);
     }
 
@@ -322,82 +344,48 @@ class BackupRestoreController extends Controller
     public function restore(Request $request): RedirectResponse
     {
         $request->validate([
-            'backup_file' => ['required', 'file', 'mimes:sql,txt', 'max:102400'],
+            'backup_file' => ['required', 'file', 'mimes:sql,txt,zip', 'max:102400'],
         ]);
 
         $file = $request->file('backup_file');
+        $filePath = $file->getPathname();
+        $isZip = $file->getClientOriginalExtension() === 'zip' || $file->getMimeType() === 'application/zip';
+        $tempExtractPath = null;
 
-        $connection = config('database.default');
+        if ($isZip) {
+            $zip = new ZipArchive;
+            if ($zip->open($filePath) === true) {
+                // Find the first .sql file in the zip
+                $sqlFilenameInZip = null;
+                for ($i = 0; $i < $zip->numFiles; $i++) {
+                    $name = $zip->getNameIndex($i);
+                    if (str_ends_with(strtolower($name), '.sql')) {
+                        $sqlFilenameInZip = $name;
+                        break;
+                    }
+                }
 
-        if ($connection === 'sqlite') {
-            $dbPath = config('database.connections.sqlite.database');
-            if ($dbPath !== ':memory:') {
-                @copy($file->getPathname(), $dbPath);
-            }
-        } else {
-            $host = config('database.connections.mysql.host');
-            $port = config('database.connections.mysql.port');
-            $database = config('database.connections.mysql.database');
-            $username = config('database.connections.mysql.username');
-            $password = config('database.connections.mysql.password');
+                if ($sqlFilenameInZip) {
+                    $extractToDir = storage_path('app/temp_restore_'.time());
+                    if (! is_dir($extractToDir)) {
+                        mkdir($extractToDir, 0755, true);
+                    }
+                    $zip->extractTo($extractToDir, $sqlFilenameInZip);
+                    $zip->close();
+                    $tempExtractPath = $extractToDir.DIRECTORY_SEPARATOR.$sqlFilenameInZip;
+                    $filePath = $tempExtractPath;
+                } else {
+                    $zip->close();
 
-            $mysql = $this->resolveBinary('mysql');
-            $passwordArg = $password ? '-p'.escapeshellarg($password) : '';
-
-            $command = sprintf(
-                '%s --host=%s --port=%s --user=%s %s %s < %s 2>&1',
-                escapeshellarg($mysql),
-                escapeshellarg($host),
-                escapeshellarg($port),
-                escapeshellarg($username),
-                $passwordArg,
-                escapeshellarg($database),
-                escapeshellarg($file->getPathname())
-            );
-
-            exec($command, $output, $returnCode);
-
-            if ($returnCode !== 0) {
-                $errorDetail = implode(' ', $output);
-
+                    return redirect()
+                        ->route('admin.backup-restore')
+                        ->with('error', 'Restore failed: No .sql file found in the uploaded ZIP archive.');
+                }
+            } else {
                 return redirect()
                     ->route('admin.backup-restore')
-                    ->with('error', 'Restore failed: '.$errorDetail);
+                    ->with('error', 'Restore failed: Unable to open ZIP file.');
             }
-        }
-
-        ActivityLog::log(
-            'DATABASE_RESTORE',
-            'Database restored from uploaded file: '.$file->getClientOriginalName()
-        );
-
-        return redirect()
-            ->route('admin.backup-restore')
-            ->with('success', 'Database restored successfully from "'.$file->getClientOriginalName().'".');
-    }
-
-    /**
-     * Restore the database from a backup file already in server's storage/backups/ directory.
-     */
-    public function restoreLocal(Request $request): RedirectResponse
-    {
-        $request->validate([
-            'filename' => ['required', 'string'],
-        ]);
-
-        $filename = $request->input('filename');
-
-        if (! preg_match('/^[a-zA-Z0-9_\-\s\.]+\.sql$/', $filename)) {
-            abort(400, 'Invalid backup filename.');
-        }
-
-        $backupDir = BackupSettingsService::get()['folder'] ?? storage_path('backups');
-        $filePath = rtrim($backupDir, DIRECTORY_SEPARATOR).DIRECTORY_SEPARATOR.$filename;
-
-        if (! file_exists($filePath)) {
-            return redirect()
-                ->route('admin.backup-restore')
-                ->with('error', 'Backup file not found on server.');
         }
 
         $connection = config('database.default');
@@ -430,6 +418,11 @@ class BackupRestoreController extends Controller
 
             exec($command, $output, $returnCode);
 
+            if ($tempExtractPath) {
+                @unlink($tempExtractPath);
+                @rmdir(dirname($tempExtractPath));
+            }
+
             if ($returnCode !== 0) {
                 $errorDetail = implode(' ', $output);
 
@@ -437,6 +430,132 @@ class BackupRestoreController extends Controller
                     ->route('admin.backup-restore')
                     ->with('error', 'Restore failed: '.$errorDetail);
             }
+        }
+
+        if ($tempExtractPath && $connection === 'sqlite') {
+            @unlink($tempExtractPath);
+            @rmdir(dirname($tempExtractPath));
+        }
+
+        ActivityLog::log(
+            'DATABASE_RESTORE',
+            'Database restored from uploaded file: '.$file->getClientOriginalName()
+        );
+
+        return redirect()
+            ->route('admin.backup-restore')
+            ->with('success', 'Database restored successfully from "'.$file->getClientOriginalName().'".');
+    }
+
+    /**
+     * Restore the database from a backup file already in server's storage/backups/ directory.
+     */
+    public function restoreLocal(Request $request): RedirectResponse
+    {
+        $request->validate([
+            'filename' => ['required', 'string'],
+        ]);
+
+        $filename = $request->input('filename');
+
+        if (! preg_match('/^[a-zA-Z0-9_\-\s\.]+\.(sql|zip)$/', $filename)) {
+            abort(400, 'Invalid backup filename.');
+        }
+
+        $backupDir = BackupSettingsService::get()['folder'] ?? storage_path('backups');
+        $filePath = rtrim($backupDir, DIRECTORY_SEPARATOR).DIRECTORY_SEPARATOR.$filename;
+
+        if (! file_exists($filePath)) {
+            return redirect()
+                ->route('admin.backup-restore')
+                ->with('error', 'Backup file not found on server.');
+        }
+
+        $isZip = str_ends_with(strtolower($filename), '.zip');
+        $tempExtractPath = null;
+
+        if ($isZip) {
+            $zip = new ZipArchive;
+            if ($zip->open($filePath) === true) {
+                $sqlFilenameInZip = null;
+                for ($i = 0; $i < $zip->numFiles; $i++) {
+                    $name = $zip->getNameIndex($i);
+                    if (str_ends_with(strtolower($name), '.sql')) {
+                        $sqlFilenameInZip = $name;
+                        break;
+                    }
+                }
+
+                if ($sqlFilenameInZip) {
+                    $extractToDir = storage_path('app/temp_restore_'.time());
+                    if (! is_dir($extractToDir)) {
+                        mkdir($extractToDir, 0755, true);
+                    }
+                    $zip->extractTo($extractToDir, $sqlFilenameInZip);
+                    $zip->close();
+                    $tempExtractPath = $extractToDir.DIRECTORY_SEPARATOR.$sqlFilenameInZip;
+                    $filePath = $tempExtractPath;
+                } else {
+                    $zip->close();
+
+                    return redirect()
+                        ->route('admin.backup-restore')
+                        ->with('error', 'Restore failed: No .sql file found in the ZIP archive.');
+                }
+            } else {
+                return redirect()
+                    ->route('admin.backup-restore')
+                    ->with('error', 'Restore failed: Unable to open ZIP file.');
+            }
+        }
+
+        $connection = config('database.default');
+
+        if ($connection === 'sqlite') {
+            $dbPath = config('database.connections.sqlite.database');
+            if ($dbPath !== ':memory:') {
+                @copy($filePath, $dbPath);
+            }
+        } else {
+            $host = config('database.connections.mysql.host');
+            $port = config('database.connections.mysql.port');
+            $database = config('database.connections.mysql.database');
+            $username = config('database.connections.mysql.username');
+            $password = config('database.connections.mysql.password');
+
+            $mysql = $this->resolveBinary('mysql');
+            $passwordArg = $password ? '-p'.escapeshellarg($password) : '';
+
+            $command = sprintf(
+                '%s --host=%s --port=%s --user=%s %s %s < %s 2>&1',
+                escapeshellarg($mysql),
+                escapeshellarg($host),
+                escapeshellarg($port),
+                escapeshellarg($username),
+                $passwordArg,
+                escapeshellarg($database),
+                escapeshellarg($filePath)
+            );
+
+            exec($command, $output, $returnCode);
+
+            if ($tempExtractPath) {
+                @unlink($tempExtractPath);
+                @rmdir(dirname($tempExtractPath));
+            }
+
+            if ($returnCode !== 0) {
+                $errorDetail = implode(' ', $output);
+
+                return redirect()
+                    ->route('admin.backup-restore')
+                    ->with('error', 'Restore failed: '.$errorDetail);
+            }
+        }
+
+        if ($tempExtractPath && $connection === 'sqlite') {
+            @unlink($tempExtractPath);
+            @rmdir(dirname($tempExtractPath));
         }
 
         ActivityLog::log(
@@ -454,7 +573,7 @@ class BackupRestoreController extends Controller
      */
     public function downloadLocal(string $filename): BinaryFileResponse|RedirectResponse
     {
-        if (! preg_match('/^[a-zA-Z0-9_\-\s\.]+\.sql$/', $filename)) {
+        if (! preg_match('/^[a-zA-Z0-9_\-\s\.]+\.(sql|zip)$/', $filename)) {
             abort(400, 'Invalid backup filename.');
         }
 
@@ -477,7 +596,7 @@ class BackupRestoreController extends Controller
      */
     public function deleteLocal(string $filename): RedirectResponse
     {
-        if (! preg_match('/^[a-zA-Z0-9_\-\s\.]+\.sql$/', $filename)) {
+        if (! preg_match('/^[a-zA-Z0-9_\-\s\.]+\.(sql|zip)$/', $filename)) {
             abort(400, 'Invalid backup filename.');
         }
 
