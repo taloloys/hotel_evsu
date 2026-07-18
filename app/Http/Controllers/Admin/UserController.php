@@ -20,7 +20,7 @@ class UserController extends Controller
     public function index(): View
     {
         $users = User::with(['role', 'permissions'])->get();
-        $roles = Role::all();
+        $roles = Role::where('is_active', true)->get();
         $permissions = Permission::where('is_active', true)
             ->orderBy('module')
             ->orderBy('permission_key')

@@ -38,6 +38,45 @@
         <small class="text-muted">View and create credit accounts for billing</small>
     </div>
     <div class="d-flex justify-content-end align-items-center gap-2">
+
+        <!-- SEARCH -->
+        <div style="width: 300px;">
+            <div class="input-group"
+                 style="border: 1px solid #000000; border-radius: 6px; overflow: hidden; height: 38px;">
+                <span class="input-group-text bg-white border-0">
+                    <i class="fa-solid fa-magnifying-glass text-muted"></i>
+                </span>
+                <input type="text"
+                       id="creditSearchInput"
+                       class="form-control border-0 shadow-none"
+                       placeholder="Search account or contact..."
+                       autocomplete="off">
+            </div>
+        </div>
+
+        <!-- FILTER -->
+        <div class="dropdown">
+            <button class="btn btn-outline-secondary d-flex align-items-center gap-1 px-3"
+                    data-bs-toggle="dropdown"
+                    style="height: 38px; border-radius: 6px;">
+                <i class="fa-solid fa-filter"></i>
+                <span>Filter</span>
+            </button>
+            <div class="dropdown-menu dropdown-menu-end p-3 shadow-sm"
+                 style="min-width: 240px; border-radius: 8px;">
+                <label class="form-label small mb-1 fw-semibold">Credit Status</label>
+                <select id="filterCreditStatusSelect" class="form-select mb-3" style="height: 38px; border-radius: 6px;">
+                    <option value="">All Accounts</option>
+                    <option value="available">Has Available Credit</option>
+                    <option value="maxed">Maxed Out / Over Limit</option>
+                </select>
+                <div class="d-flex gap-2">
+                    <button id="creditFilterApplyBtn" class="btn btn-primary w-50" style="height: 38px;">Apply</button>
+                    <button id="creditFilterResetBtn" class="btn btn-light w-50" style="height: 38px;">Reset</button>
+                </div>
+            </div>
+        </div>
+
         <button id="add-account-btn"
                 class="btn btn-primary d-flex align-items-center gap-2 px-3"
                 style="height: 38px; border-radius: 6px;"
@@ -66,7 +105,9 @@
                 </thead>
                 <tbody>
                     @forelse ($accounts as $account)
-                        <tr>
+                        <tr data-account-name="{{ strtolower($account->account_name) }}"
+                            data-contact-name="{{ strtolower($account->contact_name ?? '') }}"
+                            data-credit-status="{{ $account->available_credit <= 0 ? 'maxed' : 'available' }}">
                             <td class="ps-3 fw-semibold">{{ $account->account_name }}</td>
                             <td>
                                 {{ $account->contact_name ?? 'N/A' }}<br>
@@ -148,6 +189,65 @@
         document.querySelectorAll('.toast').forEach(function (el) {
             new bootstrap.Toast(el).show();
         });
+
+        // ── Credit Accounts Search & Filter ──────────────────────────────────
+        const searchInput     = document.getElementById('creditSearchInput');
+        const statusSelect    = document.getElementById('filterCreditStatusSelect');
+        const applyBtn        = document.getElementById('creditFilterApplyBtn');
+        const resetBtn        = document.getElementById('creditFilterResetBtn');
+        const tbody           = document.querySelector('.table tbody');
+        const dropdownToggle  = document.querySelector('.dropdown [data-bs-toggle="dropdown"]');
+
+        let activeStatus = '';
+
+        function applyFilters() {
+            const query = searchInput ? searchInput.value.trim().toLowerCase() : '';
+            const rows  = tbody ? tbody.querySelectorAll('tr[data-account-name]') : [];
+            let visible = 0;
+
+            rows.forEach(function (row) {
+                const matchSearch = !query ||
+                    row.dataset.accountName.includes(query) ||
+                    row.dataset.contactName.includes(query);
+                const matchStatus = !activeStatus || row.dataset.creditStatus === activeStatus;
+                const show = matchSearch && matchStatus;
+                row.style.display = show ? '' : 'none';
+                if (show) { visible++; }
+            });
+
+            // Show empty-state row if nothing matches
+            let emptyRow = document.getElementById('noFilterResultsRow');
+            if (!emptyRow && rows.length > 0 && visible === 0) {
+                emptyRow = document.createElement('tr');
+                emptyRow.id = 'noFilterResultsRow';
+                emptyRow.innerHTML = '<td colspan="6" class="text-center py-4 text-muted"><i class="fa-solid fa-magnifying-glass me-2"></i>No accounts match your search or filter.</td>';
+                tbody.appendChild(emptyRow);
+            } else if (emptyRow) {
+                emptyRow.style.display = (rows.length > 0 && visible === 0) ? '' : 'none';
+            }
+        }
+
+        if (searchInput) { searchInput.addEventListener('input', applyFilters); }
+
+        if (applyBtn) {
+            applyBtn.addEventListener('click', function () {
+                activeStatus = statusSelect.value;
+                applyFilters();
+                if (dropdownToggle) {
+                    const dd = bootstrap.Dropdown.getInstance(dropdownToggle);
+                    if (dd) { dd.hide(); }
+                }
+            });
+        }
+
+        if (resetBtn) {
+            resetBtn.addEventListener('click', function () {
+                if (searchInput) { searchInput.value = ''; }
+                if (statusSelect) { statusSelect.value = ''; }
+                activeStatus = '';
+                applyFilters();
+            });
+        }
     })();
 </script>
 @endpush

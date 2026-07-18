@@ -86,6 +86,21 @@
                   action="{{ route('admin.shift-schedules') }}"
                   class="d-flex align-items-center gap-2 flex-wrap justify-content-end m-0">
 
+                <!-- SEARCH -->
+                <div style="width: 250px;">
+                    <div class="input-group"
+                         style="border: 1px solid #000000; border-radius: 6px; overflow: hidden; height: 38px;">
+                        <span class="input-group-text bg-white border-0">
+                            <i class="fa-solid fa-magnifying-glass text-muted"></i>
+                        </span>
+                        <input type="text"
+                               id="scheduleSearchInput"
+                               class="form-control border-0 shadow-none"
+                               placeholder="Search shift or employee..."
+                               autocomplete="off">
+                    </div>
+                </div>
+
                 <!-- EMPLOYEE -->
                 <select name="user_id"
                         class="form-select"
@@ -162,7 +177,8 @@
                             $daysStr = implode('-', $days);
                         @endphp
 
-                        <tr>
+                        <tr data-shift-name="{{ strtolower($sched->shift_name) }}"
+                            data-employee-name="{{ strtolower($sched->user->full_name) }}">
                             <td class="ps-3">
                                 <div class="d-flex align-items-center">
                                     <div class="bg-primary text-white rounded-circle d-flex align-items-center justify-content-center me-3 fw-bold"
@@ -230,12 +246,18 @@
                         </tr>
 
                     @empty
-                        <tr>
+                        <tr id="noResultsRow">
                             <td colspan="6" class="text-center py-4 text-muted">
                                 No shift schedules found.
                             </td>
                         </tr>
                     @endforelse
+
+                    <tr id="noFilterResultsRow" style="display:none;">
+                        <td colspan="6" class="text-center py-4 text-muted">
+                            <i class="fa-solid fa-magnifying-glass me-2"></i>No shift schedules match your search.
+                        </td>
+                    </tr>
                 </tbody>
 
             </table>
@@ -578,6 +600,32 @@
 
                 document.getElementById('editScheduleForm').action = btn.dataset.updateUrl;
             });
+        }
+        // Live client-side search
+        const searchInput = document.getElementById('scheduleSearchInput');
+        const tbody       = document.querySelector('.table tbody');
+        const noFilterRow = document.getElementById('noFilterResultsRow');
+
+        function applyFilters() {
+            const query = searchInput ? searchInput.value.trim().toLowerCase() : '';
+            const rows  = tbody ? tbody.querySelectorAll('tr[data-shift-name]') : [];
+            let visible = 0;
+
+            rows.forEach(function (row) {
+                const matchSearch = !query ||
+                    row.dataset.shiftName.includes(query) ||
+                    row.dataset.employeeName.includes(query);
+                row.style.display = matchSearch ? '' : 'none';
+                if (matchSearch) { visible++; }
+            });
+
+            if (noFilterRow) {
+                noFilterRow.style.display = (rows.length > 0 && visible === 0) ? '' : 'none';
+            }
+        }
+
+        if (searchInput) {
+            searchInput.addEventListener('input', applyFilters);
         }
     })();
 </script>

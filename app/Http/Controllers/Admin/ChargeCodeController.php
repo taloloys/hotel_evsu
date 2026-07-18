@@ -36,7 +36,7 @@ class ChargeCodeController extends Controller
             $query->where('is_active', $request->status === 'active');
         }
 
-        $chargeCodes = $query->orderBy('charge_code')->get();
+        $chargeCodes = $query->orderBy('charge_code')->paginate(20)->withQueryString();
 
         // Compute statistics
         $allChargeCodes = ChargeCode::all();

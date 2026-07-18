@@ -95,21 +95,22 @@
                     {{-- Filter Mode Tabs --}}
                     @if($isAdmin)
                     <div class="d-flex gap-2 mb-4" id="modeTabs">
-                        <button type="button" class="mode-tab {{ empty($filters['shift_id']) ? 'active' : '' }}" onclick="switchMode('date')">
+                        <button type="button" class="mode-tab {{ (empty($filters['shift_id']) && ($filters['mode'] ?? '') !== 'shift') ? 'active' : '' }}" onclick="switchMode('date')">
                             <i class="fa-solid fa-calendar-range me-1"></i> By Date Range
                         </button>
-                        <button type="button" class="mode-tab {{ !empty($filters['shift_id']) ? 'active' : '' }}" onclick="switchMode('shift')">
+                        <button type="button" class="mode-tab {{ (!empty($filters['shift_id']) || ($filters['mode'] ?? '') === 'shift') ? 'active' : '' }}" onclick="switchMode('shift')">
                             <i class="fa-solid fa-clock-rotate-left me-1"></i> By Shift
                         </button>
                     </div>
                     @endif
 
                     <form action="{{ request()->routeIs('admin.*') ? route('admin.shift-sales') : route('frontdesk.shift-sales') }}" method="GET" id="reportForm">
+                        <input type="hidden" name="mode" id="reportModeInput" value="{{ $filters['mode'] ?? ( !empty($filters['shift_id']) ? 'shift' : 'date' ) }}">
 
                         {{-- ============ DATE RANGE MODE ============ --}}
                         {{-- ============ DATE RANGE MODE ============ --}}
                         {{-- ============ DATE RANGE MODE ============ --}}
-                        <div id="datePanel" class="filter-panel {{ !$isAdmin || empty($filters['shift_id']) ? 'active' : '' }}">
+                        <div id="datePanel" class="filter-panel {{ !$isAdmin || (empty($filters['shift_id']) && ($filters['mode'] ?? '') !== 'shift') ? 'active' : '' }}">
 
                             {{-- Charge Code Range --}}
                             <div class="row mb-3 align-items-center">
@@ -200,7 +201,7 @@
 
                         {{-- ============ SHIFT SELECTOR MODE ============ --}}
                         @if($isAdmin)
-                        <div id="shiftPanel" class="filter-panel {{ !empty($filters['shift_id']) ? 'active' : '' }}">
+                        <div id="shiftPanel" class="filter-panel {{ (!empty($filters['shift_id']) || ($filters['mode'] ?? '') === 'shift') ? 'active' : '' }}">
                             <div class="row mb-2 align-items-center">
                                 <div class="col-md-3">
                                     <label class="form-label fw-semibold">Select Shift</label>
@@ -251,7 +252,7 @@
                                 </button>
                             @endif
                             @if($hasSearched)
-                                <a href="{{ request()->routeIs('admin.*') ? route('admin.shift-sales') : route('frontdesk.shift-sales') }}"
+                                <a href="{{ request()->routeIs('admin.*') ? route('admin.shift-sales') : route('frontdesk.shift-sales') }}{{ (!empty($filters['shift_id']) || ($filters['mode'] ?? '') === 'shift') ? '?mode=shift' : '' }}"
                                    class="btn btn-outline-secondary">
                                     <i class="fa-solid fa-xmark me-1"></i> Clear
                                 </a>
@@ -771,6 +772,11 @@
         }
         if (tabs.length) {
             tabs.forEach((t, i) => t.classList.toggle('active', (i === 0) === isDate));
+        }
+
+        const modeInput = document.getElementById('reportModeInput');
+        if (modeInput) {
+            modeInput.value = mode;
         }
 
         // Clear fields from the inactive panel

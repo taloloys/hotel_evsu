@@ -577,6 +577,7 @@
             `).join('')
             : `<tr><td colspan="3" class="text-center text-muted">No items</td></tr>`;
 
+        receiptEl.dataset.orderNumber = order.order_number || '';
         receiptEl.innerHTML = `
         <div class="receipt">
 
@@ -1348,14 +1349,17 @@
     });
 
     window.printReceipt = function () {
-        const content = document.getElementById('receipt-content').innerHTML;
+        const receiptEl = document.getElementById('receipt-content');
+        const content   = receiptEl.innerHTML;
+        const orderNum  = receiptEl.dataset.orderNumber || '';
+        const fileName  = orderNum ? `Receipt-${orderNum}` : `Receipt-${new Date().toISOString().slice(0,10)}`;
 
         const win = window.open('', '', 'width=400,height=600');
 
         win.document.write(`
             <html>
             <head>
-                <title>Receipt</title>
+                <title>${fileName}</title>
                 <style>
                     body {
                         font-family: Arial;
