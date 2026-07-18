@@ -8,6 +8,7 @@ use App\Models\PosApprovalRequest;
 use App\Models\PosProduct;
 use App\Models\Room;
 use App\Models\Shift;
+use App\Services\BackupSettingsService;
 use Carbon\Carbon;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\Schema;
@@ -117,6 +118,19 @@ class LayoutDataController extends Controller
                     'message' => "POS {$typeLabel}: {$detail} requires authorization.",
                     'link' => route('admin.pos-approvals'),
                     'time' => $req->created_at->diffForHumans(),
+                ];
+            }
+
+            // Backup Failure Alert
+            $backupSettings = BackupSettingsService::get();
+            if ($backupSettings['last_backup_failed'] ?? false) {
+                $notifications[] = [
+                    'id' => 'backup-failed-alert',
+                    'type' => 'system_alert',
+                    'icon' => 'fa-triangle-exclamation text-danger',
+                    'message' => 'Automatic Database Backup Failed! Check logs and configuration.',
+                    'link' => route('admin.backup-restore'),
+                    'time' => 'Urgent',
                 ];
             }
         }

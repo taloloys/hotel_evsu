@@ -43,6 +43,9 @@ class AutoBackupCommand extends Command
                 $this->error("Failed to create backup directory: {$folder}");
                 Log::error("Automatic backup failed: Unable to create backup directory {$folder}");
 
+                $settings['last_backup_failed'] = true;
+                BackupSettingsService::set($settings);
+
                 return 1;
             }
         }
@@ -63,6 +66,9 @@ class AutoBackupCommand extends Command
                 if (! file_exists($dbPath) || ! @copy($dbPath, $sqlFilepath)) {
                     $this->error('Backup failed: SQLite database file not found or not copyable.');
                     Log::error('Automatic backup failed: SQLite database file not found or not copyable.');
+
+                    $settings['last_backup_failed'] = true;
+                    BackupSettingsService::set($settings);
 
                     return 1;
                 }
@@ -97,6 +103,9 @@ class AutoBackupCommand extends Command
                 Log::error("Automatic backup failed: {$errorDetail}");
                 @unlink($sqlFilepath);
 
+                $settings['last_backup_failed'] = true;
+                BackupSettingsService::set($settings);
+
                 return 1;
             }
         }
@@ -112,11 +121,17 @@ class AutoBackupCommand extends Command
             Log::error("Automatic backup failed: Unable to create ZIP file at {$zipFilepath}");
             @unlink($sqlFilepath);
 
+            $settings['last_backup_failed'] = true;
+            BackupSettingsService::set($settings);
+
             return 1;
         }
 
         $this->info("Backup created successfully at: {$zipFilepath}");
         Log::info("Automatic database backup created successfully: {$zipFilename}");
+
+        $settings['last_backup_failed'] = false;
+        BackupSettingsService::set($settings);
 
         $this->call('db:clean-backups');
 
