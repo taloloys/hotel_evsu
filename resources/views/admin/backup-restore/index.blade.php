@@ -419,14 +419,14 @@
 
                             <div class="mb-3">
                                 <label for="auto_backup_folder" class="form-label fw-semibold small">Server save folder</label>
-                                <select class="form-select" id="auto_backup_folder" name="folder" required>
+                                <input type="text" class="form-control" id="auto_backup_folder" name="folder" list="folderPresetsList" required
+                                       value="{{ $settings['folder'] ?? storage_path('backups') }}"
+                                       placeholder="e.g. D:\Backups or C:\Hotel\Backups">
+                                <datalist id="folderPresetsList">
                                     @foreach($folderPresets as $preset)
-                                        <option value="{{ $preset['path'] }}"
-                                            {{ ($settings['folder'] ?? storage_path('backups')) === $preset['path'] ? 'selected' : '' }}>
-                                            {{ $preset['label'] }}
-                                        </option>
+                                        <option value="{{ $preset['path'] }}">{{ $preset['label'] }}</option>
                                     @endforeach
-                                </select>
+                                </datalist>
                                 <div class="server-note mt-2">
                                     <i class="fa-solid fa-server me-1"></i>
                                     Auto backups save on the <strong>server</strong>, not your computer. Use "Save Backup" above to save to your PC.
@@ -671,13 +671,12 @@
             function confirmSaveSettings() {
                 const isEnabled = document.getElementById('auto_backup_enabled').checked;
                 const time = document.getElementById('auto_backup_time').value;
-                const folderSelect = document.getElementById('auto_backup_folder');
-                const folderLabel = folderSelect.options[folderSelect.selectedIndex].text;
+                const folderValue = document.getElementById('auto_backup_folder').value;
 
                 Swal.fire({
                     title: 'Save Settings?',
                     html: isEnabled
-                        ? `Enable daily backup at <strong>${time}</strong><br>Server folder: <strong>${folderLabel}</strong>`
+                        ? `Enable daily backup at <strong>${time}</strong><br>Server folder: <strong>${folderValue}</strong>`
                         : 'Disable automatic daily backups?',
                     icon: 'question',
                     showCancelButton: true,
