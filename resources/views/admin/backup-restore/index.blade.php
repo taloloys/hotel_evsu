@@ -419,14 +419,24 @@
 
                             <div class="mb-3">
                                 <label for="auto_backup_folder" class="form-label fw-semibold small">Server save folder</label>
-                                <input type="text" class="form-control" id="auto_backup_folder" name="folder" list="folderPresetsList" required
-                                       value="{{ $settings['folder'] ?? storage_path('backups') }}"
-                                       placeholder="e.g. D:\Backups or C:\Hotel\Backups">
-                                <datalist id="folderPresetsList">
+                                @php
+                                    $currentFolder = $settings['folder'] ?? storage_path('backups');
+                                    $isCustom = !collect($folderPresets)->pluck('path')->contains($currentFolder);
+                                @endphp
+                                <select class="form-select" id="folder_select" onchange="handleFolderSelect()">
                                     @foreach($folderPresets as $preset)
-                                        <option value="{{ $preset['path'] }}">{{ $preset['label'] }}</option>
+                                        <option value="{{ $preset['path'] }}" {{ !$isCustom && $currentFolder === $preset['path'] ? 'selected' : '' }}>
+                                            {{ $preset['label'] }}
+                                        </option>
                                     @endforeach
-                                </datalist>
+                                    <option value="custom" {{ $isCustom ? 'selected' : '' }}>Custom Directory...</option>
+                                </select>
+                                
+                                <div id="custom_folder_container" class="mt-2" style="display: {{ $isCustom ? 'block' : 'none' }};">
+                                    <input type="text" class="form-control" id="auto_backup_folder" name="folder" 
+                                           value="{{ $currentFolder }}"
+                                           placeholder="e.g. D:\Backups or C:\Hotel\Backups" required>
+                                </div>
                                 <div class="server-note mt-2">
                                     <i class="fa-solid fa-server me-1"></i>
                                     Auto backups save on the <strong>server</strong>, not your computer. Use "Save Backup" above to save to your PC.
@@ -547,6 +557,21 @@
                 const enabled = document.getElementById('auto_backup_enabled').checked;
                 document.getElementById('settings-panel').classList.toggle('is-disabled', !enabled);
                 document.getElementById('auto-toggle-card').classList.toggle('disabled-state', !enabled);
+            }
+
+            function handleFolderSelect() {
+                const select = document.getElementById('folder_select');
+                const customContainer = document.getElementById('custom_folder_container');
+                const folderInput = document.getElementById('auto_backup_folder');
+                
+                if (select.value === 'custom') {
+                    customContainer.style.display = 'block';
+                    folderInput.value = ''; // clear or leave previous custom value
+                    folderInput.focus();
+                } else {
+                    customContainer.style.display = 'none';
+                    folderInput.value = select.value;
+                }
             }
 
             function confirmSaveBackup() {
