@@ -163,9 +163,14 @@
 
                 <div class="card-body">
 
-                    <div class="search-container">
-                        <i class="fa-solid fa-magnifying-glass search-icon"></i>
-                        <input type="text" id="role-search" class="form-control search-input" placeholder="Search roles...">
+                    <div class="d-flex gap-2 mb-3">
+                        <div class="search-container flex-grow-1 mb-0">
+                            <i class="fa-solid fa-magnifying-glass search-icon"></i>
+                            <input type="text" id="role-search" class="form-control search-input" placeholder="Search roles...">
+                        </div>
+                        <a href="{{ route('admin.roles') }}" class="btn btn-primary text-nowrap d-flex align-items-center" title="Add Role">
+                            <i class="fa-solid fa-plus me-1"></i> Add Role
+                        </a>
                     </div>
 
                     <div class="dashboard-list-scroll">
@@ -197,13 +202,6 @@
 
                 </div>
 
-                <div class="card-footer bg-white border-0 pt-0">
-                    <a href="{{ route('admin.roles') }}" class="btn btn-primary w-100">
-                        <i class="fa-solid fa-plus me-2"></i>
-                        Add Role
-                    </a>
-                </div>
-
             </div>
 
         </div>
@@ -219,10 +217,15 @@
 
                 <div class="card-body">
 
-                    <div class="search-container">
-                        <i class="fa-solid fa-magnifying-glass search-icon"></i>
-                        <input type="text" id="permission-search" class="form-control search-input"
-                            placeholder="Search permissions...">
+                    <div class="d-flex gap-2 mb-3">
+                        <div class="search-container flex-grow-1 mb-0">
+                            <i class="fa-solid fa-magnifying-glass search-icon"></i>
+                            <input type="text" id="permission-search" class="form-control search-input"
+                                placeholder="Search permissions...">
+                        </div>
+                        <a href="{{ route('admin.permissions') }}" class="btn btn-warning text-dark text-nowrap d-flex align-items-center" title="Add Permission">
+                            <i class="fa-solid fa-plus me-1"></i> Add Permission
+                        </a>
                     </div>
 
                     <div class="dashboard-list-scroll">
@@ -243,13 +246,6 @@
 
                 </div>
 
-                <div class="card-footer bg-white border-0 pt-0">
-                    <a href="{{ route('admin.permissions') }}" class="btn btn-warning w-100 text-dark">
-                        <i class="fa-solid fa-plus me-2"></i>
-                        Add Permission
-                    </a>
-                </div>
-
             </div>
 
         </div>
@@ -265,9 +261,14 @@
 
                 <div class="card-body">
 
-                    <div class="search-container">
-                        <i class="fa-solid fa-magnifying-glass search-icon"></i>
-                        <input type="text" id="user-search" class="form-control search-input" placeholder="Search users...">
+                    <div class="d-flex gap-2 mb-3">
+                        <div class="search-container flex-grow-1 mb-0">
+                            <i class="fa-solid fa-magnifying-glass search-icon"></i>
+                            <input type="text" id="user-search" class="form-control search-input" placeholder="Search users...">
+                        </div>
+                        <a href="{{ route('admin.users') }}" class="btn btn-success text-nowrap d-flex align-items-center" title="Assign Role">
+                            <i class="fa-solid fa-user-plus me-1"></i> Assign Role
+                        </a>
                     </div>
 
                     <div class="dashboard-list-scroll">
@@ -305,13 +306,6 @@
                         </div>
                     </div>
 
-                </div>
-
-                <div class="card-footer bg-white border-0 pt-0">
-                    <a href="{{ route('admin.users') }}" class="btn btn-success w-100">
-                        <i class="fa-solid fa-user-plus me-2"></i>
-                        Assign Role
-                    </a>
                 </div>
 
             </div>

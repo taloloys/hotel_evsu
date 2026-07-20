@@ -167,6 +167,7 @@
                         <th>Type</th>
                         <th>Description</th>
                         <th>Guest</th>
+                        <th>Posted By</th>
                         <th>Status</th>
                         <th class="text-end">Amount</th>
                     </tr>
@@ -179,9 +180,9 @@
                             <td>{{ $tx->charge_number ?? 'TX-' . $tx->transaction_id }}</td>
                             <td>
                                 @if($tx->credit_amount > 0)
-                                    <span class="badge bg-success">Payment</span>
+                                    <span class="badge bg-success"><i class="fa-solid fa-arrow-down me-1"></i>Payment</span>
                                 @else
-                                    <span class="badge bg-primary">Charge</span>
+                                    <span class="badge bg-primary"><i class="fa-solid fa-file-invoice me-1"></i>Charge</span>
                                 @endif
                             </td>
                             <td>{{ $tx->chargeCode->description ?? $tx->reference_notes }}</td>
@@ -192,6 +193,7 @@
                                     <span class="text-muted">Non-guest</span>
                                 @endif
                             </td>
+                            <td class="small text-muted">{{ $tx->user?->full_name ?? 'System' }}</td>
                             <td><span class="badge bg-success">Posted</span></td>
                             <td class="text-end fw-bold {{ $tx->credit_amount > 0 ? 'text-success' : '' }}">
                                 @if($tx->credit_amount > 0)
@@ -203,7 +205,7 @@
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="6" class="text-center text-muted">No recent transactions found.</td>
+                            <td colspan="7" class="text-center text-muted">No recent transactions found.</td>
                         </tr>
                     @endforelse
 

@@ -22,7 +22,7 @@ class BillingController extends Controller
         $statusFilter = $request->input('status', 'ALL');
         $search = $request->input('search');
 
-        $dateRange = $request->input('date_range', 'today'); // 'specific', 'today', 'weekly', 'monthly', 'yearly', 'all'
+        $dateRange = $request->input('date_range', 'all'); // 'specific', 'today', 'weekly', 'monthly', 'yearly', 'all'
         $date = $request->input('date', Carbon::today()->toDateString());
 
         $startDate = null;
@@ -65,12 +65,12 @@ class BillingController extends Controller
 
             $txQuery = Transaction::where('department', 'COFFEE_SHOP');
             if ($startDate) {
-                $txQuery->whereBetween('transaction_date', [$startDate->toDateString(), $endDate->toDateString()]);
+                $txQuery->whereBetween('timestamp', [$startDate, $endDate]);
             }
 
-            $cashSales = (float) (clone $txQuery)->where('payment_method', 'CASH')->sum('credit_amount');
-            $creditSales = (float) (clone $txQuery)->where('payment_method', 'CREDIT_CARD')->sum('credit_amount');
-            $totalSales = $cashSales + $creditSales;
+            $cashSales = (float) (clone $txQuery)->whereIn('payment_method', ['CASH', 'cash'])->sum('credit_amount');
+            $creditSales = (float) (clone $txQuery)->whereIn('payment_method', ['CREDIT_CARD', 'card', 'GCASH', 'gcash'])->sum('credit_amount');
+            $totalSales = (float) PosOrder::where('status', 'closed')->sum('total');
 
             $unpaidBalance = PosOrder::whereIn('status', ['open', 'active'])->sum('total');
 
@@ -108,7 +108,7 @@ class BillingController extends Controller
         if ($startDate) {
             $query->where(function ($q) use ($startDate, $endDate) {
                 $q->whereHas('transactions', function ($tQ) use ($startDate, $endDate) {
-                    $tQ->whereBetween('transaction_date', [$startDate->toDateString(), $endDate->toDateString()]);
+                    $tQ->whereBetween('timestamp', [$startDate, $endDate]);
                 })->orWhereHas('bookings', function ($bQ) use ($startDate, $endDate) {
                     $bQ->whereDate('arrival_date', '<=', $endDate->toDateString())
                         ->whereDate('departure_date', '>=', $startDate->toDateString());
@@ -139,19 +139,17 @@ class BillingController extends Controller
                 $displayStatus = 'Unpaid';
             }
 
-            return clone current([
-                (object) [
-                    'folio_id' => $folio->folio_id,
-                    'folio_number' => $folio->folio_number,
-                    'guest_name' => $folio->guest ? trim($folio->guest->first_name.' '.$folio->guest->last_name) : 'No Guest',
-                    'room_number' => $folio->bookings->first() && $folio->bookings->first()->room ? $folio->bookings->first()->room->room_number : 'N/A',
-                    'date' => $folio->bookings->first() ? $folio->bookings->first()->arrival_date->toDateString() : 'N/A',
-                    'display_status' => $displayStatus,
-                    'total_amount' => $totalCharges,
-                    'balance' => $balance,
-                    'status' => $folio->status,
-                ],
-            ]);
+            return (object) [
+                'folio_id' => $folio->folio_id,
+                'folio_number' => $folio->folio_number,
+                'guest_name' => $folio->guest ? trim($folio->guest->first_name.' '.$folio->guest->last_name) : 'No Guest',
+                'room_number' => $folio->bookings->first() && $folio->bookings->first()->room ? $folio->bookings->first()->room->room_number : 'N/A',
+                'date' => $folio->bookings->first() ? $folio->bookings->first()->arrival_date->toDateString() : 'N/A',
+                'display_status' => $displayStatus,
+                'total_amount' => $totalCharges,
+                'balance' => $balance,
+                'status' => $folio->status,
+            ];
         });
 
         $foliosPaginator->setCollection($folios);
@@ -166,12 +164,14 @@ class BillingController extends Controller
 
         $txQuery = Transaction::where('department', 'FRONT_DESK');
         if ($startDate) {
-            $txQuery->whereBetween('transaction_date', [$startDate->toDateString(), $endDate->toDateString()]);
+            $txQuery->whereBetween('timestamp', [$startDate, $endDate]);
         }
 
-        $cashSales = (float) (clone $txQuery)->where('payment_method', 'CASH')->sum('credit_amount');
-        $creditSales = (float) (clone $txQuery)->where('payment_method', 'CREDIT_CARD')->sum('credit_amount');
-        $totalSales = $cashSales + $creditSales;
+        $cashSales = (float) (clone $txQuery)->whereIn('payment_method', ['CASH', 'cash'])->sum('credit_amount');
+        $creditSales = (float) (clone $txQuery)->whereIn('payment_method', ['CREDIT_CARD', 'card', 'GCASH', 'gcash'])->sum('credit_amount');
+        $totalCharges = (float) (clone $txQuery)->sum('charge_amount');
+        $totalCredits = (float) (clone $txQuery)->sum('credit_amount');
+        $totalSales = max($totalCharges, $totalCredits, $cashSales + $creditSales);
 
         // Exclude walk-in folio balance if any (should be 0 anyway, but to be strict)
         $unpaidBalanceQuery = Folio::where('status', 'OPEN');

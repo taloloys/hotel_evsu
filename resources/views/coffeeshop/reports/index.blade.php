@@ -80,12 +80,13 @@
             </div>
         </div>
 
-        <!-- EXPORT CSV — passes current query string so export always respects the active date/payment filter -->
+        <!-- EXPORT EXCEL -->
         <a href="{{ route('coffeeshop.reports.export', request()->query()) }}"
-           class="btn btn-success d-flex align-items-center gap-1 px-3"
-           style="height: 38px; border-radius: 4px;">
-            <i class="fa-solid fa-file-export"></i>
-            <span>Export CSV</span>
+           class="btn btn-success d-flex align-items-center gap-2 px-3 fw-semibold"
+           style="height: 45px; border-radius: 6px; font-size: 1.05rem;"
+           title="Export filtered sales report to Excel spreadsheet">
+            <i class="fa-solid fa-file-excel me-1"></i>
+            <span>Export Excel</span>
         </a>
 
     </form>

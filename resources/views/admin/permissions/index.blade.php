@@ -45,17 +45,54 @@
 
 </div>
 
-<!-- HEADER -->
-<div class="d-flex justify-content-between align-items-center mb-4">
+{{-- KPI CARDS --}}
+<div class="row g-3 mb-4">
+    <div class="col-md-4">
+        <div class="card border-0 shadow-sm">
+            <div class="card-body d-flex align-items-center justify-content-between">
+                <div>
+                    <div class="text-muted small">Total Permissions</div>
+                    <div class="fs-4 fw-bold text-brown">{{ $permissions->count() }}</div>
+                </div>
+                <div class="rounded-circle bg-warning-subtle p-3 text-warning"><i class="fa-solid fa-key fs-4"></i></div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card border-0 shadow-sm">
+            <div class="card-body d-flex align-items-center justify-content-between">
+                <div>
+                    <div class="text-muted small">Active Permissions</div>
+                    <div class="fs-4 fw-bold text-success">{{ $permissions->where('is_active', true)->count() }}</div>
+                </div>
+                <div class="rounded-circle bg-success-subtle p-3 text-success"><i class="fa-solid fa-circle-check fs-4"></i></div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card border-0 shadow-sm">
+            <div class="card-body d-flex align-items-center justify-content-between">
+                <div>
+                    <div class="text-muted small">Disabled Permissions</div>
+                    <div class="fs-4 fw-bold text-secondary">{{ $permissions->where('is_active', false)->count() }}</div>
+                </div>
+                <div class="rounded-circle bg-secondary-subtle p-3 text-secondary"><i class="fa-solid fa-ban fs-4"></i></div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{{-- TOOLBAR ROW --}}
+<div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
 
     <div>
         <h5 class="fw-bold mb-0">Permissions</h5>
         <small class="text-muted">Manage access rights for hotel staff roles</small>
     </div>
 
-    <button class="btn btn-warning text-dark" data-bs-toggle="modal" data-bs-target="#addPermissionModal">
-        <i class="fa-solid fa-plus me-1"></i>
-        Add Permission
+    <button class="btn btn-warning text-dark d-flex align-items-center gap-2 px-3 text-nowrap" data-bs-toggle="modal" data-bs-target="#addPermissionModal" style="height: 45px; border-radius: 6px; font-size: 1.05rem;">
+        <i class="fa-solid fa-plus fs-5"></i>
+        <span>Add Permission</span>
     </button>
 
 </div>

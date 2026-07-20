@@ -41,7 +41,7 @@ class ReceivableController extends Controller
         $allReceivables = $allFolios->map(function ($folio) use ($now) {
             $balance = $folio->balance;
             $arrivalDate = $folio->bookings->first() ? Carbon::parse($folio->bookings->first()->arrival_date) : $now;
-            $daysOld = $now->diffInDays($arrivalDate);
+            $daysOld = $now->greaterThan($arrivalDate) ? (int) $now->diffInDays($arrivalDate) : 0;
 
             if ($daysOld <= 30) {
                 $status = 'Current';
@@ -71,7 +71,7 @@ class ReceivableController extends Controller
 
             // Age is based on the arrival date of the first booking or the creation date
             $arrivalDate = $folio->bookings->first() ? Carbon::parse($folio->bookings->first()->arrival_date) : $now;
-            $daysOld = $now->diffInDays($arrivalDate);
+            $daysOld = $now->greaterThan($arrivalDate) ? (int) $now->diffInDays($arrivalDate) : 0;
 
             // Determine status based on age
             if ($daysOld <= 30) {
@@ -87,7 +87,7 @@ class ReceivableController extends Controller
                 'folio_number' => $folio->folio_number,
                 'guest_name' => $folio->guest ? trim($folio->guest->first_name.' '.$folio->guest->last_name) : 'No Guest',
                 'room_number' => $folio->bookings->first() && $folio->bookings->first()->room ? $folio->bookings->first()->room->room_number : 'N/A',
-                'due_date' => $arrivalDate->addDays(30)->toDateString(), // 30 days due
+                'due_date' => $arrivalDate->addDays(30)->toDateString(),
                 'days_old' => $daysOld,
                 'status' => $status,
                 'balance' => $balance,

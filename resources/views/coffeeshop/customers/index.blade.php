@@ -153,6 +153,9 @@
 
                                         <tr>
                                             <td class="ps-3 fw-semibold">
+                                                @if(Str::contains(strtolower($customer->customer_name), 'room'))
+                                                    <span class="badge bg-primary-subtle text-primary border border-primary-subtle me-1" title="Hotel Guest Charge"><i class="fa-solid fa-hotel me-1"></i>Guest</span>
+                                                @endif
                                                 {{ $customer->customer_name }}
                                             </td>
 

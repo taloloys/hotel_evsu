@@ -31,35 +31,72 @@
     @endif
 </div>
 
-<!-- HEADER -->
-<div class="d-flex justify-content-between align-items-center mb-3">
+<!-- KPI SUMMARY CARDS -->
+<div class="row g-3 mb-4">
+    <div class="col-md-4">
+        <div class="card border-0 shadow-sm">
+            <div class="card-body d-flex align-items-center justify-content-between">
+                <div>
+                    <div class="text-muted small">Total Accounts</div>
+                    <div class="fs-4 fw-bold text-brown">{{ $accounts->count() }}</div>
+                </div>
+                <div class="rounded-circle bg-primary-subtle p-3 text-primary"><i class="fa-solid fa-building-user fs-4"></i></div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card border-0 shadow-sm">
+            <div class="card-body d-flex align-items-center justify-content-between">
+                <div>
+                    <div class="text-muted small">Total Credit Limit</div>
+                    <div class="fs-4 fw-bold text-success">₱{{ number_format($accounts->sum('credit_limit'), 2) }}</div>
+                </div>
+                <div class="rounded-circle bg-success-subtle p-3 text-success"><i class="fa-solid fa-credit-card fs-4"></i></div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card border-0 shadow-sm">
+            <div class="card-body d-flex align-items-center justify-content-between">
+                <div>
+                    <div class="text-muted small">Outstanding Balance</div>
+                    <div class="fs-4 fw-bold text-danger">₱{{ number_format($accounts->sum('current_balance'), 2) }}</div>
+                </div>
+                <div class="rounded-circle bg-danger-subtle p-3 text-danger"><i class="fa-solid fa-file-invoice-dollar fs-4"></i></div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- HEADER & TOOLBAR -->
+<div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
     <div>
         <h5 class="fw-bold mb-0">Credit Accounts</h5>
-        <small class="text-muted">View and create credit accounts for billing</small>
+        <small class="text-muted">View and create corporate and VIP credit accounts for billing</small>
     </div>
-    <div class="d-flex justify-content-end align-items-center gap-2">
+    <div class="d-flex justify-content-end align-items-center gap-2 flex-wrap">
 
         <!-- SEARCH -->
-        <div style="width: 300px;">
-            <div class="input-group"
-                 style="border: 1px solid #000000; border-radius: 6px; overflow: hidden; height: 38px;">
-                <span class="input-group-text bg-white border-0">
-                    <i class="fa-solid fa-magnifying-glass text-muted"></i>
+        <div style="width: 320px;">
+            <div class="input-group" style="border: 1px solid black; border-radius: 6px; height: 45px;">
+                <span class="input-group-text bg-white border-0 px-3">
+                    <i class="fa-solid fa-magnifying-glass text-muted fs-5"></i>
                 </span>
                 <input type="text"
                        id="creditSearchInput"
-                       class="form-control border-0 shadow-none"
+                       class="form-control border-0 shadow-none py-2"
                        placeholder="Search account or contact..."
-                       autocomplete="off">
+                       autocomplete="off"
+                       style="font-size: 1.05rem;">
             </div>
         </div>
 
         <!-- FILTER -->
         <div class="dropdown">
-            <button class="btn btn-outline-secondary d-flex align-items-center gap-1 px-3"
+            <button class="btn btn-outline-dark d-flex align-items-center gap-2 px-3"
                     data-bs-toggle="dropdown"
-                    style="height: 38px; border-radius: 6px;">
-                <i class="fa-solid fa-filter"></i>
+                    style="height: 45px; border-radius: 6px; border: 1px solid black; font-size: 1.05rem;">
+                <i class="fa-solid fa-filter fs-5"></i>
                 <span>Filter</span>
             </button>
             <div class="dropdown-menu dropdown-menu-end p-3 shadow-sm"
@@ -78,11 +115,11 @@
         </div>
 
         <button id="add-account-btn"
-                class="btn btn-primary d-flex align-items-center gap-2 px-3"
-                style="height: 38px; border-radius: 6px;"
+                class="btn btn-primary d-flex align-items-center gap-2 px-3 text-nowrap"
+                style="height: 45px; border-radius: 6px; font-size: 1.05rem;"
                 data-bs-toggle="modal"
-                data-bs-target="#addAccountModal">
-            <i class="fa-solid fa-plus"></i>
+                data-bs-target="#createAccountModal">
+            <i class="fa-solid fa-plus fs-5"></i>
             <span>Add Account</span>
         </button>
     </div>

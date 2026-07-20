@@ -80,8 +80,8 @@
                                 <img src="{{ $product->image_url }}" class="w-100 h-100" style="object-fit: cover;" alt="{{ $product->name }}">
                             </div>
                         @else
-                            <div class="mb-3 rounded w-100 bg-light d-flex align-items-center justify-content-center" style="height: 120px;">
-                                <i class="fa-solid fa-image fa-2x text-secondary opacity-50"></i>
+                            <div class="mb-3 rounded-3 w-100 d-flex align-items-center justify-content-center border" style="height: 120px; background: linear-gradient(135deg, #fbf7f2 0%, #f4eae0 100%);">
+                                <i class="fa-solid fa-mug-hot fa-2x" style="color: #a97142; opacity: 0.6;"></i>
                             </div>
                         @endif
 
@@ -584,6 +584,21 @@ window.posConfig = {
     },
     initialTabs: @json($openTabs->map(fn($tab) => app(\App\Services\Coffeeshop\PosTabService::class)->formatTab($tab)))
 };
+
+document.addEventListener('DOMContentLoaded', function() {
+    document.querySelectorAll('.pairing-btn').forEach(btn => {
+        btn.addEventListener('click', function() {
+            const rawItems = this.getAttribute('data-items');
+            if (!rawItems) return;
+            const firstItem = rawItems.split(',')[0].trim();
+            const searchInput = document.getElementById('product-search');
+            if (searchInput) {
+                searchInput.value = firstItem;
+                searchInput.dispatchEvent(new Event('input', { bubbles: true }));
+            }
+        });
+    });
+});
 </script>
 <script src="{{ asset('js/coffeeshop/pos-terminal.js') }}"></script>
 @endpush

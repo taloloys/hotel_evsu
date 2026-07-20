@@ -130,13 +130,13 @@
         }
 
         .native-action-btn.warning {
-            background: linear-gradient(180deg, #ffc107 0%, #e6a800 100%);
-            border-color: #cc9600;
-            color: #333;
+            background: linear-gradient(180deg, #dc3545 0%, #b02a37 100%);
+            border-color: #a52834;
+            color: #fff;
         }
 
         .native-action-btn.warning:hover {
-            background: linear-gradient(180deg, #ffd040 0%, #d99a00 100%);
+            background: linear-gradient(180deg, #bb2d3b 0%, #842029 100%);
         }
 
         .native-hint {

@@ -156,9 +156,13 @@
                         <td>{{ $p->charge_number }}</td>
                         <td>
                             @if($p->folio && $p->folio->guest)
+                                @if(Str::contains(strtolower($p->folio->guest->first_name . ' ' . $p->folio->guest->last_name), 'walk-in') || Str::contains(strtolower($p->folio->guest->first_name), 'pos'))
+                                    <span class="badge bg-light text-secondary border me-1"><i class="fa-solid fa-user-tag me-1"></i>Walk-in</span>
+                                @endif
                                 {{ $p->folio->guest->first_name }} {{ $p->folio->guest->last_name }}
                             @else
-                                <span class="text-muted">Walk-in / General</span>
+                                <span class="badge bg-light text-secondary border me-1"><i class="fa-solid fa-user-tag me-1"></i>Walk-in</span>
+                                <span class="text-muted">General Walk-in</span>
                             @endif
                         </td>
                         <td>
@@ -166,8 +170,10 @@
                                 <span class="badge bg-success">Cash</span>
                             @elseif($p->payment_method === 'CREDIT_CARD')
                                 <span class="badge bg-primary">Card</span>
+                            @elseif($p->payment_method === 'ACCOUNT_CHARGE')
+                                <span class="badge bg-info text-white">Account Charge</span>
                             @else
-                                <span class="badge bg-warning text-dark">{{ $p->payment_method }}</span>
+                                <span class="badge bg-secondary">{{ $p->payment_method }}</span>
                             @endif
                         </td>
                         <td>{{ $p->transaction_date->toDateString() }}</td>

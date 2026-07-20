@@ -16,7 +16,7 @@ class ExpenseController extends Controller
     {
         $search = $request->input('search');
         $departmentFilter = $request->input('department');
-        $periodFilter = $request->input('period', 'Today');
+        $periodFilter = $request->input('period', 'All Time');
         $user = auth()->user();
 
         $query = Expense::with('user')

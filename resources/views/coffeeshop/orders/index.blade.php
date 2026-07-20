@@ -47,9 +47,11 @@
     <div class="p-3 p-lg-4">
         <div class="d-flex justify-content-end mb-3">
             <form method="GET">
-                <div class="input-group coffeeshop-form-control" style="width: 450px; border: 1px solid black; border-radius: 4px;">
-                    <span class="input-group-text bg-white border-0"><i class="fa-solid fa-magnifying-glass text-muted"></i></span>
-                    <input type="text" name="search" value="{{ request('search') }}" class="form-control border-0" placeholder="Search orders..." onkeydown="if(event.key==='Enter'){ event.preventDefault(); if(this.form.requestSubmit){ this.form.requestSubmit(); }else{ this.form.submit(); } }">
+                <div style="width: 320px;">
+                    <div class="input-group coffeeshop-form-control" style="border: 1px solid black; border-radius: 6px; height: 45px;">
+                        <span class="input-group-text bg-white border-0 px-3"><i class="fa-solid fa-magnifying-glass text-muted fs-5"></i></span>
+                        <input type="text" name="search" value="{{ request('search') }}" class="form-control border-0 shadow-none py-2" placeholder="Search orders..." autocomplete="off" style="font-size: 1.05rem;" onkeydown="if(event.key==='Enter'){ event.preventDefault(); if(this.form.requestSubmit){ this.form.requestSubmit(); }else{ this.form.submit(); } }">
+                    </div>
                 </div>
             </form>
         </div>

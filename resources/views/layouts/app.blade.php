@@ -387,6 +387,94 @@
         .checkout-action-btn.btn-outline-danger {
             font-weight: 600;
         }
+
+        /* =========================================================
+           FRONTDESK UNIFIED DESIGN SYSTEM
+           ========================================================= */
+        .badge-status {
+            display: inline-flex;
+            align-items: center;
+            padding: 0.35rem 0.65rem;
+            font-size: 0.76rem;
+            font-weight: 600;
+            border-radius: 6px;
+            letter-spacing: 0.03em;
+            line-height: 1.2;
+            text-transform: uppercase;
+        }
+
+        .badge-status-checkedin { background-color: #dbeafe; color: #1e40af; border: 1px solid #bfdbfe; }
+        .badge-status-reserved { background-color: #fef3c7; color: #92400e; border: 1px solid #fde68a; }
+        .badge-status-open { background-color: #d1fae5; color: #065f46; border: 1px solid #a7f3d0; }
+        .badge-status-available { background-color: #dcfce7; color: #166534; border: 1px solid #bbf7d0; }
+        .badge-status-cleaning { background-color: #ffedd5; color: #9a3412; border: 1px solid #fed7aa; }
+        .badge-status-maintenance { background-color: #f3f4f6; color: #374151; border: 1px solid #e5e7eb; }
+        .badge-status-occupied { background-color: #e0e7ff; color: #3730a3; border: 1px solid #c7d2fe; }
+        .badge-status-closed { background-color: #e5e7eb; color: #1f2937; border: 1px solid #d1d5db; }
+        .badge-status-active { background-color: #ccfbf1; color: #115e59; border: 1px solid #99f6e4; }
+
+        .fd-toolbar {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            flex-wrap: wrap;
+        }
+
+        .fd-search {
+            height: 45px;
+            width: 320px;
+            border: 1px solid #000;
+            border-radius: 6px;
+            overflow: hidden;
+            background: #fff;
+        }
+
+        .fd-search .input-group-text,
+        .fd-search .form-control {
+            height: 100%;
+            border: 0;
+            box-shadow: none;
+            background: #fff;
+        }
+
+        .fd-select {
+            height: 45px;
+            border: 1px solid #000 !important;
+            border-radius: 6px;
+            box-shadow: none !important;
+            font-size: 0.95rem;
+        }
+
+        .fd-filter-btn {
+            height: 45px;
+            border-radius: 6px;
+            border: 1px solid #000;
+            font-size: 0.95rem;
+        }
+
+        .fd-static-field {
+            height: 45px;
+            display: flex;
+            align-items: center;
+            padding: 0 1rem;
+            background-color: #f8fafc;
+            border: 1px solid #cbd5e1;
+            border-radius: 6px;
+            color: #334155;
+            font-weight: 500;
+        }
+
+        .fd-empty-state {
+            padding: 2.5rem 1rem;
+            text-align: center;
+            color: #64748b;
+        }
+
+        .fd-empty-state i {
+            font-size: 2rem;
+            margin-bottom: 0.75rem;
+            opacity: 0.5;
+        }
     </style>
     <!-- Bootstrap Bundle JS -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>

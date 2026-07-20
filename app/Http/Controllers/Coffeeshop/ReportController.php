@@ -78,27 +78,123 @@ class ReportController extends Controller
 
         $orders = $query->get();
 
-        $filename = 'pos-report-'.$dateFrom.'-to-'.$dateTo.'.csv';
+        $filename = 'pos_sales_report_'.$dateFrom.'_to_'.$dateTo.'.xls';
 
-        return response()->streamDownload(function () use ($orders) {
-            $handle = fopen('php://output', 'w');
-            fputcsv($handle, ['Order Number', 'Customer', 'Room', 'Payment Method', 'Total', 'Closed At']);
+        $headers = [
+            'Content-Type' => 'application/vnd.ms-excel',
+            'Content-Disposition' => 'attachment; filename="'.$filename.'"',
+            'Pragma' => 'no-cache',
+            'Cache-Control' => 'must-revalidate, post-check=0, pre-check=0',
+            'Expires' => '0',
+        ];
+
+        $callback = function () use ($orders) {
+            $output = fopen('php://output', 'w');
+
+            $xmlHeader = '<?xml version="1.0" encoding="UTF-8"?>'."\n".
+                '<?mso-application progid="Excel.Sheet"?>'."\n".
+                '<Workbook xmlns="urn:schemas-microsoft-com:office:spreadsheet"'."\n".
+                ' xmlns:o="urn:schemas-microsoft-com:office:office"'."\n".
+                ' xmlns:x="urn:schemas-microsoft-com:office:excel"'."\n".
+                ' xmlns:ss="urn:schemas-microsoft-com:office:spreadsheet"'."\n".
+                ' xmlns:html="http://www.w3.org/TR/REC-html40">'."\n".
+                ' <Styles>'."\n".
+                '  <Style ss:ID="Header">'."\n".
+                '   <Font ss:Bold="1" ss:Color="#FFFFFF" ss:Size="11"/>'."\n".
+                '   <Interior ss:Color="#4E342E" ss:Pattern="Solid"/>'."\n".
+                '   <Alignment ss:Horizontal="Center" ss:Vertical="Center"/>'."\n".
+                '   <Borders>'."\n".
+                '    <Border ss:Position="Bottom" ss:LineStyle="Continuous" ss:Weight="1" ss:Color="#2F1C16"/>'."\n".
+                '   </Borders>'."\n".
+                '  </Style>'."\n".
+                '  <Style ss:ID="DataCell">'."\n".
+                '   <Alignment ss:Vertical="Center"/>'."\n".
+                '   <Borders>'."\n".
+                '    <Border ss:Position="Bottom" ss:LineStyle="Continuous" ss:Weight="1" ss:Color="#E2E8F0"/>'."\n".
+                '    <Border ss:Position="Top" ss:LineStyle="Continuous" ss:Weight="1" ss:Color="#E2E8F0"/>'."\n".
+                '   </Borders>'."\n".
+                '  </Style>'."\n".
+                '  <Style ss:ID="CenterCell">'."\n".
+                '   <Alignment ss:Horizontal="Center" ss:Vertical="Center"/>'."\n".
+                '   <Borders>'."\n".
+                '    <Border ss:Position="Bottom" ss:LineStyle="Continuous" ss:Weight="1" ss:Color="#E2E8F0"/>'."\n".
+                '    <Border ss:Position="Top" ss:LineStyle="Continuous" ss:Weight="1" ss:Color="#E2E8F0"/>'."\n".
+                '   </Borders>'."\n".
+                '  </Style>'."\n".
+                '  <Style ss:ID="CurrencyCell">'."\n".
+                '   <Alignment ss:Horizontal="Right" ss:Vertical="Center"/>'."\n".
+                '   <NumberFormat ss:Format="#,##0.00"/>'."\n".
+                '   <Borders>'."\n".
+                '    <Border ss:Position="Bottom" ss:LineStyle="Continuous" ss:Weight="1" ss:Color="#E2E8F0"/>'."\n".
+                '    <Border ss:Position="Top" ss:LineStyle="Continuous" ss:Weight="1" ss:Color="#E2E8F0"/>'."\n".
+                '   </Borders>'."\n".
+                '  </Style>'."\n".
+                '  <Style ss:ID="DateStyle">'."\n".
+                '   <Alignment ss:Horizontal="Center" ss:Vertical="Center"/>'."\n".
+                '   <NumberFormat ss:Format="mmm dd, yyyy h:mm AM/PM"/>'."\n".
+                '   <Borders>'."\n".
+                '    <Border ss:Position="Bottom" ss:LineStyle="Continuous" ss:Weight="1" ss:Color="#E2E8F0"/>'."\n".
+                '    <Border ss:Position="Top" ss:LineStyle="Continuous" ss:Weight="1" ss:Color="#E2E8F0"/>'."\n".
+                '   </Borders>'."\n".
+                '  </Style>'."\n".
+                ' </Styles>'."\n".
+                ' <Worksheet ss:Name="POS Sales Report">'."\n".
+                '  <Table>'."\n".
+                '   <Column ss:Width="18" ss:AutoFitWidth="1"/>'."\n".
+                '   <Column ss:Width="28" ss:AutoFitWidth="1"/>'."\n".
+                '   <Column ss:Width="16" ss:AutoFitWidth="1"/>'."\n".
+                '   <Column ss:Width="20" ss:AutoFitWidth="1"/>'."\n".
+                '   <Column ss:Width="20" ss:AutoFitWidth="1"/>'."\n".
+                '   <Column ss:Width="26" ss:AutoFitWidth="1"/>'."\n".
+                '   <Row ss:Height="26" ss:StyleID="Header">'."\n".
+                '    <Cell><Data ss:Type="String">Order Number</Data></Cell>'."\n".
+                '    <Cell><Data ss:Type="String">Customer Name</Data></Cell>'."\n".
+                '    <Cell><Data ss:Type="String">Room Number</Data></Cell>'."\n".
+                '    <Cell><Data ss:Type="String">Payment Method</Data></Cell>'."\n".
+                '    <Cell><Data ss:Type="String">Total Amount (₱)</Data></Cell>'."\n".
+                '    <Cell><Data ss:Type="String">Closed At</Data></Cell>'."\n".
+                '   </Row>'."\n";
+
+            fwrite($output, $xmlHeader);
 
             foreach ($orders as $order) {
-                $closedAt = $order->closed_at ?: $order->created_at;
-                $closedAt = "'".date('M d, Y h:i A', strtotime($closedAt));
+                $orderNum = htmlspecialchars($order->order_number ?? 'N/A');
+                $customer = htmlspecialchars($order->customer_name ?? 'Walk-in');
+                $room = htmlspecialchars($order->room_number ?? '—');
+                $payment = htmlspecialchars(ucwords(str_replace('_', ' ', $order->payment_method ?? 'Cash')));
+                $total = (float) $order->total;
 
-                fputcsv($handle, [
-                    $order->order_number,
-                    $order->customer_name,
-                    $order->room_number,
-                    $order->payment_method,
-                    $order->total,
-                    $closedAt,
-                ]);
+                $closedAtRaw = $order->closed_at ?: $order->created_at;
+                $closedAtFormatted = $closedAtRaw
+                    ? Carbon::parse($closedAtRaw)->format('Y-m-d\TH:i:s')
+                    : '';
+
+                $rowXml = '   <Row ss:Height="20">'."\n".
+                    '    <Cell ss:StyleID="CenterCell"><Data ss:Type="String">'.$orderNum.'</Data></Cell>'."\n".
+                    '    <Cell ss:StyleID="DataCell"><Data ss:Type="String">'.$customer.'</Data></Cell>'."\n".
+                    '    <Cell ss:StyleID="CenterCell"><Data ss:Type="String">'.$room.'</Data></Cell>'."\n".
+                    '    <Cell ss:StyleID="CenterCell"><Data ss:Type="String">'.$payment.'</Data></Cell>'."\n".
+                    '    <Cell ss:StyleID="CurrencyCell"><Data ss:Type="Number">'.$total.'</Data></Cell>'."\n";
+
+                if (! empty($closedAtFormatted)) {
+                    $rowXml .= '    <Cell ss:StyleID="DateStyle"><Data ss:Type="DateTime">'.$closedAtFormatted.'</Data></Cell>'."\n";
+                } else {
+                    $rowXml .= '    <Cell ss:StyleID="CenterCell"><Data ss:Type="String">—</Data></Cell>'."\n";
+                }
+
+                $rowXml .= '   </Row>'."\n";
+
+                fwrite($output, $rowXml);
             }
 
-            fclose($handle);
-        }, $filename, ['Content-Type' => 'text/csv']);
+            $xmlFooter = '  </Table>'."\n".
+                ' </Worksheet>'."\n".
+                '</Workbook>';
+
+            fwrite($output, $xmlFooter);
+            fclose($output);
+        };
+
+        return response()->stream($callback, 200, $headers);
     }
 }

@@ -55,8 +55,7 @@
 
             <!-- Search -->
             <div style="width: 320px;">
-                <div class="input-group"
-                    style="border: 1px solid #000000; border-radius: 6px; overflow: hidden; height: 38px;">
+                <div class="input-group fd-search">
                     <span class="input-group-text bg-white border-0">
                         <i class="fa-solid fa-search text-muted"></i>
                     </span>
@@ -74,10 +73,9 @@
 
             <!-- FILTER DROPDOWN -->
             <div class="dropdown">
-                <button class="btn btn-outline-secondary d-flex align-items-center gap-1 px-3 position-relative"
+                <button class="btn btn-outline-secondary d-flex align-items-center gap-1 px-3 position-relative fd-filter-btn"
                         type="button"
-                        data-bs-toggle="dropdown"
-                        style="height: 38px; border-radius: 6px; border: 1px solid;">
+                        data-bs-toggle="dropdown">
                     <i class="fa-solid fa-filter"></i>
                     <span>Filter</span>
                     @if($filters['status'] !== 'all' || !empty($filters['date_from']) || !empty($filters['date_to']))
@@ -170,19 +168,19 @@
                             <td>
                                 @switch($reservation->status)
                                     @case('RESERVED')
-                                        <span class="badge bg-warning text-dark">Reserved</span>
+                                        <span class="badge-status badge-status-reserved">Reserved</span>
                                         @break
                                     @case('CHECKED_IN')
-                                        <span class="badge bg-info">Checked In</span>
+                                        <span class="badge-status badge-status-checkedin">Checked In</span>
                                         @break
                                     @case('CHECKED_OUT')
-                                        <span class="badge bg-secondary">Checked Out</span>
+                                        <span class="badge-status badge-status-closed">Checked Out</span>
                                         @break
                                     @case('CANCELLED')
-                                        <span class="badge bg-danger">Cancelled</span>
+                                        <span class="badge-status badge-status-maintenance">Cancelled</span>
                                         @break
                                     @default
-                                        <span class="badge bg-secondary">{{ $reservation->status }}</span>
+                                        <span class="badge-status badge-status-maintenance">{{ $reservation->status }}</span>
                                 @endswitch
                             </td>
                             <td class="text-center">
@@ -190,6 +188,7 @@
                                     <button
                                         type="button"
                                         class="btn btn-outline-primary view-reservation-btn"
+                                        title="View reservation details"
                                         data-bs-toggle="modal"
                                         data-bs-target="#viewReservationModal"
                                         data-room="{{ $reservation->room->room_number }}"
@@ -212,7 +211,7 @@
                                         <form method="POST" action="{{ route('frontdesk.reservation.cancel', $reservation) }}" class="d-inline">
                                             @csrf
                                             @method('PATCH')
-                                            <button type="button" class="btn btn-outline-danger" title="Cancel reservation"
+                                            <button type="button" class="btn btn-outline-danger" title="Cancel this reservation"
                                                 onclick="swalConfirmCancelReservation(this)">
                                                 <i class="fa-solid fa-ban"></i>
                                             </button>
@@ -223,7 +222,13 @@
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="8" class="text-center text-muted py-4">No reservations found.</td>
+                            <td colspan="8" class="text-center py-5">
+                                <div class="fd-empty-state">
+                                    <i class="fa-solid fa-calendar-xmark d-block"></i>
+                                    <div class="fw-semibold text-dark">No reservations found</div>
+                                    <small class="text-muted">No reservations match the current search or filter criteria.</small>
+                                </div>
+                            </td>
                         </tr>
                     @endforelse
                 </tbody>

@@ -14,51 +14,51 @@ class AnalyticsController extends Controller
     {
         $filter = $request->query('filter', 'all');
 
+        $startDate = null;
+        $endDate = Carbon::now()->endOfDay();
+
         if ($filter === 'today') {
-            $startDate = Carbon::today();
-            $endDate = Carbon::today()->endOfDay();
+            $startDate = Carbon::today()->startOfDay();
         } elseif ($filter === 'weekly') {
             $startDate = Carbon::now()->startOfWeek();
-            $endDate = Carbon::now()->endOfWeek();
         } elseif ($filter === 'monthly') {
             $startDate = Carbon::now()->startOfMonth();
-            $endDate = Carbon::now()->endOfMonth();
         } elseif ($filter === 'yearly') {
             $startDate = Carbon::now()->startOfYear();
-            $endDate = Carbon::now()->endOfYear();
-        } else {
-            $days = $request->input('days', 7);
-            $startDate = Carbon::now()->subDays($days)->startOfDay();
-            $endDate = Carbon::now()->endOfDay();
         }
 
         // 1. Daily Revenue Trend (Line Chart)
-        $revenueTrend = Transaction::selectRaw('transaction_date, SUM(charge_amount) as total')
-            ->whereBetween('transaction_date', [$startDate->toDateString(), $endDate->toDateString()])
-            ->groupBy('transaction_date')
-            ->orderBy('transaction_date')
+        $trendQuery = Transaction::selectRaw('DATE(timestamp) as date_val, SUM(charge_amount) as total');
+        if ($startDate) {
+            $trendQuery->whereBetween('timestamp', [$startDate, $endDate]);
+        }
+        $revenueTrend = $trendQuery->groupBy('date_val')
+            ->orderBy('date_val')
             ->get();
 
-        $trendLabels = $revenueTrend->pluck('transaction_date')->map(fn ($date) => Carbon::parse($date)->format('M d'));
+        $trendLabels = $revenueTrend->pluck('date_val')->map(fn ($date) => Carbon::parse($date)->format('M d'));
         $trendData = $revenueTrend->pluck('total');
 
         // 2. Payment Method Breakdown (Donut Chart)
-        $paymentMethods = Transaction::selectRaw('payment_method, SUM(credit_amount) as total')
-            ->whereIn('payment_method', ['CASH', 'CREDIT_CARD'])
-            ->whereBetween('transaction_date', [$startDate->toDateString(), $endDate->toDateString()])
-            ->groupBy('payment_method')
-            ->get();
+        $paymentQuery = Transaction::selectRaw('payment_method, SUM(credit_amount) as total')
+            ->where('credit_amount', '>', 0);
+        if ($startDate) {
+            $paymentQuery->whereBetween('timestamp', [$startDate, $endDate]);
+        }
+        $paymentMethods = $paymentQuery->groupBy('payment_method')->get();
 
-        $paymentLabels = $paymentMethods->pluck('payment_method')->map(fn ($method) => str_replace('_', ' ', $method));
+        $paymentLabels = $paymentMethods->pluck('payment_method')->map(fn ($method) => ucwords(strtolower(str_replace('_', ' ', $method))));
         $paymentData = $paymentMethods->pluck('total');
 
         // 3. Department Breakdown (Donut Chart)
-        $departmentRevenue = Transaction::selectRaw('department, SUM(charge_amount) as total')
-            ->whereBetween('transaction_date', [$startDate->toDateString(), $endDate->toDateString()])
-            ->groupBy('department')
-            ->get();
+        $deptQuery = Transaction::selectRaw('department, SUM(charge_amount) as total')
+            ->where('charge_amount', '>', 0);
+        if ($startDate) {
+            $deptQuery->whereBetween('timestamp', [$startDate, $endDate]);
+        }
+        $departmentRevenue = $deptQuery->groupBy('department')->get();
 
-        $deptLabels = $departmentRevenue->pluck('department')->map(fn ($dept) => str_replace('_', ' ', $dept));
+        $deptLabels = $departmentRevenue->pluck('department')->map(fn ($dept) => ucwords(strtolower(str_replace('_', ' ', $dept))));
         $deptData = $departmentRevenue->pluck('total');
 
         return response()->json([

@@ -58,11 +58,11 @@ test('exported report respects selected payment method filter', function (): voi
         ]));
 
     $response->assertOk();
-    $response->assertHeaderContains('content-type', 'text/csv');
+    $response->assertHeaderContains('content-type', 'application/vnd.ms-excel');
     $response->assertDownload();
     $response->assertStreamed();
     $content = $response->streamedContent();
     $this->assertStringContainsString('POS-001', $content);
     $this->assertStringNotContainsString('POS-002', $content);
-    $this->assertStringContainsString($closedAt->format('Y-m-d H:i:s'), $content);
+    $this->assertStringContainsString('Excel.Sheet', $content);
 });

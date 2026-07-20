@@ -68,7 +68,8 @@ class Expense extends Model
         return match ($period) {
             'This Week' => $query->whereBetween('expense_date', [now()->startOfWeek()->toDateString(), now()->endOfWeek()->toDateString()]),
             'Monthly' => $query->whereBetween('expense_date', [now()->startOfMonth()->toDateString(), now()->endOfMonth()->toDateString()]),
-            default => $query->where('expense_date', now()->toDateString()),
+            'All Time', 'All' => $query,
+            default => $query,
         };
     }
 }

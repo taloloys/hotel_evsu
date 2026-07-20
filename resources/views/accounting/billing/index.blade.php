@@ -12,7 +12,7 @@
     <div class="col-lg-3">
         <div class="card border-1 shadow-sm">
             <div class="card-body">
-                <div class="text-muted large">Total Sales</div>
+                <div class="text-muted large">Total Sales ({{ $tab === 'pos' ? 'Coffee Shop' : 'Front Desk' }})</div>
                 <div class="fw-bold fs-3 text-primary">₱{{ number_format($totalSales, 2) }}</div>
             </div>
         </div>
@@ -21,7 +21,7 @@
     <div class="col-lg-3">
         <div class="card border-1 shadow-sm">
             <div class="card-body">
-                <div class="text-muted large">Cash Sales</div>
+                <div class="text-muted large">Cash Sales ({{ $tab === 'pos' ? 'Coffee Shop' : 'Front Desk' }})</div>
                 <div class="fw-bold fs-3 text-success">₱{{ number_format($cashSales, 2) }}</div>
             </div>
         </div>
@@ -30,7 +30,7 @@
     <div class="col-lg-3">
         <div class="card border-1 shadow-sm">
             <div class="card-body">
-                <div class="text-muted large">Credit Card Sales</div>
+                <div class="text-muted large">Credit Card Sales ({{ $tab === 'pos' ? 'Coffee Shop' : 'Front Desk' }})</div>
                 <div class="fw-bold fs-3 text-info">₱{{ number_format($creditSales, 2) }}</div>
             </div>
         </div>
@@ -39,7 +39,7 @@
     <div class="col-lg-3">
         <div class="card border-1 shadow-sm">
             <div class="card-body">
-                <div class="text-muted large">Outstanding Balance</div>
+                <div class="text-muted large">Outstanding Balance ({{ $tab === 'pos' ? 'POS Open Tabs' : 'Guest Folios' }})</div>
                 <div class="fw-bold fs-3 text-danger">₱{{ number_format($unpaidBalance, 2) }}</div>
             </div>
         </div>
@@ -70,7 +70,7 @@
         <div class="d-flex align-items-center gap-2">
 
             {{-- Search (live) --}}
-            <div style="width: 280px; border: 1px solid #ced4da; border-radius: .375rem; height: 45px;">
+            <div style="width: 280px; border: 1px solid #000000; border-radius: .375rem; height: 45px;">
                 <div class="input-group" style="height: 100%;">
                     <span class="input-group-text bg-white border-0 px-3">
                         <i class="fa-solid fa-magnifying-glass text-muted fs-5"></i>

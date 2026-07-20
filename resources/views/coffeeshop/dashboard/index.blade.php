@@ -544,16 +544,16 @@ body {
                     <!-- Carousel Controls -->
                     <div class="d-flex justify-content-between align-items-center px-4 pb-3 mt-auto border-top pt-2">
                         <div class="carousel-indicators position-static m-0">
-                            <button type="button" data-bs-target="#statsCarousel" data-bs-slide-to="0" class="active bg-secondary" aria-current="true" aria-label="Featured Product" style="width: 6px; height: 6px; border-radius: 50%; border: none;"></button>
-                            <button type="button" data-bs-target="#statsCarousel" data-bs-slide-to="1" class="bg-secondary" aria-label="Best Sellers" style="width: 6px; height: 6px; border-radius: 50%; border: none;"></button>
-                            <button type="button" data-bs-target="#statsCarousel" data-bs-slide-to="2" class="bg-secondary" aria-label="Sales Overview" style="width: 6px; height: 6px; border-radius: 50%; border: none;"></button>
-                            <button type="button" data-bs-target="#statsCarousel" data-bs-slide-to="3" class="bg-secondary" aria-label="Inventory Overview" style="width: 6px; height: 6px; border-radius: 50%; border: none;"></button>
+                            <button type="button" data-bs-target="#statsCarousel" data-bs-slide-to="0" class="active bg-dark" aria-current="true" aria-label="Featured Product" style="width: 8px; height: 8px; border-radius: 50%; border: none;"></button>
+                            <button type="button" data-bs-target="#statsCarousel" data-bs-slide-to="1" class="bg-dark" aria-label="Best Sellers" style="width: 8px; height: 8px; border-radius: 50%; border: none;"></button>
+                            <button type="button" data-bs-target="#statsCarousel" data-bs-slide-to="2" class="bg-dark" aria-label="Sales Overview" style="width: 8px; height: 8px; border-radius: 50%; border: none;"></button>
+                            <button type="button" data-bs-target="#statsCarousel" data-bs-slide-to="3" class="bg-dark" aria-label="Inventory Overview" style="width: 8px; height: 8px; border-radius: 50%; border: none;"></button>
                         </div>
                         <div class="d-flex gap-1">
-                            <button class="btn btn-sm btn-outline-secondary rounded-circle p-0" type="button" data-bs-target="#statsCarousel" data-bs-slide="prev" style="width: 22px; height: 22px; font-size: 0.65rem; display: flex; align-items: center; justify-content: center;">
+                            <button class="btn btn-sm btn-outline-dark rounded-circle p-0" type="button" data-bs-target="#statsCarousel" data-bs-slide="prev" style="width: 26px; height: 26px; font-size: 0.75rem; display: flex; align-items: center; justify-content: center;" title="Previous slide">
                                 <i class="fa-solid fa-chevron-left"></i>
                             </button>
-                            <button class="btn btn-sm btn-outline-secondary rounded-circle p-0" type="button" data-bs-target="#statsCarousel" data-bs-slide="next" style="width: 22px; height: 22px; font-size: 0.65rem; display: flex; align-items: center; justify-content: center;">
+                            <button class="btn btn-sm btn-outline-dark rounded-circle p-0" type="button" data-bs-target="#statsCarousel" data-bs-slide="next" style="width: 26px; height: 26px; font-size: 0.75rem; display: flex; align-items: center; justify-content: center;" title="Next slide">
                                 <i class="fa-solid fa-chevron-right"></i>
                             </button>
                         </div>
@@ -636,7 +636,7 @@ body {
                         <div>
                             <div class="d-flex justify-content-between text-dark small mb-1" style="font-size: 0.72rem;">
                                 <span class="fw-semibold">{{ $cat['name'] }}</span>
-                                <span class="text-muted fw-bold">{{ $cat['percentage'] }}%</span>
+                                <span class="text-muted fw-bold">{{ $cat['percentage'] }}% @if(isset($cat['qty']) && $cat['qty'] > 0)· {{ $cat['qty'] }} sold @endif</span>
                             </div>
                             <div class="progress" style="height: 6px; background-color: #efe2d5; border-radius: 99px; overflow: hidden;">
                                 <div class="progress-bar" role="progressbar" 
@@ -650,15 +650,15 @@ body {
             </div>
 
             <!-- Insight 3: Hourly Peak Period -->
-            <div class="dashboard-panel border-0 shadow-sm p-3" style="background: linear-gradient(135deg, #fffdfb 0%, #fcf7f0 100%); border-radius: 1.25rem;">
-                <h6 class="fw-bold text-brown mb-2" style="font-size: 0.85rem;"><i class="fa-solid fa-clock me-2 text-danger"></i>Peak Operations</h6>
+            <div class="dashboard-panel border-0 shadow-sm p-3.5 p-4" style="background: linear-gradient(135deg, #fffdfb 0%, #fcf7f0 100%); border-radius: 1.25rem;">
+                <h6 class="fw-bold text-brown mb-3" style="font-size: 0.85rem;"><i class="fa-solid fa-clock me-2 text-danger"></i>Peak Operations</h6>
                 <div class="d-flex align-items-center gap-3">
-                    <div class="rounded-circle d-flex align-items-center justify-content-center bg-danger-subtle text-danger" style="width: 38px; height: 38px; flex-shrink: 0;">
-                        <i class="fa-solid fa-fire animate-pulse" style="font-size: 0.95rem;"></i>
+                    <div class="rounded-circle d-flex align-items-center justify-content-center bg-danger-subtle text-danger" style="width: 44px; height: 44px; flex-shrink: 0;">
+                        <i class="fa-solid fa-fire animate-pulse" style="font-size: 1.1rem;"></i>
                     </div>
                     <div>
-                        <div class="fw-bold text-dark" style="font-size: 0.78rem;">Peak Period (08:00 AM - 11:00 AM)</div>
-                        <div class="text-muted small" style="font-size: 0.68rem; line-height: 1.25;">Current capacity load: Moderate. Peak demand expected around breakfast/coffee rush.</div>
+                        <div class="fw-bold text-dark mb-1" style="font-size: 0.82rem;">Peak Period (08:00 AM - 11:00 AM)</div>
+                        <div class="text-muted small" style="font-size: 0.72rem; line-height: 1.35;">Current capacity load: Moderate. Peak demand expected around breakfast & coffee rush.</div>
                     </div>
                 </div>
             </div>

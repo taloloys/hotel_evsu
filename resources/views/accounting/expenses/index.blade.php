@@ -106,6 +106,7 @@
                     @if(in_array(auth()->user()?->role?->role_name, ['ADMIN', 'MANAGER', 'ACCOUNTING']))
                     <label class="form-label small mb-1 fw-semibold text-muted">Period</label>
                     <select name="period" class="form-select mb-3 shadow-none" style="height:38px; border-radius:4px; border: 1px solid black;">
+                        <option value="All Time" {{ $periodFilter === 'All Time' ? 'selected' : '' }}>All Time</option>
                         <option value="Today" {{ $periodFilter === 'Today' ? 'selected' : '' }}>Today</option>
                         <option value="This Week" {{ $periodFilter === 'This Week' ? 'selected' : '' }}>This Week</option>
                         <option value="Monthly" {{ $periodFilter === 'Monthly' ? 'selected' : '' }}>Monthly</option>

@@ -85,7 +85,11 @@
                         <tr>
                             <td>
                                 <div class="fw-semibold text-brown">{{ $product->name }}</div>
-                                @if($product->isLowStock())<span class="coffeeshop-pill bg-danger-subtle text-danger">Low Stock</span>@endif
+                                @if($product->isLowStock())
+                                    <span class="coffeeshop-pill bg-danger-subtle text-danger">Low Stock</span>
+                                @elseif($product->is_stockable && $product->stock_quantity >= 100)
+                                    <span class="coffeeshop-pill bg-primary-subtle text-primary">Over Stocked</span>
+                                @endif
                             </td>
                             <td>{{ $product->category?->name }}</td>
                             <td>{{ Str::limit($product->description, 50) }}</td>

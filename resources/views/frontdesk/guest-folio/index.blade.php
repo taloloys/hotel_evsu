@@ -28,14 +28,14 @@
         </div>
     @endif
 
-    {{-- Filters --}}
+    {{-- Filters & Header Card --}}
     <div class="card border-0 shadow-sm mb-4">
         <div class="card-body py-3">
             <form method="GET" action="{{ route('frontdesk.guest-folio') }}" id="filterForm" class="d-flex align-items-center gap-2 flex-wrap justify-content-end m-0">
 
                 <!-- SEARCH -->
                 <div style="width: 320px;">
-                    <div class="input-group" style="border: 1px solid #000000; border-radius: 6px; overflow: hidden; height: 38px;">
+                    <div class="input-group fd-search">
                         <span class="input-group-text bg-white border-0">
                             <i class="fa-solid fa-magnifying-glass text-muted"></i>
                         </span>
@@ -53,10 +53,9 @@
 
                 <!-- FILTER DROPDOWN -->
                 <div class="dropdown">
-                    <button class="btn btn-outline-secondary d-flex align-items-center gap-1 px-3 position-relative"
+                    <button class="btn btn-outline-secondary d-flex align-items-center gap-1 px-3 position-relative fd-filter-btn"
                             type="button"
-                            data-bs-toggle="dropdown"
-                            style="height: 38px; border-radius: 6px; border: 1px solid;">
+                            data-bs-toggle="dropdown">
                         <i class="fa-solid fa-filter"></i>
                         <span>Filter</span>
                         @if($folioType !== 'ALL' || $statusFilter !== 'ALL')
@@ -91,7 +90,7 @@
                 </div>
 
                 <!-- PRINT BUTTON -->
-                <button type="button" class="btn btn-outline-secondary" style="height: 38px; border-radius: 6px;" onclick="printFolioList()">
+                <button type="button" class="btn btn-outline-secondary d-flex align-items-center gap-1" style="height: 45px; border-radius: 6px; border: 1px solid #000;" onclick="printFolioList()" title="Print folio summary list">
                     <i class="fa-solid fa-print me-1"></i> Print
                 </button>
 
@@ -125,7 +124,7 @@
                             <th class="py-3 text-center">Type</th>
                             <th class="py-3">Arrival</th>
                             <th class="py-3">Departure</th>
-                            <th class="py-3 text-end">Base Rate</th>
+                            <th class="py-3 text-end d-none d-xl-table-cell">Base Rate</th>
                             <th class="py-3 text-end">Net Rate</th>
                             <th class="py-3 text-center">Payment</th>
                             <th class="py-3 text-center">Status</th>
@@ -150,7 +149,7 @@
                                         <div class="fw-semibold">{{ $folio->guest->last_name }}, {{ $folio->guest->first_name }}</div>
                                         <div class="text-muted small">{{ $folio->guest->contact_number ?: '' }}</div>
                                     @else
-                                        <span class="text-muted">—</span>
+                                        <span class="text-muted fst-italic opacity-60">—</span>
                                     @endif
                                 </td>
                                 <td>
@@ -158,7 +157,7 @@
                                         <span class="fw-semibold">{{ $room->room_number }}</span>
                                         <div class="text-muted small">{{ $room->room_type }}</div>
                                     @else
-                                        <span class="text-muted">—</span>
+                                        <span class="text-muted fst-italic opacity-60">—</span>
                                     @endif
                                 </td>
                                 <td class="text-center">
@@ -170,18 +169,18 @@
                                 <td class="small">
                                     {{ $booking?->departure_date?->format('M d, Y') ?? '—' }}
                                 </td>
-                                <td class="text-end small">
+                                <td class="text-end small d-none d-xl-table-cell">
                                     @if($room)
                                         ₱{{ number_format($room->base_rate, 2) }}
                                     @else
-                                        —
+                                        <span class="text-muted fst-italic opacity-60">—</span>
                                     @endif
                                 </td>
                                 <td class="text-end small">
                                     @if($folio->net_rate !== null)
                                         <span class="text-success fw-semibold">₱{{ number_format($folio->net_rate, 2) }}</span>
                                     @else
-                                        <span class="text-muted">—</span>
+                                        <span class="text-muted fst-italic opacity-60">—</span>
                                     @endif
                                 </td>
                                 <td class="text-center small">
@@ -189,14 +188,14 @@
                                         {{ $folio->payment_method === 'Cash' ? '💵' : '💳' }}
                                         {{ $folio->payment_method }}
                                     @else
-                                        <span class="text-muted">—</span>
+                                        <span class="text-muted fst-italic opacity-60">—</span>
                                     @endif
                                 </td>
                                 <td class="text-center">
                                     @if($folio->status === 'OPEN')
-                                        <span class="badge bg-success-subtle text-success border border-success-subtle">Open</span>
+                                        <span class="badge-status badge-status-open">Open</span>
                                     @else
-                                        <span class="badge bg-secondary-subtle text-secondary border border-secondary-subtle">Closed</span>
+                                        <span class="badge-status badge-status-closed">Closed</span>
                                     @endif
                                 </td>
                                 <td class="text-center">
@@ -213,13 +212,18 @@
                             </tr>
                         @empty
                             <tr>
-                                <td colspan="11" class="text-center py-5 text-muted">
-                                    <i class="fa-solid fa-folder-open fa-2x mb-3 d-block"></i>
-                                    @if($search)
-                                        No folios found matching "<strong>{{ $search }}</strong>".
-                                    @else
-                                        No folios found.
-                                    @endif
+                                <td colspan="11" class="text-center py-5">
+                                    <div class="fd-empty-state">
+                                        <i class="fa-solid fa-folder-open d-block"></i>
+                                        <div class="fw-semibold text-dark">No folios found</div>
+                                        <small class="text-muted">
+                                            @if($search)
+                                                No folios found matching "<strong>{{ $search }}</strong>".
+                                            @else
+                                                No guest folios recorded yet.
+                                            @endif
+                                        </small>
+                                    </div>
                                 </td>
                             </tr>
                         @endforelse

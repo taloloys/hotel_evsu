@@ -175,6 +175,7 @@
                     <span class="fw-bold">₱{{ number_format($revenueBreakdown['RESTAURANT'], 2) }}</span>
                 </div>
 
+                @if($revenueBreakdown['TAX_SERVICE'] > 0 || $revenueBreakdown['OTHER'] > 0)
                 <div class="d-flex justify-content-between border-bottom py-2">
                     <span class="text-muted">Government Taxes & Service Charges</span>
                     <span class="fw-bold">₱{{ number_format($revenueBreakdown['TAX_SERVICE'], 2) }}</span>
@@ -184,6 +185,23 @@
                     <span class="text-muted">Other General Charges</span>
                     <span class="fw-bold">₱{{ number_format($revenueBreakdown['OTHER'], 2) }}</span>
                 </div>
+                @else
+                <div class="py-2">
+                    <button class="btn btn-link btn-sm p-0 text-decoration-none text-muted" type="button" data-bs-toggle="collapse" data-bs-target="#zeroBreakdownRows">
+                        <i class="fa-solid fa-chevron-down me-1"></i> Show additional zero-value categories
+                    </button>
+                    <div class="collapse mt-2" id="zeroBreakdownRows">
+                        <div class="d-flex justify-content-between border-bottom py-2">
+                            <span class="text-muted">Government Taxes & Service Charges</span>
+                            <span class="fw-bold">₱{{ number_format($revenueBreakdown['TAX_SERVICE'], 2) }}</span>
+                        </div>
+                        <div class="d-flex justify-content-between border-bottom py-2">
+                            <span class="text-muted">Other General Charges</span>
+                            <span class="fw-bold">₱{{ number_format($revenueBreakdown['OTHER'], 2) }}</span>
+                        </div>
+                    </div>
+                </div>
+                @endif
 
                 <div class="d-flex justify-content-between pt-3 fw-bold fs-5">
                     <span>Total Revenue</span>

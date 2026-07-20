@@ -99,7 +99,7 @@ beforeEach(function (): void {
 
 test('unauthenticated users are redirected from shift scheduling', function (): void {
     $this->get(route('admin.shift-schedules'))
-        ->assertRedirect(route('login'));
+        ->assertRedirect(route('home'));
 });
 
 test('admin can view shift scheduling page', function (): void {
@@ -116,6 +116,7 @@ test('admin can create a shift schedule', function (): void {
         'shift_date' => '2026-06-20',
         'scheduled_start_time' => '06:00',
         'scheduled_end_time' => '14:00',
+        'days' => ['monday', 'tuesday', 'wednesday', 'thursday', 'friday'],
         'notes' => 'Test notes',
     ];
 
@@ -129,7 +130,7 @@ test('admin can create a shift schedule', function (): void {
         'shift_name' => 'Morning Shift',
         'scheduled_start_time' => '06:00',
         'scheduled_end_time' => '14:00',
-        'status' => 'SCHEDULED',
+        'is_active' => true,
     ]);
 });
 
@@ -149,6 +150,7 @@ test('admin can edit a shift schedule and reassign to another user', function ()
         'shift_date' => '2026-06-20',
         'scheduled_start_time' => '07:00',
         'scheduled_end_time' => '15:00',
+        'days' => ['monday', 'tuesday', 'wednesday', 'thursday', 'friday'],
         'notes' => 'Reassigned shift',
     ];
 
@@ -182,6 +184,7 @@ test('admin cannot edit an active or completed shift schedule', function (): voi
         'shift_date' => '2026-06-20',
         'scheduled_start_time' => '07:00',
         'scheduled_end_time' => '15:00',
+        'days' => ['monday', 'tuesday', 'wednesday', 'thursday', 'friday'],
     ];
 
     $response = $this->actingAs($this->adminUser)

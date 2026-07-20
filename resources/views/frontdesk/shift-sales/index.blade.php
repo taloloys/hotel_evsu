@@ -176,7 +176,11 @@
                                         </select>
                                     @else
                                         <input type="hidden" name="employee_id" value="{{ auth()->id() }}">
-                                        <input type="text" class="form-control" value="{{ auth()->user()->full_name }}" disabled>
+                                        <div class="fd-static-field">
+                                            <i class="fa-solid fa-user-check text-success me-2"></i>
+                                            <span>{{ auth()->user()->full_name }}</span>
+                                            <small class="text-muted ms-2">({{ auth()->user()->role?->role_name ?? 'Cashier' }})</small>
+                                        </div>
                                     @endif
                                 </div>
                             </div>
@@ -186,15 +190,15 @@
                                 <div class="col-md-3">
                                     <label class="form-label fw-semibold">Category</label>
                                 </div>
-                                <div class="col-md-9 d-flex gap-3 flex-wrap">
-                                    @foreach(['hotel' => 'Hotel Charges', 'restaurant' => 'Restaurant / Coffee Shop', 'all' => 'All Transactions'] as $val => $label)
-                                        <div class="form-check">
-                                            <input class="form-check-input" type="radio" name="report_type"
+                                <div class="col-md-9">
+                                    <div class="btn-group flex-wrap" role="group" aria-label="Category Selection">
+                                        @foreach(['hotel' => 'Hotel Charges', 'restaurant' => 'Restaurant / Coffee Shop', 'all' => 'All Transactions'] as $val => $label)
+                                            <input type="radio" class="btn-check" name="report_type"
                                                 id="type_{{ $val }}" value="{{ $val }}"
                                                 {{ (!isset($filters['report_type']) && $val === 'hotel') || (isset($filters['report_type']) && $filters['report_type'] === $val) ? 'checked' : '' }}>
-                                            <label class="form-check-label" for="type_{{ $val }}">{{ $label }}</label>
-                                        </div>
-                                    @endforeach
+                                            <label class="btn btn-outline-primary px-3 py-2 fw-semibold" for="type_{{ $val }}">{{ $label }}</label>
+                                        @endforeach
+                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -243,8 +247,8 @@
 
                         {{-- Action Buttons --}}
                         <div class="d-flex gap-2 justify-content-end mt-4 hide-on-print">
-                            <button type="submit" class="btn btn-primary px-4">
-                                <i class="fa-solid fa-magnifying-glass me-1"></i> Generate Report
+                            <button type="submit" class="btn btn-primary px-4" id="generateReportBtn">
+                                <i class="fa-solid fa-chart-line me-1"></i> Generate Report
                             </button>
                             @if($hasSearched && $transactions->isNotEmpty())
                                 <button type="button" onclick="window.print()" class="btn btn-success px-4">
@@ -787,6 +791,13 @@
             document.querySelectorAll('#datePanel input, #datePanel select').forEach(el => el.value = '');
         }
     };
+
+    document.getElementById('reportForm')?.addEventListener('submit', function() {
+        const btn = document.getElementById('generateReportBtn');
+        if (btn) {
+            btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin me-1"></i> Generating Report...';
+        }
+    });
 </script>
 @endpush
 

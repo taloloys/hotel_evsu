@@ -115,7 +115,7 @@
                                         <option value="restock">Restock</option>
                                         <option value="adjustment">Adjust</option>
                                     </select>
-                                    <input type="number" name="quantity" class="form-control form-control-sm rounded-pill" style="width:120px; border: 1px solid black;" required>
+                                    <input type="number" name="quantity" class="form-control form-control-sm rounded-pill" placeholder="Qty" min="1" style="width:120px; border: 1px solid black;" required>
                                     <input type="text" name="notes" class="form-control form-control-sm rounded-pill" placeholder="Notes" style="width:330px; border: 1px solid black;">
                                     <button class="btn btn-sm btn-primary rounded-pill px-3">Apply</button>
                                 </form>

@@ -254,56 +254,56 @@
 <div class="row g-4 mb-4">
 
     <div class="col-lg-3 col-md-6">
-        <div class="card border-0 shadow-sm">
-            <div class="card-body">
-                <div class="d-flex justify-content-between">
-                    <div>
-                        <small class="text-muted">Today's Arrivals</small>
-                        <h2 class="fw-bold mt-2">{{ $todayArrivals }}</h2>
-                    </div>
-                    <i class="fa-solid fa-plane-arrival fa-2x text-primary"></i>
+        <div class="card border-0 shadow-sm rounded-4">
+            <div class="card-body p-4 d-flex align-items-center gap-3">
+                <div class="rounded-circle d-flex align-items-center justify-content-center bg-primary-subtle text-primary flex-shrink-0" style="width: 52px; height: 52px;">
+                    <i class="fa-solid fa-plane-arrival fs-4"></i>
+                </div>
+                <div>
+                    <div class="text-muted small fw-semibold">Today's Arrivals</div>
+                    <h3 class="fw-bold mb-0 mt-1">{{ $todayArrivals }}</h3>
                 </div>
             </div>
         </div>
     </div>
 
     <div class="col-lg-3 col-md-6">
-        <div class="card border-1 shadow-sm">
-            <div class="card-body">
-                <div class="d-flex justify-content-between">
-                    <div>
-                        <small class="text-muted">Today's Departures</small>
-                        <h2 class="fw-bold mt-2">{{ $todayDepartures }}</h2>
-                    </div>
-                    <i class="fa-solid fa-plane-departure fa-2x text-danger"></i>
+        <div class="card border-0 shadow-sm rounded-4">
+            <div class="card-body p-4 d-flex align-items-center gap-3">
+                <div class="rounded-circle d-flex align-items-center justify-content-center bg-danger-subtle text-danger flex-shrink-0" style="width: 52px; height: 52px;">
+                    <i class="fa-solid fa-plane-departure fs-4"></i>
+                </div>
+                <div>
+                    <div class="text-muted small fw-semibold">Today's Departures</div>
+                    <h3 class="fw-bold mb-0 mt-1">{{ $todayDepartures }}</h3>
                 </div>
             </div>
         </div>
     </div>
 
     <div class="col-lg-3 col-md-6">
-        <div class="card border-1 shadow-sm">
-            <div class="card-body">
-                <div class="d-flex justify-content-between">
-                    <div>
-                        <small class="text-muted">Occupied Rooms</small>
-                        <h2 class="fw-bold mt-2">{{ $occupiedRooms }}</h2>
-                    </div>
-                    <i class="fa-solid fa-bed fa-2x text-success"></i>
+        <div class="card border-0 shadow-sm rounded-4">
+            <div class="card-body p-4 d-flex align-items-center gap-3">
+                <div class="rounded-circle d-flex align-items-center justify-content-center bg-info-subtle text-info flex-shrink-0" style="width: 52px; height: 52px;">
+                    <i class="fa-solid fa-bed fs-4"></i>
+                </div>
+                <div>
+                    <div class="text-muted small fw-semibold">Occupied Rooms</div>
+                    <h3 class="fw-bold mb-0 mt-1">{{ $occupiedRooms }}</h3>
                 </div>
             </div>
         </div>
     </div>
 
     <div class="col-lg-3 col-md-6">
-        <div class="card border-1 shadow-sm">
-            <div class="card-body">
-                <div class="d-flex justify-content-between">
-                    <div>
-                        <small class="text-muted">Available Rooms</small>
-                        <h2 class="fw-bold mt-2">{{ $availableRooms }}</h2>
-                    </div>
-                    <i class="fa-solid fa-door-open fa-2x text-warning"></i>
+        <div class="card border-0 shadow-sm rounded-4">
+            <div class="card-body p-4 d-flex align-items-center gap-3">
+                <div class="rounded-circle d-flex align-items-center justify-content-center bg-success-subtle text-success flex-shrink-0" style="width: 52px; height: 52px;">
+                    <i class="fa-solid fa-door-open fs-4"></i>
+                </div>
+                <div>
+                    <div class="text-muted small fw-semibold">Available Rooms</div>
+                    <h3 class="fw-bold mb-0 mt-1">{{ $availableRooms }}</h3>
                 </div>
             </div>
         </div>
@@ -378,11 +378,11 @@
                                 <td>{{ $booking->room->room_type }}</td>
                                 <td>
                                     @if($booking->status === 'RESERVED')
-                                        <span class="badge bg-warning">RESERVED</span>
+                                        <span class="badge-status badge-status-reserved">RESERVED</span>
                                     @elseif($booking->status === 'CHECKED_IN')
-                                        <span class="badge bg-info">CHECKED IN</span>
+                                        <span class="badge-status badge-status-checkedin">CHECKED IN</span>
                                     @else
-                                        <span class="badge bg-secondary">{{ $booking->status }}</span>
+                                        <span class="badge-status badge-status-maintenance">{{ $booking->status }}</span>
                                     @endif
                                 </td>
                                 <td>{{ $booking->arrival_date->format('M d') }} @ {{ $booking->arrival_time }}</td>
@@ -394,10 +394,12 @@
                                                 data-guest-name="{{ $booking->folio->guest->first_name }} {{ $booking->folio->guest->last_name }}"
                                                 data-room-number="{{ $booking->room->room_number }}"
                                                 title="Check in guest">
-                                            <i class="fa-solid fa-arrow-right-to-bracket"></i> Check In
+                                            <i class="fa-solid fa-arrow-right-to-bracket me-1"></i>Check In
                                         </button>
                                     @elseif($booking->status === 'CHECKED_IN' && $booking->actual_check_in)
-                                        <small class="text-muted">In at {{ $booking->actual_check_in->format('g:i A') }}</small>
+                                        <span class="badge-status badge-status-checkedin" title="Guest checked in">
+                                            <i class="fa-solid fa-check-double me-1"></i>In at {{ $booking->actual_check_in->format('g:i A') }}
+                                        </span>
                                     @endif
                                 </td>
                             </tr>
@@ -408,7 +410,11 @@
             </div>
             <p class="text-muted small mb-0 d-none" id="checkinNoResults">No guests match your search.</p>
         @else
-            <p class="text-muted text-center py-4">No check-ins or reservations for today</p>
+            <div class="fd-empty-state">
+                <i class="fa-solid fa-calendar-check d-block"></i>
+                <div class="fw-semibold text-dark">No check-ins or reservations for today</div>
+                <small class="text-muted">Guests scheduled for check-in today will appear here.</small>
+            </div>
         @endif
     </div>
 </div>
@@ -456,24 +462,38 @@
     <div class="card-body">
         @if($vacantRooms->count() > 0)
             <p class="text-muted small mb-3">Rooms that are ready and not reserved or currently in use.</p>
-            <div class="d-flex flex-wrap gap-2" id="vacantRoomsList">
-                @foreach($vacantRooms as $room)
-                    <span
-                        class="badge bg-success-subtle text-success border border-success-subtle vacant-room-badge"
-                        data-room-number="{{ strtolower($room->room_number) }}"
-                        data-room-type="{{ strtolower($room->room_type) }}"
-                        data-room-sort="{{ $room->room_number }}"
-                        data-type-sort="{{ strtolower($room->room_type) }}"
-                    >
-                        <i class="fa-solid fa-bed me-1"></i>
-                        {{ $room->room_number }}
-                        <small class="opacity-75">({{ $room->room_type }})</small>
-                    </span>
+            <div id="vacantRoomsList">
+                @foreach($vacantRooms->groupBy('room_type') as $type => $roomsInType)
+                    <div class="vacant-room-group mb-3" data-room-type-group="{{ strtolower($type) }}">
+                        <div class="d-flex align-items-center gap-2 mb-2">
+                            <i class="fa-solid fa-layer-group text-success small"></i>
+                            <span class="fw-bold text-dark small">{{ $type }}</span>
+                            <span class="badge bg-success-subtle text-success border border-success-subtle rounded-pill" style="font-size: 0.72rem;">{{ $roomsInType->count() }} available</span>
+                        </div>
+                        <div class="d-flex flex-wrap gap-2 ps-2">
+                            @foreach($roomsInType as $room)
+                                <span
+                                    class="badge bg-success-subtle text-success border border-success-subtle vacant-room-badge"
+                                    data-room-number="{{ strtolower($room->room_number) }}"
+                                    data-room-type="{{ strtolower($room->room_type) }}"
+                                    data-room-sort="{{ $room->room_number }}"
+                                    data-type-sort="{{ strtolower($room->room_type) }}"
+                                >
+                                    <i class="fa-solid fa-bed me-1"></i>
+                                    {{ $room->room_number }}
+                                </span>
+                            @endforeach
+                        </div>
+                    </div>
                 @endforeach
             </div>
             <p class="text-muted small mb-0 mt-3 d-none" id="vacantRoomsNoResults">No rooms match your search.</p>
         @else
-            <p class="text-muted text-center py-4 mb-0">No vacant rooms available right now</p>
+            <div class="fd-empty-state">
+                <i class="fa-solid fa-door-closed d-block"></i>
+                <div class="fw-semibold text-dark">No vacant rooms available right now</div>
+                <small class="text-muted">All rooms are currently occupied or under maintenance.</small>
+            </div>
         @endif
     </div>
 </div>

@@ -404,7 +404,30 @@ function initCharts() {
         type: 'line',
         data: {
             labels: dailyData.map(r => r.label),
-            datasets: [{ data: dailyData.map(r => r.total), borderColor: '#2563eb' }]
+            datasets: [{
+                label: 'Daily Sales (₱)',
+                data: dailyData.map(r => r.total),
+                borderColor: '#2563eb',
+                backgroundColor: 'rgba(37, 99, 235, 0.1)',
+                fill: true,
+                tension: 0.3
+            }]
+        },
+        options: {
+            responsive: true,
+            plugins: {
+                legend: { display: true }
+            },
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    ticks: {
+                        callback: function(value) {
+                            return '₱' + Number(value).toLocaleString();
+                        }
+                    }
+                }
+            }
         }
     });
 
@@ -412,7 +435,28 @@ function initCharts() {
         type: 'bar',
         data: {
             labels: monthlyData.map(r => r.label),
-            datasets: [{ data: monthlyData.map(r => r.total), backgroundColor: '#6f4e37' }]
+            datasets: [{
+                label: 'Monthly Revenue (₱)',
+                data: monthlyData.map(r => r.total),
+                backgroundColor: '#6f4e37',
+                borderRadius: 6
+            }]
+        },
+        options: {
+            responsive: true,
+            plugins: {
+                legend: { display: true }
+            },
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    ticks: {
+                        callback: function(value) {
+                            return '₱' + Number(value).toLocaleString();
+                        }
+                    }
+                }
+            }
         }
     });
 }

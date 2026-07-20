@@ -146,7 +146,7 @@
                         <td>{{ $rec->due_date }}</td>
                         <td>
                             @if($rec->status === 'Current')
-                                <span class="badge bg-success">Current ({{ $rec->days_old }} days)</span>
+                                <span class="badge bg-success">Current @if($rec->days_old > 0)({{ $rec->days_old }} days)@endif</span>
                             @elseif($rec->status === 'Overdue')
                                 <span class="badge bg-warning text-dark">Overdue ({{ $rec->days_old }} days)</span>
                             @else

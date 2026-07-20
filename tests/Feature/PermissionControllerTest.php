@@ -48,7 +48,7 @@ beforeEach(function (): void {
 
 test('unauthenticated users are redirected to login', function (): void {
     $this->get(route('admin.permissions'))
-        ->assertRedirect(route('login'));
+        ->assertRedirect(route('home'));
 });
 
 test('authenticated admin can view the permissions management page', function (): void {

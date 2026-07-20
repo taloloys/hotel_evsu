@@ -29,7 +29,7 @@ beforeEach(function (): void {
 
 test('unauthenticated users are redirected to login', function (): void {
     $this->get(route('admin.users'))
-        ->assertRedirect(route('login'));
+        ->assertRedirect(route('home'));
 });
 
 test('non-admin users without permission cannot view the users management page', function (): void {

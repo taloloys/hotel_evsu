@@ -13,7 +13,7 @@ class DashboardController extends Controller
 {
     public function index(Request $request): View
     {
-        $filter = $request->query('filter', 'today');
+        $filter = $request->query('filter', 'all');
 
         $txQuery = Transaction::query();
         $expenseQuery = Expense::query();
@@ -58,11 +58,11 @@ class DashboardController extends Controller
         $totalCreditsOpen = (float) (clone $receivablesBaseQuery)->sum('credit_amount');
         $receivables = max(0.00, $totalChargesOpen - $totalCreditsOpen);
 
-        // 2. Cash Summary (Today's net flow or total flow)
+        // 2. Cash Summary
         // Cash In: payments with method CASH
-        $cashIn = (clone $txQuery)->where('payment_method', 'CASH')->sum('credit_amount');
+        $cashIn = (clone $txQuery)->whereIn('payment_method', ['CASH', 'cash'])->sum('credit_amount');
 
-        $cashInCard = (clone $txQuery)->where('payment_method', 'CREDIT_CARD')->sum('credit_amount');
+        $cashInCard = (clone $txQuery)->whereIn('payment_method', ['CREDIT_CARD', 'card', 'GCASH', 'gcash'])->sum('credit_amount');
 
         // Cash Out: approved expenses (from Front Desk)
         $cashOut = (clone $expenseQuery)->where('status', 'APPROVED')->where('funding_source', 'FRONT DESK')->sum('amount');

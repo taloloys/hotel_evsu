@@ -59,7 +59,7 @@
     <!-- HEADER -->
     <div class="card-header bg-white border-0 pb-2 pt-3">
 
-        <div class="d-flex justify-content-between align-items-start flex-wrap gap-3">
+        <div class="d-flex justify-content-between align-items-center flex-wrap gap-3">
 
             <!-- TITLE -->
             <div>
@@ -67,77 +67,48 @@
                 <small class="text-muted">Create, edit and manage recurring staff shift rules</small>
             </div>
 
-            <!-- ADD BUTTON -->
-            <button class="btn btn-primary d-flex align-items-center gap-2 px-3"
-                    style="height: 38px; border-radius: 6px;"
-                    data-bs-toggle="modal"
-                    data-bs-target="#addScheduleModal">
-
-                <i class="fa-solid fa-plus"></i>
-                <span>Schedule Shift</span>
-            </button>
-
-        </div>
-
-        <!-- FILTERS ROW -->
-        <div class="mt-3 pt-2">
-
+            <!-- FILTERS & ADD CTA TOOLBAR -->
             <form method="GET"
                   action="{{ route('admin.shift-schedules') }}"
-                  class="d-flex align-items-center gap-2 flex-wrap justify-content-end m-0">
+                  class="d-flex align-items-center gap-2 flex-wrap m-0">
 
                 <!-- SEARCH -->
-                <div style="width: 250px;">
-                    <div class="input-group"
-                         style="border: 1px solid #000000; border-radius: 6px; overflow: hidden; height: 38px;">
-                        <span class="input-group-text bg-white border-0">
-                            <i class="fa-solid fa-magnifying-glass text-muted"></i>
+                <div style="width: 320px;">
+                    <div class="input-group" style="border: 1px solid black; border-radius: 6px; height: 45px;">
+                        <span class="input-group-text bg-white border-0 px-3">
+                            <i class="fa-solid fa-magnifying-glass text-muted fs-5"></i>
                         </span>
                         <input type="text"
                                id="scheduleSearchInput"
-                               class="form-control border-0 shadow-none"
+                               class="form-control border-0 shadow-none py-2"
                                placeholder="Search shift or employee..."
-                               autocomplete="off">
+                               autocomplete="off"
+                               style="font-size: 1.05rem;">
                     </div>
                 </div>
 
                 <!-- FILTER DROPDOWN -->
                 <div class="dropdown">
-                    <button class="btn btn-outline-secondary d-flex align-items-center gap-1 px-3 position-relative"
+                    <button class="btn btn-outline-dark d-flex align-items-center gap-2 px-3 position-relative"
                             type="button"
                             data-bs-toggle="dropdown"
-                            style="height: 38px; border-radius: 6px; border: 1px solid;">
-                        <i class="fa-solid fa-filter"></i>
+                            style="height: 45px; border-radius: 6px; border: 1px solid black; font-size: 1.05rem;">
+                        <i class="fa-solid fa-filter fs-5"></i>
                         <span>Filter</span>
-                        @if(request()->filled('user_id') || request()->filled('status'))
+                        @if(request('status') !== null && request('status') !== '')
                             <span class="position-absolute top-0 start-100 translate-middle p-1 bg-danger border border-light rounded-circle"></span>
                         @endif
                     </button>
                     <div class="dropdown-menu dropdown-menu-end p-3 shadow-sm"
-                         style="min-width: 280px; border-radius: 8px;">
-
-                        <!-- EMPLOYEE -->
-                        <label class="form-label small mb-1 fw-semibold">Employee</label>
-                        <select name="user_id"
-                                class="form-select mb-3"
-                                style="height: 38px; border-radius: 6px;">
-                            <option value="">All Employees</option>
-                            @foreach($users as $u)
-                                <option value="{{ $u->user_id }}"
-                                    {{ ($filters['user_id'] ?? '') == $u->user_id ? 'selected' : '' }}>
-                                    {{ $u->full_name }}
-                                </option>
-                            @endforeach
-                        </select>
+                         onclick="event.stopPropagation()"
+                         style="min-width: 240px; border-radius: 8px; z-index: 1055;">
 
                         <!-- STATUS -->
-                        <label class="form-label small mb-1 fw-semibold">Status</label>
-                        <select name="status"
-                                class="form-select mb-3"
-                                style="height: 38px; border-radius: 6px;">
+                        <label class="form-label small mb-1 fw-semibold text-muted">Status</label>
+                        <select name="status" class="form-select mb-3 shadow-none" style="height:38px; border-radius:4px; border: 1px solid black;">
                             <option value="">All Statuses</option>
-                            <option value="ACTIVE" {{ ($filters['status'] ?? '') === 'ACTIVE' ? 'selected' : '' }}>Active</option>
-                            <option value="INACTIVE" {{ ($filters['status'] ?? '') === 'INACTIVE' ? 'selected' : '' }}>Inactive</option>
+                            <option value="ACTIVE" @selected(($filters['status'] ?? '') === 'ACTIVE')>Active</option>
+                            <option value="INACTIVE" @selected(($filters['status'] ?? '') === 'INACTIVE')>Inactive</option>
                         </select>
 
                         <div class="d-flex gap-2">
