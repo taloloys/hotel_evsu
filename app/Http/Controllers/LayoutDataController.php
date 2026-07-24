@@ -156,8 +156,10 @@ class LayoutDataController extends Controller
                     'time' => $booking->departure_date->format('M d, Y'),
                 ];
             }
+        }
 
-            // Pending Expenses
+        // 2b. Pending Expenses (Accounting)
+        if ($user->hasPermission('manage-accounting-expenses') || $user->hasPermission('view-accounting-dashboard')) {
             $pendingExpenses = Expense::where('status', 'PENDING')->get();
             foreach ($pendingExpenses as $expense) {
                 $notifications[] = [
@@ -183,25 +185,29 @@ class LayoutDataController extends Controller
                     'type' => 'inventory',
                     'icon' => 'fa-box-open text-danger',
                     'message' => "Low Stock: '{$product->name}' is below {$threshold} (Current: {$product->stock_quantity}).",
-                    'link' => route('coffeeshop.inventory', ['filter' => 'low_stock']),
+                    'link' => route('coffeeshop.inventory', ['filter' => 'low_stock', 'search' => $product->name]),
                     'time' => 'Low Stock',
                 ];
             }
         }
 
         // 4. Manage Shifts notifications
-        if ($user->hasPermission('manage-shifts') || $user->hasPermission('manage-reservations')) {
+        if ($user->hasPermission('manage-shifts') || $user->hasPermission('manage-reservations') || $user->hasPermission('manage-inventory')) {
             $activeShift = Shift::where('user_id', $user->user_id)
                 ->whereNull('end_time')
                 ->first();
 
             if (! $activeShift) {
+                $shiftLink = $user->hasPermission('manage-inventory') && ! $user->hasPermission('manage-reservations')
+                    ? route('coffeeshop.pos')
+                    : route('frontdesk.dashboard');
+
                 $notifications[] = [
                     'id' => 'shift-none-open',
                     'type' => 'shift',
                     'icon' => 'fa-clock-rotate-left text-warning',
                     'message' => 'No active shift open. Please start a shift.',
-                    'link' => route('frontdesk.dashboard'),
+                    'link' => $shiftLink,
                     'time' => 'Attention',
                 ];
             }

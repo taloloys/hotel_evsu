@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\ActivityLog;
 use App\Models\PosCategory;
 use App\Models\PosProduct;
+use App\Models\PosSetting;
 use App\Services\ImageUploadService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -22,6 +23,19 @@ class ProductController extends Controller
             $query->where(function ($q) use ($search) {
                 $q->where('name', 'like', "%{$search}%")
                     ->orWhere('description', 'like', "%{$search}%");
+            });
+        }
+
+        if ($request->filled('filter') && $request->filter === 'low_stock') {
+            $defaultThreshold = PosSetting::defaultLowStockThreshold();
+            $query->where(function ($q) use ($defaultThreshold) {
+                $q->where(function ($sub) use ($defaultThreshold) {
+                    $sub->whereNull('low_stock_threshold')
+                        ->where('stock_quantity', '<=', (int) ($defaultThreshold * 1.4));
+                })->orWhere(function ($sub) {
+                    $sub->whereNotNull('low_stock_threshold')
+                        ->whereRaw('stock_quantity <= (low_stock_threshold * 1.4)');
+                });
             });
         }
 

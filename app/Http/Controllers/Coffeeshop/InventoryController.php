@@ -47,11 +47,9 @@ class InventoryController extends Controller
                 $query->where(function ($q) use ($defaultThreshold) {
                     $q->where(function ($sub) use ($defaultThreshold) {
                         $sub->whereNull('low_stock_threshold')
-                            ->where('stock_quantity', '>', $defaultThreshold)
                             ->where('stock_quantity', '<=', (int) ($defaultThreshold * 1.4));
                     })->orWhere(function ($sub) {
                         $sub->whereNotNull('low_stock_threshold')
-                            ->whereColumn('stock_quantity', '>', 'low_stock_threshold')
                             ->whereRaw('stock_quantity <= (low_stock_threshold * 1.4)');
                     });
                 });
@@ -146,6 +144,8 @@ class InventoryController extends Controller
 
         ActivityLog::log($actionType, $logMsg);
 
-        return back()->with('success', 'Inventory updated successfully.');
+        return redirect()
+            ->route('coffeeshop.inventory')
+            ->with('success', "Inventory updated for \"{$product->name}\". New stock: {$newStock}.");
     }
 }

@@ -914,7 +914,7 @@
             paymentModal.hide();
 
             const result = await executeClose({
-                payment_method: 'cash'
+                payment_method: method
             });
 
         });

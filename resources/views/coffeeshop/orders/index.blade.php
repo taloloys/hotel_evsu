@@ -90,6 +90,8 @@
                                     $paymentBadge = match($order->payment_method) {
                                         'room_charge' => 'bg-info',
                                         'account_charge' => 'bg-primary',
+                                        'gcash' => 'bg-success',
+                                        'card' => 'bg-warning text-dark',
                                         default => 'bg-secondary'
                                     };
                                 @endphp

@@ -8,15 +8,17 @@
 @include('coffeeshop.partials.alerts')
 
 @php
-    function stockStatus($product) {
-        if (!$product->is_stockable) return ['Not Tracked', 'secondary'];
-        $qty = $product->stock_quantity;
-        $threshold = $product->effectiveLowStockThreshold();
-        if ($qty == 0) return ['Out of Stock', 'danger'];
-        if ($qty <= $threshold) return ['Low Stock', 'danger'];
-        if ($qty <= (int)($threshold * 1.4)) return ['Semi Low', 'warning'];
-        if ($qty <= (int)($threshold * 2)) return ['Well Stocked', 'success'];
-        return ['Over Stocked', 'primary'];
+    if (!function_exists('stockStatus')) {
+        function stockStatus($product) {
+            if (!$product->is_stockable) return ['Not Tracked', 'secondary'];
+            $qty = $product->stock_quantity;
+            $threshold = $product->effectiveLowStockThreshold();
+            if ($qty == 0) return ['Out of Stock', 'danger'];
+            if ($qty <= $threshold) return ['Low Stock', 'danger'];
+            if ($qty <= (int)($threshold * 1.4)) return ['Semi Low', 'warning'];
+            if ($qty <= (int)($threshold * 2)) return ['Well Stocked', 'success'];
+            return ['Over Stocked', 'primary'];
+        }
     }
 @endphp
 

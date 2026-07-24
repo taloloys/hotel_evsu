@@ -88,9 +88,8 @@
                         aria-labelledby="notificationDropdown"
                         style="width: 320px; z-index: 1050;">
 
-                        <li class="p-3 border-bottom d-flex justify-content-between align-items-center bg-light">
+                        <li class="p-3 border-bottom bg-light">
                             <span class="fw-bold">Notifications</span>
-                            <button class="btn btn-sm btn-link text-decoration-none p-0 text-primary fw-semibold" id="clearAllNotifications">Clear All</button>
                         </li>
 
                         <div id="notificationList" style="max-height: 400px; overflow-y: auto;">
@@ -219,20 +218,15 @@
         }
 
         function getDismissed() {
-            try {
-                return JSON.parse(localStorage.getItem('dismissed_notifications') || '[]');
-            } catch (e) {
-                return [];
-            }
+            return [];
         }
 
         function setDismissed(ids) {
-            localStorage.setItem('dismissed_notifications', JSON.stringify(ids));
+            localStorage.removeItem('dismissed_notifications');
         }
 
         function renderNotifications() {
-            const dismissed = getDismissed();
-            const active = notificationsData.filter(n => !dismissed.includes(n.id));
+            const active = notificationsData;
 
             if (active.length > 0) {
                 notificationBadge.textContent = active.length;
@@ -249,22 +243,18 @@
                         <div class="mt-1 flex-shrink-0">
                             <i class="fa-solid ${n.icon} fa-fw fs-5"></i>
                         </div>
-                        <div class="flex-grow-1 pe-3" onclick="if(window.Turbo){ Turbo.visit('${n.link}'); }else{ window.location.href='${n.link}'; }">
+                        <div class="flex-grow-1 notif-body">
                             <div class="small text-dark mb-1">${n.message}</div>
                             <small class="text-muted text-xs">${n.time}</small>
                         </div>
-                        <button class="btn btn-sm btn-link text-muted p-0 position-absolute dismiss-btn" 
-                                style="top: 10px; right: 10px;" 
-                                data-dismiss-id="${n.id}"
-                                title="Dismiss">
-                            <i class="fa-solid fa-xmark fs-6"></i>
-                        </button>
                     `;
                     
-                    item.querySelector('.dismiss-btn').addEventListener('click', function(e) {
-                        e.stopPropagation();
-                        e.preventDefault();
-                        dismissNotification(n.id);
+                    item.addEventListener('click', function(e) {
+                        if (window.Turbo) {
+                            window.Turbo.visit(n.link);
+                        } else {
+                            window.location.href = n.link;
+                        }
                     });
                     
                     notificationList.appendChild(item);
@@ -288,6 +278,7 @@
                 renderNotifications();
             }
         }
+        window.dismissNotification = dismissNotification;
 
         if (clearAllBtn) {
             // Remove previous event listeners to avoid double bindings on layout updates
