@@ -704,6 +704,67 @@
             });
         }
     });
+
+    // Global Anti-Duplication & Button Loading Helper
+    window.setBtnLoading = function(btn, isLoading, loadingText) {
+        if (!btn) return;
+        if (isLoading) {
+            if (!btn.dataset.originalHtml) {
+                btn.dataset.originalHtml = btn.innerHTML;
+            }
+            btn.disabled = true;
+            const spinner = '<i class="fa-solid fa-spinner fa-spin me-1"></i> ';
+            btn.innerHTML = spinner + (loadingText || 'Processing...');
+        } else {
+            if (btn.dataset.originalHtml !== undefined) {
+                btn.innerHTML = btn.dataset.originalHtml;
+                delete btn.dataset.originalHtml;
+            }
+            btn.disabled = false;
+        }
+    };
+
+    // Global Anti-Duplication Form Submit Listener
+    document.addEventListener('submit', function(e) {
+        const form = e.target;
+        if (!form || form.getAttribute('data-no-loading') === 'true') return;
+
+        const submitBtn = form.querySelector('button[type="submit"], input[type="submit"]')
+                       || form.querySelector('button:not([type="button"])');
+        if (submitBtn && !submitBtn.disabled) {
+            if (form.dataset.submitting === 'true') {
+                e.preventDefault();
+                return false;
+            }
+            form.dataset.submitting = 'true';
+
+            let text = submitBtn.innerText.trim() || 'Processing...';
+            window.setBtnLoading(submitBtn, true, text);
+        }
+    }, true);
+
+    // Track & Retain Browser Fullscreen Mode
+    document.addEventListener('fullscreenchange', function() {
+        if (document.fullscreenElement) {
+            sessionStorage.setItem('appWasFullscreen', 'true');
+        } else {
+            sessionStorage.setItem('appWasFullscreen', 'false');
+        }
+    });
+
+    if (sessionStorage.getItem('appWasFullscreen') === 'true') {
+        const restoreFS = function() {
+            if (!document.fullscreenElement) {
+                const elem = document.documentElement;
+                const reqFS = elem.requestFullscreen || elem.webkitRequestFullscreen || elem.mozRequestFullScreen || elem.msRequestFullscreen;
+                if (reqFS) {
+                    reqFS.call(elem).catch(() => {});
+                }
+            }
+        };
+        restoreFS();
+        document.addEventListener('click', restoreFS, { once: true });
+    }
 </script>
 
 

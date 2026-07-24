@@ -1124,6 +1124,7 @@
     }
 
     function submitCheckOut() {
+        const confirmBtn = document.getElementById('confirmCheckOutBtn');
         const timeInput = document.getElementById('checkoutTimeInput');
         const periodSelect = document.getElementById('checkoutPeriodSelect');
         const errorEl = document.getElementById('checkoutTimeError');
@@ -1139,6 +1140,8 @@
         timeInput.classList.remove('is-invalid');
         errorEl.classList.add('d-none');
 
+        window.setBtnLoading(confirmBtn, true, 'Checking Out...');
+
         postJson('{{ route("frontdesk.booking.check-out") }}', {
             booking_id: pendingCheckOutBookingId,
             checkout_time: checkoutTime,
@@ -1148,9 +1151,10 @@
                 checkOutModal.hide();
                 roomActionModal?.hide();
                 showAlert('success', data.message);
-                setTimeout(() => location.reload(), 1200);
+                setTimeout(() => location.reload(), 1000);
             })
             .catch(error => {
+                window.setBtnLoading(confirmBtn, false);
                 errorEl.textContent = error.message;
                 errorEl.classList.remove('d-none');
             });
@@ -1382,7 +1386,7 @@
 
     function submitCheckIn() {
         if (!pendingCheckInBookingId) return;
-        checkInConfirmModal.hide();
+        const confirmBtn = document.getElementById('confirmCheckInBtn');
 
         const payload = { booking_id: pendingCheckInBookingId };
         const netRateInput = document.getElementById('checkInNetRate');
@@ -1390,56 +1394,78 @@
             payload.net_rate = netRateInput.value;
         }
 
+        window.setBtnLoading(confirmBtn, true, 'Checking In...');
+
         postJson('{{ route("frontdesk.booking.check-in") }}', payload)
             .then(data => {
+                checkInConfirmModal.hide();
                 showAlert('success', data.message);
-                setTimeout(() => location.reload(), 1200);
+                setTimeout(() => location.reload(), 1000);
             })
-            .catch(error => showAlert('error', error.message));
+            .catch(error => {
+                window.setBtnLoading(confirmBtn, false);
+                showAlert('error', error.message);
+            });
     }
 
     function checkOutGuest(bookingId) {
         openCheckOutModal(bookingId);
     }
 
-    function markRoomCleaned(roomId) {
+    function markRoomCleaned(roomId, btn) {
+        window.setBtnLoading(btn, true, 'Updating...');
         postJson('{{ route("frontdesk.room.mark-cleaned") }}', { room_id: roomId })
             .then(data => {
                 roomActionModal.hide();
                 showAlert('success', data.message);
-                setTimeout(() => location.reload(), 1200);
+                setTimeout(() => location.reload(), 1000);
             })
-            .catch(error => showAlert('error', error.message));
+            .catch(error => {
+                window.setBtnLoading(btn, false);
+                showAlert('error', error.message);
+            });
     }
 
-    function markRoomForCleaning(roomId) {
+    function markRoomForCleaning(roomId, btn) {
+        window.setBtnLoading(btn, true, 'Updating...');
         postJson('{{ route("frontdesk.room.mark-for-cleaning") }}', { room_id: roomId })
             .then(data => {
                 roomActionModal.hide();
                 showAlert('success', data.message);
-                setTimeout(() => location.reload(), 1200);
+                setTimeout(() => location.reload(), 1000);
             })
-            .catch(error => showAlert('error', error.message));
+            .catch(error => {
+                window.setBtnLoading(btn, false);
+                showAlert('error', error.message);
+            });
     }
 
-    function markRoomForMaintenance(roomId) {
+    function markRoomForMaintenance(roomId, btn) {
+        window.setBtnLoading(btn, true, 'Updating...');
         postJson('{{ route("frontdesk.room.mark-maintenance") }}', { room_id: roomId })
             .then(data => {
                 roomActionModal.hide();
                 showAlert('success', data.message);
-                setTimeout(() => location.reload(), 1200);
+                setTimeout(() => location.reload(), 1000);
             })
-            .catch(error => showAlert('error', error.message));
+            .catch(error => {
+                window.setBtnLoading(btn, false);
+                showAlert('error', error.message);
+            });
     }
 
-    function markMaintenanceComplete(roomId) {
+    function markMaintenanceComplete(roomId, btn) {
+        window.setBtnLoading(btn, true, 'Updating...');
         postJson('{{ route("frontdesk.room.maintenance-complete") }}', { room_id: roomId })
             .then(data => {
                 roomActionModal.hide();
                 showAlert('success', data.message);
-                setTimeout(() => location.reload(), 1200);
+                setTimeout(() => location.reload(), 1000);
             })
-            .catch(error => showAlert('error', error.message));
+            .catch(error => {
+                window.setBtnLoading(btn, false);
+                showAlert('error', error.message);
+            });
     }
 
     function openRoomModal(room) {
@@ -1485,7 +1511,7 @@
                 </button>
             `;
             document.getElementById('modalMarkCleanedBtn').addEventListener('click', function() {
-                markRoomCleaned(room.room_id);
+                markRoomCleaned(room.room_id, this);
             });
         } else if (status === 'MAINTENANCE') {
             actions.innerHTML = `
@@ -1497,7 +1523,7 @@
                 </button>
             `;
             document.getElementById('modalMaintenanceCompleteBtn').addEventListener('click', function() {
-                markMaintenanceComplete(room.room_id);
+                markMaintenanceComplete(room.room_id, this);
             });
         } else if (status === 'AVAILABLE') {
             actions.innerHTML = `
@@ -1512,10 +1538,10 @@
                 </div>
             `;
             document.getElementById('modalMarkCleaningBtn').addEventListener('click', function() {
-                markRoomForCleaning(room.room_id);
+                markRoomForCleaning(room.room_id, this);
             });
             document.getElementById('modalMarkMaintenanceBtn').addEventListener('click', function() {
-                markRoomForMaintenance(room.room_id);
+                markRoomForMaintenance(room.room_id, this);
             });
         } else if (status === 'RESERVED') {
             actions.innerHTML = `
