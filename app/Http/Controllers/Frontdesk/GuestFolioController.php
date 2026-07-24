@@ -435,6 +435,23 @@ class GuestFolioController extends Controller
 
         $booking->load(['room', 'folio']);
 
+        $today = Carbon::today()->toDateString();
+        if ($booking->departure_date && $booking->departure_date->toDateString() > $today) {
+            $booking->update(['departure_date' => $today]);
+
+            // Clean up any unstayed future room charges
+            Transaction::where('folio_id', $booking->folio_id)
+                ->where('charge_code', 100)
+                ->where('charge_number', 'like', 'RM-'.$booking->booking_id.'-%')
+                ->whereDate('transaction_date', '>', $today)
+                ->delete();
+
+            $booking->refresh();
+            if ($booking->folio) {
+                $booking->folio->refresh();
+            }
+        }
+
         if ($booking->folio && ! $booking->folio->isSettled()) {
             $balance = $booking->folio->balance;
             $message = $balance > 0

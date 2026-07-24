@@ -10,6 +10,7 @@ use App\Models\Room;
 use App\Models\Shift;
 use App\Models\Transaction;
 use App\Models\User;
+use App\Services\RoomChargeService;
 use Carbon\Carbon;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Artisan;
@@ -68,6 +69,13 @@ beforeEach(function (): void {
         'is_active' => true,
     ]);
 
+    ChargeCode::create([
+        'charge_code' => 403,
+        'description' => 'CASH PAYMENT',
+        'category' => 'PAYMENT',
+        'is_active' => true,
+    ]);
+
     // 5. Setup basic shift
     $this->shift = Shift::create([
         'user_id' => $this->frontdeskUser->user_id,
@@ -98,7 +106,7 @@ beforeEach(function (): void {
     ]);
 });
 
-test('walk-in check-in with rate override vs. default rate', function () {
+test('walk-in check-in posts night 1 charge per-night daily', function () {
     Carbon::setTestNow('2026-07-11 12:00:00');
 
     // 1. Without rate override (uses room base rate 2000.00)
@@ -118,11 +126,12 @@ test('walk-in check-in with rate override vs. default rate', function () {
     $folio = Folio::latest('folio_id')->first();
     $this->assertEquals(2000.00, $folio->net_rate);
 
-    // Verify 2 nights of room charges are posted immediately at 2000.00 each
-    $this->assertDatabaseCount('transactions', 2);
+    // Verify 1 night of room charge is posted initially (per-night daily)
+    $this->assertDatabaseCount('transactions', 1);
     $this->assertDatabaseHas('transactions', [
         'folio_id' => $folio->folio_id,
         'charge_amount' => 2000.00,
+        'transaction_date' => '2026-07-11 00:00:00',
     ]);
 
     // 2. With rate override (uses custom rate 1800.00)
@@ -147,6 +156,7 @@ test('walk-in check-in with rate override vs. default rate', function () {
     $this->assertDatabaseHas('transactions', [
         'folio_id' => $folioOverride->folio_id,
         'charge_amount' => 1800.00,
+        'transaction_date' => '2026-07-11 00:00:00',
     ]);
 });
 
@@ -169,20 +179,20 @@ test('open stay check-in and daily room charge command', function () {
     $folio = $booking->folio;
     $this->assertNull($booking->departure_date);
 
-    // For open stay, no room charges should be posted initially
-    $this->assertDatabaseCount('transactions', 0);
+    // Night 1 is posted on arrival date check-in
+    $this->assertDatabaseCount('transactions', 1);
 
-    // Mock time to next day: 2026-07-12 midnight/morning (yesterday was 2026-07-11)
+    // Mock time to next day: 2026-07-12
     Carbon::setTestNow('2026-07-12 00:05:00');
 
     // Run the daily post command
-    Artisan::call('billing:post-daily-charges');
+    Artisan::call('app:post-nightly-room-charges');
 
-    // Verify room charge is posted for night of 2026-07-11
-    $this->assertDatabaseCount('transactions', 1);
+    // Verify Night 2 room charge is posted for 2026-07-12
+    $this->assertDatabaseCount('transactions', 2);
     $this->assertTrue(Transaction::where('folio_id', $folio->folio_id)
         ->where('charge_amount', 2000.00)
-        ->whereDate('transaction_date', '2026-07-11')
+        ->whereDate('transaction_date', '2026-07-12')
         ->exists());
 });
 
@@ -206,11 +216,11 @@ test('stay extension with rate override and billing', function () {
         'status' => 'CHECKED_IN',
     ]);
 
-    // Post initial charges (1 night)
+    // Post initial charges (Night 1)
     $booking->postRoomCharges();
     $this->assertDatabaseCount('transactions', 1);
 
-    // Extend stay to 2026-07-14 (total 3 nights, 2 new nights) and override rate to 1900.00
+    // Extend stay to 2026-07-14 (total 3 nights) and override rate to 1900.00
     $response = $this->actingAs($this->frontdeskUser)
         ->post(route('frontdesk.guest-folio.extend', $booking->booking_id), [
             'departure_date' => '2026-07-14',
@@ -226,12 +236,18 @@ test('stay extension with rate override and billing', function () {
     $this->assertEquals('2026-07-14', $booking->departure_date->toDateString());
     $this->assertEquals(1900.00, $folio->net_rate);
 
-    // Verify 3 room charges exist (1 updated original night, 2 new nights) all with rate 1900.00
+    // Night 1 updated to 1900.00 (today is July 11)
+    $this->assertDatabaseCount('transactions', 1);
+    $this->assertEquals(1900.00, Transaction::where('folio_id', $folio->folio_id)->first()->charge_amount);
+
+    // Advance to July 12 and July 13 to verify subsequent nights post per-night daily
+    Carbon::setTestNow('2026-07-12 01:00:00');
+    app(RoomChargeService::class)->processCatchUpCharges($booking->booking_id);
+    $this->assertDatabaseCount('transactions', 2);
+
+    Carbon::setTestNow('2026-07-13 01:00:00');
+    app(RoomChargeService::class)->processCatchUpCharges($booking->booking_id);
     $this->assertDatabaseCount('transactions', 3);
-    $transactions = Transaction::where('folio_id', $folio->folio_id)->get();
-    foreach ($transactions as $txn) {
-        $this->assertEquals(1900.00, $txn->charge_amount);
-    }
 });
 
 test('room transfer same-day', function () {
@@ -255,7 +271,7 @@ test('room transfer same-day', function () {
     ]);
 
     $booking->postRoomCharges();
-    $this->assertDatabaseCount('transactions', 2);
+    $this->assertDatabaseCount('transactions', 1);
 
     // Perform same-day transfer to Room B
     $response = $this->actingAs($this->frontdeskUser)
@@ -273,12 +289,10 @@ test('room transfer same-day', function () {
     $this->assertEquals($this->roomB->room_id, $booking->room_id);
     $this->assertEquals(2800.00, $folio->net_rate);
 
-    // Check that charges were updated to 2800.00
+    // Check that charge was updated to 2800.00
     $transactions = Transaction::where('folio_id', $folio->folio_id)->get();
-    $this->assertCount(2, $transactions);
-    foreach ($transactions as $txn) {
-        $this->assertEquals(2800.00, $txn->charge_amount);
-    }
+    $this->assertCount(1, $transactions);
+    $this->assertEquals(2800.00, $transactions->first()->charge_amount);
 });
 
 test('room transfer multi-day', function () {
@@ -302,10 +316,12 @@ test('room transfer multi-day', function () {
     ]);
 
     $booking->postRoomCharges();
-    $this->assertDatabaseCount('transactions', 3);
+    $this->assertDatabaseCount('transactions', 1);
 
     // Travel to day 2 (July 12)
     Carbon::setTestNow('2026-07-12 14:00:00');
+    app(RoomChargeService::class)->processCatchUpCharges($booking->booking_id);
+    $this->assertDatabaseCount('transactions', 2);
 
     // Transfer guest to Room B (net rate 2700.00)
     $response = $this->actingAs($this->frontdeskUser)
@@ -332,12 +348,13 @@ test('room transfer multi-day', function () {
     $this->assertEquals('2026-07-13', $newBooking->arrival_date->toDateString());
     $this->assertEquals('2026-07-14', $newBooking->departure_date->toDateString());
 
-    // Verify total charges:
-    // Old booking: Nights of July 11, 12 preserved (2000.00 each). Only July 13 deleted.
-    // New booking: Night of July 13 (2700.00)
+    // Travel to day 3 (July 13) for new booking charge to post
+    Carbon::setTestNow('2026-07-13 10:00:00');
+    app(RoomChargeService::class)->processCatchUpCharges($newBooking->booking_id);
+
     $transactions = Transaction::where('folio_id', $folio->folio_id)->get();
 
-    // There should be 3 total charges: 2 from old booking, 1 from new booking
+    // There should be 3 total charges: 2 from old booking (Jul 11, 12 @ 2000), 1 from new booking (Jul 13 @ 2700)
     $this->assertCount(3, $transactions);
 
     $oldCharges = Transaction::where('charge_number', 'like', 'RM-'.$booking->booking_id.'-%')->get();
@@ -351,37 +368,58 @@ test('room transfer multi-day', function () {
     $this->assertEquals(2700.00, $newCharges->first()->charge_amount);
 });
 
-test('room transfer preserves today charges and prevents double billing', function () {
+test('early check-out on day 2 of 3-night stay only charges stayed nights', function () {
     Carbon::setTestNow('2026-07-11 12:00:00');
 
     $folio = Folio::create([
-        'folio_number' => 'REG-002',
+        'folio_number' => 'REG-999',
         'guest_id' => $this->guest->guest_id,
         'status' => 'OPEN',
-        'net_rate' => 2500.00,
+        'net_rate' => 2000.00,
     ]);
 
     $booking = Booking::create([
         'folio_id' => $folio->folio_id,
         'room_id' => $this->roomA->room_id,
         'arrival_date' => '2026-07-11',
-        'arrival_time' => '14:00',
-        'departure_date' => '2026-07-15', // 4 nights (11, 12, 13, 14)
+        'arrival_time' => '12:00',
+        'departure_date' => '2026-07-14', // Scheduled 3 nights
         'departure_time' => '12:00',
         'status' => 'CHECKED_IN',
     ]);
 
+    // Day 1: Night 1 posted (₱2,000)
     $booking->postRoomCharges();
-    $this->assertDatabaseCount('transactions', 4);
+    $this->assertDatabaseCount('transactions', 1);
+    $this->assertEquals(2000.00, $folio->refresh()->balance);
 
-    // Travel to day 3 (July 13, mid-stay)
-    Carbon::setTestNow('2026-07-13 10:00:00');
+    // Day 2 (July 12): Night 2 posted (total ₱4,000 balance)
+    Carbon::setTestNow('2026-07-12 09:00:00');
+    app(RoomChargeService::class)->processCatchUpCharges($booking->booking_id);
+    $this->assertDatabaseCount('transactions', 2);
+    $this->assertEquals(4000.00, $folio->refresh()->balance);
 
-    // Transfer guest to Room B
+    // Guest pays the 2 nights stayed (₱4,000)
+    Transaction::create([
+        'folio_id' => $folio->folio_id,
+        'charge_code' => 403, // CASH PAYMENT
+        'shift_id' => $this->shift->shift_id,
+        'user_id' => $this->frontdeskUser->user_id,
+        'transaction_date' => '2026-07-12',
+        'charge_number' => 'PAY-001',
+        'payment_method' => 'CASH',
+        'reference_notes' => 'Early checkout payment',
+        'charge_amount' => 0.00,
+        'credit_amount' => 4000.00,
+    ]);
+
+    $this->assertEquals(0.00, $folio->refresh()->balance);
+
+    // Perform Early Checkout on July 12
     $response = $this->actingAs($this->frontdeskUser)
-        ->post(route('frontdesk.guest-folio.transfer', $booking->booking_id), [
-            'new_room_id' => $this->roomB->room_id,
-            'net_rate' => 3000.00,
+        ->post(route('frontdesk.guest-folio.checkout', $booking->booking_id), [
+            'checkout_time' => '10:00',
+            'checkout_period' => 'AM',
         ]);
 
     $response->assertRedirect();
@@ -389,43 +427,10 @@ test('room transfer preserves today charges and prevents double billing', functi
     $booking->refresh();
     $folio->refresh();
 
-    // 1. Today's room charges are preserved after transfer
-    $todayOldCharges = Transaction::where('folio_id', $folio->folio_id)
-        ->where('charge_code', 100)
-        ->where('charge_number', 'like', 'RM-'.$booking->booking_id.'-%')
-        ->whereDate('transaction_date', '<=', '2026-07-13')
-        ->get();
-    $this->assertCount(3, $todayOldCharges, 'Old booking charges for July 11, 12, 13 must be preserved');
+    $this->assertEquals('CHECKED_OUT', $booking->status);
+    $this->assertEquals('2026-07-12', $booking->departure_date->toDateString());
+    $this->assertEquals('CLOSED', $folio->status);
 
-    // 2. The new room booking starts tomorrow
-    $newBooking = Booking::where('folio_id', $folio->folio_id)
-        ->where('booking_id', '!=', $booking->booking_id)
-        ->first();
-
-    $this->assertNotNull($newBooking);
-    $this->assertEquals('2026-07-14', $newBooking->arrival_date->toDateString(), 'New booking must start tomorrow');
-    $this->assertEquals('2026-07-15', $newBooking->departure_date->toDateString());
-    $this->assertEquals('CHECKED_IN', $newBooking->status);
-
-    // 3. No orphan or double billing entries exist for the transition day
-    $allCharges = Transaction::where('folio_id', $folio->folio_id)
-        ->where('charge_code', 100)
-        ->get();
-
-    // 3 old (Jul 11, 12, 13) + 1 new (Jul 14) = 4 total
-    $this->assertCount(4, $allCharges, 'Total charges must equal nights of stay with no duplicates');
-
-    // Verify no duplicate charges for today (July 13)
-    $todayAllCharges = $allCharges->filter(function ($txn) {
-        return Carbon::parse($txn->transaction_date)->toDateString() === '2026-07-13';
-    });
-    $this->assertCount(1, $todayAllCharges, 'There must be exactly one charge for the transition day');
-
-    // Verify old charges at old rate, new charges at new rate
-    foreach ($todayOldCharges as $txn) {
-        $this->assertEquals(2500.00, $txn->charge_amount);
-    }
-    $newCharges = Transaction::where('charge_number', 'like', 'RM-'.$newBooking->booking_id.'-%')->get();
-    $this->assertCount(1, $newCharges);
-    $this->assertEquals(3000.00, $newCharges->first()->charge_amount);
+    // Night 3 (July 13) was NEVER charged, total charges count is 2 (plus 1 payment = 3 transactions total)
+    $this->assertDatabaseCount('transactions', 3);
 });

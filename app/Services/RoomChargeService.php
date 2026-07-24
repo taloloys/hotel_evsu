@@ -62,22 +62,19 @@ class RoomChargeService
     private function chargeBooking(Booking $booking, int $userId, Shift $activeShift, Carbon $today): void
     {
         $arrival = $booking->arrival_date;
-        if (! $arrival) {
+        if (! $arrival || $arrival > $today) {
             return;
         }
 
         // Calculate nights between arrival date and today.
-        // Add 1 so the current active night is immediately charged up-front.
+        // Add 1 so the current active night is charged per-night as each day elapses.
         $nightsPassed = (int) $arrival->diffInDays($today);
         $nightsToCharge = $nightsPassed + 1;
 
-        // For fixed-stay bookings, charge all nights from arrival to departure up-front.
+        // Cap nights to total stay nights for fixed-stay bookings.
         if ($booking->departure_date) {
-            $totalNights = $arrival->diffInDays($booking->departure_date);
-            $nightsToCharge = max($nightsToCharge, $totalNights);
-        } elseif ($nightsPassed === 0) {
-            // Open stay on arrival day: skip charging; daily command handles it.
-            return;
+            $totalNights = max(1, (int) $arrival->diffInDays($booking->departure_date));
+            $nightsToCharge = min($nightsToCharge, $totalNights);
         }
 
         $folio = $booking->folio;
