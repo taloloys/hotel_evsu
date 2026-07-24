@@ -1,5 +1,6 @@
 <?php
 
+use App\Models\Booking;
 use App\Models\ChargeCode;
 use App\Models\Folio;
 use App\Models\Guest;
@@ -133,6 +134,26 @@ test('accountant can list and filter invoices/billing', function (): void {
     $response->assertOk();
     $response->assertSee('F-999');
     $response->assertSee('Anna Smith');
+});
+
+test('accountant can view folio details page when booking arrival or departure date is null', function (): void {
+    $guest = Guest::create(['last_name' => 'NullDate', 'first_name' => 'Test']);
+    $folio = Folio::create(['folio_number' => 'F-888', 'guest_id' => $guest->guest_id, 'status' => 'OPEN']);
+    $room = Room::create(['room_number' => '101', 'room_type' => 'Standard', 'base_rate' => 1500.00, 'status' => 'OCCUPIED']);
+    Booking::create([
+        'folio_id' => $folio->folio_id,
+        'room_id' => $room->room_id,
+        'arrival_date' => now()->toDateString(),
+        'departure_date' => null,
+        'status' => 'RESERVED',
+    ]);
+
+    $response = $this->actingAs($this->accountantUser)
+        ->get(route('accounting.billing.show', $folio->folio_id));
+
+    $response->assertOk();
+    $response->assertSee('F-888');
+    $response->assertSee('NullDate');
 });
 
 test('accountant can view folio details/invoice page', function (): void {

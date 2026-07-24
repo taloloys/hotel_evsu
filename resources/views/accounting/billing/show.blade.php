@@ -71,8 +71,8 @@
                     @php $booking = $folio->bookings->first(); @endphp
                     <div class="col-6"><strong>Room:</strong> Room {{ $booking->room?->room_number ?? 'N/A' }} ({{ $booking->room?->room_type ?? 'N/A' }})</div>
                     <div class="col-6"><strong>Pax:</strong> {{ $folio->num_pax }} guest(s)</div>
-                    <div class="col-6"><strong>Arrival:</strong> {{ $booking->arrival_date->toDateString() }}</div>
-                    <div class="col-6"><strong>Departure:</strong> {{ $booking->departure_date->toDateString() }}</div>
+                    <div class="col-6"><strong>Arrival:</strong> {{ $booking->arrival_date?->toDateString() ?? 'N/A' }}</div>
+                    <div class="col-6"><strong>Departure:</strong> {{ $booking->departure_date?->toDateString() ?? 'N/A' }}</div>
                 @else
                     <div class="col-12">No stays or room rentals attached to this folio.</div>
                 @endif
@@ -105,7 +105,7 @@
                             $runningBalance += ($tx->charge_amount - $tx->credit_amount); 
                         @endphp
                         <tr>
-                            <td>{{ $tx->transaction_date->toDateString() }}</td>
+                            <td>{{ $tx->transaction_date?->toDateString() ?? 'N/A' }}</td>
                             <td>{{ $tx->charge_number ?? 'TX-' . $tx->transaction_id }}</td>
                             <td>{{ $tx->charge_code }}</td>
                             <td>{{ $tx->chargeCode->description ?? $tx->reference_notes }}</td>
@@ -279,7 +279,7 @@
                         }
                     @endphp
                     <tr>
-                        <td style="padding: 4px 0;">{{ $txn->transaction_date->format('m/d/Y') }}</td>
+                        <td style="padding: 4px 0;">{{ $txn->transaction_date?->format('m/d/Y') ?? 'N/A' }}</td>
                         <td style="padding: 4px 0;">
                             {{ $txn->chargeCode?->description ?? 'CHARGE' }}
                             @if($txn->reference_notes) — {{ $txn->reference_notes }} @endif
