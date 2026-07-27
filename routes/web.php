@@ -12,6 +12,7 @@ use App\Http\Controllers\Admin\BackupRestoreController;
 use App\Http\Controllers\Admin\ChargeCodeController;
 use App\Http\Controllers\Admin\CreditAccountController;
 use App\Http\Controllers\Admin\DashboardController;
+use App\Http\Controllers\Admin\LandingPageController;
 use App\Http\Controllers\Admin\PermissionController;
 use App\Http\Controllers\Admin\PosApprovalController;
 use App\Http\Controllers\Admin\RoleController;
@@ -41,7 +42,7 @@ use App\Http\Controllers\Frontdesk\ShiftSalesController;
 use App\Http\Controllers\LayoutDataController;
 use Illuminate\Support\Facades\Route;
 
-Route::get('/', [LoginController::class, 'create'])
+Route::get('/', [LoginController::class, 'showcase'])
     ->name('home');
 
 Route::get('/login', [LoginController::class, 'create'])
@@ -310,6 +311,22 @@ Route::middleware('auth')->group(function () {
         Route::middleware('can:manage-users')->group(function () {
             Route::get('/dashboard', [DashboardController::class, 'index'])
                 ->name('admin.dashboard');
+
+            // LANDING PAGE SHOWCASE CONTROL
+            Route::get('/landing-page', [LandingPageController::class, 'index'])
+                ->name('admin.landing-page');
+            Route::patch('/landing-page/room/{showcase}', [LandingPageController::class, 'updateRoom'])
+                ->name('admin.landing-page.room.update');
+            Route::post('/landing-page/cafeteria-main', [LandingPageController::class, 'updateCafeteriaMain'])
+                ->name('admin.landing-page.cafeteria-main.update');
+            Route::post('/landing-page/cafeteria-item', [LandingPageController::class, 'storeCafeteriaItem'])
+                ->name('admin.landing-page.cafeteria-item.store');
+            Route::patch('/landing-page/cafeteria-item/{showcase}', [LandingPageController::class, 'updateCafeteriaItem'])
+                ->name('admin.landing-page.cafeteria-item.update');
+            Route::patch('/landing-page/{showcase}/toggle', [LandingPageController::class, 'toggleStatus'])
+                ->name('admin.landing-page.toggle');
+            Route::delete('/landing-page/{showcase}', [LandingPageController::class, 'destroy'])
+                ->name('admin.landing-page.destroy');
 
             // CREDIT ACCOUNTS
             Route::get('/credit-accounts', [CreditAccountController::class, 'index'])

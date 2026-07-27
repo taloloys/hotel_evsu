@@ -48,6 +48,11 @@
                     Rooms
                 </a>
 
+                <a href="{{ route('admin.landing-page') }}" class="nav-link {{ request()->routeIs('admin.landing-page*') ? 'active' : '' }}">
+                    <i class="fa-solid fa-globe me-2"></i>
+                    Landing Page
+                </a>
+
                 <a href="{{ route('admin.chargecodes') }}"
                     class="nav-link {{ request()->routeIs('admin.chargecodes') ? 'active' : '' }}">
                     <i class="fa-solid fa-receipt me-2"></i>

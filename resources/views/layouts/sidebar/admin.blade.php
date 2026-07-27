@@ -58,6 +58,13 @@
             <i class="fa-solid fa-bed me-2"></i>
             Rooms
         </a>
+
+        <!-- LANDING PAGE CONTROL -->
+        <a href="{{ route('admin.landing-page') }}"
+           class="nav-link {{ request()->routeIs('admin.landing-page*') ? 'active' : '' }}">
+            <i class="fa-solid fa-globe me-2"></i>
+            Landing Page
+        </a>
         @endcan
 
         @canany(['manage-users', 'manage-shifts'])

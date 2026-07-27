@@ -7,6 +7,7 @@ use App\Models\ActivityLog;
 use App\Models\Room;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Validation\Rule;
 use Illuminate\View\View;
 
@@ -98,6 +99,8 @@ class RoomController extends Controller
             "Created room {$validated['room_number']} ({$validated['room_type']}) with base rate \${$validated['base_rate']}."
         );
 
+        Cache::forget('public_showcase_data');
+
         return redirect()
             ->route('admin.rooms')
             ->with('success', 'Room created successfully.');
@@ -129,6 +132,8 @@ class RoomController extends Controller
             "Updated room {$room->room_number} details (Type: {$validated['room_type']}, Base Rate: \${$validated['base_rate']}, Status: {$validated['status']})."
         );
 
+        Cache::forget('public_showcase_data');
+
         return redirect()
             ->route('admin.rooms')
             ->with('success', 'Room updated successfully.');
@@ -156,6 +161,8 @@ class RoomController extends Controller
             'ROOM_MODIFIED',
             "Toggled room {$room->room_number} active status to ".($room->is_active ? 'ENABLED' : 'DISABLED').'.'
         );
+
+        Cache::forget('public_showcase_data');
 
         $statusMessage = $room->is_active ? 'enabled' : 'disabled';
 
