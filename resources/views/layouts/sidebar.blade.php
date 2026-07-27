@@ -290,18 +290,17 @@
         </div>
         @endcanany
 
-        <!-- FOOD PANDA -->
+        <!-- FOOD ORDER -->
         @can('access-foodpanda')
         <div class="menu-section mb-4">
             <div class="text-uppercase text-secondary small fw-bold mb-2">
-                Food Delivery
+                Food Order
             </div>
             <nav class="nav flex-column">
-                <a href="https://www.foodpanda.ph/" target="_blank" rel="noopener noreferrer"
-                   class="nav-link">
-                    <i class="fa-solid fa-motorcycle me-2"></i>
-                    Food Panda
-                    <i class="fa-solid fa-arrow-up-right-from-square ms-1 small"></i>
+                <a href="{{ route('admin.food-delivery') }}"
+                   class="nav-link {{ request()->routeIs('admin.food-delivery') ? 'active' : '' }}">
+                    <i class="fa-solid fa-utensils me-2"></i>
+                    Food Delivery
                 </a>
             </nav>
         </div>

@@ -430,6 +430,10 @@ Route::middleware('auth')->group(function () {
                 ->name('admin.backup-restore.delete-local');
         });
 
+        Route::middleware('can:access-foodpanda')->get('/food-delivery', function () {
+            return view('admin.food-delivery.index');
+        })->name('admin.food-delivery');
+
         Route::middleware('can:manage-shifts')->group(function () {
             // SHIFT SCHEDULES
             Route::get('/shift-schedules', [ShiftScheduleController::class, 'index'])
