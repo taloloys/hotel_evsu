@@ -40,6 +40,9 @@ class UserSeeder extends Seeder
 
             // Inventory Module
             'manage-inventory' => ['desc' => 'Manage coffeeshop inventory and sales orders', 'module' => 'Inventory'],
+
+            // External Links
+            'access-foodpanda' => ['desc' => 'Access Food Panda food delivery link', 'module' => 'System'],
         ];
 
         $permissionModels = [];
@@ -76,6 +79,7 @@ class UserSeeder extends Seeder
                     'view-accounting-reports',
                     'view-accounting-audit',
                     'manage-inventory',
+                    'access-foodpanda',
                 ],
             ],
             'FRONT_DESK' => [
