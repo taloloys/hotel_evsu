@@ -20,6 +20,7 @@
 
 <div class="card border-0 shadow-sm mb-4 position-relative" style="z-index: 1030;">
 
+
     <div class="card-body py-3 px-4">
 
         <div class="d-flex justify-content-between align-items-center">
@@ -66,7 +67,7 @@
                 </div>
 
                 <!-- Fullscreen Toggle -->
-                <button class="btn btn-light rounded-circle me-2"
+                <button class="btn btn-light rounded-circle me-1"
                         type="button"
                         id="fullscreenToggleBtn"
                         title="Toggle Fullscreen"
@@ -75,20 +76,21 @@
                     <i class="fa-solid fa-expand" id="fullscreenIcon"></i>
                 </button>
 
+
                 <!-- Notifications -->
 
                 <div class="dropdown">
 
-                    <button class="btn btn-light rounded-circle position-relative"
+                    <button class="btn position-relative notif-bell-btn"
                             type="button"
                             id="notificationDropdown"
                             data-bs-toggle="dropdown"
                             aria-expanded="false"
-                            style="width:42px;height:42px;">
+                            style="width:42px;height:42px;background:linear-gradient(135deg,#f59e0b,#d97706);border-radius:50%;box-shadow:0 4px 14px rgba(245,158,11,0.5);border:none;">
 
-                        <i class="fa-solid fa-bell"></i>
+                        <i class="fa-solid fa-bell notif-bell text-white" id="notificationBellIcon"></i>
 
-                        <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger d-none" id="notificationBadge">
+                        <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger notif-badge d-none" id="notificationBadge">
                             0
                         </span>
 
@@ -192,12 +194,25 @@
 
 </div>
 
-@push('styles')
 <style>
-    /* Styling for premium notifications */
+    /* ── Notification bell button glow ── */
+    .notif-bell-btn {
+        transition: transform 0.15s ease, box-shadow 0.15s ease;
+    }
+    .notif-bell-btn:hover {
+        transform: scale(1.08);
+        box-shadow: 0 6px 20px rgba(245, 158, 11, 0.7) !important;
+    }
+    .notif-bell-btn:active {
+        transform: scale(0.95);
+    }
+
+    /* ── Notification dropdown arrow hidden ── */
     #notificationDropdown::after {
         display: none !important;
     }
+
+    /* ── Notification item hover ── */
     .notification-item {
         transition: background-color 0.2s ease-in-out;
         border-bottom: 1px solid rgba(0, 0, 0, 0.05);
@@ -205,72 +220,116 @@
     .notification-item:hover {
         background-color: #f8fafc !important;
     }
-    .notification-item .dismiss-btn {
-        opacity: 0;
-        transition: opacity 0.2s ease-in-out;
+
+    /* ── Continuous bell ring swing ── */
+    @keyframes bell-ring {
+        0%   { transform: rotate(0deg); }
+        5%   { transform: rotate(18deg); }
+        10%  { transform: rotate(-16deg); }
+        15%  { transform: rotate(14deg); }
+        20%  { transform: rotate(-12deg); }
+        25%  { transform: rotate(9deg); }
+        30%  { transform: rotate(-6deg); }
+        35%  { transform: rotate(3deg); }
+        40%  { transform: rotate(0deg); }
+        100% { transform: rotate(0deg); }
     }
-    .notification-item:hover .dismiss-btn {
-        opacity: 1;
+
+    /* ── Double-pulse ("blink-blink") — 100% visible, double quick pop ── */
+    @keyframes badge-double-pulse {
+        0%, 100% { transform: translate(-50%, -50%) scale(1); box-shadow: 0 0 0 0 rgba(220, 38, 38, 0.6); }
+        12%      { transform: translate(-50%, -50%) scale(1.3); box-shadow: 0 0 0 6px rgba(220, 38, 38, 0.4); }
+        24%      { transform: translate(-50%, -50%) scale(1); box-shadow: 0 0 0 0 rgba(220, 38, 38, 0.2); }
+        36%      { transform: translate(-50%, -50%) scale(1.3); box-shadow: 0 0 0 6px rgba(220, 38, 38, 0.4); }
+        48%      { transform: translate(-50%, -50%) scale(1); box-shadow: 0 0 0 0 rgba(220, 38, 38, 0); }
+    }
+
+    .notif-bell {
+        display: inline-block;
+        transform-origin: top center;
+    }
+
+    /* Always animate when there are active notifications */
+    .notif-bell.active {
+        animation: bell-ring 2.5s ease-in-out infinite;
+    }
+    .notif-badge.active {
+        animation: badge-double-pulse 1.8s ease-in-out infinite;
+    }
+
+    /* Respect reduced-motion */
+    @media (prefers-reduced-motion: reduce) {
+        .notif-bell.active, .notif-badge.active {
+            animation: none;
+        }
     }
 </style>
-@endpush
 
 @push('scripts')
 <script>
-    // Global function to initialize notifications when layout data is loaded
+    // ─── sessionStorage helpers ──────────────────────────────────────────────
+    function getSeenNotificationIds() {
+        try { return JSON.parse(sessionStorage.getItem('seen_notification_ids') || '[]'); }
+        catch(e) { return []; }
+    }
+    function saveSeenNotificationIds(ids) {
+        try { sessionStorage.setItem('seen_notification_ids', JSON.stringify(ids)); }
+        catch(e) {}
+    }
+
+    // ─── Main Notification Initializer ──────────────────────────────────────
     window.initNotifications = function(notificationsData) {
-        const notificationList = document.getElementById('notificationList');
+        const notificationList  = document.getElementById('notificationList');
         const notificationBadge = document.getElementById('notificationBadge');
-        const clearAllBtn = document.getElementById('clearAllNotifications');
+        const bellIcon          = document.getElementById('notificationBellIcon');
+        const notifDropdown     = document.getElementById('notificationDropdown');
 
-        if (!notificationList || !notificationBadge) {
-            return;
-        }
-
-        function getDismissed() {
-            return [];
-        }
-
-        function setDismissed(ids) {
-            localStorage.removeItem('dismissed_notifications');
-        }
+        if (!notificationList || !notificationBadge) return;
 
         function renderNotifications() {
-            const active = notificationsData;
+            const active = notificationsData || [];
 
-            if (active.length > 0) {
-                notificationBadge.textContent = active.length;
+            // ── Bell Badge & Continuous Animations ───────────────────────────
+            const currentCount = active.length;
+            if (currentCount > 0) {
+                notificationBadge.textContent = currentCount;
                 notificationBadge.classList.remove('d-none');
-                
-                notificationList.innerHTML = '';
+                // Continuous ring + blink while there are active notifications
+                notificationBadge.classList.add('active');
+                if (bellIcon) bellIcon.classList.add('active');
+            } else {
+                notificationBadge.classList.add('d-none');
+                notificationBadge.classList.remove('active');
+                if (bellIcon) bellIcon.classList.remove('active');
+            }
+
+            // ── 3. Notification List ─────────────────────────────────────────
+            notificationList.innerHTML = '';
+            if (active.length > 0) {
                 active.forEach(n => {
-                    const item = document.createElement('li');
-                    item.className = 'dropdown-item p-3 d-flex align-items-start gap-3 position-relative notification-item';
-                    item.style.whiteSpace = 'normal';
-                    item.style.cursor = 'pointer';
-                    
-                    item.innerHTML = `
+                    const li        = document.createElement('li');
+                    li.className    = 'dropdown-item p-3 d-flex align-items-start gap-3 notification-item';
+                    li.style.whiteSpace = 'normal';
+                    li.style.cursor     = 'pointer';
+
+                    li.innerHTML = `
                         <div class="mt-1 flex-shrink-0">
                             <i class="fa-solid ${n.icon} fa-fw fs-5"></i>
                         </div>
-                        <div class="flex-grow-1 notif-body">
+                        <div class="flex-grow-1">
                             <div class="small text-dark mb-1">${n.message}</div>
-                            <small class="text-muted text-xs">${n.time}</small>
+                            <small class="text-muted">${n.time}</small>
                         </div>
                     `;
-                    
-                    item.addEventListener('click', function(e) {
-                        if (window.Turbo) {
-                            window.Turbo.visit(n.link);
-                        } else {
-                            window.location.href = n.link;
-                        }
+
+                    li.addEventListener('click', function() {
+                        if (window.Turbo) { window.Turbo.visit(n.link); }
+                        else { window.location.href = n.link; }
                     });
-                    
-                    notificationList.appendChild(item);
+
+                    notificationList.appendChild(li);
                 });
             } else {
-                notificationBadge.classList.add('d-none');
                 notificationList.innerHTML = `
                     <li class="p-4 text-center text-muted">
                         <i class="fa-solid fa-bell-slash d-block fs-3 mb-2 opacity-50"></i>
@@ -280,30 +339,15 @@
             }
         }
 
-        function dismissNotification(id) {
-            const dismissed = getDismissed();
-            if (!dismissed.includes(id)) {
-                dismissed.push(id);
-                setDismissed(dismissed);
-                renderNotifications();
-            }
-        }
-        window.dismissNotification = dismissNotification;
-
-        if (clearAllBtn) {
-            // Remove previous event listeners to avoid double bindings on layout updates
-            const newClearAllBtn = clearAllBtn.cloneNode(true);
-            clearAllBtn.parentNode.replaceChild(newClearAllBtn, clearAllBtn);
-            newClearAllBtn.addEventListener('click', function(e) {
-                e.preventDefault();
-                e.stopPropagation();
-                const dismissed = getDismissed();
-                notificationsData.forEach(n => {
-                    if (!dismissed.includes(n.id)) {
-                        dismissed.push(n.id);
-                    }
-                });
-                setDismissed(dismissed);
+        // ── Opening the dropdown marks all as seen (stops pulse; keeps badge count) ──
+        if (notifDropdown && !notifDropdown.dataset.seenBound) {
+            notifDropdown.dataset.seenBound = 'true';
+            notifDropdown.addEventListener('show.bs.dropdown', function() {
+                const activeIds = (notificationsData || []).map(n => n.id);
+                const seenIds   = getSeenNotificationIds();
+                saveSeenNotificationIds(Array.from(new Set([...seenIds, ...activeIds])));
+                notificationBadge.classList.remove('new');
+                if (bellIcon) bellIcon.classList.remove('new');
                 renderNotifications();
             });
         }
@@ -311,37 +355,29 @@
         renderNotifications();
     };
 
-    // Ticking clock initializer
+    // ─── Ticking Clock ───────────────────────────────────────────────────────
     (function() {
         const timeElement = document.getElementById('header-time');
-        if (timeElement) {
-            // Get initial server time in milliseconds
-            let serverTimeMs = {{ now()->getTimestamp() * 1000 }};
-            const startTimePerformance = performance.now();
+        if (!timeElement) return;
 
-            function updateClock() {
-                // Calculate elapsed time using high-resolution timer to avoid setInterval drift
-                const elapsed = performance.now() - startTimePerformance;
-                const currentServerTime = new Date(serverTimeMs + elapsed);
+        let serverTimeMs           = {{ now()->getTimestamp() * 1000 }};
+        const startTimePerformance = performance.now();
 
-                let hours = currentServerTime.getHours();
-                const minutes = String(currentServerTime.getMinutes()).padStart(2, '0');
-                const seconds = String(currentServerTime.getSeconds()).padStart(2, '0');
-                const ampm = hours >= 12 ? 'PM' : 'AM';
-                hours = hours % 12;
-                hours = hours ? hours : 12;
-                const hoursStr = String(hours).padStart(2, '0');
-                timeElement.textContent = hoursStr + ':' + minutes + ':' + seconds + ' ' + ampm;
-
-                // Expose current server time globally so other components (like checkout modal) can read it
-                window.currentServerTime = currentServerTime;
-            }
-            updateClock();
-            if (window.headerClockInterval) {
-                clearInterval(window.headerClockInterval);
-            }
-            window.headerClockInterval = setInterval(updateClock, 1000);
+        function updateClock() {
+            const elapsed           = performance.now() - startTimePerformance;
+            const currentServerTime = new Date(serverTimeMs + elapsed);
+            let h      = currentServerTime.getHours();
+            const m    = String(currentServerTime.getMinutes()).padStart(2, '0');
+            const s    = String(currentServerTime.getSeconds()).padStart(2, '0');
+            const ampm = h >= 12 ? 'PM' : 'AM';
+            h = h % 12 || 12;
+            timeElement.textContent  = String(h).padStart(2, '0') + ':' + m + ':' + s + ' ' + ampm;
+            window.currentServerTime = currentServerTime;
         }
+
+        updateClock();
+        if (window.headerClockInterval) clearInterval(window.headerClockInterval);
+        window.headerClockInterval = setInterval(updateClock, 1000);
     })();
 </script>
 @endpush

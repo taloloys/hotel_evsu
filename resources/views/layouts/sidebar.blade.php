@@ -89,9 +89,9 @@
                     Activity Logs
                 </a>
                 <a href="{{ route('admin.pos-approvals') }}"
-                   class="nav-link {{ request()->routeIs('admin.pos-approvals*') ? 'active' : '' }}">
-                    <i class="fa-solid fa-check-double me-2"></i>
-                    POS Approvals
+                   class="nav-link d-flex align-items-center justify-content-between {{ request()->routeIs('admin.pos-approvals*') ? 'active' : '' }}">
+                    <span><i class="fa-solid fa-check-double me-2"></i>POS Approvals</span>
+                    <span id="sidebar-pos-approvals-badge" class="badge bg-danger ms-1 d-none"></span>
                 </a>
                 <a href="{{ route('admin.backup-restore') }}"
                    class="nav-link {{ request()->routeIs('admin.backup-restore*') ? 'active' : '' }}">
@@ -127,9 +127,9 @@
                     Registration
                 </a>
                 <a href="{{ route('frontdesk.checkin') }}"
-                   class="nav-link {{ request()->routeIs('frontdesk.checkin') ? 'active' : '' }}">
-                    <i class="fa-solid fa-key me-2"></i>
-                    Check In
+                   class="nav-link d-flex align-items-center justify-content-between {{ request()->routeIs('frontdesk.checkin') ? 'active' : '' }}">
+                    <span><i class="fa-solid fa-key me-2"></i>Check In</span>
+                    <span id="sidebar-pending-checkins-badge" class="badge bg-success ms-1 d-none"></span>
                 </a>
                 @endcan
 
@@ -143,9 +143,9 @@
 
                 @can('view-guest-folio')
                 <a href="{{ route('frontdesk.guest-folio') }}"
-                   class="nav-link {{ request()->routeIs('frontdesk.guest-folio') ? 'active' : '' }}">
-                    <i class="fa-solid fa-file-invoice-dollar me-2"></i>
-                    Guest Folio
+                   class="nav-link d-flex align-items-center justify-content-between {{ request()->routeIs('frontdesk.guest-folio') ? 'active' : '' }}">
+                    <span><i class="fa-solid fa-file-invoice-dollar me-2"></i>Guest Folio</span>
+                    <span id="sidebar-pending-checkouts-badge" class="badge bg-primary ms-1 d-none"></span>
                 </a>
                 @endcan
 
@@ -267,9 +267,9 @@
                 @endcan
                 @can('manage-accounting-expenses')
                 <a href="{{ route('accounting.expenses') }}"
-                   class="nav-link {{ request()->routeIs('accounting.expenses') ? 'active' : '' }}">
-                    <i class="fa-solid fa-receipt me-2"></i>
-                    Expenses
+                   class="nav-link d-flex align-items-center justify-content-between {{ request()->routeIs('accounting.expenses') ? 'active' : '' }}">
+                    <span><i class="fa-solid fa-receipt me-2"></i>Expenses</span>
+                    <span id="sidebar-pending-expenses-badge" class="badge bg-info ms-1 d-none"></span>
                 </a>
                 @endcan
                 @can('view-accounting-reports')

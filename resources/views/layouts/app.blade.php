@@ -482,6 +482,90 @@
     <!-- Hotwire Turbo -->
     <script src="https://cdn.jsdelivr.net/npm/@hotwired/turbo@8.0.5/dist/turbo.es2017-umd.js" defer></script>
     <script>
+        function updateSidebarBadges(data) {
+            const badgeMap = {
+                'sidebar-low-stock-badge': data.lowStockCount,
+                'sidebar-pending-checkins-badge': data.pendingCheckinsCount,
+                'sidebar-pending-checkouts-badge': data.pendingCheckoutsCount,
+                'sidebar-pending-expenses-badge': data.pendingExpensesCount,
+                'sidebar-pos-approvals-badge': data.posApprovalsCount
+            };
+
+            for (const [id, count] of Object.entries(badgeMap)) {
+                const el = document.getElementById(id);
+                if (el) {
+                    if (count && count > 0) {
+                        el.textContent = count;
+                        el.classList.remove('d-none');
+                    } else {
+                        el.classList.add('d-none');
+                    }
+                }
+            }
+        }
+
+        function getToastSeenIds() {
+            try {
+                return JSON.parse(sessionStorage.getItem('toast_seen_ids') || '[]');
+            } catch(e) {
+                return [];
+            }
+        }
+
+        function saveToastSeenIds(ids) {
+            try {
+                sessionStorage.setItem('toast_seen_ids', JSON.stringify(ids));
+            } catch(e) {}
+        }
+
+        function handleFloatingToasts(notifications) {
+            if (!notifications || !Array.isArray(notifications) || notifications.length === 0) return;
+            
+            const container = document.getElementById('toastContainer');
+            if (!container) return;
+
+            const toastSeen = getToastSeenIds();
+            const unseen = notifications.filter(n => !toastSeen.includes(n.id));
+
+            if (unseen.length === 0) return;
+
+            const updatedSeen = Array.from(new Set([...toastSeen, ...unseen.map(n => n.id)]));
+            saveToastSeenIds(updatedSeen);
+
+            unseen.slice(0, 2).forEach(n => {
+                const toastEl = document.createElement('div');
+                toastEl.className = 'toast show shadow-lg border-0 mb-2 rounded-3 bg-white';
+                toastEl.setAttribute('role', 'alert');
+                toastEl.style.animation = 'slideInRight 0.35s ease-out';
+                toastEl.innerHTML = `
+                    <div class="toast-header bg-light border-bottom-0 py-2">
+                        <i class="${n.icon} fa-fw me-2 fs-6"></i>
+                        <strong class="me-auto text-dark small">New Alert</strong>
+                        <small class="text-muted text-xs me-2">${n.time}</small>
+                        <button type="button" class="btn-close small" data-bs-dismiss="toast"></button>
+                    </div>
+                    <div class="toast-body py-2 px-3">
+                        <div class="small text-dark mb-2">${n.message}</div>
+                        <a href="${n.link}" class="btn btn-sm btn-primary py-0 px-2 fs-7 fw-semibold">View Details</a>
+                    </div>
+                `;
+
+                toastEl.querySelector('.btn-close').addEventListener('click', function() {
+                    toastEl.remove();
+                });
+
+                container.appendChild(toastEl);
+
+                setTimeout(() => {
+                    if (toastEl.parentNode) {
+                        toastEl.style.transition = 'opacity 0.3s ease';
+                        toastEl.style.opacity = '0';
+                        setTimeout(() => toastEl.remove(), 300);
+                    }
+                }, 7000);
+            });
+        }
+
         function fetchLayoutData() {
             fetch('{{ route('api.layout-data') }}', {
                 headers: {
@@ -499,16 +583,8 @@
                 if (window.initNotifications) {
                     window.initNotifications(data.notifications);
                 }
-                
-                const lowStockBadge = document.getElementById('sidebar-low-stock-badge');
-                if (lowStockBadge) {
-                    if (data.lowStockCount > 0) {
-                        lowStockBadge.textContent = data.lowStockCount;
-                        lowStockBadge.classList.remove('d-none');
-                    } else {
-                        lowStockBadge.classList.add('d-none');
-                    }
-                }
+                updateSidebarBadges(data);
+                handleFloatingToasts(data.notifications);
             })
             .catch(err => console.error('Error fetching layout data:', err));
         }
@@ -540,6 +616,7 @@
             }
         });
 
+        document.addEventListener('DOMContentLoaded', fetchLayoutData);
         document.addEventListener('turbo:load', function() {
             restoreSidebarScroll();
             fetchLayoutData();
@@ -602,6 +679,9 @@
 <div class="sidebar">
     @include('layouts.sidebar')
 </div>
+
+<!-- Floating Toast Container -->
+<div id="toastContainer" class="toast-container position-fixed top-0 end-0 p-3" style="z-index: 9999; max-width: 380px;"></div>
 
 <div class="main-content">
 

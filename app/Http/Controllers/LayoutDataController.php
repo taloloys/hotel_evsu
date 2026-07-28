@@ -49,7 +49,8 @@ class LayoutDataController extends Controller
                 $notifications[] = [
                     'id' => 'booking-checkin-'.$booking->booking_id,
                     'type' => 'reservation',
-                    'icon' => 'fa-calendar-check text-success',
+                    'severity' => 'warning',
+                    'icon' => 'fa-calendar-check text-warning',
                     'message' => "Guest {$guestName} is pending check-in (Room {$roomNumber}).",
                     'link' => route('frontdesk.checkin'),
                     'time' => $booking->arrival_date->format('M d, Y'),
@@ -65,7 +66,8 @@ class LayoutDataController extends Controller
                 $notifications[] = [
                     'id' => 'room-dirty-'.$room->room_id,
                     'type' => 'housekeeping',
-                    'icon' => 'fa-broom text-warning',
+                    'severity' => 'info',
+                    'icon' => 'fa-broom text-info',
                     'message' => "Room {$room->room_number} requires cleaning.",
                     'link' => route('frontdesk.dashboard', ['room' => $room->room_number]),
                     'time' => 'Action required',
@@ -81,6 +83,7 @@ class LayoutDataController extends Controller
                 $notifications[] = [
                     'id' => 'room-maintenance-'.$room->room_id,
                     'type' => 'maintenance',
+                    'severity' => 'danger',
                     'icon' => 'fa-wrench text-danger',
                     'message' => "Room {$room->room_number} is under maintenance.",
                     'link' => route('frontdesk.dashboard', ['room' => $room->room_number]),
@@ -114,7 +117,8 @@ class LayoutDataController extends Controller
                 $notifications[] = [
                     'id' => 'pos-approval-'.$req->request_id,
                     'type' => 'pos_approval',
-                    'icon' => 'fa-check-double text-danger',
+                    'severity' => 'warning',
+                    'icon' => 'fa-check-double text-warning',
                     'message' => "POS {$typeLabel}: {$detail} requires authorization.",
                     'link' => route('admin.pos-approvals'),
                     'time' => $req->created_at->diffForHumans(),
@@ -127,6 +131,7 @@ class LayoutDataController extends Controller
                 $notifications[] = [
                     'id' => 'backup-failed-alert',
                     'type' => 'system_alert',
+                    'severity' => 'danger',
                     'icon' => 'fa-triangle-exclamation text-danger',
                     'message' => 'Automatic Database Backup Failed! Check logs and configuration.',
                     'link' => route('admin.backup-restore'),
@@ -150,7 +155,8 @@ class LayoutDataController extends Controller
                 $notifications[] = [
                     'id' => 'booking-checkout-'.$booking->booking_id,
                     'type' => 'checkout',
-                    'icon' => 'fa-door-open text-primary',
+                    'severity' => 'warning',
+                    'icon' => 'fa-door-open text-warning',
                     'message' => "Guest {$guestName} (Room {$roomNumber}) is due for checkout today.",
                     'link' => route('frontdesk.guest-folio'),
                     'time' => $booking->departure_date->format('M d, Y'),
@@ -165,7 +171,8 @@ class LayoutDataController extends Controller
                 $notifications[] = [
                     'id' => 'expense-pending-'.$expense->expense_id,
                     'type' => 'billing',
-                    'icon' => 'fa-file-invoice-dollar text-info',
+                    'severity' => 'warning',
+                    'icon' => 'fa-file-invoice-dollar text-warning',
                     'message' => "Expense: {$expense->description} (₱".number_format($expense->amount, 2).') needs approval.',
                     'link' => route('accounting.expenses'),
                     'time' => $expense->expense_date->format('M d, Y'),
@@ -183,6 +190,7 @@ class LayoutDataController extends Controller
                 $notifications[] = [
                     'id' => 'inventory-low-'.$product->product_id,
                     'type' => 'inventory',
+                    'severity' => 'danger',
                     'icon' => 'fa-box-open text-danger',
                     'message' => "Low Stock: '{$product->name}' is below {$threshold} (Current: {$product->stock_quantity}).",
                     'link' => route('coffeeshop.inventory', ['filter' => 'low_stock', 'search' => $product->name]),
@@ -205,6 +213,7 @@ class LayoutDataController extends Controller
                 $notifications[] = [
                     'id' => 'shift-none-open',
                     'type' => 'shift',
+                    'severity' => 'warning',
                     'icon' => 'fa-clock-rotate-left text-warning',
                     'message' => 'No active shift open. Please start a shift.',
                     'link' => $shiftLink,
@@ -231,12 +240,17 @@ class LayoutDataController extends Controller
             ->where('is_active', true)
             ->count();
 
+        $posApprovalsCount = PosApprovalRequest::where('status', 'pending')->count();
+        $pendingExpensesCount = Expense::where('status', 'PENDING')->count();
+
         $data = [
             'notifications' => $notifications,
             'lowStockCount' => $lowStockCount,
             'pendingCheckinsCount' => $pendingCheckinsCount,
             'pendingCheckoutsCount' => $pendingCheckoutsCount,
             'dirtyRoomsCount' => $dirtyRoomsCount,
+            'posApprovalsCount' => $posApprovalsCount,
+            'pendingExpensesCount' => $pendingExpensesCount,
         ];
 
         return response()->json($data);
