@@ -743,22 +743,54 @@
         }
     }, true);
 
-    // Track & Retain Browser Fullscreen Mode
-    document.addEventListener('fullscreenchange', function() {
-        if (document.fullscreenElement) {
-            sessionStorage.setItem('appWasFullscreen', 'true');
+    // Global Fullscreen Toggle Function & Helper
+    window.toggleAppFullscreen = function() {
+        const elem = document.documentElement;
+        if (!document.fullscreenElement && !document.webkitFullscreenElement && !document.mozFullScreenElement && !document.msFullscreenElement) {
+            const reqFS = elem.requestFullscreen || elem.webkitRequestFullscreen || elem.mozRequestFullScreen || elem.msRequestFullscreen;
+            if (reqFS) {
+                reqFS.call(elem).then(window.updateFullscreenIcon).catch(() => {});
+            }
         } else {
-            sessionStorage.setItem('appWasFullscreen', 'false');
+            const exitFS = document.exitFullscreen || document.webkitExitFullscreen || document.mozCancelFullScreen || document.msExitFullscreen;
+            if (exitFS) {
+                exitFS.call(document).then(window.updateFullscreenIcon).catch(() => {});
+            }
         }
+    };
+
+    window.updateFullscreenIcon = function() {
+        const icon = document.getElementById('fullscreenIcon');
+        if (icon) {
+            const isFS = !!(document.fullscreenElement || document.webkitFullscreenElement || document.mozFullScreenElement || document.msFullscreenElement);
+            if (isFS) {
+                icon.className = 'fa-solid fa-compress';
+            } else {
+                icon.className = 'fa-solid fa-expand';
+            }
+        }
+    };
+
+    // Cross-Browser Fullscreen Change Event Listeners
+    ['fullscreenchange', 'webkitfullscreenchange', 'mozfullscreenchange', 'MSFullscreenChange'].forEach(eventName => {
+        document.addEventListener(eventName, function() {
+            window.updateFullscreenIcon();
+            const isFS = !!(document.fullscreenElement || document.webkitFullscreenElement || document.mozFullScreenElement || document.msFullscreenElement);
+            sessionStorage.setItem('appWasFullscreen', isFS ? 'true' : 'false');
+        });
+    });
+
+    document.addEventListener('turbo:load', function() {
+        window.updateFullscreenIcon();
     });
 
     if (sessionStorage.getItem('appWasFullscreen') === 'true') {
         const restoreFS = function() {
-            if (!document.fullscreenElement) {
+            if (!document.fullscreenElement && !document.webkitFullscreenElement) {
                 const elem = document.documentElement;
                 const reqFS = elem.requestFullscreen || elem.webkitRequestFullscreen || elem.mozRequestFullScreen || elem.msRequestFullscreen;
                 if (reqFS) {
-                    reqFS.call(elem).catch(() => {});
+                    reqFS.call(elem).then(window.updateFullscreenIcon).catch(() => {});
                 }
             }
         };

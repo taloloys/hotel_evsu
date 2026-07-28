@@ -948,6 +948,29 @@
         checkOutModal = new bootstrap.Modal(document.getElementById('checkOutModal'));
         checkInConfirmModal = new bootstrap.Modal(document.getElementById('checkInConfirmModal'));
  
+        // Auto-open room modal if room query parameter is present in URL
+        const urlParams = new URLSearchParams(window.location.search);
+        const targetRoomParam = urlParams.get('room') || urlParams.get('room_number');
+        if (targetRoomParam) {
+            // Clean query params from browser URL so subsequent page reloads don't re-trigger the modal
+            window.history.replaceState({}, document.title, window.location.pathname);
+
+            const allRooms = Object.values(roomsData).flat();
+            const targetRoom = allRooms.find(r => String(r.room_number) === String(targetRoomParam) || String(r.room_id) === String(targetRoomParam));
+            if (targetRoom && targetRoom.status.toUpperCase() !== 'AVAILABLE') {
+                const targetBtn = Array.from(document.querySelectorAll('.room-filter-btn'))
+                    .find(btn => btn.getAttribute('data-room-type') === targetRoom.room_type);
+                if (targetBtn) {
+                    document.querySelectorAll('.room-filter-btn').forEach(btn => btn.classList.remove('active'));
+                    targetBtn.classList.add('active');
+                    renderRoomGrid(roomsData[targetRoom.room_type] || []);
+                }
+                setTimeout(() => {
+                    openRoomModal(targetRoom);
+                }, 300);
+            }
+        }
+ 
         const firstActiveBtn = document.querySelector('.room-filter-btn.active');
         if (firstActiveBtn) {
             renderRoomGrid(roomsData[firstActiveBtn.getAttribute('data-room-type')] || []);
@@ -1151,7 +1174,7 @@
                 checkOutModal.hide();
                 roomActionModal?.hide();
                 showAlert('success', data.message);
-                setTimeout(() => location.reload(), 1000);
+                setTimeout(refreshDashboardInPlace, 500);
             })
             .catch(error => {
                 window.setBtnLoading(confirmBtn, false);
@@ -1384,6 +1407,17 @@
         checkInConfirmModal.show();
     }
 
+    function refreshDashboardInPlace() {
+        if (typeof window.fetchLayoutData === 'function') {
+            window.fetchLayoutData();
+        }
+        if (window.Turbo) {
+            window.Turbo.visit(window.location.href, { action: 'replace' });
+        } else {
+            location.reload();
+        }
+    }
+
     function submitCheckIn() {
         if (!pendingCheckInBookingId) return;
         const confirmBtn = document.getElementById('confirmCheckInBtn');
@@ -1400,7 +1434,7 @@
             .then(data => {
                 checkInConfirmModal.hide();
                 showAlert('success', data.message);
-                setTimeout(() => location.reload(), 1000);
+                setTimeout(refreshDashboardInPlace, 500);
             })
             .catch(error => {
                 window.setBtnLoading(confirmBtn, false);
@@ -1418,7 +1452,7 @@
             .then(data => {
                 roomActionModal.hide();
                 showAlert('success', data.message);
-                setTimeout(() => location.reload(), 1000);
+                setTimeout(refreshDashboardInPlace, 500);
             })
             .catch(error => {
                 window.setBtnLoading(btn, false);
@@ -1432,7 +1466,7 @@
             .then(data => {
                 roomActionModal.hide();
                 showAlert('success', data.message);
-                setTimeout(() => location.reload(), 1000);
+                setTimeout(refreshDashboardInPlace, 500);
             })
             .catch(error => {
                 window.setBtnLoading(btn, false);
@@ -1446,7 +1480,7 @@
             .then(data => {
                 roomActionModal.hide();
                 showAlert('success', data.message);
-                setTimeout(() => location.reload(), 1000);
+                setTimeout(refreshDashboardInPlace, 500);
             })
             .catch(error => {
                 window.setBtnLoading(btn, false);
@@ -1460,7 +1494,7 @@
             .then(data => {
                 roomActionModal.hide();
                 showAlert('success', data.message);
-                setTimeout(() => location.reload(), 1000);
+                setTimeout(refreshDashboardInPlace, 500);
             })
             .catch(error => {
                 window.setBtnLoading(btn, false);

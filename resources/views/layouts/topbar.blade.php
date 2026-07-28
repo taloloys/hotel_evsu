@@ -65,6 +65,16 @@
 
                 </div>
 
+                <!-- Fullscreen Toggle -->
+                <button class="btn btn-light rounded-circle me-2"
+                        type="button"
+                        id="fullscreenToggleBtn"
+                        title="Toggle Fullscreen"
+                        onclick="toggleAppFullscreen()"
+                        style="width:42px;height:42px;">
+                    <i class="fa-solid fa-expand" id="fullscreenIcon"></i>
+                </button>
+
                 <!-- Notifications -->
 
                 <div class="dropdown">

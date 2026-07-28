@@ -67,7 +67,7 @@ class LayoutDataController extends Controller
                     'type' => 'housekeeping',
                     'icon' => 'fa-broom text-warning',
                     'message' => "Room {$room->room_number} requires cleaning.",
-                    'link' => route('frontdesk.dashboard'),
+                    'link' => route('frontdesk.dashboard', ['room' => $room->room_number]),
                     'time' => 'Action required',
                 ];
             }
@@ -83,7 +83,7 @@ class LayoutDataController extends Controller
                     'type' => 'maintenance',
                     'icon' => 'fa-wrench text-danger',
                     'message' => "Room {$room->room_number} is under maintenance.",
-                    'link' => route('frontdesk.dashboard'),
+                    'link' => route('frontdesk.dashboard', ['room' => $room->room_number]),
                     'time' => 'In progress',
                 ];
             }
@@ -213,15 +213,30 @@ class LayoutDataController extends Controller
             }
         }
 
-        // 5. Sidebar low stock count
+        // 5. Sidebar counts
         $lowStockCount = 0;
         if ($hasProductsTable) {
             $lowStockCount = PosProduct::lowStock()->count();
         }
 
+        $pendingCheckinsCount = Booking::where('status', 'RESERVED')
+            ->whereDate('arrival_date', '<=', $today)
+            ->count();
+
+        $pendingCheckoutsCount = Booking::where('status', 'CHECKED_IN')
+            ->whereDate('departure_date', '<=', $today)
+            ->count();
+
+        $dirtyRoomsCount = Room::whereIn('status', ['CLEANING', 'MAINTENANCE'])
+            ->where('is_active', true)
+            ->count();
+
         $data = [
             'notifications' => $notifications,
             'lowStockCount' => $lowStockCount,
+            'pendingCheckinsCount' => $pendingCheckinsCount,
+            'pendingCheckoutsCount' => $pendingCheckoutsCount,
+            'dirtyRoomsCount' => $dirtyRoomsCount,
         ];
 
         return response()->json($data);
