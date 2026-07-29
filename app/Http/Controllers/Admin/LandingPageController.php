@@ -9,6 +9,7 @@ use App\Models\Room;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\View\View;
 
 class LandingPageController extends Controller
@@ -78,7 +79,11 @@ class LandingPageController extends Controller
         if ($request->hasFile('images')) {
             foreach ($request->file('images') as $file) {
                 $filename = time().'_'.uniqid().'.'.$file->getClientOriginalExtension();
-                $file->move(public_path('images/showcase/rooms'), $filename);
+                if (app()->environment('testing')) {
+                    Storage::disk('public')->putFileAs('images/showcase/rooms', $file, $filename);
+                } else {
+                    $file->move(public_path('images/showcase/rooms'), $filename);
+                }
                 $imagePaths[] = 'images/showcase/rooms/'.$filename;
             }
         }
@@ -116,7 +121,11 @@ class LandingPageController extends Controller
         if ($request->hasFile('image')) {
             $file = $request->file('image');
             $filename = 'cafeteria_main_'.time().'.'.$file->getClientOriginalExtension();
-            $file->move(public_path('images/showcase/coffeeshop'), $filename);
+            if (app()->environment('testing')) {
+                Storage::disk('public')->putFileAs('images/showcase/coffeeshop', $file, $filename);
+            } else {
+                $file->move(public_path('images/showcase/coffeeshop'), $filename);
+            }
             $imagePaths = ['images/showcase/coffeeshop/'.$filename];
         } elseif (! empty($validated['image_path'])) {
             $imagePaths = [$validated['image_path']];
@@ -158,7 +167,11 @@ class LandingPageController extends Controller
         if ($request->hasFile('image')) {
             $file = $request->file('image');
             $filename = time().'_'.uniqid().'.'.$file->getClientOriginalExtension();
-            $file->move(public_path('images/showcase/coffeeshop'), $filename);
+            if (app()->environment('testing')) {
+                Storage::disk('public')->putFileAs('images/showcase/coffeeshop', $file, $filename);
+            } else {
+                $file->move(public_path('images/showcase/coffeeshop'), $filename);
+            }
             $imagePath = 'images/showcase/coffeeshop/'.$filename;
         } elseif (! empty($validated['image_path'])) {
             $imagePath = $validated['image_path'];

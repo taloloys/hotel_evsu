@@ -500,7 +500,7 @@
                                 style="height:46px; border:1px solid #000000;"
                                 required>
 
-                                <option value="">Select available room</option>
+                                <option value="">Select room for reservation</option>
 
                                 @foreach($assignableRooms as $room)
                                     <option
@@ -511,6 +511,9 @@
                                         {{ $room->room_number }}
                                         — {{ $room->room_type }}
                                         (₱{{ number_format($room->base_rate, 2) }})
+                                        @if($room->status === 'CLEANING')
+                                            [Needs Cleaning]
+                                        @endif
                                     </option>
                                 @endforeach
 
@@ -519,7 +522,7 @@
                             @if($assignableRooms->isEmpty())
                                 <div class="form-text text-danger mt-2">
                                     <i class="fa-solid fa-circle-exclamation me-1"></i>
-                                    No available rooms right now.
+                                    No assignable rooms right now.
                                 </div>
                             @endif
                         </div>

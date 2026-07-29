@@ -178,11 +178,17 @@ class BookingOperationController extends Controller
             ], 422);
         }
 
-        $room->update(['status' => 'AVAILABLE']);
+        $hasPendingReservationToday = $room->bookings()
+            ->where('status', 'RESERVED')
+            ->whereDate('arrival_date', '<=', Carbon::today())
+            ->exists();
+
+        $targetStatus = $hasPendingReservationToday ? 'RESERVED' : 'AVAILABLE';
+        $room->update(['status' => $targetStatus]);
 
         ActivityLog::log(
             'ROOM_MODIFIED',
-            "Room {$room->room_number} status updated to AVAILABLE (Housekeeping Cleaned)."
+            "Room {$room->room_number} status updated to {$targetStatus} (Housekeeping Cleaned)."
         );
 
         return response()->json([

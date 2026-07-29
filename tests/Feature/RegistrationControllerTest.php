@@ -256,3 +256,36 @@ test('creating a reservation for an existing guest reuses their guest record and
         'charge_code' => 100,
     ]);
 });
+
+test('a room awaiting cleaning can be reserved and transitions to RESERVED when housekeeping marks it clean', function (): void {
+    $this->room->update(['status' => 'CLEANING']);
+
+    $response = $this->actingAs($this->frontdeskUser)
+        ->post(route('frontdesk.reservation.store'), [
+            'first_name' => 'Alice',
+            'last_name' => 'Cleaner',
+            'room_id' => $this->room->room_id,
+            'arrival_date' => now()->toDateString(),
+            'arrival_time' => '14:00',
+            'departure_date' => now()->addDays(1)->toDateString(),
+            'departure_time' => '12:00',
+            'num_pax' => 1,
+        ]);
+
+    $response->assertRedirect(route('frontdesk.reservation'));
+    $response->assertSessionHas('success');
+
+    // Physical room status remains CLEANING so housekeeping notification remains active
+    expect($this->room->fresh()->status)->toBe('CLEANING');
+
+    // Mark room as cleaned via BookingOperationController
+    $cleanResponse = $this->actingAs($this->frontdeskUser)
+        ->postJson(route('frontdesk.room.mark-cleaned'), [
+            'room_id' => $this->room->room_id,
+        ]);
+
+    $cleanResponse->assertOk();
+
+    // Since a reservation exists for today, status transitions to RESERVED upon completion of cleaning
+    expect($this->room->fresh()->status)->toBe('RESERVED');
+});

@@ -57,9 +57,9 @@ class ReservationController extends Controller
 
         $assignableRooms = Room::query()
             ->where('is_active', true)
-            ->where('status', 'AVAILABLE')
+            ->whereIn('status', ['AVAILABLE', 'CLEANING'])
             ->orderBy('room_number')
-            ->get(['room_id', 'room_number', 'room_type', 'base_rate']);
+            ->get(['room_id', 'room_number', 'room_type', 'base_rate', 'status']);
 
         $guests = Guest::realGuests()
             ->with(['folios'])
@@ -126,7 +126,7 @@ class ReservationController extends Controller
 
         $room = Room::where('is_active', true)->findOrFail($validated['room_id']);
 
-        if ($room->status !== 'AVAILABLE') {
+        if (! in_array($room->status, ['AVAILABLE', 'CLEANING'], true)) {
             return back()
                 ->withInput()
                 ->withErrors(['room_id' => 'Selected room is not available for reservation.']);
@@ -185,7 +185,9 @@ class ReservationController extends Controller
                 'status' => 'RESERVED',
             ]);
 
-            $room->update(['status' => 'RESERVED']);
+            if ($room->status === 'AVAILABLE') {
+                $room->update(['status' => 'RESERVED']);
+            }
 
             ActivityLog::log(
                 'RESERVATION_CREATE',
