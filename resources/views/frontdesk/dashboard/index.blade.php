@@ -755,7 +755,7 @@
 </div>
 
 <!-- Check-Out Time Modal -->
-<div class="modal fade" id="checkOutModal" tabindex="-1" aria-labelledby="checkOutModalLabel" aria-hidden="true">
+<div class="modal fade" id="checkOutModal" tabindex="-1" aria-labelledby="checkOutModalLabel" aria-hidden="true" style="z-index: 1065;">
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content border-0 shadow">
             <div class="modal-header border-0">
@@ -1139,7 +1139,21 @@
         document.getElementById('checkoutPeriodSelect').value = period;
         document.getElementById('checkoutTimeError').classList.add('d-none');
 
-        checkOutModal.show();
+        const roomActionEl = document.getElementById('roomActionModal');
+        if (roomActionEl && roomActionEl.classList.contains('show')) {
+            const onHidden = function () {
+                roomActionEl.removeEventListener('hidden.bs.modal', onHidden);
+                checkOutModal.show();
+            };
+            roomActionEl.addEventListener('hidden.bs.modal', onHidden);
+            if (roomActionModal) {
+                roomActionModal.hide();
+            } else {
+                bootstrap.Modal.getInstance(roomActionEl)?.hide();
+            }
+        } else {
+            checkOutModal.show();
+        }
     }
 
     function validateCheckoutTime(time) {
