@@ -15,7 +15,9 @@ class InventoryController extends Controller
 {
     public function index(Request $request, PosInventoryService $inventoryService): View
     {
-        $query = PosProduct::with('category');
+        // Only show manually-tracked products on the Inventory page.
+        // Made-to-order (none) products never appear here.
+        $query = PosProduct::with('category')->where('stock_tracking', 'manual');
 
         if ($request->filled('search')) {
             $search = $request->search;
@@ -70,7 +72,7 @@ class InventoryController extends Controller
                 break;
 
             case 'out_of_stock':
-                $query->where('is_stockable', true)->where('stock_quantity', 0);
+                $query->where('stock_quantity', 0);
                 break;
 
             case 'well_stocked':
@@ -90,12 +92,13 @@ class InventoryController extends Controller
             ->paginate(10)
             ->withQueryString();
 
-        $allProducts = PosProduct::all();
+        // All summary counts are scoped to manual-tracked products only.
+        $allManualProducts = PosProduct::where('stock_tracking', 'manual')->get();
 
-        $criticalCount = $allProducts->filter(fn ($p) => $p->is_stockable && $p->stock_quantity <= $p->effectiveLowStockThreshold())->count();
-        $lowCount = $allProducts->filter(fn ($p) => $p->is_stockable && $p->stock_quantity > $p->effectiveLowStockThreshold() && $p->stock_quantity <= (int) ($p->effectiveLowStockThreshold() * 1.4))->count();
-        $healthyCount = $allProducts->filter(fn ($p) => $p->is_stockable && $p->stock_quantity > (int) ($p->effectiveLowStockThreshold() * 1.4) && $p->stock_quantity <= (int) ($p->effectiveLowStockThreshold() * 2))->count();
-        $outOfStockCount = $allProducts->where('is_stockable', true)->where('stock_quantity', 0)->count();
+        $criticalCount = $allManualProducts->filter(fn ($p) => $p->stock_quantity <= $p->effectiveLowStockThreshold())->count();
+        $lowCount = $allManualProducts->filter(fn ($p) => $p->stock_quantity > $p->effectiveLowStockThreshold() && $p->stock_quantity <= (int) ($p->effectiveLowStockThreshold() * 1.4))->count();
+        $healthyCount = $allManualProducts->filter(fn ($p) => $p->stock_quantity > (int) ($p->effectiveLowStockThreshold() * 1.4) && $p->stock_quantity <= (int) ($p->effectiveLowStockThreshold() * 2))->count();
+        $outOfStockCount = $allManualProducts->where('stock_quantity', 0)->count();
 
         $lowStockProducts = $inventoryService->lowStockProducts();
 

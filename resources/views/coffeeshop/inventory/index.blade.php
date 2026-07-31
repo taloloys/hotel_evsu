@@ -10,7 +10,6 @@
 @php
     if (!function_exists('stockStatus')) {
         function stockStatus($product) {
-            if (!$product->is_stockable) return ['Not Tracked', 'secondary'];
             $qty = $product->stock_quantity;
             $threshold = $product->effectiveLowStockThreshold();
             if ($qty == 0) return ['Out of Stock', 'danger'];
@@ -33,7 +32,7 @@
     </div>
 
     <div class="row g-3 mb-2">
-        <div class="col-md-4"><div class="coffeeshop-card p-4 h-100"><div class="text-muted small">Total Products</div><div class="fs-3 fw-bold text-brown">{{ $products->total() }}</div></div></div>
+        <div class="col-md-4"><div class="coffeeshop-card p-4 h-100"><div class="text-muted small">Tracked Products</div><div class="fs-3 fw-bold text-brown">{{ $products->total() }}</div></div></div>
         <div class="col-md-4"><div class="coffeeshop-card p-4 h-100"><div class="text-muted small">Low Stock</div><div class="fs-3 fw-bold text-danger">{{ $lowStockProducts->count() }}</div></div></div>
         <div class="col-md-4"><div class="coffeeshop-card p-4 h-100"><div class="text-muted small">Out of Stock</div><div class="fs-3 fw-bold text-dark">{{ $outOfStockCount }}</div></div></div>
     </div>
@@ -105,7 +104,7 @@
                     <tbody>
                     @foreach($products as $product)
                         @php [$label, $color] = stockStatus($product); @endphp
-                        <tr class="{{ $product->stock_quantity == 0 && $product->is_stockable ? 'table-danger' : '' }}">
+                        <tr class="{{ $product->stock_quantity == 0 ? 'table-danger' : '' }}">
                             <td class="fw-semibold text-brown">{{ $product->name }}</td>
                             <td>{{ $product->category?->name ?? '—' }}</td>
                             <td>{{ $product->stock_quantity }}</td>

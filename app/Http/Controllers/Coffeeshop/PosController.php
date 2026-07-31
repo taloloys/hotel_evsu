@@ -26,7 +26,7 @@ class PosController extends Controller
         $products = PosProduct::with('category')
             ->active()
             ->where(function ($q) {
-                $q->where('is_stockable', false)
+                $q->where('stock_tracking', '!=', 'manual')
                     ->orWhere('stock_quantity', '>', 0);
             })
             ->orderBy('name')
@@ -131,7 +131,7 @@ class PosController extends Controller
             });
         } else {
             $products->where(function ($q) {
-                $q->where('is_stockable', false)
+                $q->where('stock_tracking', '!=', 'manual')
                     ->orWhere('stock_quantity', '>', 0);
             });
         }
@@ -142,7 +142,8 @@ class PosController extends Controller
             'description' => $product->description,
             'price' => (float) $product->price,
             'stock_quantity' => $product->stock_quantity,
-            'is_stockable' => (bool) $product->is_stockable,
+            'stock_tracking' => $product->stock_tracking,
+            'is_stockable' => $product->isManualTracked(),
             'category' => $product->category?->name,
             'image_url' => $product->image_url,
             'is_low_stock' => $product->isLowStock(),

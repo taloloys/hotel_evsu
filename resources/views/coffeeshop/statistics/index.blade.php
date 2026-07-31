@@ -350,7 +350,7 @@
 
                                                 <span class="text-muted">
                                                     {{ $row['recent_sales'] }} sold /
-                                                    {{ $row['stock_quantity'] }} stock
+                                                    {{ $row['stock_quantity'] !== null ? $row['stock_quantity'].' stock' : '—' }}
                                                 </span>
 
                                             </div>

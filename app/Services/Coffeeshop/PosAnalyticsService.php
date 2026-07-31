@@ -115,7 +115,12 @@ class PosAnalyticsService
 
         return PosProduct::with('category')
             ->active()
-            ->where('stock_quantity', '>', 0)
+            ->where(function ($q) {
+                // Always include none-tracked (made-to-order) products regardless of stock.
+                // For manual-tracked products, only include those with stock > 0.
+                $q->where('stock_tracking', '!=', 'manual')
+                    ->orWhere('stock_quantity', '>', 0);
+            })
             ->get()
             ->map(function (PosProduct $product) use ($from) {
                 $sales = PosOrderItem::query()
@@ -128,11 +133,11 @@ class PosAnalyticsService
                 return [
                     'product' => $product,
                     'recent_sales' => (int) $sales,
-                    'stock_quantity' => $product->stock_quantity,
+                    'stock_quantity' => $product->isManualTracked() ? $product->stock_quantity : null,
                 ];
             })
             ->sortBy(function ($row) {
-                return [$row['recent_sales'], -$row['stock_quantity']];
+                return [$row['recent_sales'], -($row['stock_quantity'] ?? 0)];
             })
             ->take($limit)
             ->values();

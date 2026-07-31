@@ -177,13 +177,14 @@
             if (tab.tab_type === 'room') {
                 btnClass = isActive ? 'btn-info text-white' : 'btn-outline-info';
             } else if (tab.tab_type === 'account') {
-                btnClass = isActive ? 'btn-primary' : 'btn-outline-primary';
+                btnClass = isActive ? 'btn-warning text-dark fw-bold border-warning shadow-sm' : 'btn-outline-warning text-dark border-warning';
             } else {
                 btnClass = isActive ? 'btn-secondary text-white' : 'btn-outline-secondary';
             }
 
             btn.className = `btn ${btnClass}`;
-            btn.textContent = `${tab.tab_name} (${formatMoney(tab.total)})`;
+            const prefix = tab.tab_type === 'account' ? '👑 ' : '';
+            btn.textContent = `${prefix}${tab.tab_name} (${formatMoney(tab.total)})`;
             btn.addEventListener('click', () => {
                 activeTabId = tab.tab_id;
                 renderTabs();
@@ -244,9 +245,9 @@
         } else if (tab.tab_type === 'account') {
             accountActions.classList.remove('d-none');
             if (chargeAccountBtn) {
-                chargeAccountBtn.innerHTML = `<i class="fa-solid fa-file-invoice-dollar me-1"></i> Charge to ${tab.credit_account_name || 'Account'}`;
+                chargeAccountBtn.innerHTML = `<i class="fa-solid fa-crown me-1 text-warning"></i> Charge to VIP Account (${tab.credit_account_name || 'Account'})`;
             }
-            activeTabBadge.innerHTML = `<span class="badge bg-primary small">Account Charge (${tab.credit_account_name || 'N/A'})</span>`;
+            activeTabBadge.innerHTML = `<span class="badge bg-warning text-dark border border-warning shadow-sm small"><i class="fa-solid fa-crown me-1"></i> VIP Account (${tab.credit_account_name || 'N/A'})</span>`;
         } else {
             walkinActions.classList.remove('d-none');
             activeTabBadge.innerHTML = `<span class="badge bg-secondary small">Walk-in</span>`;

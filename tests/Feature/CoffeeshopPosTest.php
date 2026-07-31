@@ -93,11 +93,8 @@ class CoffeeshopPosTest extends TestCase
         $this->seed(PosProductSeeder::class);
 
         $user = User::whereHas('role', fn ($q) => $q->where('role_name', 'CAFETERIA'))->firstOrFail();
-        $product = PosProduct::where('name', 'Beer')->firstOrFail();
-        $product->update([
-            'is_stockable' => false,
-            'stock_quantity' => 0,
-        ]);
+        // Americano is seeded with stock_tracking = 'none' and stock_quantity = 0
+        $product = PosProduct::where('name', 'Americano')->firstOrFail();
 
         $this->actingAs($user);
 
@@ -108,7 +105,7 @@ class CoffeeshopPosTest extends TestCase
 
         $tabId = $tabResponse->json('tab.tab_id');
 
-        // Since it's non-stockable, adding it even with 0 stock should succeed!
+        // Since it's none-tracked (made to order), adding it with 0 stock should succeed!
         $this->postJson(route('coffeeshop.api.tabs.items.store', $tabId), [
             'product_id' => $product->product_id,
             'quantity' => 1,
@@ -120,7 +117,7 @@ class CoffeeshopPosTest extends TestCase
         ])->assertOk();
 
         $product->refresh();
-        // stock should remain 0 (not updated/decremented)
+        // stock should remain 0 (not tracked/decremented)
         $this->assertSame(0, $product->stock_quantity);
     }
 

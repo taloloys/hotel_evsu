@@ -85,16 +85,26 @@
                         <tr>
                             <td>
                                 <div class="fw-semibold text-brown">{{ $product->name }}</div>
-                                @if($product->isLowStock())
-                                    <span class="coffeeshop-pill bg-danger-subtle text-danger">Low Stock</span>
-                                @elseif($product->is_stockable && $product->stock_quantity >= 100)
-                                    <span class="coffeeshop-pill bg-primary-subtle text-primary">Over Stocked</span>
+                                @if($product->isManualTracked())
+                                    @if($product->isLowStock())
+                                        <span class="coffeeshop-pill bg-danger-subtle text-danger">Low Stock</span>
+                                    @elseif($product->isSemiLow())
+                                        <span class="coffeeshop-pill bg-warning-subtle text-warning">Semi Low</span>
+                                    @elseif($product->stock_quantity >= 100)
+                                        <span class="coffeeshop-pill bg-primary-subtle text-primary">Over Stocked</span>
+                                    @endif
                                 @endif
                             </td>
                             <td>{{ $product->category?->name }}</td>
                             <td>{{ Str::limit($product->description, 50) }}</td>
                             <td>₱{{ number_format($product->price, 2) }}</td>
-                            <td>{{ $product->stock_quantity }}</td>
+                            <td>
+                                @if($product->isNoTracking())
+                                    <span class="text-muted fst-italic small">None</span>
+                                @else
+                                    {{ $product->stock_quantity }}
+                                @endif
+                            </td>
                             <td><span class="coffeeshop-pill {{ $product->is_active ? 'bg-success-subtle text-success' : 'bg-secondary-subtle text-secondary' }}">{{ $product->is_active ? 'Active' : 'Inactive' }}</span></td>
                             <td class="text-end">
                                 <a href="{{ route('coffeeshop.products.edit', $product) }}" class="btn btn-sm btn-outline-secondary rounded-pill px-3">Edit</a>

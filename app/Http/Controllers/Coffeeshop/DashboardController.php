@@ -174,13 +174,13 @@ class DashboardController extends Controller
             'cancelled_overall' => PosOrder::whereIn('status', ['cancelled', 'refunded'])->count(),
         ];
 
-        // 4. Inventory Overview stats
-        $allActiveProducts = PosProduct::active()->get();
+        // 4. Inventory Overview stats — only manual-tracked products
+        $allActiveProducts = PosProduct::active()->where('stock_tracking', 'manual')->get();
         $inventoryOverview = [
             'low_stock' => $allActiveProducts->filter(fn ($p) => $p->stock_quantity > 0 && $p->isLowStock())->count(),
-            'out_of_stock' => $allActiveProducts->filter(fn ($p) => $p->is_stockable && $p->stock_quantity <= 0)->count(),
-            'total_available' => $allActiveProducts->filter(fn ($p) => ! $p->is_stockable || $p->stock_quantity > 0)->count(),
-            'needs_restocking' => $allActiveProducts->filter(fn ($p) => $p->isLowStock() || ($p->is_stockable && $p->stock_quantity <= 0))->count(),
+            'out_of_stock' => $allActiveProducts->filter(fn ($p) => $p->stock_quantity <= 0)->count(),
+            'total_available' => $allActiveProducts->filter(fn ($p) => $p->stock_quantity > 0)->count(),
+            'needs_restocking' => $allActiveProducts->filter(fn ($p) => $p->isLowStock() || $p->stock_quantity <= 0)->count(),
         ];
 
         // 5. Category Distribution for animations
@@ -215,12 +215,13 @@ class DashboardController extends Controller
             ]);
         }
 
-        $allProducts = PosProduct::all();
+        // Inventory warning counts — only manual-tracked products
+        $allManualProducts = PosProduct::where('stock_tracking', 'manual')->get();
 
-        $stats['out_stock_count'] = $allProducts->filter(fn ($p) => $p->is_stockable && $p->stock_quantity <= 0)->count();
-        $stats['critical_stock_count'] = $allProducts->filter(fn ($p) => $p->is_stockable && $p->stock_quantity > 0 && $p->stock_quantity <= (int) ($p->effectiveLowStockThreshold() * 0.4))->count();
-        $stats['low_stock_count'] = $allProducts->filter(fn ($p) => $p->is_stockable && $p->stock_quantity > 0 && $p->stock_quantity <= $p->effectiveLowStockThreshold())->count();
-        $stats['healthy_stock_count'] = $allProducts->filter(fn ($p) => $p->is_stockable && $p->stock_quantity > $p->effectiveLowStockThreshold())->count();
+        $stats['out_stock_count'] = $allManualProducts->filter(fn ($p) => $p->stock_quantity <= 0)->count();
+        $stats['critical_stock_count'] = $allManualProducts->filter(fn ($p) => $p->stock_quantity > 0 && $p->stock_quantity <= (int) ($p->effectiveLowStockThreshold() * 0.4))->count();
+        $stats['low_stock_count'] = $allManualProducts->filter(fn ($p) => $p->stock_quantity > 0 && $p->stock_quantity <= $p->effectiveLowStockThreshold())->count();
+        $stats['healthy_stock_count'] = $allManualProducts->filter(fn ($p) => $p->stock_quantity > $p->effectiveLowStockThreshold())->count();
 
         $lowStockProducts = PosProduct::with('category')
             ->lowStock()

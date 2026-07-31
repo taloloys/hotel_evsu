@@ -95,7 +95,7 @@ test('recent orders partial endpoint returns HTML rows', function (): void {
 });
 
 test('inventory warning alert is displayed when a product is low stock', function (): void {
-    $product = PosProduct::where('name', 'Latte')->firstOrFail();
+    $product = PosProduct::where('name', 'Beer')->firstOrFail();
     $product->update([
         'stock_quantity' => 2,
         'low_stock_threshold' => 10,

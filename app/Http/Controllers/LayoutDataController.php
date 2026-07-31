@@ -193,8 +193,23 @@ class LayoutDataController extends Controller
                     'severity' => 'danger',
                     'icon' => 'fa-box-open text-danger',
                     'message' => "Low Stock: '{$product->name}' is below {$threshold} (Current: {$product->stock_quantity}).",
-                    'link' => route('coffeeshop.inventory', ['filter' => 'low_stock', 'search' => $product->name]),
+                    'link' => route('coffeeshop.inventory', ['filter' => 'critical_stock', 'search' => $product->name]),
                     'time' => 'Low Stock',
+                ];
+            }
+
+            $semiLowProducts = PosProduct::with('category')->semiLow()->orderBy('stock_quantity')->limit(10)->get();
+
+            foreach ($semiLowProducts as $product) {
+                $threshold = $product->effectiveLowStockThreshold();
+                $notifications[] = [
+                    'id' => 'inventory-semilow-'.$product->product_id,
+                    'type' => 'inventory',
+                    'severity' => 'warning',
+                    'icon' => 'fa-triangle-exclamation text-warning',
+                    'message' => "Semi Low: '{$product->name}' is running low (Current: {$product->stock_quantity}, Threshold: {$threshold}).",
+                    'link' => route('coffeeshop.inventory', ['filter' => 'low_stock', 'search' => $product->name]),
+                    'time' => 'Semi Low',
                 ];
             }
         }
@@ -225,7 +240,7 @@ class LayoutDataController extends Controller
         // 5. Sidebar counts
         $lowStockCount = 0;
         if ($hasProductsTable) {
-            $lowStockCount = PosProduct::lowStock()->count();
+            $lowStockCount = PosProduct::lowStock()->count() + PosProduct::semiLow()->count();
         }
 
         $pendingCheckinsCount = Booking::where('status', 'RESERVED')

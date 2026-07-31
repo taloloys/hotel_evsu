@@ -156,8 +156,8 @@
                         </label>
 
                         <input type="radio" class="btn-check" name="new-tab-type" id="type-account" value="account">
-                        <label class="btn btn-outline-secondary py-2 px-3" for="type-account" style="font-size: 0.85rem;">
-                            Account
+                        <label class="btn btn-outline-warning text-dark py-2 px-3 fw-bold border-warning" for="type-account" style="font-size: 0.85rem; background: #fffdf2;">
+                            <i class="fa-solid fa-crown text-warning me-1"></i> Account (VIP)
                         </label>
                     </div>
                 </div>
@@ -177,10 +177,10 @@
 
                     <!-- Credit Account input panel (hidden by default) -->
                     <div id="new-tab-account-panel" class="mb-2 d-none">
-                        <select id="new-tab-account" class="form-select py-3">
-                            <option value="">Select credit account...</option>
+                        <select id="new-tab-account" class="form-select py-3 border-warning fw-medium" style="background-color: #fffdf5;">
+                            <option value="">Select VIP credit account...</option>
                             @foreach($creditAccounts as $account)
-                                <option value="{{ $account->account_id }}">{{ $account->account_name }} (Limit: ₱{{ number_format($account->available_credit, 2) }})</option>
+                                <option value="{{ $account->account_id }}">👑 VIP — {{ $account->account_name }} (Limit: ₱{{ number_format($account->available_credit, 2) }})</option>
                             @endforeach
                         </select>
                     </div>
@@ -481,11 +481,11 @@
                     </select>
                 </div>
                 <div id="transfer-account-panel" class="mb-3 d-none">
-                    <label class="form-label fw-semibold">Select Account</label>
-                    <select id="transfer-account" class="form-select">
-                        <option value="">Select credit account...</option>
+                    <label class="form-label fw-semibold">Select VIP Account</label>
+                    <select id="transfer-account" class="form-select border-warning">
+                        <option value="">Select VIP credit account...</option>
                         @foreach($creditAccounts as $account)
-                            <option value="{{ $account->account_id }}">{{ $account->account_name }}</option>
+                            <option value="{{ $account->account_id }}">👑 VIP — {{ $account->account_name }}</option>
                         @endforeach
                     </select>
                 </div>

@@ -112,10 +112,9 @@ class ProductController extends Controller
                     $oldStatus = $product->getOriginal('is_active') ? 'Active' : 'Inactive';
                     $newStatus = $val ? 'Active' : 'Inactive';
                     $parts[] = "status changed from '{$oldStatus}' to '{$newStatus}'";
-                } elseif ($key === 'is_stockable') {
-                    $oldStockable = $product->getOriginal('is_stockable') ? 'Stockable' : 'Non-stockable';
-                    $newStockable = $val ? 'Stockable' : 'Non-stockable';
-                    $parts[] = "type changed from '{$oldStockable}' to '{$newStockable}'";
+                } elseif ($key === 'stock_tracking') {
+                    $oldTracking = $product->getOriginal('stock_tracking');
+                    $parts[] = "stock tracking changed from '{$oldTracking}' to '{$val}'";
                 } else {
                     $oldVal = $product->getOriginal($key);
                     $parts[] = "{$key} changed from '{$oldVal}' to '{$val}'";
@@ -161,22 +160,24 @@ class ProductController extends Controller
 
     private function validatedProduct(Request $request, ?int $productId = null): array
     {
+        $isManual = $request->input('stock_tracking') === 'manual';
+
         $validated = $request->validate([
             'category_id' => ['required', 'exists:pos_categories,category_id'],
             'name' => ['required', 'string', 'max:150'],
             'description' => ['nullable', 'string', 'max:1000'],
             'price' => ['required', 'numeric', 'min:0'],
-            'stock_quantity' => [$request->boolean('is_stockable', true) ? 'required' : 'nullable', 'integer', 'min:0'],
+            'stock_quantity' => [$isManual ? 'required' : 'nullable', 'integer', 'min:0'],
             'low_stock_threshold' => ['nullable', 'integer', 'min:0'],
             'is_active' => ['nullable', 'boolean'],
-            'is_stockable' => ['nullable', 'boolean'],
+            'stock_tracking' => ['nullable', 'in:manual,none'],
             // Image validation is now handled in ImageUploadService
         ]);
 
         $validated['is_active'] = $request->boolean('is_active', true);
-        $validated['is_stockable'] = $request->boolean('is_stockable', true);
+        $validated['stock_tracking'] = $request->input('stock_tracking', 'manual');
 
-        if (! $validated['is_stockable']) {
+        if ($validated['stock_tracking'] !== 'manual') {
             $validated['stock_quantity'] = 0;
             $validated['low_stock_threshold'] = null;
         }

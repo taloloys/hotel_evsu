@@ -34,7 +34,9 @@
 
         body{
             background:linear-gradient(180deg, #f7efe8 0%, #f4f7fc 100%);
-            font-family:'Segoe UI',sans-serif;
+            font-family:'Inter', 'Segoe UI', -apple-system, sans-serif;
+            font-size: 1.02rem;
+            line-height: 1.5;
         }
 
         .sidebar{
@@ -114,13 +116,13 @@
 
         .coffeeshop-nav .nav-link {
             color: #5a3c2d;
-            padding: 0.8rem 1rem;
+            padding: 0.85rem 1.1rem;
             border-radius: 0.85rem;
             margin-bottom: 0.35rem;
             border: 1px solid transparent;
             background: rgba(255, 255, 255, 0.72);
             font-weight: 600;
-            font-size: 0.96rem;
+            font-size: 1.02rem;
             transition: all 180ms ease;
         }
 
@@ -141,14 +143,14 @@
         .coffeeshop-page-shell {
             display: flex;
             flex-direction: column;
-            gap: 1rem;
+            gap: 1.25rem;
         }
 
         .coffeeshop-hero {
             background: linear-gradient(135deg, var(--coffee-800) 0%, #6a4338 100%);
             color: white;
-            border-radius: 1.2rem;
-            padding: 1.2rem 1.3rem;
+            border-radius: 1.25rem;
+            padding: 1.5rem 1.6rem;
             box-shadow: var(--shadow-soft);
             overflow: hidden;
             position: relative;
@@ -167,7 +169,7 @@
         .coffeeshop-panel {
             background: rgba(255,255,255,0.95);
             border: 1px solid var(--border-soft);
-            border-radius: 1.1rem;
+            border-radius: 1.15rem;
             box-shadow: var(--shadow-soft);
             overflow: hidden;
         }
@@ -183,10 +185,18 @@
         .coffeeshop-table thead th {
             background-color: #f6ebdc !important;
             color: #6b4d3b;
-            font-size: 0.78rem;
+            font-size: 0.85rem;
             letter-spacing: 0.04em;
             text-transform: uppercase;
             font-weight: 700;
+            padding-top: 0.85rem;
+            padding-bottom: 0.85rem;
+        }
+
+        .coffeeshop-table td {
+            padding-top: 0.95rem;
+            padding-bottom: 0.95rem;
+            font-size: 1.02rem;
         }
 
         .coffeeshop-table tbody tr:hover {
@@ -195,8 +205,8 @@
 
         .coffeeshop-pill {
             border-radius: 999px;
-            padding: 0.42rem 0.75rem;
-            font-size: 0.76rem;
+            padding: 0.45rem 0.82rem;
+            font-size: 0.82rem;
             font-weight: 700;
             letter-spacing: 0.04em;
             text-transform: uppercase;
@@ -504,68 +514,6 @@
             }
         }
 
-        function getToastSeenIds() {
-            try {
-                return JSON.parse(sessionStorage.getItem('toast_seen_ids') || '[]');
-            } catch(e) {
-                return [];
-            }
-        }
-
-        function saveToastSeenIds(ids) {
-            try {
-                sessionStorage.setItem('toast_seen_ids', JSON.stringify(ids));
-            } catch(e) {}
-        }
-
-        function handleFloatingToasts(notifications) {
-            if (!notifications || !Array.isArray(notifications) || notifications.length === 0) return;
-            
-            const container = document.getElementById('toastContainer');
-            if (!container) return;
-
-            const toastSeen = getToastSeenIds();
-            const unseen = notifications.filter(n => !toastSeen.includes(n.id));
-
-            if (unseen.length === 0) return;
-
-            const updatedSeen = Array.from(new Set([...toastSeen, ...unseen.map(n => n.id)]));
-            saveToastSeenIds(updatedSeen);
-
-            unseen.slice(0, 2).forEach(n => {
-                const toastEl = document.createElement('div');
-                toastEl.className = 'toast show shadow-lg border-0 mb-2 rounded-3 bg-white';
-                toastEl.setAttribute('role', 'alert');
-                toastEl.style.animation = 'slideInRight 0.35s ease-out';
-                toastEl.innerHTML = `
-                    <div class="toast-header bg-light border-bottom-0 py-2">
-                        <i class="${n.icon} fa-fw me-2 fs-6"></i>
-                        <strong class="me-auto text-dark small">New Alert</strong>
-                        <small class="text-muted text-xs me-2">${n.time}</small>
-                        <button type="button" class="btn-close small" data-bs-dismiss="toast"></button>
-                    </div>
-                    <div class="toast-body py-2 px-3">
-                        <div class="small text-dark mb-2">${n.message}</div>
-                        <a href="${n.link}" class="btn btn-sm btn-primary py-0 px-2 fs-7 fw-semibold">View Details</a>
-                    </div>
-                `;
-
-                toastEl.querySelector('.btn-close').addEventListener('click', function() {
-                    toastEl.remove();
-                });
-
-                container.appendChild(toastEl);
-
-                setTimeout(() => {
-                    if (toastEl.parentNode) {
-                        toastEl.style.transition = 'opacity 0.3s ease';
-                        toastEl.style.opacity = '0';
-                        setTimeout(() => toastEl.remove(), 300);
-                    }
-                }, 7000);
-            });
-        }
-
         function fetchLayoutData() {
             fetch('{{ route('api.layout-data') }}', {
                 headers: {
@@ -584,7 +532,6 @@
                     window.initNotifications(data.notifications);
                 }
                 updateSidebarBadges(data);
-                handleFloatingToasts(data.notifications);
             })
             .catch(err => console.error('Error fetching layout data:', err));
         }
@@ -679,9 +626,6 @@
 <div class="sidebar">
     @include('layouts.sidebar')
 </div>
-
-<!-- Floating Toast Container -->
-<div id="toastContainer" class="toast-container position-fixed top-0 end-0 p-3" style="z-index: 9999; max-width: 380px;"></div>
 
 <div class="main-content">
 
