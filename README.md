@@ -60,7 +60,7 @@ APP_URL=http://localhost:8000
 DB_CONNECTION=mysql
 DB_HOST=127.0.0.1
 DB_PORT=3306
-DB_DATABASE=hotel_don_felipe
+DB_DATABASE=evsu_hotel_db
 DB_USERNAME=root
 DB_PASSWORD=
 ```
@@ -75,7 +75,7 @@ php artisan key:generate
 
 ### Step 6: Create Database
 
-Create a new MySQL database named `hotel_don_felipe`:
+Create a new MySQL database named `evsu_hotel_db`:
 
 **Using MySQL command line:**
 ```sql
@@ -114,8 +114,8 @@ The application will be available at: **http://localhost:8000**
 
 1. Place the project in your web server's root directory (e.g., `htdocs` for XAMPP)
 2. Start Apache and MySQL from XAMPP Control Panel
-3. Update your `.env` with the correct `APP_URL` (e.g., `http://localhost/hotel_don_felipe`)
-4. Access via: **http://localhost/hotel_don_felipe**
+3. Update your `.env` with the correct `APP_URL` (e.g., `http://localhost/evsu_hotel`)
+4. Access via: **http://localhost/evsu_hotel**
 
 ### Step 9: Build Frontend Assets
 
