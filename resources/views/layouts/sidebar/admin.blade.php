@@ -4,12 +4,12 @@
     <div class="d-flex align-items-center mb-4 pb-3 border-bottom border-secondary border-opacity-25">
 
         <img src="{{ asset('images/logo.png') }}"
-             alt="Don Felipe Hotel Logo"
+             alt="EVSU Logo"
              class="me-3"
              style="width:80px; height:70px; object-fit:contain;">
 
         <div>
-            <h5 class="text-white fw-bold mb-0">Don Felipe Hotel</h5>
+            <h5 class="text-white fw-bold mb-0">EVSU</h5>
             <small class="text-secondary">Admin Panel</small>
         </div>
 

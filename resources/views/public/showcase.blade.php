@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="csrf-token" content="{{ csrf_token() }}">
-    <title>Hotel Don Felipe - Luxury Accommodations & Cafeteria Showcase</title>
+    <title>EVSU - Luxury Accommodations & Cafeteria Showcase</title>
 
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css">
@@ -33,45 +33,45 @@
         }
     </style>
 </head>
-<body class="min-h-screen bg-warm-radial text-slate-800 antialiased selection:bg-[#a97142] selection:text-white">
+<body class="min-h-screen bg-warm-radial text-slate-800 antialiased selection:bg-[#D4A843] selection:text-white">
 
     <!-- Sticky Navigation Header -->
-    <header class="glass-header sticky top-0 z-50 border-b border-[#e8d9c7]/80 shadow-sm transition-all duration-300">
+    <header class="glass-header sticky top-0 z-50 border-b border-[#E0C9A8]/80 shadow-sm transition-all duration-300">
         <div class="mx-auto flex max-w-7xl items-center justify-between px-4 py-3 sm:px-6 lg:px-8">
             <a href="#hero" class="group flex items-center gap-3">
-                <div class="flex h-11 w-11 items-center justify-center rounded-xl border border-[#e5d4bf] bg-white p-1.5 shadow-sm transition-transform duration-300 group-hover:scale-105">
-                    <img src="{{ asset('images/logo.png') }}" alt="Hotel Don Felipe Logo" class="h-full w-full object-contain" width="36" height="36">
+                <div class="flex h-11 w-11 items-center justify-center rounded-xl border border-[#D4B890] bg-white p-1.5 shadow-sm transition-transform duration-300 group-hover:scale-105">
+                    <img src="{{ asset('images/logo.png') }}" alt="EVSU Logo" class="h-full w-full object-contain" width="36" height="36">
                 </div>
                 <div>
-                    <span class="block text-lg font-bold tracking-tight text-[#2f1c16] font-serif-display">Hotel Don Felipe</span>
-                    <span class="block text-[10px] font-semibold tracking-wider text-[#a97142] uppercase">Hospitality & Dining</span>
+                    <span class="block text-lg font-bold tracking-tight text-[#5A0C0E] font-serif-display">EVSU</span>
+                    <span class="block text-[10px] font-semibold tracking-wider text-[#D4A843] uppercase">Hospitality & Dining</span>
                 </div>
             </a>
 
             <!-- Desktop Nav Links -->
             <nav class="hidden md:flex items-center gap-8 text-sm font-semibold text-slate-700">
-                <a href="#hero" class="transition-colors hover:text-[#a97142]">Home</a>
-                <a href="#rooms" class="transition-colors hover:text-[#a97142]">Rooms Showcase</a>
-                <a href="#coffeeshop" class="transition-colors hover:text-[#a97142]">Cafeteria & Lounge</a>
+                <a href="#hero" class="transition-colors hover:text-[#D4A843]">Home</a>
+                <a href="#rooms" class="transition-colors hover:text-[#D4A843]">Rooms Showcase</a>
+                <a href="#coffeeshop" class="transition-colors hover:text-[#D4A843]">Cafeteria & Lounge</a>
             </nav>
 
             <div class="flex items-center gap-3">
-                <a href="{{ route('login') }}" class="inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-[#4e342e] to-[#a97142] px-5 py-2.5 text-xs font-bold text-white shadow-md shadow-[#4e342e]/15 transition-all duration-200 hover:opacity-95 hover:shadow-lg active:scale-95">
+                <a href="{{ route('login') }}" class="inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-[#7B1113] to-[#D4A843] px-5 py-2.5 text-xs font-bold text-white shadow-md shadow-[#7B1113]/15 transition-all duration-200 hover:opacity-95 hover:shadow-lg active:scale-95">
                     <i class="fa-solid fa-lock text-xs"></i>
                     <span>Staff / Guest Login</span>
                 </a>
-                <button id="mobileMenuBtn" aria-label="Toggle mobile menu" class="md:hidden flex h-10 w-10 items-center justify-center rounded-xl border border-[#e8d9c7] bg-white text-slate-700">
+                <button id="mobileMenuBtn" aria-label="Toggle mobile menu" class="md:hidden flex h-10 w-10 items-center justify-center rounded-xl border border-[#E0C9A8] bg-white text-slate-700">
                     <i class="fa-solid fa-bars"></i>
                 </button>
             </div>
         </div>
 
         <!-- Mobile Nav Menu -->
-        <div id="mobileMenu" class="hidden border-t border-[#e8d9c7] bg-[#fcf9f5] px-4 py-4 md:hidden space-y-3">
-            <a href="#hero" class="block rounded-lg px-3 py-2 text-sm font-semibold text-slate-700 hover:bg-[#efe1cf]/50">Home</a>
-            <a href="#rooms" class="block rounded-lg px-3 py-2 text-sm font-semibold text-slate-700 hover:bg-[#efe1cf]/50">Rooms Showcase</a>
-            <a href="#coffeeshop" class="block rounded-lg px-3 py-2 text-sm font-semibold text-slate-700 hover:bg-[#efe1cf]/50">Cafeteria & Lounge</a>
-            <a href="{{ route('login') }}" class="block rounded-lg px-3 py-2 text-sm font-bold text-[#a97142] hover:bg-[#efe1cf]/50">Staff Login Portal</a>
+        <div id="mobileMenu" class="hidden border-t border-[#E0C9A8] bg-[#FDF6EC] px-4 py-4 md:hidden space-y-3">
+            <a href="#hero" class="block rounded-lg px-3 py-2 text-sm font-semibold text-slate-700 hover:bg-[#F5E6D0]/50">Home</a>
+            <a href="#rooms" class="block rounded-lg px-3 py-2 text-sm font-semibold text-slate-700 hover:bg-[#F5E6D0]/50">Rooms Showcase</a>
+            <a href="#coffeeshop" class="block rounded-lg px-3 py-2 text-sm font-semibold text-slate-700 hover:bg-[#F5E6D0]/50">Cafeteria & Lounge</a>
+            <a href="{{ route('login') }}" class="block rounded-lg px-3 py-2 text-sm font-bold text-[#D4A843] hover:bg-[#F5E6D0]/50">Staff Login Portal</a>
         </div>
     </header>
 
@@ -82,13 +82,13 @@
             <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
                 <div class="text-center max-w-4xl mx-auto space-y-6">
                     
-                    <div class="inline-flex items-center gap-2 rounded-full border border-[#a97142]/30 bg-[#a97142]/10 px-4 py-1.5 text-xs font-bold text-[#6d4c41]">
+                    <div class="inline-flex items-center gap-2 rounded-full border border-[#D4A843]/30 bg-[#D4A843]/10 px-4 py-1.5 text-xs font-bold text-[#9B1B1D]">
                         <i class="fa-solid fa-star text-amber-500 text-xs"></i>
-                        <span>Welcome to Don Felipe Hotel & Cafeteria</span>
+                        <span>Welcome to EVSU Hotel & Cafeteria</span>
                     </div>
 
-                    <h1 class="text-4xl sm:text-6xl font-extrabold text-[#2f1c16] tracking-tight font-serif-display leading-tight">
-                        Experience Luxury, Tranquility & <span class="text-transparent bg-clip-text bg-gradient-to-r from-[#6d4c41] to-[#a97142]">Artisan Dining</span>
+                    <h1 class="text-4xl sm:text-6xl font-extrabold text-[#5A0C0E] tracking-tight font-serif-display leading-tight">
+                        Experience Luxury, Tranquility & <span class="text-transparent bg-clip-text bg-gradient-to-r from-[#9B1B1D] to-[#D4A843]">Artisan Dining</span>
                     </h1>
 
                     <p class="text-base sm:text-xl text-slate-600 max-w-2xl mx-auto leading-relaxed">
@@ -97,37 +97,37 @@
 
                     <!-- Action Buttons -->
                     <div class="flex flex-wrap items-center justify-center gap-4 pt-4">
-                        <a href="#rooms" class="inline-flex items-center gap-2 rounded-2xl bg-[#4e342e] px-7 py-4 text-sm font-bold text-white shadow-xl shadow-[#4e342e]/20 transition-all hover:bg-[#6d4c41] hover:scale-[1.02]">
+                        <a href="#rooms" class="inline-flex items-center gap-2 rounded-2xl bg-[#7B1113] px-7 py-4 text-sm font-bold text-white shadow-xl shadow-[#7B1113]/20 transition-all hover:bg-[#9B1B1D] hover:scale-[1.02]">
                             <i class="fa-solid fa-bed text-amber-200"></i>
                             <span>Explore Rooms Catalog</span>
                         </a>
-                        <a href="#coffeeshop" class="inline-flex items-center gap-2 rounded-2xl border border-[#dccdb7] bg-white/90 px-7 py-4 text-sm font-bold text-[#4e342e] shadow-sm transition-all hover:bg-white hover:border-[#a97142]">
-                            <i class="fa-solid fa-mug-hot text-[#a97142]"></i>
+                        <a href="#coffeeshop" class="inline-flex items-center gap-2 rounded-2xl border border-[#D4B890] bg-white/90 px-7 py-4 text-sm font-bold text-[#7B1113] shadow-sm transition-all hover:bg-white hover:border-[#D4A843]">
+                            <i class="fa-solid fa-mug-hot text-[#D4A843]"></i>
                             <span>Cafeteria Highlights</span>
                         </a>
-                        <a href="{{ route('login') }}" class="inline-flex items-center gap-2 rounded-2xl bg-[#a97142] px-7 py-4 text-sm font-bold text-white shadow-md transition-all hover:bg-[#8c5a31]">
+                        <a href="{{ route('login') }}" class="inline-flex items-center gap-2 rounded-2xl bg-[#D4A843] px-7 py-4 text-sm font-bold text-white shadow-md transition-all hover:bg-[#A83B3D]">
                             <i class="fa-solid fa-right-to-bracket"></i>
                             <span>Staff / Guest Login</span>
                         </a>
                     </div>
 
                     <!-- Highlights Bar -->
-                    <div class="pt-12 grid grid-cols-2 md:grid-cols-4 gap-6 text-center border-t border-[#e8d9c7] mt-12">
-                        <div class="p-4 rounded-2xl bg-white/60 border border-[#e8d9c7]/60">
-                            <span class="block text-3xl font-extrabold text-[#2f1c16]">10+</span>
-                            <span class="text-xs font-semibold text-slate-500 uppercase tracking-wider">Room Options</span>
+                    <div class="pt-12 grid grid-cols-2 md:grid-cols-4 gap-6 text-center border-t border-[#E0C9A8] mt-12">
+                        <div class="p-4 rounded-2xl bg-white/60 border border-[#E0C9A8]/60">
+                            <span class="block text-3xl font-extrabold text-[#5A0C0E]">Premium</span>
+                            <span class="text-xs font-semibold text-slate-500 uppercase tracking-wider">Accommodations</span>
                         </div>
-                        <div class="p-4 rounded-2xl bg-white/60 border border-[#e8d9c7]/60">
-                            <span class="block text-3xl font-extrabold text-[#2f1c16]">100%</span>
-                            <span class="text-xs font-semibold text-slate-500 uppercase tracking-wider">Arabica Coffee</span>
+                        <div class="p-4 rounded-2xl bg-white/60 border border-[#E0C9A8]/60">
+                            <span class="block text-3xl font-extrabold text-[#5A0C0E]">Signature</span>
+                            <span class="text-xs font-semibold text-slate-500 uppercase tracking-wider">Coffee Blends</span>
                         </div>
-                        <div class="p-4 rounded-2xl bg-white/60 border border-[#e8d9c7]/60">
-                            <span class="block text-3xl font-extrabold text-[#2f1c16]">24/7</span>
-                            <span class="text-xs font-semibold text-slate-500 uppercase tracking-wider">Reception Service</span>
+                        <div class="p-4 rounded-2xl bg-white/60 border border-[#E0C9A8]/60">
+                            <span class="block text-3xl font-extrabold text-[#5A0C0E]">24/7</span>
+                            <span class="text-xs font-semibold text-slate-500 uppercase tracking-wider">Concierge</span>
                         </div>
-                        <div class="p-4 rounded-2xl bg-white/60 border border-[#e8d9c7]/60">
-                            <span class="block text-3xl font-extrabold text-[#2f1c16]">Prime</span>
-                            <span class="text-xs font-semibold text-slate-500 uppercase tracking-wider">City Location</span>
+                        <div class="p-4 rounded-2xl bg-white/60 border border-[#E0C9A8]/60">
+                            <span class="block text-3xl font-extrabold text-[#5A0C0E]">EVSU</span>
+                            <span class="text-xs font-semibold text-slate-500 uppercase tracking-wider">Main Campus</span>
                         </div>
                     </div>
 
@@ -136,15 +136,15 @@
         </section>
 
         <!-- Rooms Showcase Section (Multi-Image Gallery & No Descriptions) -->
-        <section id="rooms" class="py-20 bg-white/70 border-t border-[#e8d9c7]/80">
+        <section id="rooms" class="py-20 bg-white/70 border-t border-[#E0C9A8]/80">
             <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
                 
                 <div class="text-center max-w-3xl mx-auto mb-16 space-y-3">
-                    <div class="inline-flex items-center gap-2 rounded-full border border-[#a97142]/20 bg-[#f8f3ec] px-4 py-1 text-xs font-bold text-[#a97142]">
+                    <div class="inline-flex items-center gap-2 rounded-full border border-[#D4A843]/20 bg-[#FDF6EC] px-4 py-1 text-xs font-bold text-[#D4A843]">
                         <i class="fa-solid fa-hotel"></i>
                         <span>Luxury Accommodations</span>
                     </div>
-                    <h2 class="text-3xl sm:text-4xl font-bold text-[#2f1c16] tracking-tight font-serif-display">
+                    <h2 class="text-3xl sm:text-4xl font-bold text-[#5A0C0E] tracking-tight font-serif-display">
                         Our Signature Rooms Catalog
                     </h2>
                     <p class="text-sm sm:text-base text-slate-600">
@@ -161,13 +161,13 @@
                         
                         <div 
                             x-data="{ activeIndex: 0, images: {{ json_encode($imagesList) }} }"
-                            class="group relative flex flex-col overflow-hidden rounded-3xl border border-[#e8d9c7] bg-white shadow-lg shadow-[#4e342e]/5 transition-all duration-300 hover:-translate-y-1.5 hover:shadow-xl hover:border-[#a97142]/50">
+                            class="group relative flex flex-col overflow-hidden rounded-3xl border border-[#E0C9A8] bg-white shadow-lg shadow-[#7B1113]/5 transition-all duration-300 hover:-translate-y-1.5 hover:shadow-xl hover:border-[#D4A843]/50">
                             
                             <!-- Room Image Gallery / Fallback Container -->
-                            <div class="relative h-60 w-full overflow-hidden bg-gradient-to-br from-[#4e342e] via-[#6d4c41] to-[#a97142]">
+                            <div class="relative h-60 w-full overflow-hidden bg-gradient-to-br from-[#7B1113] via-[#9B1B1D] to-[#D4A843]">
                                 @if (empty($imagesList))
                                     <!-- SVG Fallback Card (PHP Direct Render) -->
-                                    <div class="flex flex-col items-center justify-center h-full w-full p-6 text-white text-center relative bg-gradient-to-br from-[#4e342e] to-[#a97142]">
+                                    <div class="flex flex-col items-center justify-center h-full w-full p-6 text-white text-center relative bg-gradient-to-br from-[#7B1113] to-[#D4A843]">
                                         <div class="flex h-14 w-14 items-center justify-center rounded-2xl bg-white/15 border border-white/30 backdrop-blur-sm mb-2">
                                             <i class="fa-solid {{ $room['icon'] ?? 'fa-bed' }} text-2xl text-amber-200"></i>
                                         </div>
@@ -187,7 +187,7 @@
                                                 onerror="this.style.display='none'; this.nextElementSibling.style.display='flex'">
                                             
                                             <!-- SVG Fallback Card (JS Fallback) -->
-                                            <div class="hidden flex-col items-center justify-center h-full w-full p-6 text-white text-center relative bg-gradient-to-br from-[#4e342e] to-[#a97142]">
+                                            <div class="hidden flex-col items-center justify-center h-full w-full p-6 text-white text-center relative bg-gradient-to-br from-[#7B1113] to-[#D4A843]">
                                                 <div class="flex h-14 w-14 items-center justify-center rounded-2xl bg-white/15 border border-white/30 backdrop-blur-sm mb-2">
                                                     <i class="fa-solid {{ $room['icon'] ?? 'fa-bed' }} text-2xl text-amber-200"></i>
                                                 </div>
@@ -200,7 +200,7 @@
 
                                 <!-- Badge Overlay -->
                                 @if (!empty($room['badge']))
-                                    <div class="absolute top-3 left-3 z-20 rounded-full bg-[#a97142] px-3 py-1 text-xs font-bold text-white shadow-md">
+                                    <div class="absolute top-3 left-3 z-20 rounded-full bg-[#D4A843] px-3 py-1 text-xs font-bold text-white shadow-md">
                                         {{ $room['badge'] }}
                                     </div>
                                 @endif
@@ -243,11 +243,11 @@
                             <div class="flex flex-1 flex-col justify-between p-6 space-y-4">
                                 <div class="space-y-2">
                                     <div class="flex items-center justify-between">
-                                        <span class="text-xs font-bold uppercase tracking-wider text-[#a97142]">{{ $room['category'] }}</span>
-                                        <span class="text-base font-extrabold text-[#2f1c16]">{{ $room['price'] }}</span>
+                                        <span class="text-xs font-bold uppercase tracking-wider text-[#D4A843]">{{ $room['category'] }}</span>
+                                        <span class="text-base font-extrabold text-[#5A0C0E]">{{ $room['price'] }}</span>
                                     </div>
 
-                                    <h3 class="text-xl font-bold text-[#2f1c16] leading-snug group-hover:text-[#a97142] transition-colors">
+                                    <h3 class="text-xl font-bold text-[#5A0C0E] leading-snug group-hover:text-[#D4A843] transition-colors">
                                         {{ $room['name'] }}
                                     </h3>
                                 </div>
@@ -259,7 +259,7 @@
                                         <span title="Air Conditioned"><i class="fa-solid fa-snowflake"></i></span>
                                         <span title="Private Bathroom"><i class="fa-solid fa-shower"></i></span>
                                     </div>
-                                    <a href="{{ route('login') }}" class="inline-flex items-center gap-1.5 text-xs font-bold text-white bg-[#a97142] px-3.5 py-2 rounded-xl transition-all hover:bg-[#8c5a31]">
+                                    <a href="{{ route('login') }}" class="inline-flex items-center gap-1.5 text-xs font-bold text-white bg-[#D4A843] px-3.5 py-2 rounded-xl transition-all hover:bg-[#A83B3D]">
                                         <span>Inquire / Book</span>
                                         <i class="fa-solid fa-arrow-right text-[10px]"></i>
                                     </a>
@@ -273,15 +273,15 @@
         </section>
 
         <!-- Cafeteria & Lounge Showcase Section -->
-        <section id="coffeeshop" class="py-20 bg-warm-radial border-t border-[#e8d9c7]/80">
+        <section id="coffeeshop" class="py-20 bg-warm-radial border-t border-[#E0C9A8]/80">
             <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 space-y-16">
                 
                 <div class="text-center max-w-3xl mx-auto space-y-3">
-                    <div class="inline-flex items-center gap-2 rounded-full border border-[#a97142]/20 bg-white px-4 py-1 text-xs font-bold text-[#a97142]">
+                    <div class="inline-flex items-center gap-2 rounded-full border border-[#D4A843]/20 bg-white px-4 py-1 text-xs font-bold text-[#D4A843]">
                         <i class="fa-solid fa-mug-hot"></i>
-                        <span>{{ $cafeteriaHero['category'] ?? 'Don Felipe Cafeteria & Lounge' }}</span>
+                        <span>{{ $cafeteriaHero['category'] ?? 'EVSU Cafeteria & Lounge' }}</span>
                     </div>
-                    <h2 class="text-3xl sm:text-4xl font-bold text-[#2f1c16] tracking-tight font-serif-display">
+                    <h2 class="text-3xl sm:text-4xl font-bold text-[#5A0C0E] tracking-tight font-serif-display">
                         {{ $cafeteriaHero['title'] ?? 'Savor Handcrafted Coffee & Gourmet Culinary Treats' }}
                     </h2>
                     <p class="text-sm sm:text-base text-slate-600">
@@ -290,8 +290,8 @@
                 </div>
 
                 <!-- CAFETERIA HERO / MAIN IMAGE SHOWCASE CONTAINER -->
-                <div class="overflow-hidden rounded-3xl border border-[#e8d9c7] bg-white shadow-xl grid lg:grid-cols-12 items-center">
-                    <div class="lg:col-span-7 relative h-72 lg:h-96 w-full bg-gradient-to-br from-[#2f1c16] via-[#4e342e] to-[#6d4c41]">
+                <div class="overflow-hidden rounded-3xl border border-[#E0C9A8] bg-white shadow-xl grid lg:grid-cols-12 items-center">
+                    <div class="lg:col-span-7 relative h-72 lg:h-96 w-full bg-gradient-to-br from-[#5A0C0E] via-[#7B1113] to-[#9B1B1D]">
                         @php
                             $mainCafeteriaImg = $cafeteriaHero['image'] ?? 'images/showcase/coffeeshop/cafeteria_main.jpg';
                             $hasMainImage = file_exists(public_path($mainCafeteriaImg));
@@ -299,7 +299,7 @@
                         @if ($hasMainImage)
                             <img 
                                 src="{{ asset($mainCafeteriaImg) }}" 
-                                alt="Don Felipe Main Cafeteria"
+                                alt="EVSU Main Cafeteria"
                                 loading="lazy"
                                 width="700"
                                 height="400"
@@ -310,7 +310,7 @@
                                 <div class="flex h-20 w-20 items-center justify-center rounded-3xl bg-white/10 border border-white/20 backdrop-blur-md mb-4 shadow-inner">
                                     <i class="fa-solid fa-store text-4xl text-amber-300"></i>
                                 </div>
-                                <h3 class="text-2xl font-bold text-white">Don Felipe Cafeteria & Lounge</h3>
+                                <h3 class="text-2xl font-bold text-white">EVSU Cafeteria & Lounge</h3>
                                 <p class="text-xs text-amber-100 max-w-sm mt-1">Main Cafeteria Showcase Photograph Container</p>
                             </div>
                         @endif
@@ -322,20 +322,20 @@
 
                     <div class="lg:col-span-5 p-8 sm:p-10 space-y-6">
                         <div class="space-y-2">
-                            <span class="text-xs font-bold uppercase tracking-wider text-[#a97142]">Signature Ambiance</span>
-                            <h3 class="text-2xl font-bold text-[#2f1c16] font-serif-display">Artisan Coffee & Cozy Lounge</h3>
+                            <span class="text-xs font-bold uppercase tracking-wider text-[#D4A843]">Signature Ambiance</span>
+                            <h3 class="text-2xl font-bold text-[#5A0C0E] font-serif-display">Artisan Coffee & Cozy Lounge</h3>
                             <p class="text-sm text-slate-600 leading-relaxed">
                                 Enjoy comfortable seating, high-speed Wi-Fi, and a relaxed atmosphere whether you're meeting friends, relaxing after travel, or grabbing morning espresso.
                             </p>
                         </div>
 
                         <div class="grid grid-cols-2 gap-4 pt-2 border-t border-slate-100 text-xs">
-                            <div class="p-3 rounded-2xl bg-[#fffaf3] border border-[#f0dfc9]">
-                                <span class="block font-bold text-[#2f1c16] text-sm">6:30 AM - 11:30 AM</span>
+                            <div class="p-3 rounded-2xl bg-[#FDF6EC] border border-[#E0C9A8]">
+                                <span class="block font-bold text-[#5A0C0E] text-sm">6:30 AM - 11:30 AM</span>
                                 <span class="text-slate-500">Breakfast & Brews</span>
                             </div>
-                            <div class="p-3 rounded-2xl bg-[#fffaf3] border border-[#f0dfc9]">
-                                <span class="block font-bold text-[#2f1c16] text-sm">11:30 AM - 10:00 PM</span>
+                            <div class="p-3 rounded-2xl bg-[#FDF6EC] border border-[#E0C9A8]">
+                                <span class="block font-bold text-[#5A0C0E] text-sm">11:30 AM - 10:00 PM</span>
                                 <span class="text-slate-500">All-Day Dining</span>
                             </div>
                         </div>
@@ -348,8 +348,8 @@
                         @php
                             $hasItemImage = file_exists(public_path($item['image']));
                         @endphp
-                        <div class="group overflow-hidden rounded-3xl border border-[#e8d9c7] bg-white shadow-md transition-all duration-300 hover:-translate-y-1 hover:shadow-lg">
-                            <div class="relative h-48 w-full bg-gradient-to-br from-[#2f1c16] via-[#4e342e] to-[#6d4c41] overflow-hidden">
+                        <div class="group overflow-hidden rounded-3xl border border-[#E0C9A8] bg-white shadow-md transition-all duration-300 hover:-translate-y-1 hover:shadow-lg">
+                            <div class="relative h-48 w-full bg-gradient-to-br from-[#5A0C0E] via-[#7B1113] to-[#9B1B1D] overflow-hidden">
                                 @if ($hasItemImage)
                                     <img 
                                         src="{{ asset($item['image']) }}" 
@@ -373,8 +373,8 @@
                             </div>
 
                             <div class="p-5 space-y-1.5">
-                                <span class="text-[11px] font-bold uppercase tracking-wider text-[#a97142]">{{ $item['category'] }}</span>
-                                <h3 class="text-base font-bold text-[#2f1c16] group-hover:text-[#a97142] transition-colors">
+                                <span class="text-[11px] font-bold uppercase tracking-wider text-[#D4A843]">{{ $item['category'] }}</span>
+                                <h3 class="text-base font-bold text-[#5A0C0E] group-hover:text-[#D4A843] transition-colors">
                                     {{ $item['title'] }}
                                 </h3>
                             </div>
@@ -386,7 +386,7 @@
     </main>
 
     <!-- Footer -->
-    <footer class="border-t border-[#e8d9c7] bg-[#2f1c16] text-white/80 py-12">
+    <footer class="border-t border-[#E0C9A8] bg-[#5A0C0E] text-white/80 py-12">
         <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
             <div class="grid grid-cols-1 md:grid-cols-3 gap-8 pb-8 border-b border-white/10">
                 <div class="space-y-3">
@@ -394,7 +394,7 @@
                         <div class="flex h-10 w-10 items-center justify-center rounded-xl bg-white p-1">
                             <img src="{{ asset('images/logo.png') }}" alt="Logo" class="h-full w-full object-contain">
                         </div>
-                        <span class="text-lg font-bold text-white font-serif-display">Hotel Don Felipe</span>
+                        <span class="text-lg font-bold text-white font-serif-display">EVSU</span>
                     </div>
                     <p class="text-xs text-white/60 leading-relaxed max-w-sm">
                         Providing luxury accommodations, fine dining, and unforgettable hospitality.
@@ -413,14 +413,14 @@
 
                 <div class="space-y-2 text-xs">
                     <h4 class="text-sm font-bold text-amber-200">Contact & Location</h4>
-                    <p class="text-white/70"><i class="fa-solid fa-location-dot mr-2 text-amber-400"></i> Don Felipe Hotel, Main Street</p>
+                    <p class="text-white/70"><i class="fa-solid fa-location-dot mr-2 text-amber-400"></i> EVSU Hotel, Tacloban City</p>
                     <p class="text-white/70"><i class="fa-solid fa-phone mr-2 text-amber-400"></i> Reception Desk: 24/7 Operations</p>
-                    <p class="text-white/70"><i class="fa-solid fa-envelope mr-2 text-amber-400"></i> support@hoteldonfelipe.com</p>
+                    <p class="text-white/70"><i class="fa-solid fa-envelope mr-2 text-amber-400"></i> info@evsu.edu.ph</p>
                 </div>
             </div>
 
             <div class="pt-6 text-center text-xs text-white/50">
-                © {{ date('Y') }} Hotel Don Felipe. All rights reserved.
+                © {{ date('Y') }} EVSU. All rights reserved.
             </div>
         </div>
     </footer>

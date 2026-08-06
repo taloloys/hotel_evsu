@@ -20,20 +20,20 @@
 
     <style>
         :root {
-            --coffee-950: #2f1c16;
-            --coffee-800: #4e342e;
-            --coffee-700: #6d4c41;
-            --cream: #f8f5f2;
-            --latte: #efe1cf;
-            --caramel: #a97142;
+            --coffee-950: #5A0C0E;
+            --coffee-800: #7B1113;
+            --coffee-700: #9B1B1D;
+            --cream: #FDF6EC;
+            --latte: #F5E6D0;
+            --caramel: #D4A843;
             --accent-green: #4caf50;
             --accent-red: #e53935;
-            --border-soft: #e7dccf;
-            --shadow-soft: 0 14px 34px rgba(78, 52, 46, 0.08);
+            --border-soft: #E0C9A8;
+            --shadow-soft: 0 14px 34px rgba(123, 17, 19, 0.08);
         }
 
         body{
-            background:linear-gradient(180deg, #f7efe8 0%, #f4f7fc 100%);
+            background:linear-gradient(180deg, #FDF6EC 0%, #f4f7fc 100%);
             font-family:'Inter', 'Segoe UI', -apple-system, sans-serif;
             font-size: 1.02rem;
             line-height: 1.5;
@@ -42,7 +42,7 @@
         .sidebar{
             width:260px;
             height:100vh;
-            background:linear-gradient(180deg, #2b1c15 0%, #1d120d 100%);
+            background:linear-gradient(180deg, #7B1113 0%, #5A0C0E 100%);
             position:fixed;
             left:0;
             top:0;
@@ -95,7 +95,7 @@
         }
 
         .sidebar .nav-link {
-            color: #e9d8c9;
+            color: #f5d6d7;
             padding: 0.7rem 0.8rem;
             border-radius: 0.9rem;
             margin-bottom: 0.35rem;
@@ -111,11 +111,11 @@
         .sidebar .nav-link.active {
             background: linear-gradient(135deg, var(--caramel), var(--coffee-700));
             color: #ffffff;
-            box-shadow: 0 10px 20px rgba(78, 52, 46, 0.2);
+            box-shadow: 0 10px 20px rgba(123, 17, 19, 0.2);
         }
 
         .coffeeshop-nav .nav-link {
-            color: #5a3c2d;
+            color: var(--coffee-800);
             padding: 0.85rem 1.1rem;
             border-radius: 0.85rem;
             margin-bottom: 0.35rem;
@@ -129,7 +129,7 @@
         .coffeeshop-nav .nav-link:hover {
             background: rgba(255, 255, 255, 0.92);
             color: var(--coffee-950);
-            border-color: rgba(111, 78, 56, 0.16);
+            border-color: rgba(123, 17, 19, 0.16);
             transform: translateX(2px);
         }
 
@@ -137,7 +137,7 @@
             background: linear-gradient(135deg, var(--coffee-700), var(--caramel));
             color: #ffffff;
             border-color: transparent;
-            box-shadow: 0 8px 16px rgba(78, 52, 46, 0.16);
+            box-shadow: 0 8px 16px rgba(123, 17, 19, 0.16);
         }
 
         .coffeeshop-page-shell {

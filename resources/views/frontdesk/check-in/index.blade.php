@@ -1,6 +1,6 @@
 @extends('layouts.app')
 
-@section('title', 'Check In - Don Felipe Hotel')
+@section('title', 'Check In - EVSU Hotel')
 @section('pageTitle', 'Existing Guest Check In')
 @section('pageSubtitle', 'Check in existing guests and assign available rooms.')
 

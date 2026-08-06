@@ -351,9 +351,9 @@
 <div class="d-none d-print-block" style="font-family: Arial, sans-serif; color: #000000; background: #ffffff; padding: 20px;">
     <!-- Header Logo & Hotel Info -->
     <div class="d-flex align-items-center justify-content-center mb-4 border-bottom border-dark pb-3">
-        <img src="{{ asset('images/logo.png') }}" alt="Don Felipe Hotel Logo" class="me-3" style="width: 80px; height: 80px; object-fit: contain;">
+        <img src="{{ asset('images/logo.png') }}" alt="EVSU Logo" class="me-3" style="width: 80px; height: 80px; object-fit: contain;">
         <div class="text-center">
-            <h3 class="fw-bold mb-0" style="font-family: Arial, sans-serif;">HOTEL DON FELIPE</h3>
+            <h3 class="fw-bold mb-0" style="font-family: Arial, sans-serif;">EVSU HOTEL</h3>
             <small class="d-block text-muted">Bonifacio Street, Ormoc City</small>
             <small class="d-block text-muted">Tel. Nos. 255-3580 | Fax No. 561-9620</small>
             <small class="d-block text-muted">Email: hdfelipe@yahoo.com</small>

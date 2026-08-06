@@ -92,7 +92,7 @@
                                 </div>
                                 <div class="col-md-6">
                                     <label class="form-label small fw-bold">Category Tagline</label>
-                                    <input type="text" name="category" value="{{ old('category', $cafeteriaMain->category ?? 'Don Felipe Cafeteria & Lounge') }}" required class="form-control">
+                                    <input type="text" name="category" value="{{ old('category', $cafeteriaMain->category ?? 'EVSU Cafeteria & Lounge') }}" required class="form-control">
                                 </div>
                                 <div class="col-md-6">
                                     <label class="form-label small fw-bold">Operating Hours / Timing</label>

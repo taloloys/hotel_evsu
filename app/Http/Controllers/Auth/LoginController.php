@@ -185,7 +185,7 @@ class LoginController extends Controller
             $mainCafeteria = LandingPageShowcase::where('type', 'CAFETERIA_MAIN')->first();
             $cafeteriaHero = [
                 'title' => $mainCafeteria->title ?? 'Savor Handcrafted Coffee & Gourmet Culinary Treats',
-                'category' => $mainCafeteria->category ?? 'Don Felipe Cafeteria & Lounge',
+                'category' => $mainCafeteria->category ?? 'EVSU Cafeteria & Lounge',
                 'timing' => $mainCafeteria->timing ?? 'Open daily 6:30 AM - 10:00 PM',
                 'image' => ! empty($mainCafeteria->images[0]) ? $mainCafeteria->images[0] : 'images/showcase/coffeeshop/cafeteria_main.jpg',
             ];

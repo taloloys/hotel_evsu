@@ -13,7 +13,7 @@ return [
     |
     */
 
-    'name' => env('APP_NAME', 'Hotel Don Felipe'),
+    'name' => env('APP_NAME', 'EVSU Hotel System'),
 
     /*
     |--------------------------------------------------------------------------

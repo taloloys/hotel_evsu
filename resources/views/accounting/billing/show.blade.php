@@ -24,7 +24,7 @@
             <div class="d-flex align-items-center mb-3">
                 <img src="{{ asset('images/logo.png') }}" alt="Logo" class="me-3" style="width: 70px; height: 60px; object-fit: contain;">
                 <div>
-                    <h4 class="fw-bold mb-0">Don Felipe Hotel</h4>
+                    <h4 class="fw-bold mb-0">EVSU Hotel</h4>
                     <small class="text-muted">Accounting & Billing Department</small>
                 </div>
             </div>
@@ -170,7 +170,7 @@
                 </td>
                 <!-- Center Hotel Info -->
                 <td style="width: 60%; text-align: center; vertical-align: top;">
-                    <h3 style="font-size: 18px; font-weight: bold; margin: 0; text-transform: uppercase; letter-spacing: 0.5px;">Hotel Don Felipe</h3>
+                    <h3 style="font-size: 18px; font-weight: bold; margin: 0; text-transform: uppercase; letter-spacing: 0.5px;">EVSU Hotel</h3>
                     <div style="font-size: 10px; margin-top: 3px; line-height: 1.3;">
                         Bonifacio Street, Ormoc City<br>
                         Tel. Nos. 255-3580 &bull; Fax No. 561-9620<br>

@@ -1,4 +1,4 @@
-# Hotel Don Felipe
+# EVSU Hotel System
 
 A modern hotel management system built with Laravel and Vite.
 
@@ -51,7 +51,7 @@ cp .env.example .env
 If `.env.example` doesn't exist, create a new `.env` file in the project root with the following database configuration:
 
 ```env
-APP_NAME="Hotel Don Felipe"
+APP_NAME="EVSU Hotel System"
 APP_ENV=local
 APP_KEY=
 APP_DEBUG=true

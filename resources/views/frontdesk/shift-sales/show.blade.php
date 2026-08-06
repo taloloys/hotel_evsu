@@ -1,6 +1,6 @@
 @extends('layouts.app')
 
-@section('title', 'Shift #' . $shift->shift_id . ' Report - Hotel Don Felipe')
+@section('title', 'Shift #' . $shift->shift_id . ' Report - EVSU Hotel')
 @section('pageTitle', 'Shift Sales Report')
 @section('pageSubtitle', 'Shift #' . $shift->shift_id . ' — ' . ($shift->user?->full_name ?? 'Unknown Employee'))
 
@@ -229,9 +229,9 @@
 
         {{-- Header --}}
         <div style="display: flex; align-items: center; justify-content: center; margin-bottom: 20px; border-bottom: 2px solid #000; padding-bottom: 12px;">
-            <img src="{{ asset('images/logo.png') }}" alt="Hotel Don Felipe" style="width: 70px; height: 70px; object-fit: contain; margin-right: 16px;">
+            <img src="{{ asset('images/logo.png') }}" alt="EVSU Logo" style="width: 70px; height: 70px; object-fit: contain; margin-right: 16px;">
             <div style="text-align: center;">
-                <div style="font-size: 18px; font-weight: bold; letter-spacing: 1px;">HOTEL DON FELIPE</div>
+                <div style="font-size: 18px; font-weight: bold; letter-spacing: 1px;">EVSU HOTEL</div>
                 <div style="font-size: 11px; color: #444;">Bonifacio Street, Ormoc City</div>
                 <div style="font-size: 11px; color: #444;">Tel. 255-3580 | Fax. 561-9620 | hdfelipe@yahoo.com</div>
                 <div style="font-size: 14px; font-weight: bold; margin-top: 6px; letter-spacing: 1px;">SHIFT SALES REPORT — Shift #{{ $shift->shift_id }}</div>

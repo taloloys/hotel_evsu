@@ -1,6 +1,6 @@
 @extends('layouts.app')
 
-@section('title', 'Reservation - Don Felipe Hotel')
+@section('title', 'Reservation - EVSU Hotel')
 @section('pageTitle', 'Reservation')
 @section('pageSubtitle', 'Manage room reservations and booking schedules.')
 

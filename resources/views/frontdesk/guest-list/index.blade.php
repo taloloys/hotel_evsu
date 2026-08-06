@@ -1,6 +1,6 @@
 @extends('layouts.app')
 
-@section('title', 'Guest List - Don Felipe Hotel')
+@section('title', 'Guest List - EVSU Hotel')
 @section('pageTitle', 'Guest List')
 @section('pageSubtitle', 'Search and view all registered hotel guests.')
 
@@ -229,7 +229,7 @@
             </td>
             <!-- Center Hotel Info -->
             <td style="width: 60%; text-align: center; vertical-align: top;">
-                <h3 style="font-size: 18px; font-weight: bold; margin: 0; text-transform: uppercase; letter-spacing: 0.5px;">Hotel Don Felipe</h3>
+                <h3 style="font-size: 18px; font-weight: bold; margin: 0; text-transform: uppercase; letter-spacing: 0.5px;">EVSU Hotel</h3>
                 <div style="font-size: 10px; margin-top: 3px; line-height: 1.3;">
                     Bonifacio Street, Ormoc City<br>
                     Tel. Nos. 255-3580 &bull; Fax No. 561-9620<br>

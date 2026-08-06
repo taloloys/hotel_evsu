@@ -31,7 +31,7 @@
                 <div>
 
                     <small class="text-muted text-uppercase fw-semibold">
-                        Hotel Don Felipe
+                        EVSU
                     </small>
 
                     <div class="d-flex align-items-center mt-1">

@@ -1,6 +1,6 @@
 @extends('layouts.app')
 
-@section('title', 'Guest Folio - Don Felipe Hotel')
+@section('title', 'Guest Folio - EVSU Hotel')
 @section('pageTitle', 'Guest Folio')
 @section('pageSubtitle', 'View, search and manage all guest folios.')
 
@@ -1331,7 +1331,7 @@
                 </td>
                 <!-- Center Hotel Info -->
                 <td style="width: 60%; text-align: center; vertical-align: top;">
-                    <h3 style="font-size: 18px; font-weight: bold; margin: 0; text-transform: uppercase; letter-spacing: 0.5px;">Hotel Don Felipe</h3>
+                    <h3 style="font-size: 18px; font-weight: bold; margin: 0; text-transform: uppercase; letter-spacing: 0.5px;">EVSU Hotel</h3>
                     <div style="font-size: 10px; margin-top: 3px; line-height: 1.3;">
                         Bonifacio Street, Ormoc City<br>
                         Tel. Nos. 255-3580 &bull; Fax No. 561-9620<br>
@@ -1547,9 +1547,9 @@
 
     {{-- Header --}}
     <div style="display: flex; align-items: center; justify-content: center; margin-bottom: 20px; border-bottom: 2px solid #000; padding-bottom: 12px;">
-        <img src="{{ asset('images/logo.png') }}" alt="Hotel Don Felipe" style="width: 70px; height: 70px; object-fit: contain; margin-right: 16px;">
+        <img src="{{ asset('images/logo.png') }}" alt="EVSU Logo" style="width: 70px; height: 70px; object-fit: contain; margin-right: 16px;">
         <div style="text-align: center;">
-            <div style="font-size: 18px; font-weight: bold; letter-spacing: 1px;">HOTEL DON FELIPE</div>
+            <div style="font-size: 18px; font-weight: bold; letter-spacing: 1px;">EVSU HOTEL</div>
             <div style="font-size: 11px; color: #444;">Bonifacio Street, Ormoc City</div>
             <div style="font-size: 11px; color: #444;">Tel. 255-3580 | Fax. 561-9620 | hdfelipe@yahoo.com</div>
             <div style="font-size: 14px; font-weight: bold; margin-top: 6px; letter-spacing: 1px;">GUEST FOLIO LIST</div>

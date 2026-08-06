@@ -18,12 +18,12 @@ it('loads the pure public showcase landing page on root route', function (): voi
     $response = $this->get('/');
 
     $response->assertStatus(200);
-    $response->assertSee('Hotel Don Felipe');
+    $response->assertSee('EVSU');
     $response->assertSee('Standard Room');
     $response->assertSee('Superior Room');
     $response->assertSee('Senior Suite');
     $response->assertSee('TWIN ROOM 1 TWIN BED 2 BEDROOMS SEA VIEW');
-    $response->assertSee('Don Felipe Cafeteria & Lounge', false);
+    $response->assertSee('EVSU Cafeteria & Lounge', false);
     $response->assertSee('Staff / Guest Login');
 });
 

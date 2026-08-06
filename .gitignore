@@ -28,3 +28,5 @@ Homestead.yaml
 Thumbs.db
 /bootstrap/cache/*.php
 backlog.md
+/fix_colors.php
+/fix_showcase.php
