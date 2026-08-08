@@ -16,9 +16,7 @@ class GuestListController extends Controller
         $status = $request->input('status');
 
         $query = Guest::realGuests()
-            ->with([
-                'folios.bookings.room',
-            ])
+            ->with(['folios'])
             ->when($search, function ($query, $search) {
                 $query->where(function ($q) use ($search) {
                     if (config('database.default') === 'sqlite') {
@@ -69,13 +67,10 @@ class GuestListController extends Controller
             ->orderBy('last_name')
             ->orderBy('first_name');
 
-        $printGuests = (clone $query)->get();
-
         $guests = $query->paginate(20)->withQueryString();
 
         return view('frontdesk.guest-list.index', [
             'guests' => $guests,
-            'printGuests' => $printGuests,
             'search' => $search,
             'status' => $status,
         ]);

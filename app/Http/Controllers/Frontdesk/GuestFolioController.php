@@ -26,11 +26,9 @@ class GuestFolioController extends Controller
         $folioType = $request->input('folio_type', 'ALL');
         $statusFilter = $request->input('status', 'ALL');
 
-        $query = Folio::guestFolios()->with([
-            'guest',
-            'bookings.room',
-            'transactions.chargeCode',
-        ]);
+        $query = Folio::guestFolios()
+            ->with(['guest', 'bookings.room'])
+            ->withBalances();
 
         // Search: folio number, guest name, or room number
         if ($search) {
