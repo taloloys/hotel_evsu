@@ -126,9 +126,49 @@ class User extends Authenticatable
         ];
     }
 
+    public function modulePreferences(): HasMany
+    {
+        return $this->hasMany(UserModulePreference::class, 'user_id', 'user_id');
+    }
+
+    public function isSuperAdmin(): bool
+    {
+        return (bool) ($this->role?->is_system_admin || $this->role?->role_name === 'ADMIN');
+    }
+
+    /**
+     * Static request-level cache for sidebar module preferences.
+     *
+     * @var array<int, array<string, bool>>
+     */
+    public static array $requestSidebarPreferences = [];
+
+    public function isModuleVisibleInSidebar(string $moduleKey): bool
+    {
+        if (! $this->isSuperAdmin()) {
+            return true;
+        }
+
+        if (! isset(static::$requestSidebarPreferences[$this->user_id])) {
+            static::$requestSidebarPreferences[$this->user_id] = $this->modulePreferences()
+                ->get()
+                ->pluck('is_visible', 'module_key')
+                ->toArray();
+        }
+
+        $prefs = static::$requestSidebarPreferences[$this->user_id];
+
+        if (! array_key_exists($moduleKey, $prefs)) {
+            return true;
+        }
+
+        return (bool) $prefs[$moduleKey];
+    }
+
     public function refresh()
     {
         $this->resolvedPermissions = null;
+        static::$requestSidebarPreferences = [];
 
         return parent::refresh();
     }
@@ -136,6 +176,7 @@ class User extends Authenticatable
     public function fresh($with = [])
     {
         $this->resolvedPermissions = null;
+        static::$requestSidebarPreferences = [];
 
         return parent::fresh($with);
     }

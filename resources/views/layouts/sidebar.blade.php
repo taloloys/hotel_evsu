@@ -98,12 +98,20 @@
                     <i class="fa-solid fa-hard-drive me-2"></i>
                     Backup & Restore
                 </a>
+                @if(auth()->user()?->isSuperAdmin())
+                <a href="{{ route('admin.sidebar-settings') }}"
+                   class="nav-link {{ request()->routeIs('admin.sidebar-settings*') ? 'active' : '' }}">
+                    <i class="fa-solid fa-sliders me-2"></i>
+                    Sidebar Settings
+                </a>
+                @endif
                 @endcan
             </nav>
         </div>
         @endcanany
 
         <!-- FRONT DESK -->
+        @if(auth()->user()?->isModuleVisibleInSidebar('frontdesk'))
         @canany(['manage-reservations', 'view-guest-list', 'view-guest-folio', 'view-shift-sales'])
         <div class="menu-section mb-4">
             <div class="text-uppercase text-secondary small fw-bold mb-2">
@@ -159,8 +167,10 @@
             </nav>
         </div>
         @endcanany
+        @endif
 
         <!-- COFFEE SHOP -->
+        @if(auth()->user()?->isModuleVisibleInSidebar('coffeeshop'))
         @can('manage-inventory')
         <div class="menu-section mb-4">
             <div class="text-uppercase text-secondary small fw-bold mb-2">
@@ -221,8 +231,10 @@
             </nav>
         </div>
         @endcan
+        @endif
 
         <!-- ACCOUNTING -->
+        @if(auth()->user()?->isModuleVisibleInSidebar('accounting'))
         @canany([
             'view-accounting-dashboard',
             'manage-accounting-billing',
@@ -289,8 +301,10 @@
             </nav>
         </div>
         @endcanany
+        @endif
 
         <!-- FOOD ORDER -->
+        @if(auth()->user()?->isModuleVisibleInSidebar('food_delivery'))
         @can('access-foodpanda')
         <div class="menu-section mb-4">
             <div class="text-uppercase text-secondary small fw-bold mb-2">
@@ -305,6 +319,7 @@
             </nav>
         </div>
         @endcan
+        @endif
 
     </div>
 
