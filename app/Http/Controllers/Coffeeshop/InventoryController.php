@@ -115,18 +115,33 @@ class InventoryController extends Controller
 
     public function adjust(Request $request, PosProduct $product, PosInventoryService $inventoryService): RedirectResponse
     {
+        $isRestock = $request->input('adjustment_type') === 'restock';
+
         $validated = $request->validate([
             'adjustment_type' => ['required', 'in:restock,adjustment'],
-            'quantity' => ['required', 'integer', 'not_in:0'],
+            // Restock: positive units to add (min 1)
+            // Adjust:  new absolute stock level (min 0)
+            'quantity' => $isRestock
+                ? ['required', 'integer', 'min:1']
+                : ['required', 'integer', 'min:0'],
             'notes' => ['nullable', 'string', 'max:255'],
         ]);
 
         $originalStock = $product->stock_quantity;
 
+        // For restock: add the quantity on top of current stock.
+        // For adjustment: treat the input as the desired absolute stock level
+        //                 and pass the delta so the service can log it correctly.
+        if ($isRestock) {
+            $changeQty = (int) $validated['quantity'];
+        } else {
+            $changeQty = (int) $validated['quantity'] - $originalStock;
+        }
+
         try {
             $inventoryService->adjustStock(
                 $product,
-                (int) $validated['quantity'],
+                $changeQty,
                 $validated['adjustment_type'],
                 'manual',
                 null,
@@ -139,8 +154,14 @@ class InventoryController extends Controller
         $product->refresh();
         $newStock = $product->stock_quantity;
 
-        $actionType = $validated['adjustment_type'] === 'restock' ? 'RESTOCK_PRODUCT' : 'ADJUST_PRODUCT';
-        $logMsg = ucfirst($validated['adjustment_type'])."ed product \"{$product->name}\": quantity adjusted by {$validated['quantity']} units (Stock: {$originalStock} -> {$newStock}).";
+        $actionType = $isRestock ? 'RESTOCK_PRODUCT' : 'ADJUST_PRODUCT';
+
+        if ($isRestock) {
+            $logMsg = "Restocked \"{$product->name}\" by +{$validated['quantity']} units (Stock: {$originalStock} → {$newStock}).";
+        } else {
+            $logMsg = "Adjusted \"{$product->name}\" stock to {$validated['quantity']} units (Stock: {$originalStock} → {$newStock}).";
+        }
+
         if (! empty($validated['notes'])) {
             $logMsg .= " Notes: {$validated['notes']}";
         }

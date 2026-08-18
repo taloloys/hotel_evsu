@@ -1,8 +1,8 @@
 @extends('layouts.app')
 
 @section('title', 'Tabs')
-@section('pageTitle', 'Customer Tabs')
-@section('pageSubtitle', 'Manage open, closed, and cancelled tabs')
+@section('pageTitle', 'Tabs')
+@section('pageSubtitle', 'Manage open, paid, and cancelled tabs')
 
 @section('content')
 @include('coffeeshop.partials.alerts')
@@ -11,8 +11,8 @@
     <div class="coffeeshop-hero">
         <div class="d-flex flex-column flex-lg-row justify-content-between gap-3 align-items-lg-center">
             <div>
-                <div class="fw-bold fs-5">Tab overview</div>
-                <div class="opacity-75 mt-1">Track every open, closed, and cancelled tab without losing the flow of service.</div>
+                <div class="fw-bold fs-5">Tabs</div>
+                <div class="opacity-75 mt-1">Track every open, paid, and cancelled tab without losing the flow of service.</div>
             </div>
         </div>
     </div>
@@ -21,7 +21,7 @@
 
     {{-- HEADER --}}
     <div class="card-header bg-white fw-semibold d-flex justify-content-between align-items-center p-3">
-        <span>Tab Management</span>
+        <span>Tabs</span>
         <small class="text-muted">All Tabs • Open • Closed • Cancelled</small>
     </div>
 
@@ -94,6 +94,7 @@
                     <tr>
                         <th class="ps-4">Customer Tab</th>
                         <th class="text-center">Items</th>
+                        <th>Item Notes</th>
                         <th>Total</th>
                         <th>Status</th>
                         <th>Opened</th>
@@ -134,7 +135,7 @@
                             </div>
 
                             @if($tab->room)
-                                <small class="text-muted">
+                                <small class="text-muted d-block">
                                     Room {{ $tab->room->room_number }}
                                 </small>
                             @endif
@@ -145,13 +146,23 @@
                             {{ $tab->items->sum('quantity') }}
                         </td>
 
+                        <td>
+                            @if($tab->notes)
+                                <span class="badge bg-warning-subtle text-dark border border-warning px-2.5 py-1.5 fw-semibold text-wrap text-start" style="font-size: 0.82rem; max-width: 240px; display: inline-block; line-height: 1.35;">
+                                    <i class="fa-solid fa-sticky-note me-1 text-warning"></i>{{ $tab->notes }}
+                                </span>
+                            @else
+                                <span class="text-muted small">—</span>
+                            @endif
+                        </td>
+
                         <td class="fw-semibold text-primary">
                             ₱{{ number_format($tab->total,2) }}
                         </td>
 
                         <td>
                             <span class="badge {{ $badge }}">
-                                {{ strtoupper($tab->status) }}
+                                {{ $tab->status === 'closed' ? 'CLOSED' : strtoupper($tab->status) }}
                             </span>
                         </td>
 
@@ -195,7 +206,7 @@
 
                     <tr>
 
-                        <td colspan="6" class="text-center py-5">
+                        <td colspan="7" class="text-center py-5">
 
                             <i class="fa-solid fa-folder-open fa-3x text-muted mb-3"></i>
 

@@ -305,6 +305,8 @@ Route::middleware('auth')->group(function () {
                 ->name('tabs.discount.remove');
             Route::post('/tabs/{tab}/cancel', [CoffeeshopPosController::class, 'cancelTab'])
                 ->name('tabs.cancel');
+            Route::put('/tabs/{tab}/notes', [CoffeeshopPosController::class, 'updateTabNotes'])
+                ->name('tabs.notes.update');
         });
     });
 
@@ -430,7 +432,6 @@ Route::middleware('auth')->group(function () {
             Route::delete('/backup-restore/delete/{filename}', [BackupRestoreController::class, 'deleteLocal'])
                 ->name('admin.backup-restore.delete-local');
 
-            // SIDEBAR SETTINGS (Super Admin Personal View)
             Route::get('/sidebar-settings', [SidebarSettingsController::class, 'index'])
                 ->name('admin.sidebar-settings');
             Route::post('/sidebar-settings/{moduleKey}/toggle', [SidebarSettingsController::class, 'toggle'])

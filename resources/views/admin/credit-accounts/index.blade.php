@@ -118,7 +118,7 @@
                 class="btn btn-primary d-flex align-items-center gap-2 px-3 text-nowrap"
                 style="height: 45px; border-radius: 6px; font-size: 1.05rem;"
                 data-bs-toggle="modal"
-                data-bs-target="#createAccountModal">
+                data-bs-target="#addAccountModal">
             <i class="fa-solid fa-plus fs-5"></i>
             <span>Add Account</span>
         </button>

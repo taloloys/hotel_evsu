@@ -26,9 +26,10 @@ class GuestFolioController extends Controller
         $folioType = $request->input('folio_type', 'ALL');
         $statusFilter = $request->input('status', 'ALL');
 
-        $query = Folio::guestFolios()
-            ->with(['guest', 'bookings.room'])
-            ->withBalances();
+        $query = Folio::guestFolios()->withBalances()->with([
+            'guest',
+            'bookings.room',
+        ]);
 
         // Search: folio number, guest name, or room number
         if ($search) {
@@ -77,6 +78,14 @@ class GuestFolioController extends Controller
             'chargeCodes' => $chargeCodes,
             'creditAccounts' => $creditAccounts,
         ]);
+    }
+
+    /**
+     * Show a specific guest folio by searching for its folio number.
+     */
+    public function show(Folio $folio): RedirectResponse
+    {
+        return redirect()->route('frontdesk.guest-folio', ['search' => $folio->folio_number]);
     }
 
     /**

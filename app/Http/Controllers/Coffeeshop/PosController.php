@@ -330,6 +330,24 @@ class PosController extends Controller
         ]);
     }
 
+    public function updateTabNotes(Request $request, PosTab $tab, PosTabService $tabService): JsonResponse
+    {
+        $validated = $request->validate([
+            'notes' => ['nullable', 'string', 'max:500'],
+        ]);
+
+        try {
+            $tab = $tabService->updateNotes($tab, $validated['notes'] ?? null);
+        } catch (\Exception $e) {
+            return response()->json(['message' => $e->getMessage()], 422);
+        }
+
+        return response()->json([
+            'message' => 'Tab notes updated.',
+            'tab' => $tabService->formatTab($tab),
+        ]);
+    }
+
     public function cancelTab(Request $request, PosTab $tab, PosTabService $tabService): JsonResponse
     {
         $user = auth()->user();

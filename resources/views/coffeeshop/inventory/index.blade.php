@@ -110,15 +110,24 @@
                             <td>{{ $product->stock_quantity }}</td>
                             <td><span class="coffeeshop-pill bg-{{ $color }}-subtle text-{{ $color }}">{{ $label }}</span></td>
                             <td>
-                                <form action="{{ route('coffeeshop.inventory.adjust', $product) }}" method="POST" class="d-flex gap-2 flex-wrap">
+                                <form action="{{ route('coffeeshop.inventory.adjust', $product) }}" method="POST" class="d-flex gap-2 flex-wrap align-items-center">
                                     @csrf
-                                    <select name="adjustment_type" class="form-select form-select-sm rounded-pill" style="width:160px; border: 1px solid black;">
-                                        <option value="restock">Restock</option>
-                                        <option value="adjustment">Adjust</option>
+                                    <select name="adjustment_type"
+                                            class="form-select form-select-sm rounded-pill inventory-type-select"
+                                            style="width:145px; border: 1px solid black;"
+                                            data-stock="{{ $product->stock_quantity }}">
+                                        <option value="restock">Restock (+)</option>
+                                        <option value="adjustment">Adjust (=)</option>
                                     </select>
-                                    <input type="number" name="quantity" class="form-control form-control-sm rounded-pill" placeholder="Qty" min="1" style="width:120px; border: 1px solid black;" required>
-                                    <input type="text" name="notes" class="form-control form-control-sm rounded-pill" placeholder="Notes" style="width:330px; border: 1px solid black;">
-                                    <button class="btn btn-sm btn-primary rounded-pill px-3">Apply</button>
+                                    <input type="number"
+                                           name="quantity"
+                                           class="form-control form-control-sm rounded-pill inventory-qty-input"
+                                           placeholder="Add Qty"
+                                           min="1"
+                                           style="width:115px; border: 1px solid black;"
+                                           required>
+                                    <input type="text" name="notes" class="form-control form-control-sm rounded-pill" placeholder="Notes (optional)" style="width:300px; border: 1px solid black;">
+                                    <button type="submit" class="btn btn-sm btn-primary rounded-pill px-3">Apply</button>
                                 </form>
                             </td>
                         </tr>
@@ -138,6 +147,33 @@
 @push('scripts')
 <script>
     (function () {
+        // ── Restock vs Adjust input semantics ─────────────────────────────────
+        // Restock: add units on top of current stock  → min=1, placeholder="Add Qty"
+        // Adjust:  set stock to an absolute new value → min=0, placeholder="New Total"
+        document.querySelectorAll('.inventory-type-select').forEach(function (select) {
+            const form    = select.closest('form');
+            const qtyInput = form ? form.querySelector('.inventory-qty-input') : null;
+            if (!qtyInput) { return; }
+
+            function syncInput() {
+                const isAdjust = select.value === 'adjustment';
+                if (isAdjust) {
+                    qtyInput.min         = '0';
+                    qtyInput.placeholder = 'New Total';
+                    qtyInput.title       = 'Enter the desired total stock level';
+                } else {
+                    qtyInput.min         = '1';
+                    qtyInput.placeholder = 'Add Qty';
+                    qtyInput.title       = 'Enter the number of units to add';
+                }
+                // Clear the value so the user consciously enters the right number
+                qtyInput.value = '';
+            }
+
+            select.addEventListener('change', syncInput);
+        });
+
+        // ── Search debounce ───────────────────────────────────────────────────
         const searchInput = document.getElementById('inventorySearch');
         if (searchInput) {
             function debounce(func, wait) {

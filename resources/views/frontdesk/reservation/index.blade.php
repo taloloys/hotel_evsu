@@ -1,6 +1,46 @@
 @extends('layouts.app')
 
-@section('title', 'Reservation - EVSU Hotel')
+@push('styles')
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/tom-select@2.3.1/dist/css/tom-select.bootstrap5.min.css">
+<style>
+    /* Match the project's existing input height and border */
+    #newReservationModal .ts-wrapper.single .ts-control,
+    #newReservationModal .ts-wrapper .ts-control {
+        min-height: 46px;
+        border: 1px solid #000 !important;
+        border-radius: .375rem;
+        padding-top: 0;
+        padding-bottom: 0;
+        display: flex;
+        align-items: center;
+        box-shadow: none !important;
+    }
+    #newReservationModal .ts-wrapper.single.input-active .ts-control,
+    #newReservationModal .ts-wrapper.single:focus-within .ts-control {
+        border-color: #86b7fe !important;
+        box-shadow: 0 0 0 .25rem rgba(13,110,253,.25) !important;
+    }
+    #newReservationModal .ts-dropdown {
+        border: 1px solid #ced4da;
+        border-radius: .375rem;
+        box-shadow: 0 .5rem 1rem rgba(0,0,0,.1);
+        z-index: 1060;
+    }
+    #newReservationModal .ts-dropdown .option.selected {
+        background-color: #0d6efd;
+        color: #fff;
+    }
+    #newReservationModal .ts-dropdown .option:hover {
+        background-color: #e9ecef;
+        color: #212529;
+    }
+    #newReservationModal .ts-dropdown .option.selected:hover {
+        background-color: #0b5ed7;
+    }
+</style>
+@endpush
+
+@section('title', 'Reservation - Don Felipe Hotel')
 @section('pageTitle', 'Reservation')
 @section('pageSubtitle', 'Manage room reservations and booking schedules.')
 
@@ -234,6 +274,12 @@
                 </tbody>
             </table>
         </div>
+
+        @if($reservations->hasPages())
+            <div class="d-flex justify-content-end mt-4">
+                {{ $reservations->links() }}
+            </div>
+        @endif
 
     </div>
 </div>
@@ -750,12 +796,9 @@
 @endpush
 
 @push('scripts')
+<script src="https://cdn.jsdelivr.net/npm/tom-select@2.3.1/dist/js/tom-select.complete.min.js"></script>
 <script>
     (function() {
-        @if($errors->any() || old('first_name'))
-            const modal = new bootstrap.Modal(document.getElementById('newReservationModal'));
-            modal.show();
-        @endif
 
         const guestSearchInput = document.getElementById('guest_search');
         const guestSearchResults = document.getElementById('guest_search_results');
@@ -838,24 +881,62 @@
 
         const roomTypeFilter = document.getElementById('room_type_filter');
         const roomSelect = document.getElementById('room_id');
+        let roomTomSelect = null;
 
-        if (roomTypeFilter && roomSelect) {
-            const allOptions = Array.from(roomSelect.querySelectorAll('option[data-room-type]'));
+        // Tom Select must be initialised after the modal is visible so the
+        // dropdown can calculate its position correctly.
+        const reservationModal = document.getElementById('newReservationModal');
+        if (reservationModal) {
+            reservationModal.addEventListener('shown.bs.modal', function() {
+                // Only initialise once
+                if (!roomTomSelect && roomSelect) {
+                    roomTomSelect = new TomSelect('#room_id', {
+                        placeholder: 'Search or select a room…',
+                        allowEmptyOption: true,
+                        selectOnTab: true,
+                        maxOptions: null,
+                        dropdownParent: 'body',
+                        render: {
+                            option: function(data, escape) {
+                                return `<div class="py-1">${escape(data.text)}</div>`;
+                            },
+                            item: function(data, escape) {
+                                return `<div>${escape(data.text)}</div>`;
+                            }
+                        }
+                    });
 
-            roomTypeFilter.addEventListener('change', function() {
-                const selectedType = this.value;
+                    // Wire up Room Type filter to Tom Select
+                    if (roomTypeFilter) {
+                        roomTypeFilter.addEventListener('change', function() {
+                            const selectedType = this.value;
 
-                allOptions.forEach(option => {
-                    const matches = !selectedType || option.getAttribute('data-room-type') === selectedType;
-                    option.hidden = !matches;
-                    option.disabled = !matches;
-                });
+                            Object.values(roomTomSelect.options).forEach(opt => {
+                                const optEl = roomSelect.querySelector(`option[value="${opt.value}"]`);
+                                const roomType = optEl ? optEl.getAttribute('data-room-type') : null;
+                                const matches = !selectedType || roomType === selectedType;
 
-                const current = roomSelect.options[roomSelect.selectedIndex];
-                if (current && current.disabled) {
-                    roomSelect.value = '';
+                                if (matches) {
+                                    roomTomSelect.removeOption(opt.value, true);
+                                    roomTomSelect.addOption(opt, true);
+                                } else {
+                                    if (roomTomSelect.getValue() === opt.value) {
+                                        roomTomSelect.clear(true);
+                                    }
+                                    roomTomSelect.removeOption(opt.value, true);
+                                }
+                            });
+                            roomTomSelect.refreshOptions(false);
+                        });
+                    }
                 }
             });
+
+            // Re-open the modal automatically if there were validation errors
+            @if($errors->any() || old('first_name'))
+                const _modal = new bootstrap.Modal(reservationModal);
+                _modal.show();
+            @endif
         }
 
         document.querySelectorAll('.view-reservation-btn').forEach(button => {
@@ -930,7 +1011,7 @@
                 reverseButtons: true,
             }).then(function(result) {
                 if (result.isConfirmed && form) {
-                    form.submit();
+                    if (form.requestSubmit) { form.requestSubmit(); } else { form.submit(); }
                 }
             });
         };

@@ -268,6 +268,19 @@ class PosTabService
         return $tab->fresh();
     }
 
+    public function updateNotes(PosTab $tab, ?string $notes): PosTab
+    {
+        if ($tab->status !== 'open') {
+            throw new RuntimeException('Cannot update notes on a closed tab.');
+        }
+
+        $tab->update([
+            'notes' => $notes,
+        ]);
+
+        return $tab->fresh();
+    }
+
     public function formatTab(PosTab $tab): array
     {
         $tab->loadMissing(['items.product.category', 'room', 'guest', 'folio', 'creditAccount']);
@@ -290,6 +303,7 @@ class PosTabService
             'is_discount_percentage' => (bool) $tab->is_discount_percentage,
             'subtotal' => (float) $tab->subtotal,
             'total' => (float) $tab->total,
+            'notes' => $tab->notes,
             'item_count' => $tab->items->sum('quantity'),
             'pending_cancel_request' => $tab->approvalRequests()->where('status', 'pending')->exists(),
             'items' => $tab->items->map(fn (PosTabItem $item) => [

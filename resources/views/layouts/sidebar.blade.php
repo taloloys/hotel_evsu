@@ -3,12 +3,12 @@
     <!-- HEADER -->
     <div class="d-flex align-items-center mb-4 pb-3 border-bottom border-secondary border-opacity-25">
         <img src="{{ asset('images/logo.png') }}"
-             alt="EVSU Logo"
+             alt="Don Felipe Hotel Logo"
              class="me-3"
              style="width:80px; height:70px; object-fit:contain;">
         <div>
             <h5 class="text-white fw-bold mb-1">
-                EVSU
+                Don Felipe Hotel
             </h5>
             <small class="text-secondary">
                 {{ auth()->user()?->role?->role_name === 'ADMIN' ? 'Administrator' : (auth()->user()?->role?->description ?? 'Staff') }}
@@ -98,25 +98,24 @@
                     <i class="fa-solid fa-hard-drive me-2"></i>
                     Backup & Restore
                 </a>
+                @endcan
                 @if(auth()->user()?->isSuperAdmin())
                 <a href="{{ route('admin.sidebar-settings') }}"
                    class="nav-link {{ request()->routeIs('admin.sidebar-settings*') ? 'active' : '' }}">
-                    <i class="fa-solid fa-sliders me-2"></i>
+                    <i class="fa-solid fa-sliders-h me-2"></i>
                     Sidebar Settings
                 </a>
-                @endif
-                @endcan
-            </nav>
+                @endif            </nav>
         </div>
         @endcanany
 
         <!-- FRONT DESK -->
         @if(auth()->user()?->isModuleVisibleInSidebar('frontdesk'))
-        @canany(['manage-reservations', 'view-guest-list', 'view-guest-folio', 'view-shift-sales'])
-        <div class="menu-section mb-4">
-            <div class="text-uppercase text-secondary small fw-bold mb-2">
-                Front Desk
-            </div>
+            @canany(['manage-reservations', 'view-guest-list', 'view-guest-folio', 'view-shift-sales'])
+            <div class="menu-section mb-4">
+                <div class="text-uppercase text-secondary small fw-bold mb-2">
+                    Front Desk
+                </div>
             <nav class="nav flex-column">
                 @can('manage-reservations')
                 <a href="{{ route('frontdesk.dashboard') }}"
@@ -135,9 +134,8 @@
                     Registration
                 </a>
                 <a href="{{ route('frontdesk.checkin') }}"
-                   class="nav-link d-flex align-items-center justify-content-between {{ request()->routeIs('frontdesk.checkin') ? 'active' : '' }}">
-                    <span><i class="fa-solid fa-key me-2"></i>Check In</span>
-                    <span id="sidebar-pending-checkins-badge" class="badge bg-success ms-1 d-none"></span>
+                   class="nav-link {{ request()->routeIs('frontdesk.checkin') ? 'active' : '' }}">
+                    <i class="fa-solid fa-key me-2"></i>Check In
                 </a>
                 @endcan
 
@@ -166,13 +164,13 @@
                 @endcan
             </nav>
         </div>
-        @endcanany
+            @endcanany
         @endif
 
         <!-- COFFEE SHOP -->
         @if(auth()->user()?->isModuleVisibleInSidebar('coffeeshop'))
-        @can('manage-inventory')
-        <div class="menu-section mb-4">
+            @can('manage-inventory')
+            <div class="menu-section mb-4">
             <div class="text-uppercase text-secondary small fw-bold mb-2">
                 Coffee Shop
             </div>
@@ -230,12 +228,12 @@
                 </a>
             </nav>
         </div>
-        @endcan
+            @endcan
         @endif
 
         <!-- ACCOUNTING -->
         @if(auth()->user()?->isModuleVisibleInSidebar('accounting'))
-        @canany([
+            @canany([
             'view-accounting-dashboard',
             'manage-accounting-billing',
             'manage-accounting-payments',
@@ -300,12 +298,12 @@
                 @endcan
             </nav>
         </div>
-        @endcanany
+            @endcanany
         @endif
 
         <!-- FOOD ORDER -->
         @if(auth()->user()?->isModuleVisibleInSidebar('food_delivery'))
-        @can('access-foodpanda')
+            @can('access-foodpanda')
         <div class="menu-section mb-4">
             <div class="text-uppercase text-secondary small fw-bold mb-2">
                 Food Order
@@ -318,7 +316,7 @@
                 </a>
             </nav>
         </div>
-        @endcan
+            @endcan
         @endif
 
     </div>

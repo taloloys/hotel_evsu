@@ -47,7 +47,8 @@ class ReservationController extends Controller
         $reservations = $query
             ->orderByDesc('arrival_date')
             ->orderByDesc('booking_id')
-            ->get();
+            ->paginate(20)
+            ->withQueryString();
 
         $roomTypes = Room::query()
             ->select('room_type')
@@ -61,17 +62,10 @@ class ReservationController extends Controller
             ->orderBy('room_number')
             ->get(['room_id', 'room_number', 'room_type', 'base_rate', 'status']);
 
-        $guests = Guest::realGuests()
-            ->with(['folios'])
-            ->orderBy('last_name')
-            ->orderBy('first_name')
-            ->get();
-
         return view('frontdesk.reservation.index', [
             'reservations' => $reservations,
             'roomTypes' => $roomTypes,
             'assignableRooms' => $assignableRooms,
-            'guests' => $guests,
             'suggestedFolioNumber' => $this->generateFolioNumber(),
             'filters' => [
                 'date_from' => $request->date_from,

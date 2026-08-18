@@ -113,6 +113,7 @@ class DashboardController extends Controller
             ->whereDate('arrival_date', $today)
             ->whereIn('status', ['RESERVED', 'CHECKED_IN'])
             ->orderBy('arrival_time')
+            ->limit(30)
             ->get();
 
         // Today's check-outs (departures — pending and completed)
@@ -120,6 +121,7 @@ class DashboardController extends Controller
             ->whereDate('departure_date', $today)
             ->whereIn('status', ['CHECKED_IN', 'CHECKED_OUT'])
             ->orderBy('departure_time')
+            ->limit(30)
             ->get();
 
         // Overdue guests: still checked in but departure date has already passed
@@ -128,6 +130,7 @@ class DashboardController extends Controller
             ->whereNotNull('departure_date')
             ->whereDate('departure_date', '<', $today)
             ->orderBy('departure_date')
+            ->limit(30)
             ->get();
 
         // Rooms ready for guests: available status with no active reservation or occupancy

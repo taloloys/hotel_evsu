@@ -253,59 +253,69 @@ function initCharts() {
     fetch(filterUrl)
         .then(response => response.json())
         .then(data => {
+            if (!document.body.contains(revenueCanvas)) return;
+
             // Revenue Trend Line Chart
-            revenueTrendChart = new Chart(revenueCanvas, {
-                type: 'line',
-                data: {
-                    labels: data.trend.labels,
-                    datasets: [{
-                        label: 'Revenue (₱)',
-                        data: data.trend.data,
-                        borderColor: '#0d6efd',
-                        tension: 0.3,
-                        fill: true,
-                        backgroundColor: 'rgba(13, 110, 253, 0.1)'
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                }
-            });
+            if (revenueCanvas) {
+                revenueTrendChart = new Chart(revenueCanvas, {
+                    type: 'line',
+                    data: {
+                        labels: data.trend.labels,
+                        datasets: [{
+                            label: 'Revenue (₱)',
+                            data: data.trend.data,
+                            borderColor: '#0d6efd',
+                            tension: 0.3,
+                            fill: true,
+                            backgroundColor: 'rgba(13, 110, 253, 0.1)'
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                    }
+                });
+            }
 
             // Payment Method Donut Chart
-            paymentMethodChart = new Chart(document.getElementById('paymentMethodChart'), {
-                type: 'doughnut',
-                data: {
-                    labels: data.payment.labels,
-                    datasets: [{
-                        data: data.payment.data,
-                        backgroundColor: ['#198754', '#ffc107', '#0dcaf0'],
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    plugins: { legend: { position: 'right' } }
-                }
-            });
+            const paymentCanvas = document.getElementById('paymentMethodChart');
+            if (paymentCanvas && document.body.contains(paymentCanvas)) {
+                paymentMethodChart = new Chart(paymentCanvas, {
+                    type: 'doughnut',
+                    data: {
+                        labels: data.payment.labels,
+                        datasets: [{
+                            data: data.payment.data,
+                            backgroundColor: ['#198754', '#ffc107', '#0dcaf0'],
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: { legend: { position: 'right' } }
+                    }
+                });
+            }
 
             // Department Revenue Donut Chart
-            departmentChart = new Chart(document.getElementById('departmentChart'), {
-                type: 'doughnut',
-                data: {
-                    labels: data.department.labels,
-                    datasets: [{
-                        data: data.department.data,
-                        backgroundColor: ['#0d6efd', '#6f42c1', '#d63384'],
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    plugins: { legend: { position: 'right' } }
-                }
-            });
+            const departmentCanvas = document.getElementById('departmentChart');
+            if (departmentCanvas && document.body.contains(departmentCanvas)) {
+                departmentChart = new Chart(departmentCanvas, {
+                    type: 'doughnut',
+                    data: {
+                        labels: data.department.labels,
+                        datasets: [{
+                            data: data.department.data,
+                            backgroundColor: ['#0d6efd', '#6f42c1', '#d63384'],
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: { legend: { position: 'right' } }
+                    }
+                });
+            }
         });
 }
 

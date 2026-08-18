@@ -34,6 +34,7 @@
     const activeTabTotal = document.getElementById('active-tab-total');
     const activeTabBadge = document.getElementById('active-tab-badge');
     const activeTabPendingAlert = document.getElementById('active-tab-pending-alert');
+    const itemNotesInput = document.getElementById('item-notes');
 
     const paymentModal = new bootstrap.Modal(document.getElementById('paymentModal'));
     const paymentModalAmount = document.getElementById('payment-modal-amount');
@@ -193,14 +194,21 @@
             tabSwitcher.appendChild(btn);
         });
 
+        const footerSummary = document.getElementById('active-tab-footer-summary');
+        const noTabFooterSummary = document.getElementById('no-tab-footer-summary');
+
         if (activeTabId === null) {
             activeTabPanel.classList.add('d-none');
             newTabFormContainer.classList.remove('d-none');
             noTabMessage.classList.add('d-none');
+            if (footerSummary) footerSummary.classList.add('d-none');
+            if (noTabFooterSummary) noTabFooterSummary.classList.remove('d-none');
         } else {
             newTabFormContainer.classList.add('d-none');
             activeTabPanel.classList.remove('d-none');
             noTabMessage.classList.add('d-none');
+            if (footerSummary) footerSummary.classList.remove('d-none');
+            if (noTabFooterSummary) noTabFooterSummary.classList.add('d-none');
             renderCart();
         }
 
@@ -241,16 +249,16 @@
             if (chargeRoomBtn) {
                 chargeRoomBtn.innerHTML = `<i class="fa-solid fa-user me-1"></i> ${guestLabel}`;
             }
-            activeTabBadge.innerHTML = `<span class="badge bg-info small">Room Charge (${roomLabel})</span>`;
+            activeTabBadge.innerHTML = `<span class="badge bg-info text-dark px-2.5 py-1 fs-7 fw-semibold">Room Charge (${roomLabel})</span>`;
         } else if (tab.tab_type === 'account') {
             accountActions.classList.remove('d-none');
             if (chargeAccountBtn) {
                 chargeAccountBtn.innerHTML = `<i class="fa-solid fa-crown me-1 text-warning"></i> Charge to VIP Account (${tab.credit_account_name || 'Account'})`;
             }
-            activeTabBadge.innerHTML = `<span class="badge bg-warning text-dark border border-warning shadow-sm small"><i class="fa-solid fa-crown me-1"></i> VIP Account (${tab.credit_account_name || 'N/A'})</span>`;
+            activeTabBadge.innerHTML = `<span class="badge bg-warning text-dark border border-warning shadow-sm px-2.5 py-1 fs-7 fw-bold"><i class="fa-solid fa-crown me-1"></i> VIP Account (${tab.credit_account_name || 'N/A'})</span>`;
         } else {
             walkinActions.classList.remove('d-none');
-            activeTabBadge.innerHTML = `<span class="badge bg-secondary small">Walk-in</span>`;
+            activeTabBadge.innerHTML = `<span class="badge bg-secondary px-2.5 py-1 fs-7 fw-semibold">Walk-in</span>`;
         }
 
         const discountBadge = document.getElementById('active-tab-discount-badge');
@@ -267,6 +275,11 @@
             document.getElementById('cart-discount').textContent = '-' + formatMoney(tab.subtotal - tab.total);
         } else {
             document.getElementById('cart-discount').textContent = '-₱0.00';
+        }
+
+        if (itemNotesInput) {
+            itemNotesInput.value = tab.notes || '';
+            itemNotesInput.disabled = !!tab.pending_cancel_request;
         }
 
         // Handle pending cancellation state
@@ -293,17 +306,19 @@
             row.className = 'cart-row mb-3 py-1';
 
             row.innerHTML = `
-                <div class="item-details">
-                    <div class="fw-semibold fs-6">${item.name}</div>
-                    <small class="text-muted">
+                <!-- Col 1: Item details -->
+                <div class="item-details pe-1">
+                    <div class="fw-semibold text-dark text-truncate" style="font-size: 1.02rem; line-height: 1.25;" title="${item.name}">${item.name}</div>
+                    <div class="text-muted" style="font-size: 0.84rem;">
                         ${formatMoney(item.unit_price)} each
-                    </small>
+                    </div>
                 </div>
 
-                <div class="d-flex align-items-center gap-2 justify-content-end">
-
+                <!-- Col 2: Quantity controls (Perfectly Straight Column) -->
+                <div class="d-flex align-items-center gap-1 justify-content-center">
                     <button type="button"
-                        class="btn btn-outline-secondary btn-sm px-3 qty-btn"
+                        class="btn btn-outline-secondary btn-sm qty-btn rounded-3 d-inline-flex align-items-center justify-content-center p-0 fw-bold"
+                        style="width: 32px; height: 32px; font-size: 0.98rem;"
                         data-action="decrease"
                         data-item-id="${item.tab_item_id}"
                         ${tab.pending_cancel_request ? 'disabled' : ''}>
@@ -311,32 +326,36 @@
                     </button>
 
                     <input type="number"
-                        class="form-control form-control-sm text-center qty-input"
-                        style="width: 60px;"
+                        class="form-control form-control-sm text-center qty-input px-1 fw-bold"
+                        style="width: 48px; height: 32px; font-size: 0.95rem;"
                         value="${item.quantity}"
                         min="1"
                         data-item-id="${item.tab_item_id}"
                         ${tab.pending_cancel_request ? 'disabled' : ''} />
 
                     <button type="button"
-                        class="btn btn-outline-secondary btn-sm px-3 qty-btn"
+                        class="btn btn-outline-secondary btn-sm qty-btn rounded-3 d-inline-flex align-items-center justify-content-center p-0 fw-bold"
+                        style="width: 32px; height: 32px; font-size: 0.98rem;"
                         data-action="increase"
                         data-item-id="${item.tab_item_id}"
                         ${tab.pending_cancel_request ? 'disabled' : ''}>
                         +
                     </button>
+                </div>
 
-                    <span class="ms-2 fw-semibold">
-                        ${formatMoney(item.line_total)}
-                    </span>
+                <!-- Col 3: Line total price -->
+                <div class="text-end fw-bold text-brown" style="font-size: 1.02rem; min-width: 70px;">
+                    ${formatMoney(item.line_total)}
+                </div>
 
+                <!-- Col 4: Delete button -->
+                <div class="text-end">
                     <button type="button"
                         class="btn btn-link btn-sm text-danger p-1 remove-item-btn"
                         data-item-id="${item.tab_item_id}"
                         ${tab.pending_cancel_request ? 'disabled' : ''}>
-                        <i class="fa-solid fa-trash fs-5"></i>
+                        <i class="fa-solid fa-trash" style="font-size: 0.98rem;"></i>
                     </button>
-
                 </div>
             `;
 
@@ -733,6 +752,28 @@
         clearTimeout(searchTimer);
         searchTimer = setTimeout(loadProducts, 250);
     });
+
+    let notesSaveTimer = null;
+    if (itemNotesInput) {
+        itemNotesInput.addEventListener('input', () => {
+            const tab = getActiveTab();
+            if (!tab || tab.pending_cancel_request) return;
+            const newNotes = itemNotesInput.value;
+            tab.notes = newNotes;
+
+            if (notesSaveTimer) clearTimeout(notesSaveTimer);
+            notesSaveTimer = setTimeout(async () => {
+                try {
+                    await request(`/coffeeshop/api/tabs/${tab.tab_id}/notes`, {
+                        method: 'PUT',
+                        body: JSON.stringify({ notes: newNotes }),
+                    });
+                } catch (err) {
+                    console.error('Error auto-saving item notes:', err);
+                }
+            }, 400);
+        });
+    }
 
     document.getElementById('open-tab-btn').addEventListener('click', async () => {
         const btn = document.getElementById('open-tab-btn');

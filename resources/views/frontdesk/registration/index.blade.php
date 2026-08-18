@@ -1,6 +1,50 @@
 @extends('layouts.app')
 
-@section('title', 'Registration - EVSU Hotel')
+@push('styles')
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/tom-select@2.3.1/dist/css/tom-select.bootstrap5.min.css">
+<style>
+    /* Match the project's existing input height and border */
+    .ts-wrapper.single .ts-control,
+    .ts-wrapper .ts-control {
+        min-height: 46px;
+        border: 1px solid #ced4da !important;
+        border-radius: .375rem;
+        padding-top: 0;
+        padding-bottom: 0;
+        display: flex;
+        align-items: center;
+        box-shadow: none !important;
+    }
+    .ts-wrapper.single.input-active .ts-control,
+    .ts-wrapper.single:focus-within .ts-control {
+        border-color: #86b7fe !important;
+        box-shadow: 0 0 0 .25rem rgba(13,110,253,.25) !important;
+    }
+    .ts-dropdown {
+        border: 1px solid #ced4da;
+        border-radius: .375rem;
+        box-shadow: 0 .5rem 1rem rgba(0,0,0,.1);
+        z-index: 1060;
+    }
+    .ts-dropdown .option.selected {
+        background-color: #0d6efd;
+        color: #fff;
+    }
+    .ts-dropdown .option:hover {
+        background-color: #e9ecef;
+        color: #212529;
+    }
+    .ts-dropdown .option.selected:hover {
+        background-color: #0b5ed7;
+    }
+    /* Keep the original select hidden (Tom Select replaces it visually) */
+    #room_id + .ts-wrapper {
+        flex: 1;
+    }
+</style>
+@endpush
+
+@section('title', 'Registration - Don Felipe Hotel')
 @section('pageTitle', 'Guest Registration')
 @section('pageSubtitle', 'Register walk-in guests and assign available rooms.')
 
@@ -655,6 +699,7 @@
 @endsection
 
 @push('scripts')
+<script src="https://cdn.jsdelivr.net/npm/tom-select@2.3.1/dist/js/tom-select.complete.min.js"></script>
 <script>
     (function() {
         const roomTypeFilter = document.getElementById('room_type_filter');
@@ -687,32 +732,58 @@
             });
         }
 
-        if (roomTypeFilter && roomSelect) {
-            const allOptions = Array.from(roomSelect.querySelectorAll('option[data-room-type]'));
+        // Initialise Tom Select on the room dropdown for searchable UX
+        let roomTomSelect = null;
 
-            roomTypeFilter.addEventListener('change', function() {
-                const selectedType = this.value;
-
-                allOptions.forEach(option => {
-                    const matches = !selectedType || option.getAttribute('data-room-type') === selectedType;
-                    option.hidden = !matches;
-                    option.disabled = !matches;
-                });
-
-                const current = roomSelect.options[roomSelect.selectedIndex];
-                if (current && current.disabled) {
-                    roomSelect.value = '';
+        if (roomSelect) {
+            roomTomSelect = new TomSelect('#room_id', {
+                placeholder: 'Search or select a room…',
+                allowEmptyOption: true,
+                selectOnTab: true,
+                maxOptions: null,
+                render: {
+                    option: function(data, escape) {
+                        return `<div class="py-1">${escape(data.text)}</div>`;
+                    },
+                    item: function(data, escape) {
+                        return `<div>${escape(data.text)}</div>`;
+                    }
+                },
+                onChange: function(value) {
+                    if (netRateInput) {
+                        netRateInput.dataset.userEdited = '';
+                    }
                     updateRateDisplay();
                 }
             });
-
-            roomSelect.addEventListener('change', function() {
-                if (netRateInput) {
-                    netRateInput.dataset.userEdited = '';
-                }
-                updateRateDisplay();
-            });
             updateRateDisplay();
+        }
+
+        // Room Type filter — show/hide Tom Select options by room type
+        if (roomTypeFilter && roomTomSelect) {
+            roomTypeFilter.addEventListener('change', function() {
+                const selectedType = this.value;
+
+                // Update which options are visible in Tom Select
+                Object.values(roomTomSelect.options).forEach(opt => {
+                    const optEl = roomSelect.querySelector(`option[value="${opt.value}"]`);
+                    const roomType = optEl ? optEl.getAttribute('data-room-type') : null;
+                    const matches = !selectedType || roomType === selectedType;
+
+                    if (matches) {
+                        roomTomSelect.removeOption(opt.value, true);
+                        roomTomSelect.addOption(opt, true);
+                    } else {
+                        // If currently selected option no longer matches, clear selection
+                        if (roomTomSelect.getValue() === opt.value) {
+                            roomTomSelect.clear(true);
+                            updateRateDisplay();
+                        }
+                        roomTomSelect.removeOption(opt.value, true);
+                    }
+                });
+                roomTomSelect.refreshOptions(false);
+            });
         }
 
         if (arrivalDate && departureDate) {

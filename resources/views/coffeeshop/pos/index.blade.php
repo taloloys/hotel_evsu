@@ -77,7 +77,7 @@
 
                         @if($product->image_url)
                             <div class="mb-3 rounded w-100 overflow-hidden" style="height: 120px;">
-                                <img src="{{ $product->image_url }}" class="w-100 h-100" style="object-fit: cover;" alt="{{ $product->name }}">
+                                <img src="{{ $product->image_url }}" class="w-100 h-100" style="object-fit: cover;" alt="{{ $product->name }}" onerror="this.onerror=null; this.parentElement.innerHTML='<div class=\'w-100 h-100 d-flex align-items-center justify-content-center border rounded-3\' style=\'background: linear-gradient(135deg, #fbf7f2 0%, #f4eae0 100%);\'><i class=\'fa-solid fa-mug-hot fa-2x\' style=\'color: #a97142; opacity: 0.6;\'></i></div>';">
                             </div>
                         @else
                             <div class="mb-3 rounded-3 w-100 d-flex align-items-center justify-content-center border" style="height: 120px; background: linear-gradient(135deg, #fbf7f2 0%, #f4eae0 100%);">
@@ -123,45 +123,54 @@
     </div>
 
     <div class="col-lg-4">
-        <div class="coffeeshop-card sticky-top" style="top:15px;">
-            <div class="card-header border-0 bg-transparent d-flex justify-content-between align-items-center p-3">
+        <div class="coffeeshop-card sticky-top pos-tabs-floating-card shadow-sm" style="top:15px; display:flex; flex-direction:column; max-height: calc(100vh - 30px); height: calc(100vh - 30px);">
+            <!-- Fixed Top Header -->
+            <div class="card-header border-bottom bg-white d-flex justify-content-between align-items-center p-3 flex-shrink-0" style="z-index: 5;">
                 <div>
-                    <div class="fw-bold">Customer Tabs</div>
+                    <div class="fw-bold text-dark fs-6 d-flex align-items-center gap-2">
+                        <i class="fa-solid fa-users text-primary"></i> Customer Tabs
+                    </div>
                     <small class="text-muted">Multiple open tabs supported</small>
                 </div>
 
-                <span class="badge bg-primary fs-6">
-                    <i class="fa-solid fa-folder-open me-1"></i>
-                    <span id="open-tabs-counter">{{ count($openTabs) }}</span> Open
-                </span>
-            </div>
-            <div class="card-body">
-                <div class="d-flex gap-2 mb-3 flex-wrap" id="tab-switcher"></div>
-
-                <div id="new-tab-form-container" class="card bg-light border-0 p-3 mb-5 rounded-4 d-none">
-                    <div class="mb-3">
-                    <label class="form-label fw-semibold text-muted mb-2">
-                        Tab Type
-                    </label>
-
-                    <div class="btn-group w-100" role="group">
-                        <input type="radio" class="btn-check" name="new-tab-type" id="type-walkin" value="walk_in" checked>
-                        <label class="btn btn-outline-secondary py-2 px-3" for="type-walkin" style="font-size: 0.85rem;">
-                            Walk-in
-                        </label>
-
-                        <input type="radio" class="btn-check" name="new-tab-type" id="type-room" value="room">
-                        <label class="btn btn-outline-secondary py-2 px-3" for="type-room" style="font-size: 0.85rem;">
-                            Room
-                        </label>
-
-                        <input type="radio" class="btn-check" name="new-tab-type" id="type-account" value="account">
-                        <label class="btn btn-outline-warning text-dark py-2 px-3 fw-bold border-warning" for="type-account" style="font-size: 0.85rem; background: #fffdf2;">
-                            <i class="fa-solid fa-crown text-warning me-1"></i> Account (VIP)
-                        </label>
-                    </div>
+                <div class="d-flex align-items-center gap-2">
+                    <span class="badge bg-primary fs-6 shadow-sm">
+                        <i class="fa-solid fa-folder-open me-1"></i>
+                        <span id="open-tabs-counter">{{ count($openTabs) }}</span> Open
+                    </span>
                 </div>
-                
+            </div>
+
+            <!-- Sticky Tab Switcher Strip -->
+            <div class="px-3 pt-2 pb-2 bg-light border-bottom flex-shrink-0">
+                <div class="d-flex gap-2 flex-wrap" id="tab-switcher"></div>
+            </div>
+
+            <!-- Scrollable Middle Body (Form & Cart Items) -->
+            <div class="card-body p-3 overflow-y-auto flex-grow-1" id="pos-tabs-scroll-body" style="min-height: 0;">
+                <div id="new-tab-form-container" class="card bg-light border-0 p-3 mb-3 rounded-4 d-none">
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold text-muted mb-2">
+                            Tab Type
+                        </label>
+
+                        <div class="btn-group w-100" role="group">
+                            <input type="radio" class="btn-check" name="new-tab-type" id="type-walkin" value="walk_in" checked>
+                            <label class="btn btn-outline-secondary py-2 px-3" for="type-walkin" style="font-size: 0.85rem;">
+                                Walk-in
+                            </label>
+
+                            <input type="radio" class="btn-check" name="new-tab-type" id="type-room" value="room">
+                            <label class="btn btn-outline-secondary py-2 px-3" for="type-room" style="font-size: 0.85rem;">
+                                Room
+                            </label>
+
+                            <input type="radio" class="btn-check" name="new-tab-type" id="type-account" value="account">
+                            <label class="btn btn-outline-warning text-dark py-2 px-3 fw-bold border-warning" for="type-account" style="font-size: 0.85rem; background: #fffdf2;">
+                                <i class="fa-solid fa-crown text-warning me-1"></i> Account (VIP)
+                            </label>
+                        </div>
+                    </div>
 
                     <!-- Walk-in input panel -->
                     <div id="new-tab-walkin-panel" class="mb-2">
@@ -185,105 +194,116 @@
                         </select>
                     </div>
 
-                    <button type="button" class="btn btn-primary w-100 py-2 fw-semibold" id="open-tab-btn">
+                    <button type="button" class="btn btn-primary w-100 py-2.5 fw-bold shadow-sm" id="open-tab-btn">
                         <i class="fa-solid fa-folder-open me-1"></i> Open Tab
                     </button>
                 </div>
 
                 <div id="active-tab-panel" class="d-none">
-                    <div class="d-flex justify-content-between align-items-center mb-2">
+                    <div class="d-flex justify-content-between align-items-center mb-3 pb-2 border-bottom">
                         <div>
-                            <strong id="active-tab-name"></strong>
+                            <h5 id="active-tab-name" class="fw-bold text-dark mb-1" style="font-size: 1.25rem;"></h5>
                             <div id="active-tab-badge" class="mt-1"></div>
                             <div id="active-tab-discount-badge" class="mt-1 d-none text-success small fw-bold"></div>
                         </div>
-                        <span class="badge bg-primary" id="active-tab-total">₱0.00</span>
+                        <span class="badge bg-primary px-3 py-2 fs-6 shadow-sm" id="active-tab-total">₱0.00</span>
                     </div>
-                
 
                     <!-- Alert message if there is a pending cancel request -->
                     <div id="active-tab-pending-alert" class="alert alert-warning py-2 px-3 small d-none my-2">
                         <i class="fa-solid fa-clock me-1"></i> Cancellation Pending Authorization
                     </div>
 
+                    <!-- Cart items list (scrolls inside body) -->
                     <div id="cart-items" class="small mb-3"></div>
-                    <div class="mt-3">
-                        <label class="fw-semibold text-muted mb-1">
-                            Item Notes
-                        </label>
 
+                    <div class="mt-3 mb-2">
+                        <label class="fw-semibold text-muted mb-1 small">
+                            <i class="fa-solid fa-note-sticky me-1"></i> Item Notes
+                        </label>
                         <textarea
                             id="item-notes"
-                            class="form-control"
+                            class="form-control form-control-sm"
                             rows="2"
                             placeholder="Less sugar, no ice, extra shot, etc.">
                         </textarea>
                     </div>
-                    <hr>
-                    <div class="d-flex justify-content-between mb-1">
-                        <span class="text-muted">Subtotal</span>
+                </div>
+
+                <div id="no-tab-message" class="text-muted text-center py-4">
+                    <i class="fa-solid fa-hand-pointer fa-2x mb-2 opacity-50"></i>
+                    <div>Select an existing customer tab or tap <strong>+ New Customer</strong> to open a new tab.</div>
+                </div>
+            </div>
+
+            <!-- Floating Sticky Footer Actions Bar (Fixed at bottom of Customer Tabs module) -->
+            <div id="pos-floating-footer" class="card-footer border-top bg-white p-3 shadow-lg flex-shrink-0" style="position: sticky; bottom: 0; z-index: 25; border-bottom-left-radius: 1rem; border-bottom-right-radius: 1rem;">
+                <div id="active-tab-footer-summary" class="d-none">
+                    <div class="d-flex justify-content-between small text-muted mb-1">
+                        <span>Subtotal</span>
                         <span id="cart-subtotal" class="text-muted">₱0.00</span>
                     </div>
-                    <div class="d-flex justify-content-between mb-2">
-                        <span class="text-success fw-semibold">Discount</span>
+                    <div class="d-flex justify-content-between small text-success fw-semibold mb-1">
+                        <span>Discount</span>
                         <span id="cart-discount" class="text-success fw-semibold">-₱0.00</span>
                     </div>
-                    <div class="d-flex justify-content-between fw-bold fs-5 mb-3 border-top pt-2">
-                        <span>Total</span>
-                        <span id="cart-total">₱0.00</span>
+                    <div class="d-flex justify-content-between fw-bold fs-5 mb-2 border-top pt-1">
+                        <span class="text-dark">Total</span>
+                        <span id="cart-total" class="text-primary">₱0.00</span>
                     </div>
 
-                    <!-- Checkout Actions Wrapper -->
-                    <div id="checkout-actions-container" class="mb-3 border-bottom pb-3">
+                    <!-- Primary Checkout Action Buttons -->
+                    <div id="checkout-actions-container" class="mb-2">
                         <!-- Walk-in actions -->
                         <div id="walkin-checkout-actions" class="d-none">
-                            <button type="button" class="btn btn-success w-100 mb-2 checkout-action-btn" id="pay-walkin-btn">
-                                <i class="fa-solid fa-cash-register me-1"></i> Pay / Close Tab
+                            <button type="button" class="btn btn-success btn-lg w-100 fw-bold shadow-sm checkout-action-btn" id="pay-walkin-btn">
+                                <i class="fa-solid fa-cash-register me-2"></i> Pay / Close Tab
                             </button>
                         </div>
 
                         <!-- Room charge actions -->
                         <div id="room-checkout-actions" class="d-none">
-                            <button type="button" class="btn btn-success w-100 mb-2 checkout-action-btn" id="charge-room-btn">
-                                <i class="fa-solid fa-user me-1"></i> Charge to Guest
+                            <button type="button" class="btn btn-success btn-lg w-100 mb-1.5 fw-bold shadow-sm checkout-action-btn" id="charge-room-btn">
+                                <i class="fa-solid fa-user me-2"></i> Charge to Guest
                             </button>
-                            <button type="button" class="btn btn-outline-success w-100 mb-2 checkout-action-btn" id="pay-direct-btn">
+                            <button type="button" class="btn btn-outline-success btn-sm w-100 checkout-action-btn" id="pay-direct-btn">
                                 <i class="fa-solid fa-cash-register me-1"></i> Pay Directly
                             </button>
                         </div>
 
                         <!-- Account charge actions -->
                         <div id="account-checkout-actions" class="d-none">
-                            <button type="button" class="btn btn-success w-100 mb-2 checkout-action-btn" id="charge-account-btn">
-                                <i class="fa-solid fa-file-invoice-dollar me-1"></i> Charge to Account
+                            <button type="button" class="btn btn-success btn-lg w-100 mb-1.5 fw-bold shadow-sm checkout-action-btn" id="charge-account-btn">
+                                <i class="fa-solid fa-file-invoice-dollar me-2"></i> Charge to Account
                             </button>
-                            <button type="button" class="btn btn-outline-success w-100 mb-2 checkout-action-btn" id="pay-direct-account-btn">
+                            <button type="button" class="btn btn-outline-success btn-sm w-100 checkout-action-btn" id="pay-direct-account-btn">
                                 <i class="fa-solid fa-cash-register me-1"></i> Pay Directly
                             </button>
                         </div>
                     </div>
 
-                    <!-- Management Actions -->
-                    <div class="row g-2 mb-2">
-                        <div class="col-6">
-                            <button type="button" class="btn btn-outline-secondary w-100 checkout-action-btn" id="transfer-tab-btn">
+                    <!-- Floating Quick Management Actions (Transfer, Discount, Cancel Tab) -->
+                    <div class="row g-1">
+                        <div class="col-4">
+                            <button type="button" class="btn btn-outline-secondary btn-sm w-100 py-1.5 checkout-action-btn" id="transfer-tab-btn" title="Transfer Tab">
                                 <i class="fa-solid fa-exchange-alt me-1"></i> Transfer
                             </button>
                         </div>
-                        <div class="col-6">
-                            <button type="button" class="btn btn-outline-info w-100 checkout-action-btn" id="discount-tab-btn">
+                        <div class="col-4">
+                            <button type="button" class="btn btn-outline-info btn-sm w-100 py-1.5 checkout-action-btn" id="discount-tab-btn" title="Discount Tab">
                                 <i class="fa-solid fa-tags me-1"></i> Discount
                             </button>
                         </div>
+                        <div class="col-4">
+                            <button type="button" class="btn btn-outline-danger btn-sm w-100 py-1.5 checkout-action-btn" id="cancel-tab-btn" title="Cancel Tab">
+                                <i class="fa-solid fa-ban me-1"></i> Cancel
+                            </button>
+                        </div>
                     </div>
-
-                    <button type="button" class="btn btn-outline-danger w-100 checkout-action-btn" id="cancel-tab-btn">
-                        <i class="fa-solid fa-ban me-1"></i> Cancel Tab
-                    </button>
                 </div>
 
-                <div id="no-tab-message" class="text-muted text-center py-4">
-                    Open a tab to start taking orders.
+                <div id="no-tab-footer-summary" class="text-center text-muted small py-1">
+                    <i class="fa-solid fa-circle-info me-1 text-primary"></i> Pick a tab or click <strong>+ New Customer</strong> above.
                 </div>
             </div>
         </div>
