@@ -71,7 +71,7 @@ class AdminSeeder extends Seeder
         );
 
         // 3. Create Admin user
-        User::updateOrCreate(
+        User::firstOrCreate(
             ['username' => 'admin'],
             [
                 'full_name' => 'SoftwareAdmin',
