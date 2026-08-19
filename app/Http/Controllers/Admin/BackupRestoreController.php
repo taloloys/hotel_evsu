@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Models\ActivityLog;
 use App\Services\BackupSettingsService;
+use App\Services\DatabaseDumpService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -242,64 +243,18 @@ class BackupRestoreController extends Controller
         $serverSqlFilePath = $backupDir.DIRECTORY_SEPARATOR.$sqlFilename;
         $serverZipFilePath = $backupDir.DIRECTORY_SEPARATOR.$zipFilename;
 
-        $connection = config('database.default');
-
-        if ($connection === 'sqlite') {
-            $dbPath = config('database.connections.sqlite.database');
-            if ($dbPath === ':memory:') {
-                file_put_contents($serverSqlFilePath, '-- sqlite memory backup');
-            } else {
-                if (! file_exists($dbPath) || ! @copy($dbPath, $serverSqlFilePath)) {
-                    if ($request->wantsJson()) {
-                        return response()->json([
-                            'success' => false,
-                            'error' => 'Backup failed: SQLite database file not found or not copyable.',
-                        ], 500);
-                    }
-
-                    return redirect()
-                        ->route('admin.backup-restore')
-                        ->with('error', 'Backup failed: SQLite database file not found or not copyable.');
-                }
+        if (! DatabaseDumpService::dump($serverSqlFilePath)) {
+            @unlink($serverSqlFilePath);
+            if ($request->wantsJson()) {
+                return response()->json([
+                    'success' => false,
+                    'error' => 'Backup failed: Unable to export database tables.',
+                ], 500);
             }
-        } else {
-            $host = config('database.connections.mysql.host');
-            $port = config('database.connections.mysql.port');
-            $database = config('database.connections.mysql.database');
-            $username = config('database.connections.mysql.username');
-            $password = config('database.connections.mysql.password');
 
-            $mysqldump = $this->resolveBinary('mysqldump');
-            $passwordArg = $password ? '-p'.escapeshellarg($password) : '';
-
-            $command = sprintf(
-                '%s --host=%s --port=%s --user=%s %s --single-transaction --routines --triggers --result-file=%s %s 2>&1',
-                escapeshellarg($mysqldump),
-                escapeshellarg($host),
-                escapeshellarg($port),
-                escapeshellarg($username),
-                $passwordArg,
-                escapeshellarg($serverSqlFilePath),
-                escapeshellarg($database)
-            );
-
-            exec($command, $output, $returnCode);
-
-            if ($returnCode !== 0) {
-                @unlink($serverSqlFilePath);
-                $errorDetail = implode(' ', $output);
-
-                if ($request->wantsJson()) {
-                    return response()->json([
-                        'success' => false,
-                        'error' => 'Backup failed: '.$errorDetail,
-                    ], 500);
-                }
-
-                return redirect()
-                    ->route('admin.backup-restore')
-                    ->with('error', 'Backup failed: '.$errorDetail);
-            }
+            return redirect()
+                ->route('admin.backup-restore')
+                ->with('error', 'Backup failed: Unable to export database tables.');
         }
 
         $zip = new ZipArchive;
@@ -403,49 +358,18 @@ class BackupRestoreController extends Controller
                 ->with('error', 'Restore aborted: Failed to create safety backup. Error: '.$e->getMessage());
         }
 
-        if ($connection === 'sqlite') {
-            $dbPath = config('database.connections.sqlite.database');
-            if ($dbPath !== ':memory:') {
-                @copy($filePath, $dbPath);
-            }
-        } else {
-            $host = config('database.connections.mysql.host');
-            $port = config('database.connections.mysql.port');
-            $database = config('database.connections.mysql.database');
-            $username = config('database.connections.mysql.username');
-            $password = config('database.connections.mysql.password');
-
-            $mysql = $this->resolveBinary('mysql');
-            $passwordArg = $password ? '-p'.escapeshellarg($password) : '';
-
-            $command = sprintf(
-                '%s --host=%s --port=%s --user=%s %s %s < %s 2>&1',
-                escapeshellarg($mysql),
-                escapeshellarg($host),
-                escapeshellarg($port),
-                escapeshellarg($username),
-                $passwordArg,
-                escapeshellarg($database),
-                escapeshellarg($filePath)
-            );
-
-            exec($command, $output, $returnCode);
-
+        if (! DatabaseDumpService::restore($filePath)) {
             if ($tempExtractPath) {
                 @unlink($tempExtractPath);
                 @rmdir(dirname($tempExtractPath));
             }
 
-            if ($returnCode !== 0) {
-                $errorDetail = implode(' ', $output);
-
-                return redirect()
-                    ->route('admin.backup-restore')
-                    ->with('error', 'Restore failed: '.$errorDetail);
-            }
+            return redirect()
+                ->route('admin.backup-restore')
+                ->with('error', 'Restore failed: Unable to import database tables.');
         }
 
-        if ($tempExtractPath && $connection === 'sqlite') {
+        if ($tempExtractPath) {
             @unlink($tempExtractPath);
             @rmdir(dirname($tempExtractPath));
         }
@@ -537,49 +461,18 @@ class BackupRestoreController extends Controller
                 ->with('error', 'Restore aborted: Failed to create safety backup. Error: '.$e->getMessage());
         }
 
-        if ($connection === 'sqlite') {
-            $dbPath = config('database.connections.sqlite.database');
-            if ($dbPath !== ':memory:') {
-                @copy($filePath, $dbPath);
-            }
-        } else {
-            $host = config('database.connections.mysql.host');
-            $port = config('database.connections.mysql.port');
-            $database = config('database.connections.mysql.database');
-            $username = config('database.connections.mysql.username');
-            $password = config('database.connections.mysql.password');
-
-            $mysql = $this->resolveBinary('mysql');
-            $passwordArg = $password ? '-p'.escapeshellarg($password) : '';
-
-            $command = sprintf(
-                '%s --host=%s --port=%s --user=%s %s %s < %s 2>&1',
-                escapeshellarg($mysql),
-                escapeshellarg($host),
-                escapeshellarg($port),
-                escapeshellarg($username),
-                $passwordArg,
-                escapeshellarg($database),
-                escapeshellarg($filePath)
-            );
-
-            exec($command, $output, $returnCode);
-
+        if (! DatabaseDumpService::restore($filePath)) {
             if ($tempExtractPath) {
                 @unlink($tempExtractPath);
                 @rmdir(dirname($tempExtractPath));
             }
 
-            if ($returnCode !== 0) {
-                $errorDetail = implode(' ', $output);
-
-                return redirect()
-                    ->route('admin.backup-restore')
-                    ->with('error', 'Restore failed: '.$errorDetail);
-            }
+            return redirect()
+                ->route('admin.backup-restore')
+                ->with('error', 'Restore failed: Unable to import database tables.');
         }
 
-        if ($tempExtractPath && $connection === 'sqlite') {
+        if ($tempExtractPath) {
             @unlink($tempExtractPath);
             @rmdir(dirname($tempExtractPath));
         }
@@ -713,44 +606,9 @@ class BackupRestoreController extends Controller
         $serverSqlFilePath = $backupDir.DIRECTORY_SEPARATOR.$sqlFilename;
         $serverZipFilePath = $backupDir.DIRECTORY_SEPARATOR.$zipFilename;
 
-        $connection = config('database.default');
-
-        if ($connection === 'sqlite') {
-            $dbPath = config('database.connections.sqlite.database');
-            if ($dbPath !== ':memory:') {
-                if (! file_exists($dbPath) || ! @copy($dbPath, $serverSqlFilePath)) {
-                    throw new \Exception('SQLite database file not found or not copyable.');
-                }
-            } else {
-                file_put_contents($serverSqlFilePath, '-- sqlite memory backup');
-            }
-        } else {
-            $host = config('database.connections.mysql.host');
-            $port = config('database.connections.mysql.port');
-            $database = config('database.connections.mysql.database');
-            $username = config('database.connections.mysql.username');
-            $password = config('database.connections.mysql.password');
-
-            $mysqldump = $this->resolveBinary('mysqldump');
-            $passwordArg = $password ? '-p'.escapeshellarg($password) : '';
-
-            $command = sprintf(
-                '%s --host=%s --port=%s --user=%s %s --single-transaction --routines --triggers --result-file=%s %s 2>&1',
-                escapeshellarg($mysqldump),
-                escapeshellarg($host),
-                escapeshellarg($port),
-                escapeshellarg($username),
-                $passwordArg,
-                escapeshellarg($serverSqlFilePath),
-                escapeshellarg($database)
-            );
-
-            exec($command, $output, $returnCode);
-
-            if ($returnCode !== 0) {
-                @unlink($serverSqlFilePath);
-                throw new \Exception(implode(' ', $output));
-            }
+        if (! DatabaseDumpService::dump($serverSqlFilePath)) {
+            @unlink($serverSqlFilePath);
+            throw new \Exception('Failed to generate database dump for safety backup.');
         }
 
         $zip = new ZipArchive;
