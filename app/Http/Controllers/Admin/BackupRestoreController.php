@@ -233,7 +233,7 @@ class BackupRestoreController extends Controller
     public function backup(Request $request): BinaryFileResponse|RedirectResponse|JsonResponse
     {
         $now = now();
-        $sqlFilename = $now->format('Y-m-d_H-i-s').'_temp.sql';
+        $sqlFilename = $now->format('F j Y g-i A').'.sql';
         $zipFilename = $now->format('F j Y g-i A').'.zip';
 
         $backupDir = BackupSettingsService::get()['folder'] ?? storage_path('backups');
