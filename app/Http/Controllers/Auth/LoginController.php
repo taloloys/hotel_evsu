@@ -291,7 +291,7 @@ class LoginController extends Controller
     private function dashboardRouteForRole(?string $role): string
     {
         return match ($role) {
-            'ADMIN' => route('admin.dashboard'),
+            'SUPER_ADMIN', 'ADMIN' => route('admin.dashboard'),
             'FRONT_DESK' => route('frontdesk.dashboard'),
             'ACCOUNTING' => route('accounting.dashboard'),
             'CAFETERIA' => route('coffeeshop.dashboard'),

@@ -84,7 +84,7 @@ class User extends Authenticatable
             return false;
         }
 
-        if ($this->role->is_system_admin || $this->role->role_name === 'ADMIN') {
+        if ($this->isSuperAdmin()) {
             return true;
         }
 
@@ -134,12 +134,12 @@ class User extends Authenticatable
 
     public function isSuperAdmin(): bool
     {
-        return (bool) ($this->role?->is_system_admin || $this->role?->role_name === 'ADMIN');
+        return (bool) ($this->role?->role_name === 'SUPER_ADMIN' || ($this->role?->is_system_admin && $this->role?->role_name !== 'ADMIN'));
     }
 
     public function isAdmin(): bool
     {
-        return $this->isSuperAdmin() || $this->hasPermission('manage-users');
+        return $this->isSuperAdmin() || $this->role?->role_name === 'ADMIN' || $this->hasPermission('manage-users');
     }
 
     /**

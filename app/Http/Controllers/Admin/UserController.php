@@ -19,8 +19,24 @@ class UserController extends Controller
      */
     public function index(): View
     {
-        $users = User::with(['role', 'permissions'])->get();
-        $roles = Role::where('is_active', true)->get();
+        /** @var User $currentUser */
+        $currentUser = auth()->user();
+
+        $usersQuery = User::with(['role', 'permissions']);
+        if (! $currentUser?->isSuperAdmin()) {
+            $usersQuery->whereHas('role', function ($q) {
+                $q->where('role_name', '!=', 'SUPER_ADMIN')
+                    ->where('is_system_admin', false);
+            });
+        }
+        $users = $usersQuery->get();
+
+        $rolesQuery = Role::where('is_active', true);
+        if (! $currentUser?->isSuperAdmin()) {
+            $rolesQuery->whereNotIn('role_name', ['SUPER_ADMIN', 'ADMIN']);
+        }
+        $roles = $rolesQuery->get();
+
         $permissions = Permission::where('is_active', true)
             ->orderBy('module')
             ->orderBy('permission_key')
@@ -38,6 +54,9 @@ class UserController extends Controller
      */
     public function store(Request $request): RedirectResponse
     {
+        /** @var User $currentUser */
+        $currentUser = auth()->user();
+
         $validated = $request->validate([
             'full_name' => ['required', 'string', 'max:100'],
             'username' => ['required', 'string', 'max:50', 'unique:users,username'],
@@ -47,6 +66,13 @@ class UserController extends Controller
             'permissions' => ['nullable', 'array'],
             'permissions.*' => ['integer', 'exists:permissions,permission_id'],
         ]);
+
+        $targetRole = Role::find($validated['role_id']);
+        if ($targetRole && in_array($targetRole->role_name, ['SUPER_ADMIN', 'ADMIN'], true) && ! $currentUser?->isSuperAdmin()) {
+            return redirect()
+                ->route('admin.users')
+                ->withErrors(['role_id' => 'Only Super Administrators can create or assign Admin accounts.']);
+        }
 
         $user = User::create([
             'username' => $validated['username'],
@@ -74,10 +100,19 @@ class UserController extends Controller
      */
     public function toggleStatus(User $user): RedirectResponse
     {
-        if (auth()->id() === $user->user_id) {
+        /** @var User $currentUser */
+        $currentUser = auth()->user();
+
+        if ($currentUser->user_id === $user->user_id) {
             return redirect()
                 ->route('admin.users')
                 ->withErrors(['cannot_disable_self' => 'You cannot disable your own administrator account.']);
+        }
+
+        if ($user->isSuperAdmin() && ! $currentUser->isSuperAdmin()) {
+            return redirect()
+                ->route('admin.users')
+                ->withErrors(['unauthorized' => 'You do not have permission to modify Super Administrator accounts.']);
         }
 
         $user->update([
@@ -101,6 +136,15 @@ class UserController extends Controller
      */
     public function update(Request $request, User $user): RedirectResponse
     {
+        /** @var User $currentUser */
+        $currentUser = auth()->user();
+
+        if ($user->isSuperAdmin() && ! $currentUser->isSuperAdmin()) {
+            return redirect()
+                ->route('admin.users')
+                ->withErrors(['unauthorized' => 'You do not have permission to modify Super Administrator accounts.']);
+        }
+
         $validated = $request->validate([
             'full_name' => ['required', 'string', 'max:100'],
             'username' => ['required', 'string', 'max:50', 'unique:users,username,'.$user->user_id.',user_id'],
@@ -110,6 +154,13 @@ class UserController extends Controller
             'permissions' => ['nullable', 'array'],
             'permissions.*' => ['integer', 'exists:permissions,permission_id'],
         ]);
+
+        $targetRole = Role::find($validated['role_id']);
+        if ($targetRole && in_array($targetRole->role_name, ['SUPER_ADMIN', 'ADMIN'], true) && ! $currentUser?->isSuperAdmin() && $user->role_id !== (int) $validated['role_id']) {
+            return redirect()
+                ->route('admin.users')
+                ->withErrors(['role_id' => 'Only Super Administrators can assign Admin roles.']);
+        }
 
         $updateData = [
             'full_name' => $validated['full_name'],

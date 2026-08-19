@@ -154,7 +154,7 @@
                         </li>
 
                         <li>
-                            <a class="dropdown-item" href="#">
+                            <a class="dropdown-item" href="{{ route('profile.show') }}">
                                 <i class="fa-solid fa-user me-2"></i>
                                 My Profile
                             </a>
