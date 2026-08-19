@@ -62,6 +62,8 @@ Route::middleware('auth')->group(function () {
         ->name('profile.show');
     Route::put('/profile', [ProfileController::class, 'update'])
         ->name('profile.update');
+    Route::put('/profile/password', [ProfileController::class, 'updatePassword'])
+        ->name('profile.password.update');
 
     Route::get('/api/layout-data', [LayoutDataController::class, 'getLayoutData'])
         ->name('api.layout-data');
@@ -364,8 +366,11 @@ Route::middleware('auth')->group(function () {
             Route::patch('/users/{user}/toggle', [UserController::class, 'toggleStatus'])
                 ->name('admin.users.toggle');
 
-            Route::patch('/users/{user}', [UserController::class, 'update'])
+            Route::match(['put', 'patch'], '/users/{user}', [UserController::class, 'update'])
                 ->name('admin.users.update');
+
+            Route::post('/users/{user}/reset-password', [UserController::class, 'resetPassword'])
+                ->name('admin.users.reset-password');
         });
 
         // ROLES & PERMISSIONS

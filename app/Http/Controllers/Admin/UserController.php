@@ -187,4 +187,36 @@ class UserController extends Controller
             ->route('admin.users')
             ->with('success', 'User updated successfully.');
     }
+
+    /**
+     * Reset the password for a specified user.
+     */
+    public function resetPassword(Request $request, User $user): RedirectResponse
+    {
+        /** @var User $currentUser */
+        $currentUser = auth()->user();
+
+        if ($user->isSuperAdmin() && ! $currentUser->isSuperAdmin()) {
+            return redirect()
+                ->route('admin.users')
+                ->withErrors(['unauthorized' => 'You do not have permission to reset Super Administrator passwords.']);
+        }
+
+        $validated = $request->validate([
+            'password' => ['required', 'string', 'min:6', 'confirmed'],
+        ]);
+
+        $user->update([
+            'password_hash' => Hash::make($validated['password']),
+        ]);
+
+        ActivityLog::log(
+            'USER_PASSWORD_RESET',
+            "Reset password for user account {$user->full_name} (username: {$user->username})."
+        );
+
+        return redirect()
+            ->route('admin.users')
+            ->with('success', "Password for user {$user->username} has been reset successfully.");
+    }
 }

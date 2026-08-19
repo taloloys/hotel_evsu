@@ -6,6 +6,7 @@ use App\Models\ActivityLog;
 use App\Models\User;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Hash;
 use Illuminate\View\View;
 
 class ProfileController extends Controller
@@ -46,5 +47,38 @@ class ProfileController extends Controller
         return redirect()
             ->route('profile.show')
             ->with('success', 'Profile information updated successfully.');
+    }
+
+    /**
+     * Update the user's password.
+     */
+    public function updatePassword(Request $request): RedirectResponse
+    {
+        /** @var User $user */
+        $user = auth()->user();
+
+        $validated = $request->validate([
+            'current_password' => ['required', 'string'],
+            'password' => ['required', 'string', 'min:6', 'confirmed'],
+        ]);
+
+        if (! Hash::check($validated['current_password'], $user->password_hash)) {
+            return redirect()
+                ->route('profile.show')
+                ->withErrors(['current_password' => 'The provided current password does not match our records.']);
+        }
+
+        $user->update([
+            'password_hash' => Hash::make($validated['password']),
+        ]);
+
+        ActivityLog::log(
+            'PASSWORD_CHANGED',
+            "User {$user->username} updated their account password."
+        );
+
+        return redirect()
+            ->route('profile.show')
+            ->with('success', 'Password updated successfully.');
     }
 }

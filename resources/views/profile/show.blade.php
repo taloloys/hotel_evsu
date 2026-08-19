@@ -81,5 +81,64 @@
         </div>
     </div>
 
+    <!-- CHANGE PASSWORD CARD -->
+    <div class="row justify-content-center mt-4">
+        <div class="col-lg-8">
+            <div class="card content-card p-4">
+                <div class="card-body">
+                    <h5 class="fw-bold text-dark mb-3 border-bottom pb-2">
+                        <i class="fa-solid fa-lock me-2 text-warning"></i>Change Password
+                    </h5>
+
+                    <form action="{{ route('profile.password.update') }}" method="POST">
+                        @csrf
+                        @method('PUT')
+
+                        <div class="mb-3">
+                            <label for="current_password" class="form-label fw-semibold text-dark">Current Password <span class="text-danger">*</span></label>
+                            <input type="password"
+                                   id="current_password"
+                                   name="current_password"
+                                   class="form-control @error('current_password') is-invalid @enderror"
+                                   required>
+                            @error('current_password')
+                                <div class="invalid-feedback">{{ $message }}</div>
+                            @enderror
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="password" class="form-label fw-semibold text-dark">New Password <span class="text-danger">*</span></label>
+                            <input type="password"
+                                   id="password"
+                                   name="password"
+                                   class="form-control @error('password') is-invalid @enderror"
+                                   placeholder="Minimum 6 characters"
+                                   required>
+                            @error('password')
+                                <div class="invalid-feedback">{{ $message }}</div>
+                            @enderror
+                        </div>
+
+                        <div class="mb-4">
+                            <label for="password_confirmation" class="form-label fw-semibold text-dark">Confirm New Password <span class="text-danger">*</span></label>
+                            <input type="password"
+                                   id="password_confirmation"
+                                   name="password_confirmation"
+                                   class="form-control"
+                                   placeholder="Re-enter new password"
+                                   required>
+                        </div>
+
+                        <div class="d-flex align-items-center justify-content-end gap-2">
+                            <button type="submit" class="btn btn-warning text-white px-4">
+                                <i class="fa-solid fa-key me-2"></i>Update Password
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
 </div>
 @endsection
