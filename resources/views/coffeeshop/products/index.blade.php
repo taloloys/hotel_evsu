@@ -79,53 +79,53 @@
         <div class="card border-0 shadow-sm rounded-4 overflow-hidden">
             <div class="table-responsive">
                 <table class="table mb-0 align-middle coffeeshop-table">
-                    <thead style="background-color: #f9fafb; border-bottom: 1px solid #e5e7eb;">
+                    <thead style="background-color: #f8f3ed; border-bottom: 1px solid #e5e7eb;">
                         <tr>
-                            <th style="font-family: 'Plus Jakarta Sans', 'Inter', system-ui, -apple-system, sans-serif; color: #111827; font-size: 0.95rem; font-weight: 700; padding: 1rem 1rem;">Product</th>
-                            <th style="font-family: 'Plus Jakarta Sans', 'Inter', system-ui, -apple-system, sans-serif; color: #111827; font-size: 0.95rem; font-weight: 700; padding: 1rem 1rem;">Category</th>
-                            <th style="font-family: 'Plus Jakarta Sans', 'Inter', system-ui, -apple-system, sans-serif; color: #111827; font-size: 0.95rem; font-weight: 700; padding: 1rem 1rem;">Description</th>
-                            <th style="font-family: 'Plus Jakarta Sans', 'Inter', system-ui, -apple-system, sans-serif; color: #111827; font-size: 0.95rem; font-weight: 700; padding: 1rem 1rem;">Price</th>
-                            <th style="font-family: 'Plus Jakarta Sans', 'Inter', system-ui, -apple-system, sans-serif; color: #111827; font-size: 0.95rem; font-weight: 700; padding: 1rem 1rem;">Stock</th>
-                            <th style="font-family: 'Plus Jakarta Sans', 'Inter', system-ui, -apple-system, sans-serif; color: #111827; font-size: 0.95rem; font-weight: 700; padding: 1rem 1rem;">Status</th>
+                            <th style="font-family: 'Plus Jakarta Sans', 'Inter', 'Segoe UI', sans-serif; color: #2c241d; font-size: 0.90rem; font-weight: 700; letter-spacing: 0.5px; text-transform: uppercase; padding: 1rem 1rem;">Product</th>
+                            <th style="font-family: 'Plus Jakarta Sans', 'Inter', 'Segoe UI', sans-serif; color: #2c241d; font-size: 0.90rem; font-weight: 700; letter-spacing: 0.5px; text-transform: uppercase; padding: 1rem 1rem;">Category</th>
+                            <th style="font-family: 'Plus Jakarta Sans', 'Inter', 'Segoe UI', sans-serif; color: #2c241d; font-size: 0.90rem; font-weight: 700; letter-spacing: 0.5px; text-transform: uppercase; padding: 1rem 1rem;">Description</th>
+                            <th style="font-family: 'Plus Jakarta Sans', 'Inter', 'Segoe UI', sans-serif; color: #2c241d; font-size: 0.90rem; font-weight: 700; letter-spacing: 0.5px; text-transform: uppercase; padding: 1rem 1rem;">Price</th>
+                            <th style="font-family: 'Plus Jakarta Sans', 'Inter', 'Segoe UI', sans-serif; color: #2c241d; font-size: 0.90rem; font-weight: 700; letter-spacing: 0.5px; text-transform: uppercase; padding: 1rem 1rem;">Stock</th>
+                            <th style="font-family: 'Plus Jakarta Sans', 'Inter', 'Segoe UI', sans-serif; color: #2c241d; font-size: 0.90rem; font-weight: 700; letter-spacing: 0.5px; text-transform: uppercase; padding: 1rem 1rem;">Status</th>
                             <th></th>
                         </tr>
                     </thead>
-                    <tbody style="font-family: 'Plus Jakarta Sans', 'Inter', system-ui, -apple-system, sans-serif;">
+                    <tbody style="font-family: 'Plus Jakarta Sans', 'Inter', 'Segoe UI', sans-serif;">
                     @forelse($products as $product)
-                        <tr style="border-bottom: 1px solid #f3f4f6;">
-                            <td style="padding: 1.1rem 1rem;">
-                                <div class="fw-bold" style="color: #111827; font-size: 1.05rem; line-height: 1.3;">{{ $product->name }}</div>
+                        <tr style="border-bottom: 1px solid #f0f0f0;">
+                            <td style="padding: 1.05rem 1rem;">
+                                <div style="color: #2c241d; font-weight: 600; font-size: 1.08rem;">{{ $product->name }}</div>
                                 @if($product->isManualTracked())
                                     <div class="mt-1">
                                         @if($product->isLowStock())
-                                            <span class="badge rounded-pill bg-danger-subtle text-danger fw-semibold" style="font-size: 0.78rem; padding: 0.25rem 0.65rem;">Low Stock</span>
+                                            <span class="coffeeshop-pill bg-danger-subtle text-danger fw-semibold" style="font-size: 0.82rem;">Low Stock</span>
                                         @elseif($product->isSemiLow())
-                                            <span class="badge rounded-pill bg-warning-subtle text-warning fw-semibold" style="font-size: 0.78rem; padding: 0.25rem 0.65rem;">Semi Low</span>
+                                            <span class="coffeeshop-pill bg-warning-subtle text-warning fw-semibold" style="font-size: 0.82rem;">Semi Low</span>
                                         @elseif($product->stock_quantity >= 100)
-                                            <span class="badge rounded-pill fw-semibold" style="background-color: #627e71; color: #ffffff; font-size: 0.78rem; padding: 0.25rem 0.65rem;">Over Stocked</span>
+                                            <span class="coffeeshop-pill fw-semibold" style="background-color: #627e71; color: #ffffff; font-size: 0.82rem;">Over Stocked</span>
                                         @endif
                                     </div>
                                 @endif
                             </td>
-                            <td style="padding: 1.1rem 1rem;"><span class="fw-bold" style="color: #111827; font-size: 1.02rem;">{{ $product->category?->name }}</span></td>
-                            <td style="padding: 1.1rem 1rem;"><span style="color: #4b5563; font-size: 0.98rem;">{{ Str::limit($product->description, 50) }}</span></td>
-                            <td style="padding: 1.1rem 1rem;"><span class="fw-bold" style="color: #111827; font-size: 1.08rem;">₱{{ number_format($product->price, 2) }}</span></td>
-                            <td style="padding: 1.1rem 1rem;">
+                            <td style="padding: 1.05rem 1rem;"><span style="color: #382e25; font-weight: 500; font-size: 1.02rem;">{{ $product->category?->name }}</span></td>
+                            <td style="padding: 1.05rem 1rem;"><span style="color: #554d46; font-size: 0.98rem;">{{ Str::limit($product->description, 50) }}</span></td>
+                            <td style="padding: 1.05rem 1rem;"><span style="color: #2c241d; font-weight: 600; font-size: 1.10rem;">₱{{ number_format($product->price, 2) }}</span></td>
+                            <td style="padding: 1.05rem 1rem;">
                                 @if($product->isNoTracking())
-                                    <span class="fst-italic text-muted" style="font-size: 0.95rem;">None</span>
+                                    <span class="fst-italic opacity-75" style="color: #554d46; font-size: 0.98rem;">None</span>
                                 @else
-                                    <span class="fw-bold" style="color: #111827; font-size: 1.05rem;">{{ $product->stock_quantity }}</span>
+                                    <span style="color: #2c241d; font-weight: 600; font-size: 1.04rem;">{{ $product->stock_quantity }}</span>
                                 @endif
                             </td>
-                            <td style="padding: 1.1rem 1rem;"><span class="badge rounded-pill {{ $product->is_active ? 'bg-success-subtle text-success' : 'bg-secondary-subtle text-secondary' }} fw-semibold" style="font-size: 0.85rem; padding: 0.3rem 0.75rem;">{{ $product->is_active ? 'Active' : 'Inactive' }}</span></td>
-                            <td class="text-end" style="padding: 1.1rem 1rem;">
-                                <a href="{{ route('coffeeshop.products.edit', $product) }}" class="btn rounded-pill px-3 fw-semibold" style="border: 1px solid #827567; color: #504538; font-size: 0.92rem; padding: 0.35rem 0.95rem;">Edit</a>
+                            <td style="padding: 1.05rem 1rem;"><span class="coffeeshop-pill fw-semibold {{ $product->is_active ? 'bg-success-subtle text-success' : 'bg-secondary-subtle text-secondary' }}" style="font-size: 0.88rem; padding: 0.28rem 0.8rem;">{{ $product->is_active ? 'Active' : 'Inactive' }}</span></td>
+                            <td class="text-end" style="padding: 1.05rem 1rem;">
+                                <a href="{{ route('coffeeshop.products.edit', $product) }}" class="btn rounded-pill px-3 fw-semibold" style="border: 1px solid #827567; color: #2c241d; font-size: 0.90rem; padding: 0.3rem 0.9rem;">Edit</a>
                                 <form action="{{ route('coffeeshop.products.toggle-active', $product) }}" method="POST" class="d-inline">
                                     @csrf
                                     @if($product->is_active)
-                                        <button type="button" class="btn btn-outline-danger rounded-pill px-3 fw-semibold" style="font-size: 0.92rem; padding: 0.35rem 0.95rem;" onclick="swalConfirmToggleProduct(this, false, '{{ addslashes($product->name) }}')">Deactivate</button>
+                                        <button type="button" class="btn btn-outline-danger rounded-pill px-3 fw-semibold" style="font-size: 0.90rem; padding: 0.3rem 0.9rem;" onclick="swalConfirmToggleProduct(this, false, '{{ addslashes($product->name) }}')">Deactivate</button>
                                     @else
-                                        <button type="button" class="btn btn-outline-success rounded-pill px-3 fw-semibold" style="font-size: 0.92rem; padding: 0.35rem 0.95rem;" onclick="swalConfirmToggleProduct(this, true, '{{ addslashes($product->name) }}')">Activate</button>
+                                        <button type="button" class="btn btn-outline-success rounded-pill px-3 fw-semibold" style="font-size: 0.90rem; padding: 0.3rem 0.9rem;" onclick="swalConfirmToggleProduct(this, true, '{{ addslashes($product->name) }}')">Activate</button>
                                     @endif
                                 </form>
                             </td>

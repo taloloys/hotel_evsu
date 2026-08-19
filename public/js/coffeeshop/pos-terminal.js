@@ -133,8 +133,25 @@
         return tabs.find(tab => tab.tab_id === activeTabId) || null;
     }
 
+    function updateTabTypeStyles() {
+        document.querySelectorAll('input[name="new-tab-type"]').forEach(radio => {
+            const label = document.querySelector(`label[for="${radio.id}"]`);
+            if (!label) return;
+            if (radio.checked) {
+                label.style.backgroundColor = '#334c42';
+                label.style.borderColor = '#334c42';
+                label.style.color = '#ffffff';
+            } else {
+                label.style.backgroundColor = 'transparent';
+                label.style.borderColor = '#c2a889';
+                label.style.color = '#827567';
+            }
+        });
+    }
+
     document.querySelectorAll('input[name="new-tab-type"]').forEach(radio => {
         radio.addEventListener('change', (e) => {
+            updateTabTypeStyles();
             const val = e.target.value;
             walkinPanel.classList.add('d-none');
             roomPanel.classList.add('d-none');
@@ -742,18 +759,40 @@
         }
     }
 
-    document.querySelectorAll('.category-btn').forEach(btn => {
-        btn.addEventListener('click', () => {
-            document.querySelectorAll('.category-btn').forEach(b => {
-                b.classList.remove('btn-dark');
-                b.classList.add('btn-outline-secondary');
-            });
-            btn.classList.remove('btn-outline-secondary');
-            btn.classList.add('btn-dark');
-            activeCategory = btn.dataset.category;
-            loadProducts();
+    const categoryFiltersContainer = document.getElementById('category-filters');
+    const updateCategoryButtonsStyle = (selectedBtn) => {
+        document.querySelectorAll('.category-btn').forEach(b => {
+            b.classList.remove('active');
+            b.style.backgroundColor = 'transparent';
+            b.style.borderColor = '#c2a889';
+            b.style.color = '#827567';
         });
-    });
+        if (selectedBtn) {
+            selectedBtn.classList.add('active');
+            selectedBtn.style.backgroundColor = '#334c42';
+            selectedBtn.style.borderColor = '#334c42';
+            selectedBtn.style.color = '#ffffff';
+        }
+    };
+
+    if (categoryFiltersContainer) {
+        categoryFiltersContainer.addEventListener('click', (e) => {
+            const btn = e.target.closest('.category-btn');
+            if (btn) {
+                updateCategoryButtonsStyle(btn);
+                activeCategory = btn.dataset.category || 'all';
+                loadProducts();
+            }
+        });
+    } else {
+        document.querySelectorAll('.category-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                updateCategoryButtonsStyle(btn);
+                activeCategory = btn.dataset.category || 'all';
+                loadProducts();
+            });
+        });
+    }
 
     searchInput.addEventListener('input', () => {
         clearTimeout(searchTimer);

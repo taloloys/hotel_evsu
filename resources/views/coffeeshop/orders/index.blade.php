@@ -11,15 +11,15 @@
     <div class="coffeeshop-hero">
         <div class="d-flex flex-column flex-lg-row justify-content-between gap-3 align-items-lg-center">
             <div>
-                <div class="fw-bold fs-5">Orders overview</div>
-                <div class="opacity-75 mt-1">Review every completed or adjusted purchase and keep transaction history easy to follow.</div>
+                <div class="fw-bold fs-4" style="font-family: 'Franklin Gothic Medium', 'Franklin Gothic', sans-serif;">Orders Overview</div>
+                <div class="opacity-75 mt-1" style="font-size: 0.95rem;">Review every completed or adjusted purchase and keep transaction history easy to follow.</div>
             </div>
         </div>
     </div>
 
     <div class="coffeeshop-panel overflow-hidden mb-3">
         <div class="p-3 p-lg-4 border-bottom bg-white">
-            <ul class="nav nav-pills nav-fill gap-2 fw-semibold coffeeshop-nav-pills" id="ordersNav">
+            <ul class="nav nav-pills nav-fill gap-2 fw-semibold coffeeshop-nav-pills" id="ordersNav" style="font-family: 'Franklin Gothic Medium', 'Franklin Gothic', sans-serif;">
 
             @foreach([
                 'all' => 'All Orders',
@@ -47,10 +47,10 @@
     <div class="p-3 p-lg-4">
         <div class="d-flex justify-content-end mb-3">
             <form method="GET">
-                <div style="width: 320px;">
-                    <div class="input-group coffeeshop-form-control" style="border: 1px solid black; border-radius: 6px; height: 45px;">
-                        <span class="input-group-text bg-white border-0 px-3"><i class="fa-solid fa-magnifying-glass text-muted fs-5"></i></span>
-                        <input type="text" name="search" value="{{ request('search') }}" class="form-control border-0 shadow-none py-2" placeholder="Search orders..." autocomplete="off" style="font-size: 1.05rem;" onkeydown="if(event.key==='Enter'){ event.preventDefault(); if(this.form.requestSubmit){ this.form.requestSubmit(); }else{ this.form.submit(); } }">
+                <div style="width: 360px;">
+                    <div class="input-group coffeeshop-form-control" style="border: 1px solid #827567; border-radius: 0.5rem; overflow: hidden; height: 45px;">
+                        <span class="input-group-text bg-white border-0 px-3"><i class="fa-solid fa-magnifying-glass" style="color: #627e71;"></i></span>
+                        <input type="text" name="search" value="{{ request('search') }}" class="form-control border-0 shadow-none py-2" placeholder="Search orders..." autocomplete="off" style="font-size: 1rem; font-family: 'Lucida Fax', 'Georgia', serif;" onkeydown="if(event.key==='Enter'){ event.preventDefault(); if(this.form.requestSubmit){ this.form.requestSubmit(); }else{ this.form.submit(); } }">
                     </div>
                 </div>
             </form>
@@ -64,61 +64,72 @@
 
             <table class="table table-hover align-middle mb-0 coffeeshop-table">
 
-                <thead style="background: #f8f3ed; color: #827567; font-family: 'Franklin Gothic Medium', 'Franklin Gothic', sans-serif;">
+                <thead style="background-color: #f8f3ed; border-bottom: 1px solid #e5e7eb; font-family: 'Plus Jakarta Sans', 'Inter', 'Segoe UI', sans-serif;">
                     <tr>
-                        <th style="color: #827567;">Order</th>
-                        <th style="color: #827567;">Customer</th>
-                        <th style="color: #827567;">Room</th>
-                        <th style="color: #827567;">Payment</th>
-                        <th style="color: #827567;">Total</th>
-                        <th style="color: #827567;">Status</th>
+                        <th style="color: #2c241d; font-size: 0.90rem; font-weight: 700; letter-spacing: 0.5px; text-transform: uppercase; padding: 1rem 1rem;">ORDER</th>
+                        <th style="color: #2c241d; font-size: 0.90rem; font-weight: 700; letter-spacing: 0.5px; text-transform: uppercase; padding: 1rem 1rem;">CUSTOMER</th>
+                        <th style="color: #2c241d; font-size: 0.90rem; font-weight: 700; letter-spacing: 0.5px; text-transform: uppercase; padding: 1rem 1rem;">ROOM</th>
+                        <th style="color: #2c241d; font-size: 0.90rem; font-weight: 700; letter-spacing: 0.5px; text-transform: uppercase; padding: 1rem 1rem;">PAYMENT</th>
+                        <th style="color: #2c241d; font-size: 0.90rem; font-weight: 700; letter-spacing: 0.5px; text-transform: uppercase; padding: 1rem 1rem;">TOTAL</th>
+                        <th style="color: #2c241d; font-size: 0.90rem; font-weight: 700; letter-spacing: 0.5px; text-transform: uppercase; padding: 1rem 1rem;">STATUS</th>
                         <th></th>
                     </tr>
                 </thead>
 
-                <tbody style="font-family: 'Lucida Fax', 'Georgia', serif;">
+                <tbody style="font-family: 'Plus Jakarta Sans', 'Inter', 'Segoe UI', sans-serif;">
 
                 @forelse($orders as $order)
 
-                    <tr>
-                        <td class="fw-semibold" style="color: #504538;">{{ $order->order_number }}</td>
-                        <td style="color: #212529;">{{ $order->customer_name }}</td>
-                        <td style="color: #212529;">{{ $order->room_number ?? '—' }}</td>
-                        <td>
+                    <tr style="border-bottom: 1px solid #f0f0f0;">
+                        <td style="padding: 1.05rem 1rem; color: #2c241d; font-weight: 600; font-size: 1.05rem; font-family: 'Plus Jakarta Sans', 'Inter', 'Segoe UI', sans-serif;">{{ $order->order_number }}</td>
+                        <td style="padding: 1.05rem 1rem; color: #2c241d; font-weight: 600; font-size: 1.05rem; font-family: 'Plus Jakarta Sans', 'Inter', 'Segoe UI', sans-serif;">{{ $order->customer_name }}</td>
+                        <td style="padding: 1.05rem 1rem; color: #554d46; font-size: 0.98rem; font-family: 'Plus Jakarta Sans', 'Inter', 'Segoe UI', sans-serif;">{{ $order->room_number ?? '—' }}</td>
+                        <td style="padding: 1.05rem 1rem;">
                             @if($order->payment_method)
                                 @php
-                                    $paymentBadge = match($order->payment_method) {
-                                        'room_charge' => 'bg-info',
-                                        'account_charge' => 'bg-primary',
-                                        'gcash' => 'bg-success',
-                                        'card' => 'bg-warning text-dark',
-                                        default => 'bg-secondary'
-                                    };
+                                    $paymentMethod = strtolower($order->payment_method);
                                 @endphp
-                                <span class="badge {{ $paymentBadge }} text-white">
-                                    {{ str_replace('_', ' ', strtoupper($order->payment_method)) }}
-                                </span>
+                                @if(in_array($paymentMethod, ['room_charge', 'account_charge']))
+                                    <span class="badge px-2.5 py-1 rounded-pill fw-semibold" style="background-color: #627e71; color: #ffffff; font-size: 0.78rem; font-family: 'Plus Jakarta Sans', 'Inter', 'Segoe UI', sans-serif;">
+                                        @if($paymentMethod === 'account_charge')
+                                            <i class="fa-solid fa-crown me-1" style="color: #c2a889;"></i>
+                                        @endif
+                                        {{ str_replace('_', ' ', strtoupper($order->payment_method)) }}
+                                    </span>
+                                @else
+                                    <span class="badge px-2.5 py-1 rounded-pill fw-semibold" style="border: 1px solid #c2a889; color: #382e25; background: transparent; font-size: 0.78rem; font-family: 'Plus Jakarta Sans', 'Inter', 'Segoe UI', sans-serif;">
+                                        {{ str_replace('_', ' ', strtoupper($order->payment_method)) }}
+                                    </span>
+                                @endif
                             @else
-                                —
+                                <span style="color: #554d46; font-size: 0.92rem; font-family: 'Plus Jakarta Sans', 'Inter', 'Segoe UI', sans-serif;">—</span>
                             @endif
                         </td>
-                        <td class="fw-bold" style="color: #334c42;">₱{{ number_format($order->total, 2) }}</td>
-                        <td>
-                            <span class="badge bg-secondary">{{ strtoupper($order->status) }}</span>
+                        <td style="padding: 1.05rem 1rem; color: #2c241d; font-weight: 600; font-size: 1.08rem; font-family: 'Plus Jakarta Sans', 'Inter', 'Segoe UI', sans-serif;">₱{{ number_format($order->total, 2) }}</td>
+                        <td style="padding: 1.05rem 1rem;">
+                            @php
+                                $statusBadgeClass = match(strtolower($order->status)) {
+                                    'closed', 'paid', 'completed' => 'bg-success-subtle text-success',
+                                    'cancelled' => 'bg-danger-subtle text-danger',
+                                    'refunded' => 'bg-info-subtle text-info',
+                                    default => 'bg-secondary-subtle text-secondary'
+                                };
+                            @endphp
+                            <span class="coffeeshop-pill fw-semibold {{ $statusBadgeClass }}" style="font-size: 0.88rem; padding: 0.28rem 0.8rem; font-family: 'Plus Jakarta Sans', 'Inter', 'Segoe UI', sans-serif;">{{ strtoupper($order->status) }}</span>
                             @php
                                 $rejectedRefund = $order->approvalRequests->where('request_type', 'refund')->where('status', 'rejected')->first();
                                 $rejectedCancel = $order->approvalRequests->where('request_type', 'cancel_order')->where('status', 'rejected')->first();
                             @endphp
                             @if($rejectedRefund)
-                                <span class="badge bg-danger mt-1">REFUND REJECTED</span>
+                                <span class="coffeeshop-pill bg-danger-subtle text-danger ms-1 fw-semibold" style="font-size: 0.78rem;">REFUND REJECTED</span>
                             @endif
                             @if($rejectedCancel)
-                                <span class="badge bg-danger mt-1">CANCEL REJECTED</span>
+                                <span class="coffeeshop-pill bg-danger-subtle text-danger ms-1 fw-semibold" style="font-size: 0.78rem;">CANCEL REJECTED</span>
                             @endif
                         </td>
-                        <td>
+                        <td class="text-end pe-4" style="padding: 1.05rem 1rem;">
                             <a href="{{ route('coffeeshop.orders.show', $order) }}"
-                            class="btn btn-sm btn-outline-primary rounded-pill px-3">
+                            class="btn btn-sm rounded-pill px-3 fw-semibold" style="border: 1px solid #827567; color: #2c241d; font-size: 0.88rem; font-family: 'Plus Jakarta Sans', 'Inter', 'Segoe UI', sans-serif;">
                                 View
                             </a>
                         </td>
@@ -127,8 +138,11 @@
                 @empty
 
                     <tr>
-                        <td colspan="7" class="text-muted text-center py-4">
-                            No orders found.
+                        <td colspan="7" class="text-center py-5">
+                            <i class="fa-solid fa-receipt fa-3x text-muted mb-3"></i>
+                            <div class="fw-bold" style="color: #504538; font-size: 1.1rem; font-family: 'Franklin Gothic Medium', 'Franklin Gothic', sans-serif;">
+                                No orders found.
+                            </div>
                         </td>
                     </tr>
 

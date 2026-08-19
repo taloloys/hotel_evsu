@@ -590,17 +590,17 @@ body {
                     <div class="table-responsive">
                         <table class="table align-middle mb-0 dashboard-table">
                             <thead>
-                                <tr style="font-size: 0.85rem; background-color: #f8f3ed; color: #827567; font-family: 'Franklin Gothic Medium', 'Franklin Gothic', sans-serif;">
-                                    <th class="text-nowrap" style="color: #827567;">Order</th>
-                                    <th style="color: #827567;">Customer</th>
-                                    <th style="color: #827567;">Ordered Items</th>
-                                    <th style="color: #827567;">Total</th>
-                                    <th style="color: #827567;">Payment Method</th>
-                                    <th style="color: #827567;">Status</th>
-                                    <th style="color: #827567;">Order Time</th>
+                                <tr style="font-size: 0.88rem; background-color: #f8f3ed; color: #504538; font-family: 'Plus Jakarta Sans', 'Inter', 'Segoe UI', sans-serif; font-weight: 600; text-transform: uppercase;">
+                                    <th class="text-nowrap" style="color: #504538; padding: 0.9rem 0.75rem;">Order</th>
+                                    <th style="color: #504538; padding: 0.9rem 0.75rem;">Customer</th>
+                                    <th style="color: #504538; padding: 0.9rem 0.75rem;">Ordered Items</th>
+                                    <th style="color: #504538; padding: 0.9rem 0.75rem;">Total</th>
+                                    <th style="color: #504538; padding: 0.9rem 0.75rem;">Payment Method</th>
+                                    <th style="color: #504538; padding: 0.9rem 0.75rem;">Status</th>
+                                    <th style="color: #504538; padding: 0.9rem 0.75rem;">Order Time</th>
                                 </tr>
                             </thead>
-                            <tbody id="recent-orders-rows" style="font-family: 'Lucida Fax', 'Georgia', serif;">
+                            <tbody id="recent-orders-rows" style="font-family: 'Plus Jakarta Sans', 'Inter', 'Segoe UI', sans-serif;">
                                 @include('coffeeshop.dashboard.partials.recent_orders', ['recentOrders' => $recentOrders])
                             </tbody>
                         </table>

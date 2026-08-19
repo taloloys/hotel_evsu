@@ -22,38 +22,38 @@
     @endphp
 
     <tr>
-        <td class="text-nowrap">
-            <a href="{{ route('coffeeshop.orders.show', $order) }}" class="fw-bold text-decoration-none hover-opacity" style="font-size: 0.95rem; color: #504538; font-family: 'Lucida Fax', 'Georgia', serif;">
+        <td class="text-nowrap" style="padding: 1rem 0.75rem;">
+            <a href="{{ route('coffeeshop.orders.show', $order) }}" class="text-decoration-none hover-opacity" style="font-size: 0.98rem; color: #2c241d; font-weight: 600; font-family: 'Plus Jakarta Sans', 'Inter', 'Segoe UI', sans-serif;">
                 {{ $order->order_number }}
             </a>
         </td>
-        <td>
-            <span class="fw-semibold" style="font-size: 0.95rem; color: #212529; font-family: 'Lucida Fax', 'Georgia', serif;">{{ $order->customer_name }}</span>
+        <td style="padding: 1rem 0.75rem;">
+            <span style="font-size: 0.98rem; color: #2c241d; font-weight: 600; font-family: 'Plus Jakarta Sans', 'Inter', 'Segoe UI', sans-serif;">{{ $order->customer_name }}</span>
             @if($order->room_number)
-                <span class="badge bg-secondary text-white ms-1" style="font-size: 0.75rem;">Room {{ $order->room_number }}</span>
+                <span class="badge bg-secondary text-white ms-1 fw-semibold" style="font-size: 0.78rem; font-family: 'Plus Jakarta Sans', 'Inter', 'Segoe UI', sans-serif;">Room {{ $order->room_number }}</span>
             @endif
         </td>
-        <td>
-            <div class="text-wrap" style="max-width: 320px; font-size: 0.9rem; color: #504538; font-family: 'Lucida Fax', 'Georgia', serif;">
+        <td style="padding: 1rem 0.75rem;">
+            <div class="text-wrap" style="max-width: 320px; font-size: 0.94rem; color: #554d46; font-weight: 500; font-family: 'Plus Jakarta Sans', 'Inter', 'Segoe UI', sans-serif;">
                 {{ $itemsString ?: 'No items' }}
             </div>
         </td>
-        <td class="fw-bold" style="font-size: 1.02rem; color: #334c42; font-family: 'Lucida Fax', 'Georgia', serif;">₱{{ number_format($order->total, 2) }}</td>
-        <td>
+        <td style="padding: 1rem 0.75rem; font-size: 1.02rem; color: #2c241d; font-weight: 600; font-family: 'Plus Jakarta Sans', 'Inter', 'Segoe UI', sans-serif;">₱{{ number_format($order->total, 2) }}</td>
+        <td style="padding: 1rem 0.75rem;">
             @if($order->payment_method)
-                <span class="font-monospace {{ $paymentBadge }}" style="font-size: 0.78rem; font-weight: 700; text-transform: uppercase;">
+                <span class="{{ $paymentBadge }} fw-semibold" style="font-size: 0.82rem; text-transform: uppercase; font-family: 'Plus Jakarta Sans', 'Inter', 'Segoe UI', sans-serif;">
                     {{ str_replace('_', ' ', $order->payment_method) }}
                 </span>
             @else
-                <span class="text-muted small">N/A</span>
+                <span class="text-muted small" style="font-family: 'Plus Jakarta Sans', 'Inter', 'Segoe UI', sans-serif;">N/A</span>
             @endif
         </td>
-        <td>
-            <span class="dashboard-pill {{ $statusBadge }}">{{ strtoupper($order->status) }}</span>
+        <td style="padding: 1rem 0.75rem;">
+            <span class="dashboard-pill fw-semibold {{ $statusBadge }}" style="font-size: 0.85rem; font-family: 'Plus Jakarta Sans', 'Inter', 'Segoe UI', sans-serif;">{{ strtoupper($order->status) }}</span>
         </td>
-        <td>
-            <div class="fw-medium" style="font-size: 0.9rem; color: #212529; font-family: 'Lucida Fax', 'Georgia', serif;">{{ $order->created_at->format('h:i A') }}</div>
-            <div style="font-size: 0.78rem; color: #827567; font-family: 'Lucida Fax', 'Georgia', serif;">{{ $order->created_at->diffForHumans() }}</div>
+        <td style="padding: 1rem 0.75rem;">
+            <div style="font-size: 0.92rem; color: #2c241d; font-weight: 600; font-family: 'Plus Jakarta Sans', 'Inter', 'Segoe UI', sans-serif;">{{ $order->created_at->format('h:i A') }}</div>
+            <div style="font-size: 0.82rem; color: #6c757d; font-family: 'Plus Jakarta Sans', 'Inter', 'Segoe UI', sans-serif;">{{ $order->created_at->diffForHumans() }}</div>
         </td>
     </tr>
 @empty

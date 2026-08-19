@@ -155,19 +155,19 @@
                             Tab Type
                         </label>
 
-                        <div class="btn-group w-100" role="group">
+                        <div class="btn-group w-100" role="group" id="tab-type-btn-group">
                             <input type="radio" class="btn-check" name="new-tab-type" id="type-walkin" value="walk_in" checked>
-                            <label class="btn py-2 px-3" for="type-walkin" style="font-size: 0.85rem; background: #504538; color: #ffffff; border: 1px solid #504538; font-family: 'Lucida Fax', serif;">
+                            <label class="btn py-2 px-3 fw-semibold tab-type-label active" for="type-walkin" style="font-size: 0.85rem; background-color: #334c42; border: 1px solid #334c42; color: #ffffff; font-family: 'Lucida Fax', serif;">
                                 Walk-in
                             </label>
 
                             <input type="radio" class="btn-check" name="new-tab-type" id="type-room" value="room">
-                            <label class="btn py-2 px-3" for="type-room" style="font-size: 0.85rem; border: 1px solid #c2a889; color: #504538; font-family: 'Lucida Fax', serif;">
+                            <label class="btn py-2 px-3 fw-semibold tab-type-label" for="type-room" style="font-size: 0.85rem; background-color: transparent; border: 1px solid #c2a889; color: #827567; font-family: 'Lucida Fax', serif;">
                                 Room
                             </label>
 
                             <input type="radio" class="btn-check" name="new-tab-type" id="type-account" value="account">
-                            <label class="btn py-2 px-3 fw-bold" for="type-account" style="font-size: 0.85rem; background: #504538; color: #ffffff; border: 1px solid #504538; font-family: 'Lucida Fax', serif;">
+                            <label class="btn py-2 px-3 fw-semibold tab-type-label" for="type-account" style="font-size: 0.85rem; background-color: transparent; border: 1px solid #c2a889; color: #827567; font-family: 'Lucida Fax', serif;">
                                 <i class="fa-solid fa-crown me-1" style="color: #c2a889;"></i> Account (VIP)
                             </label>
                         </div>

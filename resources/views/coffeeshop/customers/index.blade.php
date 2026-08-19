@@ -11,22 +11,22 @@
     <div class="coffeeshop-hero">
         <div class="d-flex flex-column flex-lg-row justify-content-between gap-3 align-items-lg-center">
             <div>
-                <div class="fw-bold fs-5">Customer stories and repeat visits</div>
-                <div class="opacity-75 mt-1">Review the people behind the orders and keep their history close at hand.</div>
+                <div class="fw-bold fs-4" style="font-family: 'Franklin Gothic Medium', 'Franklin Gothic', sans-serif;">Customer stories and repeat visits</div>
+                <div class="opacity-75 mt-1" style="font-size: 0.95rem;">Review the people behind the orders and keep their history close at hand.</div>
             </div>
         </div>
     </div>
 
     {{-- ===================== FILTER (RIGHT ALIGNED) ===================== --}}
-    <div class="d-flex justify-content-end">
+    <div class="d-flex justify-content-end mb-3">
 
         <form method="GET" class="d-flex align-items-center gap-2 flex-wrap" id="customersFilterForm">
 
             <!-- SEARCH -->
-            <div style="width: 320px;">
-                <div class="input-group" style="border: 1px solid black; border-radius: 6px; height: 45px;">
+            <div style="width: 340px;">
+                <div class="input-group" style="border: 1px solid #827567; border-radius: 0.5rem; overflow: hidden; height: 45px;">
                     <span class="input-group-text bg-white border-0 px-3">
-                        <i class="fa-solid fa-magnifying-glass text-muted fs-5"></i>
+                        <i class="fa-solid fa-magnifying-glass" style="color: #627e71;"></i>
                     </span>
                     <input type="text"
                         name="search"
@@ -35,29 +35,29 @@
                         class="form-control border-0 shadow-none py-2"
                         placeholder="Search customer or order..."
                         autocomplete="off"
-                        style="font-size: 1.05rem;">
+                        style="font-size: 1rem; font-family: 'Lucida Fax', 'Georgia', serif;">
                 </div>
             </div>
 
             <!-- FILTER DROPDOWN -->
             <div class="dropdown">
-                <button class="btn btn-outline-dark d-flex align-items-center gap-2 px-3 position-relative"
+                <button class="btn bg-white d-flex align-items-center gap-2 px-3 position-relative shadow-sm"
                         type="button"
                         data-bs-toggle="dropdown"
-                        style="height: 45px; border-radius: 6px; border: 1px solid black; font-size: 1.05rem;">
-                    <i class="fa-solid fa-filter fs-5"></i>
-                    <span>Filter</span>
+                        style="height: 45px; border-radius: 0.5rem; border: 1px solid #c2a889; color: #504538; font-size: 1rem; font-family: 'Lucida Fax', serif;">
+                    <i class="fa-solid fa-filter" style="color: #627e71;"></i>
+                    <span class="fw-semibold">Filter</span>
                     @if(request('status'))
                         <span class="position-absolute top-0 start-100 translate-middle p-1 bg-danger border border-light rounded-circle"></span>
                     @endif
                 </button>
                 <div class="dropdown-menu dropdown-menu-end p-3 shadow-sm"
                      onclick="event.stopPropagation()"
-                     style="min-width: 280px; border-radius: 8px; z-index: 1055;">
+                     style="min-width: 280px; border-radius: 0.75rem; z-index: 1055; font-family: 'Lucida Fax', 'Georgia', serif;">
 
                     <!-- Status Filter -->
-                    <label class="form-label small mb-1 fw-semibold text-muted">Status</label>
-                    <select name="status" class="form-select mb-3 shadow-none" style="height:38px; border-radius:4px; border: 1px solid black;">
+                    <label class="form-label small mb-1 fw-semibold text-muted" style="font-family: 'Franklin Gothic Medium', sans-serif;">Status</label>
+                    <select name="status" class="form-select mb-3 shadow-none" style="height:38px; border-radius:0.5rem; border: 1px solid #827567;">
                         <option value="">All Records</option>
                         <option value="open" @selected($status === 'open')>Open Tabs</option>
                         <option value="closed" @selected($status === 'closed')>Closed Orders</option>
@@ -66,8 +66,8 @@
                     </select>
 
                     <div class="d-flex gap-2">
-                        <button type="submit" class="btn btn-primary w-50" style="height: 38px;">Apply</button>
-                        <a href="{{ route('coffeeshop.customers') }}" class="btn btn-light w-50 d-flex align-items-center justify-content-center" style="height: 38px;">Reset</a>
+                        <button type="submit" class="btn text-white w-50 fw-semibold" style="height: 38px; background-color: #334c42; border: none;">Apply</button>
+                        <a href="{{ route('coffeeshop.customers') }}" class="btn btn-light w-50 d-flex align-items-center justify-content-center fw-semibold" style="height: 38px; border: 1px solid #827567; color: #504538;">Reset</a>
                     </div>
                 </div>
             </div>
@@ -82,10 +82,10 @@
 
         {{-- ===================== CLEAN STATS HEADER ===================== --}}
         <div class="row g-3 mb-4">
-            <div class="col-md-3 col-6"><div class="coffeeshop-card p-4 text-center h-100"><div class="text-muted small">Total Customers</div><div class="fw-bold fs-5 text-brown">{{ $orders->pluck('customer_name')->unique()->count() }}</div></div></div>
-            <div class="col-md-3 col-6"><div class="coffeeshop-card p-4 text-center h-100"><div class="text-muted small">Active Tabs</div><div class="fw-bold fs-5 text-info">{{ $tabs->where('status', 'open')->count() }}</div></div></div>
-            <div class="col-md-3 col-6"><div class="coffeeshop-card p-4 text-center h-100"><div class="text-muted small">Completed</div><div class="fw-bold fs-5 text-success">{{ $orders->where('status', 'closed')->count() }}</div></div></div>
-            <div class="col-md-3 col-6"><div class="coffeeshop-card p-4 text-center h-100"><div class="text-muted small">Refunded</div><div class="fw-bold fs-5 text-danger">{{ $orders->where('status', 'refunded')->count() }}</div></div></div>
+            <div class="col-md-3 col-6"><div class="coffeeshop-card p-4 text-center h-100"><div class="text-muted small" style="font-family: 'Franklin Gothic Medium', sans-serif;">Total Customers</div><div class="fw-bold fs-4" style="color: #504538; font-family: 'Franklin Gothic Medium', sans-serif;">{{ $orders->pluck('customer_name')->unique()->count() }}</div></div></div>
+            <div class="col-md-3 col-6"><div class="coffeeshop-card p-4 text-center h-100"><div class="text-muted small" style="font-family: 'Franklin Gothic Medium', sans-serif;">Active Tabs</div><div class="fw-bold fs-4" style="color: #334c42; font-family: 'Franklin Gothic Medium', sans-serif;">{{ $tabs->where('status', 'open')->count() }}</div></div></div>
+            <div class="col-md-3 col-6"><div class="coffeeshop-card p-4 text-center h-100"><div class="text-muted small" style="font-family: 'Franklin Gothic Medium', sans-serif;">Completed</div><div class="fw-bold fs-4 text-success" style="font-family: 'Franklin Gothic Medium', sans-serif;">{{ $orders->where('status', 'closed')->count() }}</div></div></div>
+            <div class="col-md-3 col-6"><div class="coffeeshop-card p-4 text-center h-100"><div class="text-muted small" style="font-family: 'Franklin Gothic Medium', sans-serif;">Refunded</div><div class="fw-bold fs-4 text-danger" style="font-family: 'Franklin Gothic Medium', sans-serif;">{{ $orders->where('status', 'refunded')->count() }}</div></div></div>
         </div>
 
         {{-- ===================== CONTENT (ORDER-STYLE TABS) ===================== --}}
@@ -96,7 +96,7 @@
                 {{-- TAB NAVIGATION --}}
                 <div class="px-3 pt-3 bg-white border-bottom">
 
-                    <ul class="nav nav-pills nav-fill gap-2 fw-semibold coffeeshop-nav-pills" id="customerNav">
+                    <ul class="nav nav-pills nav-fill gap-2 fw-semibold coffeeshop-nav-pills" id="customerNav" style="font-family: 'Franklin Gothic Medium', 'Franklin Gothic', sans-serif;">
 
                         <li class="nav-item">
                             <button class="nav-link active rounded-pill"
@@ -135,35 +135,35 @@
                     {{-- ===================== FREQUENT CUSTOMERS ===================== --}}
                     <div class="tab-pane fade show active" id="tab-customers">
 
-                        <div class="table-responsive border rounded-4 bg-white overflow-hidden shadow-sm">
+                        <div class="table-responsive border rounded-4 bg-white overflow-hidden shadow-sm mt-3">
 
-                            <table class="table align-middle mb-0">
+                            <table class="table align-middle mb-0 coffeeshop-table">
 
-                                <thead class="table-light">
-                                    <tr class="text-muted small">
-                                        <th class="ps-3">Customer</th>
-                                        <th>Orders</th>
-                                        <th class="pe-3 text-end">Total Spent</th>
+                                <thead style="background-color: #f8f3ed; border-bottom: 1px solid #e5e7eb; font-family: 'Plus Jakarta Sans', 'Inter', 'Segoe UI', sans-serif;">
+                                    <tr>
+                                        <th class="ps-4" style="color: #2c241d; font-size: 0.90rem; font-weight: 700; letter-spacing: 0.5px; text-transform: uppercase; padding: 1rem 1rem;">CUSTOMER</th>
+                                        <th style="color: #2c241d; font-size: 0.90rem; font-weight: 700; letter-spacing: 0.5px; text-transform: uppercase; padding: 1rem 1rem;">ORDERS</th>
+                                        <th class="pe-4 text-end" style="color: #2c241d; font-size: 0.90rem; font-weight: 700; letter-spacing: 0.5px; text-transform: uppercase; padding: 1rem 1rem;">TOTAL SPENT</th>
                                     </tr>
                                 </thead>
 
-                                <tbody>
+                                <tbody style="font-family: 'Plus Jakarta Sans', 'Inter', 'Segoe UI', sans-serif;">
 
                                     @forelse($frequentCustomers as $customer)
 
-                                        <tr>
-                                            <td class="ps-3 fw-semibold">
+                                        <tr style="border-bottom: 1px solid #f0f0f0;">
+                                            <td class="ps-4" style="padding: 1.05rem 1rem; color: #2c241d; font-weight: 600; font-size: 1.05rem; font-family: 'Plus Jakarta Sans', 'Inter', 'Segoe UI', sans-serif;">
                                                 @if(Str::contains(strtolower($customer->customer_name), 'room'))
-                                                    <span class="badge bg-primary-subtle text-primary border border-primary-subtle me-1" title="Hotel Guest Charge"><i class="fa-solid fa-hotel me-1"></i>Guest</span>
+                                                    <span class="badge rounded-pill me-1 fw-semibold" style="background-color: #627e71; color: #ffffff; font-size: 0.78rem; font-family: 'Plus Jakarta Sans', 'Inter', 'Segoe UI', sans-serif;" title="Hotel Guest Charge"><i class="fa-solid fa-hotel me-1"></i>Guest</span>
                                                 @endif
                                                 {{ $customer->customer_name }}
                                             </td>
 
-                                            <td class="fw-semibold">
-                                                {{ $customer->order_count }}
+                                            <td style="padding: 1.05rem 1rem; color: #554d46; font-size: 0.98rem; font-family: 'Plus Jakarta Sans', 'Inter', 'Segoe UI', sans-serif;">
+                                                {{ $customer->order_count }} order(s)
                                             </td>
 
-                                            <td class="pe-3 text-end fw-bold">
+                                            <td class="pe-4 text-end" style="padding: 1.05rem 1rem; color: #2c241d; font-weight: 600; font-size: 1.08rem; font-family: 'Plus Jakarta Sans', 'Inter', 'Segoe UI', sans-serif;">
                                                 ₱{{ number_format($customer->total_spent, 2) }}
                                             </td>
                                         </tr>
@@ -187,54 +187,53 @@
                     {{-- ===================== ORDERS ===================== --}}
                     <div class="tab-pane fade" id="tab-orders">
 
-                        <div class="table-responsive border rounded-4 bg-white overflow-hidden shadow-sm">
+                        <div class="table-responsive border rounded-4 bg-white overflow-hidden shadow-sm mt-3">
 
-                            <table class="table align-middle mb-0">
+                            <table class="table align-middle mb-0 coffeeshop-table">
 
-                                <thead class="table-light">
-                                    <tr class="text-muted small">
-                                        <th class="ps-3">Order</th>
-                                        <th>Customer</th>
-                                        <th>Total</th>
-                                        <th class="pe-3 text-end">Status</th>
+                                <thead style="background-color: #f8f3ed; border-bottom: 1px solid #e5e7eb; font-family: 'Plus Jakarta Sans', 'Inter', 'Segoe UI', sans-serif;">
+                                    <tr>
+                                        <th class="ps-4" style="color: #2c241d; font-size: 0.90rem; font-weight: 700; letter-spacing: 0.5px; text-transform: uppercase; padding: 1rem 1rem;">ORDER</th>
+                                        <th style="color: #2c241d; font-size: 0.90rem; font-weight: 700; letter-spacing: 0.5px; text-transform: uppercase; padding: 1rem 1rem;">CUSTOMER</th>
+                                        <th style="color: #2c241d; font-size: 0.90rem; font-weight: 700; letter-spacing: 0.5px; text-transform: uppercase; padding: 1rem 1rem;">TOTAL</th>
+                                        <th class="pe-4 text-end" style="color: #2c241d; font-size: 0.90rem; font-weight: 700; letter-spacing: 0.5px; text-transform: uppercase; padding: 1rem 1rem;">STATUS</th>
                                     </tr>
                                 </thead>
 
-                                <tbody>
+                                <tbody style="font-family: 'Plus Jakarta Sans', 'Inter', 'Segoe UI', sans-serif;">
 
                                     @forelse($orders as $order)
 
-                                        <tr>
+                                        <tr style="border-bottom: 1px solid #f0f0f0;">
 
-                                            <td class="ps-3">
+                                            <td class="ps-4" style="padding: 1.05rem 1rem;">
                                                 <a href="{{ route('coffeeshop.orders.show', $order) }}"
-                                                class="fw-semibold text-decoration-none">
+                                                class="fw-semibold text-decoration-none hover-opacity" style="color: #627e71; font-family: 'Plus Jakarta Sans', 'Inter', 'Segoe UI', sans-serif; font-size: 1.02rem;">
                                                     {{ $order->order_number }}
                                                 </a>
                                             </td>
 
-                                            <td class="fw-semibold">
+                                            <td style="padding: 1.05rem 1rem; color: #2c241d; font-weight: 600; font-size: 1.05rem; font-family: 'Plus Jakarta Sans', 'Inter', 'Segoe UI', sans-serif;">
                                                 {{ $order->customer_name }}
                                             </td>
 
-                                            <td class="fw-bold text-primary">
+                                            <td style="padding: 1.05rem 1rem; color: #2c241d; font-weight: 600; font-size: 1.08rem; font-family: 'Plus Jakarta Sans', 'Inter', 'Segoe UI', sans-serif;">
                                                 ₱{{ number_format($order->total, 2) }}
                                             </td>
 
-                                            <td class="pe-3 text-end">
+                                            <td class="pe-4 text-end" style="padding: 1.05rem 1rem;">
                                                 @php
                                                     $status = strtoupper($order->status);
 
-                                                    $badge = match($order->status) {
-                                                        'open' => 'bg-success',
-                                                        'closed' => 'bg-primary',
-                                                        'cancelled' => 'bg-danger',
-                                                        'refunded' => 'bg-warning text-dark',
-                                                        default => 'bg-secondary'
+                                                    $badgeClass = match(strtolower($order->status)) {
+                                                        'closed', 'paid', 'completed' => 'bg-success-subtle text-success',
+                                                        'cancelled' => 'bg-danger-subtle text-danger',
+                                                        'refunded' => 'bg-info-subtle text-info',
+                                                        default => 'bg-secondary-subtle text-secondary'
                                                     };
                                                 @endphp
 
-                                                <span class="badge {{ $badge }}">
+                                                <span class="coffeeshop-pill fw-semibold {{ $badgeClass }}" style="font-size: 0.88rem; padding: 0.28rem 0.8rem; font-family: 'Plus Jakarta Sans', 'Inter', 'Segoe UI', sans-serif;">
                                                     {{ $status }}
                                                 </span>
                                             </td>
@@ -265,42 +264,42 @@
 
                             <div class="w-100" style="max-width: 1100px;">
 
-                                <div class="table-responsive border rounded-4 bg-white overflow-hidden shadow-sm">
+                                <div class="table-responsive border rounded-4 bg-white overflow-hidden shadow-sm mt-3">
 
                                     <table class="table align-middle mb-0 coffeeshop-table">
 
-                                        <thead class="table-light">
-                                            <tr class="text-muted small">
-                                                <th class="ps-3">Tab</th>
-                                                <th>Total</th>
-                                                <th class="pe-3 text-end">Status</th>
+                                        <thead style="background-color: #f8f3ed; border-bottom: 1px solid #e5e7eb; font-family: 'Plus Jakarta Sans', 'Inter', 'Segoe UI', sans-serif;">
+                                            <tr>
+                                                <th class="ps-4" style="color: #2c241d; font-size: 0.90rem; font-weight: 700; letter-spacing: 0.5px; text-transform: uppercase; padding: 1rem 1rem;">TAB</th>
+                                                <th style="color: #2c241d; font-size: 0.90rem; font-weight: 700; letter-spacing: 0.5px; text-transform: uppercase; padding: 1rem 1rem;">TOTAL</th>
+                                                <th class="pe-4 text-end" style="color: #2c241d; font-size: 0.90rem; font-weight: 700; letter-spacing: 0.5px; text-transform: uppercase; padding: 1rem 1rem;">STATUS</th>
                                             </tr>
                                         </thead>
 
-                                        <tbody>
+                                        <tbody style="font-family: 'Plus Jakarta Sans', 'Inter', 'Segoe UI', sans-serif;">
 
                                             @forelse($tabs as $tab)
 
-                                                <tr>
+                                                <tr style="border-bottom: 1px solid #f0f0f0;">
 
-                                                    <td class="ps-3 fw-semibold">
+                                                    <td class="ps-4" style="padding: 1.05rem 1rem; color: #2c241d; font-weight: 600; font-size: 1.05rem; font-family: 'Plus Jakarta Sans', 'Inter', 'Segoe UI', sans-serif;">
                                                         {{ $tab->tab_name }}
                                                     </td>
 
-                                                    <td class="fw-bold text-primary">
+                                                    <td style="padding: 1.05rem 1rem; color: #2c241d; font-weight: 600; font-size: 1.08rem; font-family: 'Plus Jakarta Sans', 'Inter', 'Segoe UI', sans-serif;">
                                                         ₱{{ number_format($tab->total, 2) }}
                                                     </td>
 
-                                                    <td class="pe-3 text-end">
+                                                    <td class="pe-4 text-end" style="padding: 1.05rem 1rem;">
                                                         @php
-                                                            $badge = match(strtolower($tab->status)) {
-                                                                'closed' => 'bg-secondary',
-                                                                'cancelled' => 'bg-danger',
-                                                                default => 'bg-primary'
+                                                            $badgeClass = match(strtolower($tab->status)) {
+                                                                'closed' => 'bg-success-subtle text-success',
+                                                                'cancelled' => 'bg-danger-subtle text-danger',
+                                                                default => 'bg-primary-subtle text-primary'
                                                             };
                                                         @endphp
 
-                                                        <span class="badge {{ $badge }}">
+                                                        <span class="coffeeshop-pill fw-semibold {{ $badgeClass }}" style="font-size: 0.88rem; padding: 0.28rem 0.8rem; font-family: 'Plus Jakarta Sans', 'Inter', 'Segoe UI', sans-serif;">
                                                             {{ strtoupper($tab->status) }}
                                                         </span>
                                                     </td>

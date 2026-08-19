@@ -45,37 +45,37 @@
     </div>
     @endif
 
-    <form method="GET" class="d-flex align-items-center gap-2 flex-wrap justify-content-end" id="inventoryFilterForm">
+    <form method="GET" class="d-flex align-items-center gap-2 flex-wrap justify-content-end mb-3" id="inventoryFilterForm">
 
         <!-- SEARCH -->
-        <div style="width: 320px;">
-            <div class="input-group coffeeshop-form-control" style="border: 1px solid black; border-radius: 6px; height: 45px;">
+        <div style="width: 340px;">
+            <div class="input-group coffeeshop-form-control shadow-sm" style="border: 1px solid #c2a889; border-radius: 0.5rem; overflow: hidden; height: 45px; background-color: #ffffff;">
                 <span class="input-group-text bg-white border-0 px-3">
-                    <i class="fa-solid fa-magnifying-glass text-muted fs-5"></i>
+                    <i class="fa-solid fa-magnifying-glass" style="color: #627e71;"></i>
                 </span>
-                <input type="text" name="search" id="inventorySearch" value="{{ request('search') }}" class="form-control border-0 shadow-none py-2" placeholder="Search products..." autocomplete="off" style="font-size: 1.05rem;">
+                <input type="text" name="search" id="inventorySearch" value="{{ request('search') }}" class="form-control border-0 shadow-none py-2" placeholder="Search products..." autocomplete="off" style="font-size: 1rem; font-family: 'Lucida Fax', 'Georgia', serif; color: #504538;">
             </div>
         </div>
 
         <!-- FILTER DROPDOWN -->
         <div class="dropdown">
-            <button class="btn btn-outline-dark d-flex align-items-center gap-2 px-3 position-relative"
+            <button class="btn bg-white d-flex align-items-center gap-2 px-3 position-relative shadow-sm"
                     type="button"
                     data-bs-toggle="dropdown"
-                    style="height: 45px; border-radius: 6px; border: 1px solid black; font-size: 1.05rem;">
-                <i class="fa-solid fa-filter fs-5"></i>
-                <span>Filter</span>
+                    style="height: 45px; border-radius: 0.5rem; border: 1px solid #c2a889; color: #504538; font-size: 1rem; font-family: 'Lucida Fax', serif;">
+                <i class="fa-solid fa-filter" style="color: #627e71;"></i>
+                <span class="fw-semibold">Filter</span>
                 @if(request('filter'))
                     <span class="position-absolute top-0 start-100 translate-middle p-1 bg-danger border border-light rounded-circle"></span>
                 @endif
             </button>
             <div class="dropdown-menu dropdown-menu-end p-3 shadow-sm"
                  onclick="event.stopPropagation()"
-                 style="min-width: 280px; border-radius: 8px; z-index: 1055;">
+                 style="min-width: 280px; border-radius: 0.75rem; z-index: 1055; font-family: 'Lucida Fax', 'Georgia', serif;">
 
                 <!-- Stock Status -->
-                <label class="form-label small mb-1 fw-semibold text-muted">Stock Status</label>
-                <select name="filter" class="form-select mb-3 shadow-none" style="height:38px; border-radius:4px; border: 1px solid black;">
+                <label class="form-label small mb-1 fw-semibold text-muted" style="font-family: 'Franklin Gothic Medium', sans-serif;">Stock Status</label>
+                <select name="filter" class="form-select mb-3 shadow-none" style="height:38px; border-radius:0.5rem; border: 1px solid #827567;">
                     <option value="">All Inventory</option>
                     <option value="out_of_stock" @selected(request('filter')=='out_of_stock')>Out of Stock</option>
                     <option value="critical_stock" @selected(request('filter')=='critical_stock')>Low Stock (≤ Threshold)</option>
@@ -85,8 +85,8 @@
                 </select>
 
                 <div class="d-flex gap-2">
-                    <button type="submit" class="btn text-white w-50 fw-bold" style="height: 38px; background-color: #334c42; border: none;">Apply</button>
-                    <a href="{{ route('coffeeshop.inventory') }}" class="btn btn-light w-50 d-flex align-items-center justify-content-center" style="height: 38px;">Reset</a>
+                    <button type="submit" class="btn text-white w-50 fw-semibold" style="height: 38px; background-color: #334c42; border: none;">Apply</button>
+                    <a href="{{ route('coffeeshop.inventory') }}" class="btn btn-light w-50 d-flex align-items-center justify-content-center fw-semibold" style="height: 38px; border: 1px solid #827567; color: #504538;">Reset</a>
                 </div>
             </div>
         </div>
@@ -98,36 +98,36 @@
         <div class="card border-1 shadow-sm rounded-4 overflow-hidden">
             <div class="table-responsive">
                 <table class="table align-middle mb-0 coffeeshop-table">
-                    <thead style="background: #f8f3ed; color: #827567; font-family: 'Franklin Gothic Medium', 'Franklin Gothic', sans-serif;">
-                        <tr><th style="color: #827567;">Product</th><th style="color: #827567;">Category</th><th style="color: #827567;">Stock</th><th style="color: #827567;">Status</th><th style="color: #827567;">Adjust</th></tr>
+                    <thead style="background-color: #f8f3ed; border-bottom: 1px solid #e5e7eb; color: #2c241d; font-family: 'Plus Jakarta Sans', 'Inter', 'Segoe UI', sans-serif; font-size: 0.90rem; font-weight: 700; text-transform: uppercase;">
+                        <tr><th style="color: #2c241d; padding: 0.9rem 1rem;">Product</th><th style="color: #2c241d; padding: 0.9rem 1rem;">Category</th><th style="color: #2c241d; padding: 0.9rem 1rem;">Stock</th><th style="color: #2c241d; padding: 0.9rem 1rem;">Status</th><th style="color: #2c241d; padding: 0.9rem 1rem;">Adjust</th></tr>
                     </thead>
-                    <tbody style="font-family: 'Lucida Fax', 'Georgia', serif;">
+                    <tbody style="font-family: 'Plus Jakarta Sans', 'Inter', 'Segoe UI', sans-serif;">
                     @foreach($products as $product)
                         @php [$label, $color] = stockStatus($product); @endphp
-                        <tr class="{{ $product->stock_quantity == 0 ? 'table-danger' : '' }}">
-                            <td class="fw-semibold" style="color: #504538;">{{ $product->name }}</td>
-                            <td style="color: #212529;">{{ $product->category?->name ?? '—' }}</td>
-                            <td style="color: #212529;">{{ $product->stock_quantity }}</td>
-                            <td><span class="coffeeshop-pill bg-{{ $color }}-subtle text-{{ $color }}">{{ $label }}</span></td>
-                            <td>
-                                <form action="{{ route('coffeeshop.inventory.adjust', $product) }}" method="POST" class="d-flex gap-2 flex-wrap align-items-center">
+                        <tr class="{{ $product->stock_quantity == 0 ? 'table-danger' : '' }}" style="border-bottom: 1px solid #f0f0f0;">
+                            <td style="padding: 1.05rem 1rem; color: #2c241d; font-weight: 600; font-size: 1.05rem;">{{ $product->name }}</td>
+                            <td style="padding: 1.05rem 1rem; color: #382e25; font-weight: 500; font-size: 1.02rem;">{{ $product->category?->name ?? '—' }}</td>
+                            <td style="padding: 1.05rem 1rem; color: #2c241d; font-weight: 600; font-size: 1.04rem;">{{ $product->stock_quantity }}</td>
+                            <td style="padding: 1.05rem 1rem;"><span class="coffeeshop-pill fw-semibold bg-{{ $color }}-subtle text-{{ $color }}" style="font-size: 0.88rem; padding: 0.28rem 0.8rem;">{{ $label }}</span></td>
+                            <td style="padding: 1.05rem 1rem;">
+                                <form action="{{ route('coffeeshop.inventory.adjust', $product) }}" method="POST" class="d-flex gap-2 align-items-center flex-nowrap">
                                     @csrf
                                     <select name="adjustment_type"
-                                            class="form-select form-select-sm rounded-pill inventory-type-select"
-                                            style="width:145px; border: 1px solid black;"
+                                            class="form-select rounded-pill inventory-type-select"
+                                            style="width:145px; border: 1px solid #827567; font-size: 0.90rem; padding: 0.4rem 0.8rem;"
                                             data-stock="{{ $product->stock_quantity }}">
                                         <option value="restock">Restock (+)</option>
                                         <option value="adjustment">Adjust (=)</option>
                                     </select>
                                     <input type="number"
                                            name="quantity"
-                                           class="form-control form-control-sm rounded-pill inventory-qty-input"
+                                           class="form-control rounded-pill inventory-qty-input"
                                            placeholder="Add Qty"
                                            min="1"
-                                           style="width:115px; border: 1px solid black;"
+                                           style="width:115px; border: 1px solid #827567; font-size: 0.90rem; padding: 0.4rem 0.8rem;"
                                            required>
-                                    <input type="text" name="notes" class="form-control form-control-sm rounded-pill" placeholder="Notes (optional)" style="width:300px; border: 1px solid black;">
-                                    <button type="submit" class="btn btn-sm text-white rounded-pill px-3 fw-bold" style="background-color: #334c42; border: none;">Apply</button>
+                                    <input type="text" name="notes" class="form-control rounded-pill" placeholder="Notes (optional)" style="width:260px; border: 1px solid #827567; font-size: 0.90rem; padding: 0.4rem 0.8rem;">
+                                    <button type="submit" class="btn text-white rounded-pill px-4 fw-semibold text-nowrap shadow-sm" style="background-color: #334c42; border: none; font-size: 0.94rem; padding: 0.42rem 1.2rem;">Apply</button>
                                 </form>
                             </td>
                         </tr>
