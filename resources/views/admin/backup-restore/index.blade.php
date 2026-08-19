@@ -586,8 +586,15 @@
                     cancelButtonText: 'Cancel'
                 }).then((result) => {
                     if (result.isConfirmed) {
-                        // Direct download — triggers native browser Save As dialog
-                        window.location.href = "{{ route('admin.backup-restore.backup') }}";
+                        const downloadUrl = "{{ route('admin.backup-restore.backup') }}";
+                        const iframe = document.createElement('iframe');
+                        iframe.style.display = 'none';
+                        iframe.src = downloadUrl;
+                        document.body.appendChild(iframe);
+
+                        setTimeout(() => {
+                            window.location.reload();
+                        }, 1500);
                     }
                 });
             }

@@ -95,7 +95,7 @@ class UserSeeder extends Seeder
             $role = Role::where('role_name', $userData['role_name'])->first();
 
             if ($role) {
-                User::updateOrCreate(
+                User::firstOrCreate(
                     ['username' => $userData['username']],
                     [
                         'full_name' => $userData['full_name'],

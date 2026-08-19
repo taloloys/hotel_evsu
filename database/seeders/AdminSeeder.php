@@ -97,7 +97,7 @@ class AdminSeeder extends Seeder
         $adminRole->permissions()->sync($adminPermissionIds);
 
         // 4. Create Super Admin user
-        User::updateOrCreate(
+        User::firstOrCreate(
             ['username' => 'superadmin'],
             [
                 'full_name' => 'Super Administrator',
@@ -108,7 +108,7 @@ class AdminSeeder extends Seeder
         );
 
         // 5. Create Standard Admin user
-        User::updateOrCreate(
+        User::firstOrCreate(
             ['username' => 'admin'],
             [
                 'full_name' => 'SoftwareAdmin',

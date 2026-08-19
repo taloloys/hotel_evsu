@@ -13,11 +13,22 @@ beforeEach(function (): void {
     $this->adminRole = Role::create([
         'role_name' => 'ADMIN',
         'description' => 'Admin Role',
+        'is_active' => true,
     ]);
+
+    $manageUsersPerm = Permission::create([
+        'permission_key' => 'manage-users',
+        'description' => 'Manage Users',
+        'module' => 'System',
+        'is_active' => true,
+    ]);
+
+    $this->adminRole->permissions()->attach($manageUsersPerm->permission_id);
 
     $this->staffRole = Role::create([
         'role_name' => 'FRONT_DESK',
         'description' => 'Staff Role',
+        'is_active' => true,
     ]);
 
     // Create an admin user to authenticate

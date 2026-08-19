@@ -3,6 +3,7 @@
 namespace App\Console\Commands;
 
 use App\Services\BackupSettingsService;
+use App\Services\DatabaseDumpService;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\Log;
 use ZipArchive;
@@ -58,73 +59,25 @@ class AutoBackupCommand extends Command
 
         $connection = config('database.default');
 
-        if ($connection === 'sqlite') {
-            $dbPath = config('database.connections.sqlite.database');
-            if ($dbPath === ':memory:') {
-                file_put_contents($sqlFilepath, '-- sqlite memory backup');
-            } else {
-                if (! file_exists($dbPath) || ! @copy($dbPath, $sqlFilepath)) {
-                    $this->error('Backup failed: SQLite database file not found or not copyable.');
-                    Log::error('Automatic backup failed: SQLite database file not found or not copyable.');
-
-                    $settings['last_backup_failed'] = true;
-                    BackupSettingsService::set($settings);
-
-                    return 1;
-                }
-            }
-        } else {
-            $host = config('database.connections.mysql.host');
-            $port = config('database.connections.mysql.port');
-            $database = config('database.connections.mysql.database');
-            $username = config('database.connections.mysql.username');
-            $password = config('database.connections.mysql.password');
-
-            $mysqldump = $this->resolveBinary('mysqldump');
-            $passwordArg = $password ? '-p'.escapeshellarg($password) : '';
-
-            $command = sprintf(
-                '%s --host=%s --port=%s --user=%s %s --single-transaction --routines --triggers --result-file=%s %s 2>&1',
-                escapeshellarg($mysqldump),
-                escapeshellarg($host),
-                escapeshellarg($port),
-                escapeshellarg($username),
-                $passwordArg,
-                escapeshellarg($sqlFilepath),
-                escapeshellarg($database)
-            );
-
-            Log::info('Executing backup command: '.$command);
-            exec($command, $output, $returnCode);
-
-            if ($returnCode !== 0) {
-                $errorDetail = implode(' ', $output);
-                $this->error("Backup failed: {$errorDetail}");
-                Log::error("Automatic backup failed: {$errorDetail}");
-                @unlink($sqlFilepath);
-
-                $settings['last_backup_failed'] = true;
-                BackupSettingsService::set($settings);
-
-                return 1;
-            }
-        }
-
-        // Zip the SQL file
-        $zip = new ZipArchive;
-        if ($zip->open($zipFilepath, ZipArchive::CREATE | ZipArchive::OVERWRITE) === true) {
-            $zip->addFile($sqlFilepath, $sqlFilename);
-            $zip->close();
-            @unlink($sqlFilepath); // Delete the original SQL file to save space
-        } else {
-            $this->error("Backup failed: Unable to create ZIP file at {$zipFilepath}");
-            Log::error("Automatic backup failed: Unable to create ZIP file at {$zipFilepath}");
+        if (! DatabaseDumpService::dump($sqlFilepath)) {
+            $this->error('Backup failed: Unable to export database tables.');
+            Log::error('Automatic backup failed: Unable to export database tables.');
             @unlink($sqlFilepath);
 
             $settings['last_backup_failed'] = true;
             BackupSettingsService::set($settings);
 
             return 1;
+        }
+
+        // Zip the SQL file if ZipArchive extension is available
+        if (class_exists(ZipArchive::class)) {
+            $zip = new ZipArchive;
+            if ($zip->open($zipFilepath, ZipArchive::CREATE | ZipArchive::OVERWRITE) === true) {
+                $zip->addFile($sqlFilepath, $sqlFilename);
+                $zip->close();
+                @unlink($sqlFilepath); // Delete the original SQL file to save space
+            }
         }
 
         $this->info("Backup created successfully at: {$zipFilepath}");
