@@ -790,11 +790,22 @@ class BackupRestoreController extends Controller
             "/usr/bin/{$binary}",
             "/usr/local/bin/{$binary}",
             "/opt/homebrew/bin/{$binary}",
+            // Nixpacks (Railway Linux environment)
+            "/root/.nix-profile/bin/{$binary}",
+            "/nix/var/nix/profiles/default/bin/{$binary}",
         ];
 
         foreach ($candidates as $path) {
             if (file_exists($path)) {
                 return $path;
+            }
+        }
+
+        // Try shell 'which' command on Unix environments if available
+        if (function_exists('exec') && DIRECTORY_SEPARATOR === '/') {
+            $whichPath = trim((string) @shell_exec("which {$binary} 2>/dev/null"));
+            if ($whichPath && file_exists($whichPath)) {
+                return $whichPath;
             }
         }
 
