@@ -18,7 +18,7 @@
     }
 @endphp
 
-<div class="card border-0 shadow-sm mb-4 position-relative" style="z-index: 1030;">
+<div class="card border-0 shadow-sm mb-4 position-relative" style="z-index: 1030; background: #f8f3ed; border-bottom: 1px solid rgba(130, 117, 103, 0.25) !important;">
 
 
     <div class="card-body py-3 px-4">
@@ -30,15 +30,15 @@
 
                 <div>
 
-                    <small class="text-muted text-uppercase fw-semibold">
+                    <small class="text-uppercase fw-bold" style="color: #3d3329; font-family: 'Plus Jakarta Sans', sans-serif;">
                         EVSU
                     </small>
 
                     <div class="d-flex align-items-center mt-1">
 
-                        <i class="fa-solid fa-location-dot text-primary me-2"></i>
+                        <i class="fa-solid fa-location-dot me-2" style="color: #3a594b;"></i>
 
-                        <span class="fw-semibold">
+                        <span class="fw-bold font-display" style="color: #29211a; font-size: 1.1rem;">
                             @yield('pageTitle')
                         </span>
 
@@ -56,12 +56,12 @@
 
                 <div class="text-end d-none d-lg-block">
 
-                    <small class="text-muted d-block">
+                    <small class="d-block fw-semibold" style="color: #3d3329; font-family: 'Plus Jakarta Sans', sans-serif;">
                         {{ now()->format('l') }}
                     </small>
 
-                    <span class="fw-semibold">
-                        {{ now()->format('F d, Y') }} <span id="header-time" class="ms-1 text-primary">{{ now()->format('h:i:s A') }}</span>
+                    <span class="fw-bold" style="color: #29211a; font-family: 'Plus Jakarta Sans', sans-serif;">
+                        {{ now()->format('F d, Y') }} <span id="header-time" class="ms-1" style="color: #3a594b;">{{ now()->format('h:i:s A') }}</span>
                     </span>
 
                 </div>
@@ -72,7 +72,7 @@
                         id="fullscreenToggleBtn"
                         title="Toggle Fullscreen"
                         onclick="toggleAppFullscreen()"
-                        style="width:42px;height:42px;">
+                        style="width:42px;height:42px; background: #ffffff; border: 1px solid rgba(130,117,103,0.3); color: #504538;">
                     <i class="fa-solid fa-expand" id="fullscreenIcon"></i>
                 </button>
 
@@ -86,7 +86,7 @@
                             id="notificationDropdown"
                             data-bs-toggle="dropdown"
                             aria-expanded="false"
-                            style="width:42px;height:42px;background:linear-gradient(135deg,#f59e0b,#d97706);border-radius:50%;box-shadow:0 4px 14px rgba(245,158,11,0.5);border:none;">
+                            style="width:42px;height:42px;background:#334c42;border-radius:50%;box-shadow:0 4px 14px rgba(51,76,66,0.3);border:none;">
 
                         <i class="fa-solid fa-bell notif-bell text-white" id="notificationBellIcon"></i>
 
@@ -101,7 +101,7 @@
                         style="width: 320px; z-index: 1050;">
 
                         <li class="p-3 border-bottom bg-light">
-                            <span class="fw-bold">Notifications</span>
+                            <span class="fw-bold font-display" style="color: #504538;">Notifications</span>
                         </li>
 
                         <div id="notificationList" style="max-height: 400px; overflow-y: auto;">
@@ -124,10 +124,10 @@
 
                         </div>
 
-                        <div class="bg-primary rounded-circle d-flex align-items-center justify-content-center"
-                             style="width:42px;height:42px;">
+                        <div class="rounded-circle d-flex align-items-center justify-content-center"
+                             style="width:42px;height:42px; background: #334c42 !important;">
 
-                            <span class="text-white fw-bold">
+                            <span class="text-white fw-bold font-display">
                                 {{ $initials }}
                             </span>
 

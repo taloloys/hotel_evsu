@@ -158,10 +158,13 @@
 
         tabSwitcher.innerHTML = '';
 
-        // "+ New Tab" button
+        // "+ New Customer" button
         const newBtn = document.createElement('button');
         newBtn.type = 'button';
-        newBtn.className = `btn ${activeTabId === null ? 'btn-success fw-bold' : 'btn-outline-success fw-bold'}`;
+        newBtn.className = 'btn btn-sm w-100 py-2 font-brand fw-bold shadow-sm';
+        newBtn.style.cssText = activeTabId === null
+            ? "background: #334c42; color: #ffffff; border: 1px solid #334c42; font-family: 'Lucida Fax', 'Georgia', serif;"
+            : "border: 1px solid #334c42; color: #334c42; background: transparent; font-family: 'Lucida Fax', 'Georgia', serif;";
         newBtn.innerHTML = '<i class="fa-solid fa-plus me-1"></i>New Customer';
         newBtn.addEventListener('click', () => {
             activeTabId = null;
@@ -173,18 +176,19 @@
             const btn = document.createElement('button');
             btn.type = 'button';
 
-            let btnClass = '';
             const isActive = tab.tab_id === activeTabId;
+            let styleStr = "font-family: 'Lucida Fax', 'Georgia', serif; font-size: 0.88rem; width: 100%; text-align: center;";
             if (tab.tab_type === 'room') {
-                btnClass = isActive ? 'btn-info text-white' : 'btn-outline-info';
+                styleStr += isActive ? ' background: #627e71; color: #ffffff; border: 1px solid #627e71;' : ' border: 1px solid #c2a889; color: #504538; background: transparent;';
             } else if (tab.tab_type === 'account') {
-                btnClass = isActive ? 'btn-warning text-dark fw-bold border-warning shadow-sm' : 'btn-outline-warning text-dark border-warning';
+                styleStr += isActive ? ' background: #504538; color: #ffffff; border: 1px solid #504538;' : ' border: 1px solid #c2a889; color: #504538; background: transparent;';
             } else {
-                btnClass = isActive ? 'btn-secondary text-white' : 'btn-outline-secondary';
+                styleStr += isActive ? ' background: #504538; color: #ffffff; border: 1px solid #504538;' : ' border: 1px solid #c2a889; color: #504538; background: transparent;';
             }
 
-            btn.className = `btn ${btnClass}`;
-            const prefix = tab.tab_type === 'account' ? '👑 ' : '';
+            btn.className = 'btn btn-sm py-2 font-brand fw-semibold shadow-sm';
+            btn.style.cssText = styleStr;
+            const prefix = (tab.tab_type === 'account' && !tab.tab_name.includes('👑')) ? '👑 ' : '';
             btn.textContent = `${prefix}${tab.tab_name} (${formatMoney(tab.total)})`;
             btn.addEventListener('click', () => {
                 activeTabId = tab.tab_id;
@@ -199,6 +203,7 @@
 
         if (activeTabId === null) {
             activeTabPanel.classList.add('d-none');
+            activeTabPanel.classList.remove('d-flex');
             newTabFormContainer.classList.remove('d-none');
             noTabMessage.classList.add('d-none');
             if (footerSummary) footerSummary.classList.add('d-none');
@@ -206,6 +211,7 @@
         } else {
             newTabFormContainer.classList.add('d-none');
             activeTabPanel.classList.remove('d-none');
+            activeTabPanel.classList.add('d-flex');
             noTabMessage.classList.add('d-none');
             if (footerSummary) footerSummary.classList.remove('d-none');
             if (noTabFooterSummary) noTabFooterSummary.classList.add('d-none');
@@ -249,16 +255,16 @@
             if (chargeRoomBtn) {
                 chargeRoomBtn.innerHTML = `<i class="fa-solid fa-user me-1"></i> ${guestLabel}`;
             }
-            activeTabBadge.innerHTML = `<span class="badge bg-info text-dark px-2.5 py-1 fs-7 fw-semibold">Room Charge (${roomLabel})</span>`;
+            activeTabBadge.innerHTML = `<span class="badge px-2.5 py-1 fs-7 fw-semibold" style="background: rgba(98, 126, 113, 0.12); color: #334c42; border: 1px solid #627e71; font-family: 'Lucida Fax', serif;">Room Charge (${roomLabel})</span>`;
         } else if (tab.tab_type === 'account') {
             accountActions.classList.remove('d-none');
             if (chargeAccountBtn) {
-                chargeAccountBtn.innerHTML = `<i class="fa-solid fa-crown me-1 text-warning"></i> Charge to VIP Account (${tab.credit_account_name || 'Account'})`;
+                chargeAccountBtn.innerHTML = `<i class="fa-solid fa-crown me-1" style="color: #c2a889;"></i> Charge to VIP Account (${tab.credit_account_name || 'Account'})`;
             }
-            activeTabBadge.innerHTML = `<span class="badge bg-warning text-dark border border-warning shadow-sm px-2.5 py-1 fs-7 fw-bold"><i class="fa-solid fa-crown me-1"></i> VIP Account (${tab.credit_account_name || 'N/A'})</span>`;
+            activeTabBadge.innerHTML = `<span class="badge px-2.5 py-1 fs-7 fw-bold shadow-sm" style="background: #504538; color: #ffffff; border: 1px solid #504538; font-family: 'Lucida Fax', serif;"><i class="fa-solid fa-crown me-1" style="color: #c2a889;"></i> VIP Account (${tab.credit_account_name || 'N/A'})</span>`;
         } else {
             walkinActions.classList.remove('d-none');
-            activeTabBadge.innerHTML = `<span class="badge bg-secondary px-2.5 py-1 fs-7 fw-semibold">Walk-in</span>`;
+            activeTabBadge.innerHTML = `<span class="badge px-2.5 py-1 fs-7 fw-semibold" style="background: #504538; color: #ffffff; font-family: 'Lucida Fax', serif;">Walk-in</span>`;
         }
 
         const discountBadge = document.getElementById('active-tab-discount-badge');
@@ -445,17 +451,18 @@
                         ${product.category || ''}
                     </small>
 
-                    <div class="fw-bold text-primary">
+                    <div class="fw-bold" style="color: #504538; font-family: 'Lucida Fax', 'Georgia', serif; font-size: 1.05rem;">
                         ${formatMoney(product.price)}
                     </div>
 
-                    <small class="${!product.is_stockable ? 'text-success' : (isOutOfStock ? 'text-danger' : 'text-muted')}">
+                    <small class="${!product.is_stockable ? 'text-success' : (isOutOfStock ? 'text-danger' : '')}" style="${!product.is_stockable || isOutOfStock ? '' : 'color: #827567;'} font-family: 'Lucida Fax', serif;">
                         ${!product.is_stockable ? 'Available' : (isOutOfStock ? 'Sold out' : `Stock: ${product.stock_quantity}`)}
                     </small>
 
                     <button
                         type="button"
-                        class="btn btn-primary w-100 mt-auto add-product-btn"
+                        class="btn text-white w-100 mt-auto add-product-btn fw-bold"
+                        style="background-color: #334c42; border: none; font-family: 'Lucida Fax', 'Georgia', serif;"
                         data-product-id="${product.product_id}"
                         ${isOutOfStock ? 'disabled' : ''}>
                         ADD

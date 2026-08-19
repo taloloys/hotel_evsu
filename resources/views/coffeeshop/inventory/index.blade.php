@@ -85,7 +85,7 @@
                 </select>
 
                 <div class="d-flex gap-2">
-                    <button type="submit" class="btn btn-primary w-50" style="height: 38px;">Apply</button>
+                    <button type="submit" class="btn text-white w-50 fw-bold" style="height: 38px; background-color: #334c42; border: none;">Apply</button>
                     <a href="{{ route('coffeeshop.inventory') }}" class="btn btn-light w-50 d-flex align-items-center justify-content-center" style="height: 38px;">Reset</a>
                 </div>
             </div>
@@ -98,16 +98,16 @@
         <div class="card border-1 shadow-sm rounded-4 overflow-hidden">
             <div class="table-responsive">
                 <table class="table align-middle mb-0 coffeeshop-table">
-                    <thead>
-                        <tr><th>Product</th><th>Category</th><th>Stock</th><th>Status</th><th>Adjust</th></tr>
+                    <thead style="background: #f8f3ed; color: #827567; font-family: 'Franklin Gothic Medium', 'Franklin Gothic', sans-serif;">
+                        <tr><th style="color: #827567;">Product</th><th style="color: #827567;">Category</th><th style="color: #827567;">Stock</th><th style="color: #827567;">Status</th><th style="color: #827567;">Adjust</th></tr>
                     </thead>
-                    <tbody>
+                    <tbody style="font-family: 'Lucida Fax', 'Georgia', serif;">
                     @foreach($products as $product)
                         @php [$label, $color] = stockStatus($product); @endphp
                         <tr class="{{ $product->stock_quantity == 0 ? 'table-danger' : '' }}">
-                            <td class="fw-semibold text-brown">{{ $product->name }}</td>
-                            <td>{{ $product->category?->name ?? '—' }}</td>
-                            <td>{{ $product->stock_quantity }}</td>
+                            <td class="fw-semibold" style="color: #504538;">{{ $product->name }}</td>
+                            <td style="color: #212529;">{{ $product->category?->name ?? '—' }}</td>
+                            <td style="color: #212529;">{{ $product->stock_quantity }}</td>
                             <td><span class="coffeeshop-pill bg-{{ $color }}-subtle text-{{ $color }}">{{ $label }}</span></td>
                             <td>
                                 <form action="{{ route('coffeeshop.inventory.adjust', $product) }}" method="POST" class="d-flex gap-2 flex-wrap align-items-center">
@@ -127,7 +127,7 @@
                                            style="width:115px; border: 1px solid black;"
                                            required>
                                     <input type="text" name="notes" class="form-control form-control-sm rounded-pill" placeholder="Notes (optional)" style="width:300px; border: 1px solid black;">
-                                    <button type="submit" class="btn btn-sm btn-primary rounded-pill px-3">Apply</button>
+                                    <button type="submit" class="btn btn-sm text-white rounded-pill px-3 fw-bold" style="background-color: #334c42; border: none;">Apply</button>
                                 </form>
                             </td>
                         </tr>

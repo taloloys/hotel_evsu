@@ -32,7 +32,7 @@ body {
 }
 
 .dashboard-hero {
-    background: linear-gradient(135deg, var(--coffee-800) 0%, #6a4338 100%);
+    background: linear-gradient(135deg, #504538 0%, #3a3025 100%);
     color: white;
     border-radius: 1.25rem;
     padding: 1.5rem 1.5rem 1.4rem;
@@ -48,17 +48,19 @@ body {
     width: 180px;
     height: 180px;
     border-radius: 50%;
-    background: rgba(255, 255, 255, 0.1);
+    background: rgba(98, 126, 113, 0.25);
 }
 
 .dashboard-hero .hero-title {
     font-size: 1.55rem;
     font-weight: 700;
+    font-family: 'Franklin Gothic Medium', 'Franklin Gothic', sans-serif;
 }
 
 .dashboard-hero .hero-subtitle {
-    color: rgba(255,255,255,0.85);
+    color: rgba(255,255,255,0.88);
     font-size: 1.02rem;
+    font-family: 'Lucida Fax', 'Georgia', serif;
 }
 
 .dashboard-hero .hero-actions {
@@ -312,10 +314,10 @@ body {
                     <div class="hero-subtitle mt-2">Track sales, monitor stock, and keep service moving without extra clicks.</div>
                 </div>
                 <div class="hero-actions mt-4">
-                    <a href="{{ route('coffeeshop.pos') }}" class="btn btn-light btn-soft text-dark">
+                    <a href="{{ route('coffeeshop.pos') }}" class="btn btn-soft text-white" style="background: #c2a889; border: none; font-family: 'Lucida Fax', 'Georgia', serif;">
                         <i class="fa-solid fa-cash-register me-2"></i>Open POS
                     </a>
-                    <a href="{{ route('coffeeshop.orders') }}" class="btn btn-outline-light btn-soft">
+                    <a href="{{ route('coffeeshop.orders') }}" class="btn btn-soft text-white" style="border: 1px solid #c2a889; background: transparent; font-family: 'Lucida Fax', 'Georgia', serif;">
                         <i class="fa-solid fa-receipt me-2"></i>View Orders
                     </a>
                 </div>
@@ -333,8 +335,8 @@ body {
                         <div class="carousel-item active h-100">
                             <div class="d-flex flex-column h-100">
                                 <div class="d-flex justify-content-between align-items-center mb-3">
-                                    <span class="badge bg-warning text-dark fw-bold px-3 py-1.5 rounded-pill uppercase-label">
-                                        <i class="fa-solid fa-star me-1"></i> Featured Product
+                                    <span class="badge fw-bold px-3 py-1.5 rounded-pill uppercase-label" style="background: #627e71; color: #ffffff; font-family: 'Lucida Fax', 'Georgia', serif;">
+                                        <i class="fa-solid fa-star me-1" style="color: #c2a889;"></i> Featured Product
                                     </span>
                                     <span class="text-muted small" style="font-size: 0.75rem;">Month of {{ now()->format('F Y') }}</span>
                                 </div>
@@ -574,31 +576,31 @@ body {
         <!-- Left Column: Live Order Stream -->
         <div class="col-lg-8">
             <div class="dashboard-panel border-0 shadow-sm" style="background: #fffdfb; border-radius: 1.25rem; overflow: hidden;">
-                <div class="panel-header d-flex justify-content-between align-items-center p-3 border-bottom" style="background: linear-gradient(90deg, #fff8ef 0%, #f8efe3 100%);">
+                <div class="panel-header d-flex justify-content-between align-items-center p-3 border-bottom" style="background: #f5ebe0; border-color: #e7dccf !important;">
                     <div>
-                        <h5 class="fw-bold mb-1 text-brown" style="font-size: 1.2rem;"><i class="fa-solid fa-receipt me-2 text-warning"></i>Live Order Feed</h5>
-                        <div class="text-muted" style="font-size: 0.95rem;">Real-time café transaction stream. Updates dynamically.</div>
+                        <h5 class="fw-bold mb-1 font-display" style="color: #504538; font-size: 1.2rem;"><i class="fa-solid fa-receipt me-2" style="color: #334c42;"></i>Live Order Feed</h5>
+                        <div class="font-body" style="color: #827567; font-size: 0.95rem;">Real-time café transaction stream. Updates dynamically.</div>
                     </div>
                     <div class="d-flex align-items-center gap-2">
                         <span class="pulse-live"></span>
-                        <span class="text-success fw-bold uppercase-label" style="font-size: 0.85rem;">Live Monitor</span>
+                        <span class="fw-bold uppercase-label" style="color: #334c42; font-size: 0.85rem;">Live Monitor</span>
                     </div>
                 </div>
                 <div class="p-3">
                     <div class="table-responsive">
                         <table class="table align-middle mb-0 dashboard-table">
                             <thead>
-                                <tr style="font-size: 0.85rem;">
-                                    <th class="text-nowrap">Order</th>
-                                    <th>Customer</th>
-                                    <th>Ordered Items</th>
-                                    <th>Total</th>
-                                    <th>Payment Method</th>
-                                    <th>Status</th>
-                                    <th>Order Time</th>
+                                <tr style="font-size: 0.85rem; background-color: #f8f3ed; color: #827567; font-family: 'Franklin Gothic Medium', 'Franklin Gothic', sans-serif;">
+                                    <th class="text-nowrap" style="color: #827567;">Order</th>
+                                    <th style="color: #827567;">Customer</th>
+                                    <th style="color: #827567;">Ordered Items</th>
+                                    <th style="color: #827567;">Total</th>
+                                    <th style="color: #827567;">Payment Method</th>
+                                    <th style="color: #827567;">Status</th>
+                                    <th style="color: #827567;">Order Time</th>
                                 </tr>
                             </thead>
-                            <tbody id="recent-orders-rows">
+                            <tbody id="recent-orders-rows" style="font-family: 'Lucida Fax', 'Georgia', serif;">
                                 @include('coffeeshop.dashboard.partials.recent_orders', ['recentOrders' => $recentOrders])
                             </tbody>
                         </table>
@@ -612,41 +614,47 @@ body {
             <!-- Insight 1: Open Tabs Monitor -->
             <div class="dashboard-panel mb-3 border-0 shadow-sm p-3" style="background: linear-gradient(135deg, #fffdfb 0%, #fcf7f0 100%); border-radius: 1.25rem;">
                 <div class="d-flex justify-content-between align-items-center mb-3">
-                    <h6 class="fw-bold text-brown mb-0" style="font-size: 0.98rem;"><i class="fa-solid fa-folder-open me-2 text-warning"></i>Open Tabs</h6>
-                    <span class="badge bg-success-subtle text-success rounded-pill px-2.5 py-1" style="font-size: 0.75rem;">{{ $openTabs->count() }} active</span>
+                    <h6 class="fw-bold mb-0 font-display" style="color: #504538; font-size: 0.98rem;"><i class="fa-solid fa-folder-open me-2" style="color: #627e71;"></i>Open Tabs</h6>
+                    <span class="badge rounded-pill px-2.5 py-1 fw-semibold" style="font-size: 0.75rem; background: rgba(98, 126, 113, 0.12); color: #334c42; border: 1px solid #627e71;">{{ $openTabs->count() }} active</span>
                 </div>
                 <div class="d-flex flex-column gap-2" style="max-height: 200px; overflow-y: auto;">
                     @forelse($openTabs->take(5) as $tab)
                         <div class="d-flex justify-content-between align-items-center p-2.5 p-2 rounded bg-white border border-light shadow-sm hover-translate" style="transition: all 0.2s ease;">
                             <div>
-                                <div class="fw-semibold text-dark" style="font-size: 0.92rem;">{{ $tab->tab_name }}</div>
-                                <div class="text-muted" style="font-size: 0.78rem;">
+                                <div class="fw-semibold text-dark" style="font-size: 0.92rem; font-family: 'Lucida Fax', 'Georgia', serif;">{{ $tab->tab_name }}</div>
+                                <div style="color: #827567; font-size: 0.78rem; font-family: 'Lucida Fax', 'Georgia', serif;">
                                     {{ $tab->tab_type === 'room' ? 'Room ' . ($tab->room?->room_number ?? 'N/A') : 'Walk-in' }}
                                 </div>
                             </div>
                             <div class="text-end">
-                                <span class="fw-bold text-success" style="font-size: 0.95rem;">₱{{ number_format($tab->total, 2) }}</span>
+                                <span class="fw-bold" style="color: #334c42; font-size: 0.95rem; font-family: 'Lucida Fax', 'Georgia', serif;">₱{{ number_format($tab->total, 2) }}</span>
                             </div>
                         </div>
                     @empty
-                        <div class="text-muted text-center py-3" style="font-size: 0.9rem;">No active tabs open.</div>
+                        <div class="text-center py-3 font-body" style="color: #827567; font-size: 0.9rem;">No active tabs open.</div>
                     @endforelse
                 </div>
             </div>
 
             <!-- Insight 2: Category Distribution Chart -->
             <div class="dashboard-panel border-0 shadow-sm p-3.5 p-3 mb-3" style="background: linear-gradient(135deg, #fffdfb 0%, #fcf7f0 100%); border-radius: 1.25rem;">
-                <h6 class="fw-bold text-brown mb-3" style="font-size: 0.98rem;"><i class="fa-solid fa-chart-pie me-2 text-info"></i>Category Sales</h6>
+                <h6 class="fw-bold mb-3 font-display" style="color: #504538; font-size: 0.98rem;"><i class="fa-solid fa-chart-pie me-2" style="color: #334c42;"></i>Category Sales</h6>
                 <div class="d-flex flex-column gap-2.5 gap-2">
-                    @foreach($categoryDistribution as $cat)
+                    @php
+                        $barColors = ['#334c42', '#627e71', '#c2a889', '#827567'];
+                    @endphp
+                    @foreach($categoryDistribution as $index => $cat)
+                        @php
+                            $color = $barColors[$index % count($barColors)];
+                        @endphp
                         <div>
-                            <div class="d-flex justify-content-between text-dark mb-1" style="font-size: 0.88rem;">
+                            <div class="d-flex justify-content-between text-dark mb-1" style="font-size: 0.88rem; font-family: 'Lucida Fax', 'Georgia', serif;">
                                 <span class="fw-semibold">{{ $cat['name'] }}</span>
-                                <span class="text-muted fw-bold">{{ $cat['percentage'] }}% @if(isset($cat['qty']) && $cat['qty'] > 0)· {{ $cat['qty'] }} sold @endif</span>
+                                <span style="color: #827567; font-weight: 600;">{{ $cat['percentage'] }}% @if(isset($cat['qty']) && $cat['qty'] > 0)· {{ $cat['qty'] }} sold @endif</span>
                             </div>
                             <div class="progress" style="height: 8px; background-color: #efe2d5; border-radius: 99px; overflow: hidden;">
                                 <div class="progress-bar" role="progressbar" 
-                                     style="width: {{ $cat['percentage'] }}%; transition: width 1.5s cubic-bezier(0.1, 1, 0.1, 1); background-color: var(--coffee-700) !important;" 
+                                     style="width: {{ $cat['percentage'] }}%; transition: width 1.5s cubic-bezier(0.1, 1, 0.1, 1); background-color: {{ $color }} !important;" 
                                      aria-valuenow="{{ $cat['percentage'] }}" aria-valuemin="0" aria-valuemax="100">
                                 </div>
                             </div>
@@ -657,14 +665,14 @@ body {
 
             <!-- Insight 3: Hourly Peak Period -->
             <div class="dashboard-panel border-0 shadow-sm p-3.5 p-4" style="background: linear-gradient(135deg, #fffdfb 0%, #fcf7f0 100%); border-radius: 1.25rem;">
-                <h6 class="fw-bold text-brown mb-3" style="font-size: 0.98rem;"><i class="fa-solid fa-clock me-2 text-danger"></i>Peak Operations</h6>
+                <h6 class="fw-bold mb-3 font-display" style="color: #504538; font-size: 0.98rem;"><i class="fa-solid fa-clock me-2" style="color: #334c42;"></i>Peak Operations</h6>
                 <div class="d-flex align-items-center gap-3">
                     <div class="rounded-circle d-flex align-items-center justify-content-center bg-danger-subtle text-danger" style="width: 48px; height: 48px; flex-shrink: 0;">
                         <i class="fa-solid fa-fire animate-pulse" style="font-size: 1.2rem;"></i>
                     </div>
                     <div>
-                        <div class="fw-bold text-dark mb-1" style="font-size: 0.95rem;">Peak Period (08:00 AM - 11:00 AM)</div>
-                        <div class="text-muted" style="font-size: 0.84rem; line-height: 1.4;">Current capacity load: Moderate. Peak demand expected around breakfast & coffee rush.</div>
+                        <div class="fw-bold text-dark mb-1 font-display" style="font-size: 0.95rem;">Peak Period (08:00 AM - 11:00 AM)</div>
+                        <div class="font-body" style="color: #827567; font-size: 0.84rem; line-height: 1.4;">Current capacity load: Moderate. Peak demand expected around breakfast & coffee rush.</div>
                     </div>
                 </div>
             </div>

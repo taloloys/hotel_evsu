@@ -23,8 +23,8 @@
                 @csrf
                 @include('coffeeshop.products.form')
                 <div class="mt-4 d-flex gap-2">
-                    <button class="btn btn-primary rounded-pill px-4">Save Product</button>
-                    <a href="{{ route('coffeeshop.products') }}" class="btn btn-outline-secondary rounded-pill px-4">Cancel</a>
+                    <button class="btn text-white rounded-pill px-4 font-brand fw-bold" style="background-color: #334c42; border: none; font-family: 'Lucida Fax', serif;">Save Product</button>
+                    <a href="{{ route('coffeeshop.products') }}" class="btn rounded-pill px-4 font-brand" style="border: 1px solid #827567; color: #504538; font-family: 'Lucida Fax', serif;">Cancel</a>
                 </div>
             </form>
         </div>

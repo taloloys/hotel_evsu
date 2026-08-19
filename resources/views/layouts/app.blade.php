@@ -55,69 +55,89 @@
         }
 
         :root {
-            --coffee-950: #2f1c16;
-            --coffee-800: #4e342e;
-            --coffee-700: #6d4c41;
-            --cream: #f8f5f2;
+            --htm-peppercorn: #504538;
+            --htm-pineneedle: #334c42;
+            --htm-forestedge: #627e71;
+            --htm-corkwedge: #c2a889;
+            --htm-coolcamo: #827567;
+            --coffee-950: #504538;
+            --coffee-800: #504538;
+            --coffee-700: #627e71;
+            --cream: #f8f3ed;
             --latte: #efe1cf;
-            --caramel: #a97142;
-            --accent-green: #4caf50;
-            --accent-red: #e53935;
+            --caramel: #c2a889;
+            --accent-green: #627e71;
+            --accent-red: #dc3545;
             --border-soft: #e7dccf;
-            --shadow-soft: 0 14px 34px rgba(78, 52, 46, 0.08);
+            --shadow-soft: 0 14px 34px rgba(80, 69, 56, 0.08);
         }
 
-        body{
-            background:linear-gradient(180deg, #f7efe8 0%, #f4f7fc 100%);
-            font-family:'Inter', 'Segoe UI', -apple-system, sans-serif;
-            font-size: 1.02rem;
+        .font-display {
+            font-family: 'Franklin Gothic Medium', 'Franklin Gothic', 'Arial Black', sans-serif !important;
+        }
+        .font-body {
+            font-family: 'Plus Jakarta Sans', 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif !important;
+        }
+        .font-brand {
+            font-family: 'Lucida Fax', 'Georgia', serif !important;
+        }
+        .font-script {
+            font-family: 'Quick Kiss', 'Great Vibes', 'Caveat', cursive !important;
+        }
+
+        body {
+            background: #f7f3ed;
+            font-family: 'Plus Jakarta Sans', 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            font-size: 0.98rem;
             line-height: 1.5;
+            color: #2b231b;
         }
 
-        .sidebar{
-            width:260px;
-            height:100vh;
-            background:linear-gradient(180deg, #2b1c15 0%, #1d120d 100%);
-            position:fixed;
-            left:0;
-            top:0;
-            overflow-y:auto;
+        .sidebar {
+            width: 260px;
+            height: 100vh;
+            background: #453b30;
+            position: fixed;
+            left: 0;
+            top: 0;
+            overflow-y: auto;
             box-shadow: 0 0 30px rgba(0,0,0,.18);
         }
 
-        .main-content{
-            margin-left:260px;
-            padding:30px;
+        .main-content {
+            margin-left: 260px;
+            padding: 30px;
         }
 
-        .content-card{
-            background:#fff;
-            border:none;
-            border-radius:20px;
-            box-shadow:0 5px 20px rgba(0,0,0,.05);
+        .content-card {
+            background: #fff;
+            border: none;
+            border-radius: 20px;
+            box-shadow: 0 5px 20px rgba(0,0,0,.05);
         }
 
-        .stat-card{
-            border-radius:20px;
-            color:white;
-            padding:25px;
+        .stat-card {
+            border-radius: 20px;
+            color: white;
+            padding: 25px;
         }
 
-        .nav-link{
-            color:#cbd5e1;
-            padding:12px 16px;
-            border-radius:12px;
-            margin-bottom:8px;
+        .nav-link {
+            color: #f4eee6;
+            padding: 12px 16px;
+            border-radius: 12px;
+            margin-bottom: 8px;
+            font-family: 'Plus Jakarta Sans', 'Inter', sans-serif;
         }
 
-        .nav-link:hover{
-            background:#1e293b;
-            color:white;
+        .nav-link:hover {
+            background: #2f473c;
+            color: #ffffff;
         }
 
-        .nav-link.active{
-            background:#2563eb;
-            color:white;
+        .nav-link.active {
+            background: #3a594b;
+            color: #ffffff;
         }
 
         .sidebar .menu-section {
@@ -125,28 +145,35 @@
         }
 
         .sidebar .menu-section .text-uppercase {
-            letter-spacing: 0.12em;
-            color: rgba(255,255,255,0.58) !important;
+            letter-spacing: 0.1em;
+            color: #d4c5b3 !important;
+            font-weight: 700;
+            font-size: 0.78rem;
+            font-family: 'Plus Jakarta Sans', 'Inter', sans-serif;
         }
 
         .sidebar .nav-link {
-            color: #e9d8c9;
+            color: #f4eee6;
+            font-weight: 500;
+            font-size: 0.95rem;
             padding: 0.7rem 0.8rem;
-            border-radius: 0.9rem;
+            border-radius: 0.75rem;
             margin-bottom: 0.35rem;
             transition: all 180ms ease;
+            font-family: 'Plus Jakarta Sans', 'Inter', sans-serif;
         }
 
         .sidebar .nav-link:hover {
-            background: rgba(255,255,255,0.08);
+            background: #2f473c;
             color: #ffffff;
             transform: translateX(2px);
         }
 
         .sidebar .nav-link.active {
-            background: linear-gradient(135deg, var(--caramel), var(--coffee-700));
+            background: #3a594b;
             color: #ffffff;
-            box-shadow: 0 10px 20px rgba(78, 52, 46, 0.2);
+            font-weight: 700;
+            box-shadow: 0 4px 14px rgba(0, 0, 0, 0.25);
         }
 
         .coffeeshop-nav .nav-link {
@@ -169,10 +196,10 @@
         }
 
         .coffeeshop-nav .nav-link.active {
-            background: linear-gradient(135deg, var(--coffee-700), var(--caramel));
-            color: #ffffff;
+            background: #334c42 !important;
+            color: #ffffff !important;
             border-color: transparent;
-            box-shadow: 0 8px 16px rgba(78, 52, 46, 0.16);
+            box-shadow: 0 4px 14px rgba(51, 76, 66, 0.25);
         }
 
         .coffeeshop-page-shell {

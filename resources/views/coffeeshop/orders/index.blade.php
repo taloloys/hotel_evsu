@@ -64,26 +64,26 @@
 
             <table class="table table-hover align-middle mb-0 coffeeshop-table">
 
-                <thead class="table-light">
+                <thead style="background: #f8f3ed; color: #827567; font-family: 'Franklin Gothic Medium', 'Franklin Gothic', sans-serif;">
                     <tr>
-                        <th>Order</th>
-                        <th>Customer</th>
-                        <th>Room</th>
-                        <th>Payment</th>
-                        <th>Total</th>
-                        <th>Status</th>
+                        <th style="color: #827567;">Order</th>
+                        <th style="color: #827567;">Customer</th>
+                        <th style="color: #827567;">Room</th>
+                        <th style="color: #827567;">Payment</th>
+                        <th style="color: #827567;">Total</th>
+                        <th style="color: #827567;">Status</th>
                         <th></th>
                     </tr>
                 </thead>
 
-                <tbody>
+                <tbody style="font-family: 'Lucida Fax', 'Georgia', serif;">
 
                 @forelse($orders as $order)
 
                     <tr>
-                        <td class="fw-semibold">{{ $order->order_number }}</td>
-                        <td>{{ $order->customer_name }}</td>
-                        <td>{{ $order->room_number ?? '—' }}</td>
+                        <td class="fw-semibold" style="color: #504538;">{{ $order->order_number }}</td>
+                        <td style="color: #212529;">{{ $order->customer_name }}</td>
+                        <td style="color: #212529;">{{ $order->room_number ?? '—' }}</td>
                         <td>
                             @if($order->payment_method)
                                 @php
@@ -102,7 +102,7 @@
                                 —
                             @endif
                         </td>
-                        <td class="fw-bold text-primary">₱{{ number_format($order->total, 2) }}</td>
+                        <td class="fw-bold" style="color: #334c42;">₱{{ number_format($order->total, 2) }}</td>
                         <td>
                             <span class="badge bg-secondary">{{ strtoupper($order->status) }}</span>
                             @php

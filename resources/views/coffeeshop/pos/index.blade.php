@@ -8,11 +8,11 @@
 <div id="pos-alert" class="alert d-none"></div>
 
 <div class="coffeeshop-page-shell">
-    <div class="coffeeshop-hero">
+    <div class="coffeeshop-hero" style="background: linear-gradient(135deg, #504538 0%, #3a3025 100%);">
         <div class="d-flex flex-column flex-lg-row justify-content-between gap-3 align-items-lg-center">
             <div>
-                <div class="fw-bold fs-5">Coffee shop POS</div>
-                <div class="opacity-75 mt-1">Create tabs, add drinks and snacks, and check out with a streamlined flow.</div>
+                <div class="fw-bold fs-5 font-display" style="font-family: 'Franklin Gothic Medium', 'Franklin Gothic', sans-serif;">Coffee shop POS</div>
+                <div class="opacity-75 mt-1 font-brand" style="font-family: 'Lucida Fax', 'Georgia', serif;">Create tabs, add drinks and snacks, and check out with a streamlined flow.</div>
             </div>
         </div>
     </div>
@@ -24,7 +24,7 @@
         @if(!empty($suggestedPairings))
         <div class="coffeeshop-card mb-3 p-3">
             <div class="card-header border-0 bg-transparent">
-                <strong>
+                <strong class="font-display" style="color: #504538; font-family: 'Franklin Gothic Medium', 'Franklin Gothic', sans-serif;">
                     <i class="fa-solid fa-lightbulb text-warning me-2"></i>
                     Suggested Pairings
                 </strong>
@@ -39,7 +39,7 @@
                             $items = explode(',', $pairing);
                             $displayName = implode(' + ', $items);
                         @endphp
-                        <button class="btn btn-outline-success btn-sm pairing-btn" data-items="{{ $pairing }}">
+                        <button class="btn btn-sm pairing-btn" style="border: 1px solid #627e71; color: #334c42; background: transparent; font-family: 'Lucida Fax', 'Georgia', serif;" data-items="{{ $pairing }}">
                             {{ $displayName }}
                         </button>
                     @endforeach
@@ -53,14 +53,14 @@
             <div class="card-body">
                 <div class="d-flex flex-wrap gap-2 justify-content-between align-items-center">
                     <div class="d-flex gap-2 flex-wrap" id="category-filters">
-                        <button type="button" class="btn btn-dark px-4 py-2 btn-sm category-btn" data-category="all">All</button>
+                        <button type="button" class="btn px-4 py-2 btn-sm category-btn active" style="background-color: #334c42; border: 1px solid #334c42; color: #ffffff; font-family: 'Lucida Fax', 'Georgia', serif;" data-category="all">All</button>
                         @foreach($categories as $category)
-                        <button type="button" class="btn btn-outline-secondary btn-sm category-btn" data-category="{{ $category->category_id }}">{{ $category->name }}</button>
+                        <button type="button" class="btn btn-sm category-btn" style="border: 1px solid #c2a889; color: #827567; background: transparent; font-family: 'Lucida Fax', 'Georgia', serif;" data-category="{{ $category->category_id }}">{{ $category->name }}</button>
                         @endforeach
                     </div>
-                    <div class="input-group coffeeshop-form-control" style="max-width: 360px; border: 1px solid; overflow: hidden; border-radius: 0.75rem;">
-                        <span class="input-group-text bg-white"><i class="fa-solid fa-search text-muted"></i></span>
-                        <input type="text" id="product-search" class="form-control border-0 shadow-none" placeholder="Search products..." autocomplete="off">
+                    <div class="input-group coffeeshop-form-control" style="max-width: 360px; border: 1px solid #827567; overflow: hidden; border-radius: 0.75rem;">
+                        <span class="input-group-text bg-white"><i class="fa-solid fa-search" style="color: #627e71;"></i></span>
+                        <input type="text" id="product-search" class="form-control border-0 shadow-none font-brand" style="font-family: 'Lucida Fax', 'Georgia', serif;" placeholder="Search products..." autocomplete="off">
                     </div>
                 </div>
             </div>
@@ -95,21 +95,22 @@
                             {{ $product->category?->name }}
                         </small>
 
-                        <div class="fw-bold text-primary">
+                        <div class="fw-bold" style="color: #504538; font-family: 'Lucida Fax', 'Georgia', serif; font-size: 1.05rem;">
                             ₱{{ number_format($product->price, 2) }}
                         </div>
 
                         @if(!$product->is_stockable)
-                            <small class="text-success">Available</small>
+                            <small class="text-success" style="font-family: 'Lucida Fax', serif;">Available</small>
                         @elseif($product->stock_quantity <= 0)
-                            <small class="text-danger">Sold out</small>
+                            <small class="text-danger" style="font-family: 'Lucida Fax', serif;">Sold out</small>
                         @else
-                            <small class="text-muted">Stock: {{ $product->stock_quantity }}</small>
+                            <small style="color: #827567; font-family: 'Lucida Fax', serif;">Stock: {{ $product->stock_quantity }}</small>
                         @endif
 
                         <button
                             type="button"
-                            class="btn btn-primary w-100 mt-auto add-product-btn"
+                            class="btn text-white w-100 mt-auto add-product-btn fw-bold"
+                            style="background-color: #334c42; border: none; font-family: 'Lucida Fax', 'Georgia', serif;"
                             data-product-id="{{ $product->product_id }}"
                             {{ ($product->is_stockable && $product->stock_quantity <= 0) ? 'disabled' : '' }}>
                             ADD
@@ -127,47 +128,47 @@
             <!-- Fixed Top Header -->
             <div class="card-header border-bottom bg-white d-flex justify-content-between align-items-center p-3 flex-shrink-0" style="z-index: 5;">
                 <div>
-                    <div class="fw-bold text-dark fs-6 d-flex align-items-center gap-2">
-                        <i class="fa-solid fa-users text-primary"></i> Customer Tabs
+                    <div class="fw-bold fs-6 d-flex align-items-center gap-2 font-display" style="color: #504538; font-family: 'Franklin Gothic Medium', 'Franklin Gothic', sans-serif;">
+                        <i class="fa-solid fa-users" style="color: #334c42;"></i> Customer Tabs
                     </div>
-                    <small class="text-muted">Multiple open tabs supported</small>
+                    <small style="color: #827567; font-family: 'Lucida Fax', 'Georgia', serif;">Multiple open tabs supported</small>
                 </div>
 
                 <div class="d-flex align-items-center gap-2">
-                    <span class="badge bg-primary fs-6 shadow-sm">
+                    <span class="badge fs-6 shadow-sm" style="background: #334c42; color: #ffffff;">
                         <i class="fa-solid fa-folder-open me-1"></i>
                         <span id="open-tabs-counter">{{ count($openTabs) }}</span> Open
                     </span>
                 </div>
             </div>
 
-            <!-- Sticky Tab Switcher Strip -->
-            <div class="px-3 pt-2 pb-2 bg-light border-bottom flex-shrink-0">
-                <div class="d-flex gap-2 flex-wrap" id="tab-switcher"></div>
+            <!-- Sticky Tab Switcher Strip (Restored Full-Width Stacked Tab Buttons) -->
+            <div class="px-3 py-2 bg-light border-bottom flex-shrink-0" style="max-height: 160px; overflow-y: auto;">
+                <div class="d-flex flex-column gap-2" id="tab-switcher"></div>
             </div>
 
             <!-- Scrollable Middle Body (Form & Cart Items) -->
             <div class="card-body p-3 overflow-y-auto flex-grow-1" id="pos-tabs-scroll-body" style="min-height: 0;">
                 <div id="new-tab-form-container" class="card bg-light border-0 p-3 mb-3 rounded-4 d-none">
                     <div class="mb-3">
-                        <label class="form-label fw-semibold text-muted mb-2">
+                        <label class="form-label fw-semibold mb-2" style="color: #827567; font-family: 'Lucida Fax', serif;">
                             Tab Type
                         </label>
 
                         <div class="btn-group w-100" role="group">
                             <input type="radio" class="btn-check" name="new-tab-type" id="type-walkin" value="walk_in" checked>
-                            <label class="btn btn-outline-secondary py-2 px-3" for="type-walkin" style="font-size: 0.85rem;">
+                            <label class="btn py-2 px-3" for="type-walkin" style="font-size: 0.85rem; background: #504538; color: #ffffff; border: 1px solid #504538; font-family: 'Lucida Fax', serif;">
                                 Walk-in
                             </label>
 
                             <input type="radio" class="btn-check" name="new-tab-type" id="type-room" value="room">
-                            <label class="btn btn-outline-secondary py-2 px-3" for="type-room" style="font-size: 0.85rem;">
+                            <label class="btn py-2 px-3" for="type-room" style="font-size: 0.85rem; border: 1px solid #c2a889; color: #504538; font-family: 'Lucida Fax', serif;">
                                 Room
                             </label>
 
                             <input type="radio" class="btn-check" name="new-tab-type" id="type-account" value="account">
-                            <label class="btn btn-outline-warning text-dark py-2 px-3 fw-bold border-warning" for="type-account" style="font-size: 0.85rem; background: #fffdf2;">
-                                <i class="fa-solid fa-crown text-warning me-1"></i> Account (VIP)
+                            <label class="btn py-2 px-3 fw-bold" for="type-account" style="font-size: 0.85rem; background: #504538; color: #ffffff; border: 1px solid #504538; font-family: 'Lucida Fax', serif;">
+                                <i class="fa-solid fa-crown me-1" style="color: #c2a889;"></i> Account (VIP)
                             </label>
                         </div>
                     </div>
@@ -194,28 +195,28 @@
                         </select>
                     </div>
 
-                    <button type="button" class="btn btn-primary w-100 py-2.5 fw-bold shadow-sm" id="open-tab-btn">
+                    <button type="button" class="btn text-white w-100 py-2.5 fw-bold shadow-sm" id="open-tab-btn" style="background-color: #334c42; border: none; font-family: 'Lucida Fax', 'Georgia', serif;">
                         <i class="fa-solid fa-folder-open me-1"></i> Open Tab
                     </button>
                 </div>
 
-                <div id="active-tab-panel" class="d-none">
-                    <div class="d-flex justify-content-between align-items-center mb-3 pb-2 border-bottom">
-                        <div>
-                            <h5 id="active-tab-name" class="fw-bold text-dark mb-1" style="font-size: 1.25rem;"></h5>
+                <div id="active-tab-panel" class="d-none flex-column h-100">
+                    <div class="d-flex flex-wrap justify-content-between align-items-start gap-2 mb-3 pb-2 border-bottom flex-shrink-0">
+                        <div style="flex: 1; min-width: 0;">
+                            <h5 id="active-tab-name" class="fw-bold mb-1 font-display" style="color: #504538; font-size: 1.15rem; font-family: 'Franklin Gothic Medium', 'Franklin Gothic', sans-serif; word-break: break-word;"></h5>
                             <div id="active-tab-badge" class="mt-1"></div>
-                            <div id="active-tab-discount-badge" class="mt-1 d-none text-success small fw-bold"></div>
+                            <div id="active-tab-discount-badge" class="mt-1 d-none text-success small fw-bold" style="font-family: 'Lucida Fax', 'Georgia', serif;"></div>
                         </div>
-                        <span class="badge bg-primary px-3 py-2 fs-6 shadow-sm" id="active-tab-total">₱0.00</span>
+                        <span class="badge px-3 py-2 fs-6 shadow-sm" id="active-tab-total" style="background: #334c42 !important; color: #ffffff !important; font-family: 'Lucida Fax', 'Georgia', serif;">₱0.00</span>
                     </div>
 
                     <!-- Alert message if there is a pending cancel request -->
-                    <div id="active-tab-pending-alert" class="alert alert-warning py-2 px-3 small d-none my-2">
+                    <div id="active-tab-pending-alert" class="alert alert-warning py-2 px-3 small d-none my-2 flex-shrink-0">
                         <i class="fa-solid fa-clock me-1"></i> Cancellation Pending Authorization
                     </div>
 
                     <!-- Cart items list (scrolls inside body) -->
-                    <div id="cart-items" class="small mb-3"></div>
+                    <div id="cart-items" class="small mb-3 flex-grow-1" style="min-height: 100px;"></div>
 
                     <div class="mt-3 mb-2">
                         <label class="fw-semibold text-muted mb-1 small">
@@ -248,35 +249,35 @@
                         <span id="cart-discount" class="text-success fw-semibold">-₱0.00</span>
                     </div>
                     <div class="d-flex justify-content-between fw-bold fs-5 mb-2 border-top pt-1">
-                        <span class="text-dark">Total</span>
-                        <span id="cart-total" class="text-primary">₱0.00</span>
+                        <span class="text-dark" style="font-family: 'Franklin Gothic Medium', 'Franklin Gothic', sans-serif;">Total</span>
+                        <span id="cart-total" class="fw-bold" style="color: #504538; font-family: 'Lucida Fax', 'Georgia', serif;">₱0.00</span>
                     </div>
 
                     <!-- Primary Checkout Action Buttons -->
                     <div id="checkout-actions-container" class="mb-2">
                         <!-- Walk-in actions -->
                         <div id="walkin-checkout-actions" class="d-none">
-                            <button type="button" class="btn btn-success btn-lg w-100 fw-bold shadow-sm checkout-action-btn" id="pay-walkin-btn">
+                            <button type="button" class="btn btn-success btn-lg w-100 fw-bold shadow-sm checkout-action-btn" id="pay-walkin-btn" style="font-family: 'Lucida Fax', serif;">
                                 <i class="fa-solid fa-cash-register me-2"></i> Pay / Close Tab
                             </button>
                         </div>
 
                         <!-- Room charge actions -->
                         <div id="room-checkout-actions" class="d-none">
-                            <button type="button" class="btn btn-success btn-lg w-100 mb-1.5 fw-bold shadow-sm checkout-action-btn" id="charge-room-btn">
+                            <button type="button" class="btn btn-success btn-lg w-100 mb-1.5 fw-bold shadow-sm checkout-action-btn" id="charge-room-btn" style="font-family: 'Lucida Fax', serif;">
                                 <i class="fa-solid fa-user me-2"></i> Charge to Guest
                             </button>
-                            <button type="button" class="btn btn-outline-success btn-sm w-100 checkout-action-btn" id="pay-direct-btn">
+                            <button type="button" class="btn btn-sm w-100 checkout-action-btn fw-bold" id="pay-direct-btn" style="border: 1px solid #334c42; color: #334c42; background: transparent; font-family: 'Lucida Fax', serif;">
                                 <i class="fa-solid fa-cash-register me-1"></i> Pay Directly
                             </button>
                         </div>
 
                         <!-- Account charge actions -->
                         <div id="account-checkout-actions" class="d-none">
-                            <button type="button" class="btn btn-success btn-lg w-100 mb-1.5 fw-bold shadow-sm checkout-action-btn" id="charge-account-btn">
+                            <button type="button" class="btn btn-success btn-lg w-100 mb-1.5 fw-bold shadow-sm checkout-action-btn" id="charge-account-btn" style="font-family: 'Lucida Fax', serif;">
                                 <i class="fa-solid fa-file-invoice-dollar me-2"></i> Charge to Account
                             </button>
-                            <button type="button" class="btn btn-outline-success btn-sm w-100 checkout-action-btn" id="pay-direct-account-btn">
+                            <button type="button" class="btn btn-sm w-100 checkout-action-btn fw-bold" id="pay-direct-account-btn" style="border: 1px solid #334c42; color: #334c42; background: transparent; font-family: 'Lucida Fax', serif;">
                                 <i class="fa-solid fa-cash-register me-1"></i> Pay Directly
                             </button>
                         </div>
@@ -285,17 +286,17 @@
                     <!-- Floating Quick Management Actions (Transfer, Discount, Cancel Tab) -->
                     <div class="row g-1">
                         <div class="col-4">
-                            <button type="button" class="btn btn-outline-secondary btn-sm w-100 py-1.5 checkout-action-btn" id="transfer-tab-btn" title="Transfer Tab">
+                            <button type="button" class="btn btn-sm w-100 py-1.5 checkout-action-btn fw-bold" id="transfer-tab-btn" style="border: 1px solid #827567; color: #504538; background: transparent; font-family: 'Lucida Fax', serif;" title="Transfer Tab">
                                 <i class="fa-solid fa-exchange-alt me-1"></i> Transfer
                             </button>
                         </div>
                         <div class="col-4">
-                            <button type="button" class="btn btn-outline-info btn-sm w-100 py-1.5 checkout-action-btn" id="discount-tab-btn" title="Discount Tab">
+                            <button type="button" class="btn btn-sm w-100 py-1.5 checkout-action-btn fw-bold" id="discount-tab-btn" style="border: 1px solid #627e71; color: #334c42; background: transparent; font-family: 'Lucida Fax', serif;" title="Discount Tab">
                                 <i class="fa-solid fa-tags me-1"></i> Discount
                             </button>
                         </div>
                         <div class="col-4">
-                            <button type="button" class="btn btn-outline-danger btn-sm w-100 py-1.5 checkout-action-btn" id="cancel-tab-btn" title="Cancel Tab">
+                            <button type="button" class="btn btn-outline-danger btn-sm w-100 py-1.5 checkout-action-btn fw-bold" id="cancel-tab-btn" style="font-family: 'Lucida Fax', serif;" title="Cancel Tab">
                                 <i class="fa-solid fa-ban me-1"></i> Cancel
                             </button>
                         </div>
@@ -303,7 +304,7 @@
                 </div>
 
                 <div id="no-tab-footer-summary" class="text-center text-muted small py-1">
-                    <i class="fa-solid fa-circle-info me-1 text-primary"></i> Pick a tab or click <strong>+ New Customer</strong> above.
+                    <i class="fa-solid fa-circle-info me-1" style="color: #334c42;"></i> Pick a tab or click <strong>+ New Customer</strong> above.
                 </div>
             </div>
         </div>
@@ -316,7 +317,7 @@
         <div class="modal-content border-0 shadow">
 
             <div class="modal-header bg-dark text-white">
-                <h5 class="modal-title">
+                <h5 class="modal-title font-display" style="font-family: 'Franklin Gothic Medium', 'Franklin Gothic', sans-serif;">
                     <i class="fa-solid fa-wallet me-2 text-warning"></i>
                     Settle Payment
                 </h5>
@@ -325,9 +326,9 @@
 
             <div class="modal-body p-4">
 
-                <p class="text-muted small text-center mb-3">
+                <p class="text-muted small text-center mb-3" style="font-family: 'Lucida Fax', serif;">
                     Select the payment method to settle this order of
-                    <strong id="payment-modal-amount" class="text-primary">₱0.00</strong>.
+                    <strong id="payment-modal-amount" class="fw-bold font-brand" style="color: #504538; font-family: 'Lucida Fax', 'Georgia', serif;">₱0.00</strong>.
                 </p>
 
                 <!-- Payment Methods -->
@@ -337,7 +338,7 @@
                             class="btn btn-outline-secondary p-3 text-start d-flex align-items-center justify-content-between payment-method-opt"
                             data-method="cash">
 
-                        <span class="fs-5 fw-semibold">
+                        <span class="fs-5 fw-semibold font-brand" style="font-family: 'Lucida Fax', serif;">
                             <i class="fa-solid fa-money-bill-wave text-success me-3"></i>
                             Cash
                         </span>
@@ -350,7 +351,7 @@
                             class="btn btn-outline-secondary p-3 text-start d-flex align-items-center justify-content-between payment-method-opt"
                             data-method="gcash">
 
-                        <span class="fs-5 fw-semibold">
+                        <span class="fs-5 fw-semibold font-brand" style="font-family: 'Lucida Fax', serif;">
                             <i class="fa-solid fa-mobile-screen text-info me-3"></i>
                             GCash
                         </span>
@@ -363,8 +364,8 @@
                             class="btn btn-outline-secondary p-3 text-start d-flex align-items-center justify-content-between payment-method-opt"
                             data-method="card">
 
-                        <span class="fs-5 fw-semibold">
-                            <i class="fa-solid fa-credit-card text-primary me-3"></i>
+                        <span class="fs-5 fw-semibold font-brand" style="font-family: 'Lucida Fax', serif;">
+                            <i class="fa-solid fa-credit-card me-3" style="color: #334c42;"></i>
                             Card
                         </span>
 
@@ -557,16 +558,16 @@
 <div class="modal fade" id="confirmAccountChargeModal" tabindex="-1">
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content border-0 shadow">
-            <div class="modal-header bg-primary text-white">
-                <h5 class="modal-title"><i class="fa-solid fa-file-invoice-dollar me-2"></i>Charge to Account</h5>
+            <div class="modal-header text-white" style="background-color: #504538;">
+                <h5 class="modal-title font-display" style="font-family: 'Franklin Gothic Medium', 'Franklin Gothic', sans-serif;"><i class="fa-solid fa-file-invoice-dollar me-2" style="color: #c2a889;"></i>Charge to Account</h5>
                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
             </div>
             <div class="modal-body p-4">
-                <p id="account-charge-warning-text" class="text-muted small mb-0">Are you sure you want to charge the total amount to the selected corporate/VIP account?</p>
+                <p id="account-charge-warning-text" class="text-muted small mb-0" style="font-family: 'Lucida Fax', serif;">Are you sure you want to charge the total amount to the selected corporate/VIP account?</p>
             </div>
             <div class="modal-footer border-0">
                 <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Cancel</button>
-                <button type="button" class="btn btn-primary btn-sm text-white" id="confirm-account-charge-submit-btn">Confirm Charge</button>
+                <button type="button" class="btn btn-sm text-white font-brand" id="confirm-account-charge-submit-btn" style="background-color: #334c42; border: none; font-family: 'Lucida Fax', serif;">Confirm Charge</button>
             </div>
         </div>
     </div>
@@ -579,7 +580,7 @@
             </div>
             <div class="modal-footer border-0 p-2 d-flex justify-content-center">
                 <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Close</button>
-                <button type="button" class="btn btn-primary btn-sm" onclick="window.printReceipt()">
+                <button type="button" class="btn btn-sm text-white font-brand" style="background-color: #334c42; border: none; font-family: 'Lucida Fax', serif;" onclick="window.printReceipt()">
                     <i class="fa-solid fa-print me-1"></i> Print Receipt
                 </button>
             </div>

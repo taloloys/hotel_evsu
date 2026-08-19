@@ -110,7 +110,7 @@
                 </div>
 
                 <div class="col-md-3">
-                    <button class="btn btn-primary btn-sm w-100">
+                    <button class="btn text-white btn-sm w-100 fw-bold" style="background-color: #334c42; border: none; font-family: 'Lucida Fax', serif;">
                         Apply Filter
                     </button>
                 </div>
@@ -126,52 +126,52 @@
 <div class="card border-0 shadow-sm">
 
     <div class="card-header bg-white border-0">
-        <div class="fw-bold">Transaction Records</div>
-        <small class="text-muted">Detailed sales history</small>
+        <div class="fw-bold font-display" style="color: #504538;">Transaction Records</div>
+        <small style="color: #827567; font-family: 'Lucida Fax', serif;">Detailed sales history</small>
     </div>
 
     <div class="table-responsive">
 
         <table class="table table-hover align-middle mb-0 coffeeshop-table">
 
-            <thead class="table-light">
+            <thead style="background: #f8f3ed; color: #827567; font-family: 'Franklin Gothic Medium', 'Franklin Gothic', sans-serif;">
                 <tr>
-                    <th>Transaction ID</th>
-                    <th>Time</th>
-                    <th>Items</th>
-                    <th>Payment</th>
-                    <th>Status</th>
-                    <th class="text-end">Total</th>
+                    <th style="color: #827567;">Transaction ID</th>
+                    <th style="color: #827567;">Time</th>
+                    <th style="color: #827567;">Items</th>
+                    <th style="color: #827567;">Payment</th>
+                    <th style="color: #827567;">Status</th>
+                    <th class="text-end" style="color: #827567;">Total</th>
                 </tr>
             </thead>
 
-            <tbody>
+            <tbody style="font-family: 'Lucida Fax', 'Georgia', serif;">
 
                 <tr>
-                    <td class="fw-semibold">TXN-10021</td>
-                    <td>10:30 AM</td>
-                    <td>Cappuccino, Latte</td>
-                    <td>Cash</td>
+                    <td class="fw-semibold" style="color: #504538;">TXN-10021</td>
+                    <td style="color: #212529;">10:30 AM</td>
+                    <td style="color: #212529;">Cappuccino, Latte</td>
+                    <td style="color: #212529;">Cash</td>
                     <td><span class="badge bg-success">Paid</span></td>
-                    <td class="text-end fw-bold">₱420</td>
+                    <td class="text-end fw-bold" style="color: #334c42;">₱420</td>
                 </tr>
 
                 <tr>
-                    <td class="fw-semibold">TXN-10022</td>
-                    <td>10:45 AM</td>
-                    <td>Cheesecake</td>
-                    <td>Card</td>
+                    <td class="fw-semibold" style="color: #504538;">TXN-10022</td>
+                    <td style="color: #212529;">10:45 AM</td>
+                    <td style="color: #212529;">Cheesecake</td>
+                    <td style="color: #212529;">Card</td>
                     <td><span class="badge bg-success">Paid</span></td>
-                    <td class="text-end fw-bold">₱180</td>
+                    <td class="text-end fw-bold" style="color: #334c42;">₱180</td>
                 </tr>
 
                 <tr>
-                    <td class="fw-semibold">TXN-10023</td>
-                    <td>11:10 AM</td>
-                    <td>Iced Americano</td>
-                    <td>Room Charge</td>
+                    <td class="fw-semibold" style="color: #504538;">TXN-10023</td>
+                    <td style="color: #212529;">11:10 AM</td>
+                    <td style="color: #212529;">Iced Americano</td>
+                    <td style="color: #212529;">Room Charge</td>
                     <td><span class="badge bg-warning text-dark">Pending</span></td>
-                    <td class="text-end fw-bold">₱110</td>
+                    <td class="text-end fw-bold" style="color: #334c42;">₱110</td>
                 </tr>
 
             </tbody>
