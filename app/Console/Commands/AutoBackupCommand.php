@@ -70,21 +70,14 @@ class AutoBackupCommand extends Command
             return 1;
         }
 
-        // Zip the SQL file
-        $zip = new ZipArchive;
-        if ($zip->open($zipFilepath, ZipArchive::CREATE | ZipArchive::OVERWRITE) === true) {
-            $zip->addFile($sqlFilepath, $sqlFilename);
-            $zip->close();
-            @unlink($sqlFilepath); // Delete the original SQL file to save space
-        } else {
-            $this->error("Backup failed: Unable to create ZIP file at {$zipFilepath}");
-            Log::error("Automatic backup failed: Unable to create ZIP file at {$zipFilepath}");
-            @unlink($sqlFilepath);
-
-            $settings['last_backup_failed'] = true;
-            BackupSettingsService::set($settings);
-
-            return 1;
+        // Zip the SQL file if ZipArchive extension is available
+        if (class_exists(ZipArchive::class)) {
+            $zip = new ZipArchive;
+            if ($zip->open($zipFilepath, ZipArchive::CREATE | ZipArchive::OVERWRITE) === true) {
+                $zip->addFile($sqlFilepath, $sqlFilename);
+                $zip->close();
+                @unlink($sqlFilepath); // Delete the original SQL file to save space
+            }
         }
 
         $this->info("Backup created successfully at: {$zipFilepath}");

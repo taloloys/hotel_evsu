@@ -257,39 +257,36 @@ class BackupRestoreController extends Controller
                 ->with('error', 'Backup failed: Unable to export database tables.');
         }
 
-        $zip = new ZipArchive;
-        if ($zip->open($serverZipFilePath, ZipArchive::CREATE | ZipArchive::OVERWRITE) === true) {
-            $zip->addFile($serverSqlFilePath, $sqlFilename);
-            $zip->close();
-            @unlink($serverSqlFilePath);
-        } else {
-            @unlink($serverSqlFilePath);
-            if ($request->wantsJson()) {
-                return response()->json([
-                    'success' => false,
-                    'error' => 'Backup failed: Unable to create ZIP file.',
-                ], 500);
-            }
+        $finalFilePath = $serverSqlFilePath;
+        $finalFilename = $sqlFilename;
+        $contentType = 'text/plain';
 
-            return redirect()
-                ->route('admin.backup-restore')
-                ->with('error', 'Backup failed: Unable to create ZIP file.');
+        if (class_exists(ZipArchive::class)) {
+            $zip = new ZipArchive;
+            if ($zip->open($serverZipFilePath, ZipArchive::CREATE | ZipArchive::OVERWRITE) === true) {
+                $zip->addFile($serverSqlFilePath, $sqlFilename);
+                $zip->close();
+                @unlink($serverSqlFilePath);
+                $finalFilePath = $serverZipFilePath;
+                $finalFilename = $zipFilename;
+                $contentType = 'application/zip';
+            }
         }
 
         ActivityLog::log(
             'DATABASE_BACKUP',
-            'Database backup created and saved: '.$zipFilename
+            'Database backup created and saved: '.$finalFilename
         );
 
         if ($request->wantsJson()) {
             return response()->json([
                 'success' => true,
-                'filename' => $zipFilename,
+                'filename' => $finalFilename,
             ]);
         }
 
-        return response()->download($serverZipFilePath, $zipFilename, [
-            'Content-Type' => 'application/zip',
+        return response()->download($finalFilePath, $finalFilename, [
+            'Content-Type' => $contentType,
         ]);
     }
 
