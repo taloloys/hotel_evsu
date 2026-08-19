@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Models\Permission;
 use App\Models\Role;
+use App\Models\User;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
@@ -16,7 +17,16 @@ class RoleController extends Controller
      */
     public function index(): View
     {
-        $roles = Role::with('permissions')->withCount('users')->get();
+        /** @var User $currentUser */
+        $currentUser = auth()->user();
+
+        $rolesQuery = Role::with('permissions')->withCount('users');
+        if (! $currentUser?->isSuperAdmin()) {
+            $rolesQuery->where('role_name', '!=', 'SUPER_ADMIN')
+                ->where('is_system_admin', false);
+        }
+        $roles = $rolesQuery->get();
+
         $permissions = Permission::where('is_active', true)->get();
 
         return view('admin.roles.index', compact('roles', 'permissions'));
@@ -54,11 +64,11 @@ class RoleController extends Controller
      */
     public function update(Request $request, Role $role): RedirectResponse
     {
-        // Prevent editing the ADMIN role
-        if (strtoupper($role->role_name) === 'ADMIN') {
+        // Prevent editing the ADMIN or SUPER_ADMIN role
+        if (in_array(strtoupper($role->role_name), ['ADMIN', 'SUPER_ADMIN'], true)) {
             return redirect()
                 ->route('admin.roles')
-                ->withErrors(['cannot_edit_admin' => 'The Administrator role cannot be modified.']);
+                ->withErrors(['cannot_edit_admin' => 'System administrator roles cannot be modified.']);
         }
 
         $validated = $request->validate([
@@ -85,11 +95,11 @@ class RoleController extends Controller
      */
     public function toggleStatus(Role $role): RedirectResponse
     {
-        // Prevent disabling the ADMIN role
-        if (strtoupper($role->role_name) === 'ADMIN') {
+        // Prevent disabling the ADMIN or SUPER_ADMIN role
+        if (in_array(strtoupper($role->role_name), ['ADMIN', 'SUPER_ADMIN'], true)) {
             return redirect()
                 ->route('admin.roles')
-                ->withErrors(['cannot_disable_admin' => 'The Administrator role cannot be disabled.']);
+                ->withErrors(['cannot_disable_admin' => 'System administrator roles cannot be disabled.']);
         }
 
         $role->update(['is_active' => ! $role->is_active]);

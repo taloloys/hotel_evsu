@@ -284,6 +284,19 @@
                                         <i class="fa-solid fa-user-gear"></i>
                                     </button>
 
+                                    {{-- RESET PASSWORD --}}
+                                    <button type="button"
+                                            class="btn btn-outline-info btn-sm px-2"
+                                            title="Reset Password"
+                                            data-bs-toggle="modal"
+                                            data-bs-target="#resetPasswordModal"
+                                            data-user-id="{{ $user->user_id }}"
+                                            data-full-name="{{ $user->full_name }}"
+                                            data-username="{{ $user->username }}"
+                                            data-reset-url="{{ route('admin.users.reset-password', $user) }}">
+                                        <i class="fa-solid fa-key"></i>
+                                    </button>
+
                                     {{-- TOGGLE STATUS --}}
                                     @if(auth()->id() === $user->user_id)
                                         <button class="btn btn-outline-secondary btn-sm px-2"
@@ -702,6 +715,66 @@
     </div>
 </div>
 
+<!-- =========================================================
+     RESET PASSWORD MODAL
+     ========================================================= -->
+<div class="modal fade" id="resetPasswordModal" tabindex="-1" aria-labelledby="resetPasswordModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content" style="border-radius: 10px; overflow: hidden;">
+
+            <!-- HEADER -->
+            <div class="modal-header bg-light">
+                <h5 class="modal-title fw-bold" id="resetPasswordModalLabel">
+                    <i class="fa-solid fa-key me-2 text-info"></i>
+                    Reset User Password
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+
+            <form method="POST" id="resetPasswordForm" action="">
+                @csrf
+
+                <div class="modal-body px-4 py-4">
+                    <p class="mb-3">
+                        Set a new password for <strong id="reset_user_display_name">—</strong> (<span id="reset_user_username" class="text-muted">—</span>):
+                    </p>
+
+                    <div class="mb-3">
+                        <label for="reset_new_password" class="form-label fw-semibold">New Password <span class="text-danger">*</span></label>
+                        <input type="password"
+                               id="reset_new_password"
+                               name="password"
+                               class="form-control form-control-lg"
+                               placeholder="Minimum 6 characters"
+                               required>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="reset_new_password_confirmation" class="form-label fw-semibold">Confirm New Password <span class="text-danger">*</span></label>
+                        <input type="password"
+                               id="reset_new_password_confirmation"
+                               name="password_confirmation"
+                               class="form-control form-control-lg"
+                               placeholder="Re-enter new password"
+                               required>
+                    </div>
+                </div>
+
+                <div class="modal-footer bg-light">
+                    <button type="button" class="btn btn-light px-4" data-bs-dismiss="modal">
+                        Cancel
+                    </button>
+                    <button type="submit" class="btn btn-info text-white px-4">
+                        <i class="fa-solid fa-key me-1"></i>Reset Password
+                    </button>
+                </div>
+
+            </form>
+
+        </div>
+    </div>
+</div>
+
 @endsection
 
 @push('scripts')
@@ -711,6 +784,19 @@
         document.querySelectorAll('.toast').forEach(function (el) {
             new bootstrap.Toast(el).show();
         });
+
+        // ── Reset Password modal population ────────────────────────────────────
+        const resetPasswordModal = document.getElementById('resetPasswordModal');
+        if (resetPasswordModal) {
+            resetPasswordModal.addEventListener('show.bs.modal', function (event) {
+                const btn = event.relatedTarget;
+                document.getElementById('reset_user_display_name').textContent = btn.dataset.fullName;
+                document.getElementById('reset_user_username').textContent     = btn.dataset.username;
+                document.getElementById('reset_new_password').value             = '';
+                document.getElementById('reset_new_password_confirmation').value = '';
+                document.getElementById('resetPasswordForm').action             = btn.dataset.resetUrl;
+            });
+        }
 
         // ── View Details modal population ─────────────────────────────────────
         const viewUserModal = document.getElementById('viewUserModal');

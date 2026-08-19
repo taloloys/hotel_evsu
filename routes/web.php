@@ -41,6 +41,7 @@ use App\Http\Controllers\Frontdesk\ReservationController;
 use App\Http\Controllers\Frontdesk\ShiftController as FrontdeskShiftController;
 use App\Http\Controllers\Frontdesk\ShiftSalesController;
 use App\Http\Controllers\LayoutDataController;
+use App\Http\Controllers\ProfileController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', [LoginController::class, 'showcase'])
@@ -56,6 +57,13 @@ Route::post('/logout', [LoginController::class, 'logout'])
     ->name('logout');
 
 Route::middleware('auth')->group(function () {
+
+    Route::get('/profile', [ProfileController::class, 'show'])
+        ->name('profile.show');
+    Route::put('/profile', [ProfileController::class, 'update'])
+        ->name('profile.update');
+    Route::put('/profile/password', [ProfileController::class, 'updatePassword'])
+        ->name('profile.password.update');
 
     Route::get('/api/layout-data', [LayoutDataController::class, 'getLayoutData'])
         ->name('api.layout-data');
@@ -314,11 +322,11 @@ Route::middleware('auth')->group(function () {
     });
 
     Route::prefix('admin')->group(function () {
-        Route::middleware('can:manage-users')->group(function () {
-            Route::get('/dashboard', [DashboardController::class, 'index'])
-                ->name('admin.dashboard');
+        Route::middleware('can:manage-users')->get('/dashboard', [DashboardController::class, 'index'])
+            ->name('admin.dashboard');
 
-            // LANDING PAGE SHOWCASE CONTROL
+        // LANDING PAGE SHOWCASE CONTROL
+        Route::middleware('can:manage-landing-page')->group(function () {
             Route::get('/landing-page', [LandingPageController::class, 'index'])
                 ->name('admin.landing-page');
             Route::patch('/landing-page/room/{showcase}', [LandingPageController::class, 'updateRoom'])
@@ -333,8 +341,10 @@ Route::middleware('auth')->group(function () {
                 ->name('admin.landing-page.toggle');
             Route::delete('/landing-page/{showcase}', [LandingPageController::class, 'destroy'])
                 ->name('admin.landing-page.destroy');
+        });
 
-            // CREDIT ACCOUNTS
+        // CREDIT ACCOUNTS
+        Route::middleware('can:manage-credit-accounts')->group(function () {
             Route::get('/credit-accounts', [CreditAccountController::class, 'index'])
                 ->name('admin.credit-accounts');
             Route::post('/credit-accounts', [CreditAccountController::class, 'store'])
@@ -343,7 +353,10 @@ Route::middleware('auth')->group(function () {
                 ->name('admin.credit-accounts.show');
             Route::post('/credit-accounts/{account}/payment', [CreditAccountController::class, 'recordPayment'])
                 ->name('admin.credit-accounts.payment');
+        });
 
+        // USERS MANAGEMENT
+        Route::middleware('can:manage-users')->group(function () {
             Route::get('/users', [UserController::class, 'index'])
                 ->name('admin.users');
 
@@ -353,9 +366,15 @@ Route::middleware('auth')->group(function () {
             Route::patch('/users/{user}/toggle', [UserController::class, 'toggleStatus'])
                 ->name('admin.users.toggle');
 
-            Route::patch('/users/{user}', [UserController::class, 'update'])
+            Route::match(['put', 'patch'], '/users/{user}', [UserController::class, 'update'])
                 ->name('admin.users.update');
 
+            Route::post('/users/{user}/reset-password', [UserController::class, 'resetPassword'])
+                ->name('admin.users.reset-password');
+        });
+
+        // ROLES & PERMISSIONS
+        Route::middleware('can:manage-roles-permissions')->group(function () {
             Route::get('/roles', [RoleController::class, 'index'])
                 ->name('admin.roles');
 
@@ -379,7 +398,10 @@ Route::middleware('auth')->group(function () {
 
             Route::patch('/permissions/{permission}', [PermissionController::class, 'update'])
                 ->name('admin.permissions.update');
+        });
 
+        // ROOMS
+        Route::middleware('can:manage-rooms')->group(function () {
             Route::get('/rooms', [RoomController::class, 'index'])
                 ->name('admin.rooms');
 
@@ -391,7 +413,10 @@ Route::middleware('auth')->group(function () {
 
             Route::patch('/rooms/{room}', [RoomController::class, 'update'])
                 ->name('admin.rooms.update');
+        });
 
+        // CHARGE CODES
+        Route::middleware('can:manage-charge-codes')->group(function () {
             Route::get('/chargecodes', [ChargeCodeController::class, 'index'])
                 ->name('admin.chargecodes');
 
@@ -403,21 +428,29 @@ Route::middleware('auth')->group(function () {
 
             Route::patch('/chargecodes/{chargeCode}', [ChargeCodeController::class, 'update'])
                 ->name('admin.chargecodes.update');
+        });
 
+        // ACTIVITY LOGS
+        Route::middleware('can:view-activity-logs')->group(function () {
             Route::get('/activitylogs', [ActivityLogController::class, 'index'])
                 ->name('admin.activitylogs');
 
             Route::get('/activitylogs/export', [ActivityLogController::class, 'export'])
                 ->name('admin.activitylogs.export');
+        });
 
+        // POS APPROVALS
+        Route::middleware('can:manage-pos-approvals')->group(function () {
             Route::get('/pos-approvals', [PosApprovalController::class, 'index'])
                 ->name('admin.pos-approvals');
             Route::post('/pos-approvals/{request}/approve', [PosApprovalController::class, 'approve'])
                 ->name('admin.pos-approvals.approve');
             Route::post('/pos-approvals/{request}/reject', [PosApprovalController::class, 'reject'])
                 ->name('admin.pos-approvals.reject');
+        });
 
-            // BACKUP & RESTORE
+        // BACKUP & RESTORE
+        Route::middleware('can:manage-backup-restore')->group(function () {
             Route::get('/backup-restore', [BackupRestoreController::class, 'index'])
                 ->name('admin.backup-restore');
             Route::post('/backup-restore/settings', [BackupRestoreController::class, 'updateSettings'])
@@ -434,7 +467,10 @@ Route::middleware('auth')->group(function () {
                 ->name('admin.backup-restore.download-local');
             Route::delete('/backup-restore/delete/{filename}', [BackupRestoreController::class, 'deleteLocal'])
                 ->name('admin.backup-restore.delete-local');
+        });
 
+        // SIDEBAR SETTINGS
+        Route::middleware('can:manage-sidebar-settings')->group(function () {
             Route::get('/sidebar-settings', [SidebarSettingsController::class, 'index'])
                 ->name('admin.sidebar-settings');
             Route::post('/sidebar-settings/{moduleKey}/toggle', [SidebarSettingsController::class, 'toggle'])

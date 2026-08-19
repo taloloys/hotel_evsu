@@ -17,23 +17,29 @@
     <div class="sidebar-sections">
         
         <!-- ADMIN CONTROL -->
-        @canany(['manage-users', 'manage-shifts'])
+        @canany(['manage-users', 'manage-admins', 'manage-roles-permissions', 'manage-landing-page', 'manage-backup-restore', 'manage-rooms', 'manage-charge-codes', 'manage-credit-accounts', 'view-activity-logs', 'manage-pos-approvals', 'manage-sidebar-settings', 'manage-shifts'])
         <div class="menu-section mb-4">
             <div class="text-uppercase small fw-bold mb-2" style="color: #d4c5b3; font-family: 'Plus Jakarta Sans', sans-serif;">
                 Admin Control
             </div>
             <nav class="nav flex-column">
-                @can('manage-users')
+                @canany(['manage-users', 'manage-admins', 'manage-roles-permissions', 'manage-landing-page', 'manage-backup-restore', 'manage-rooms', 'manage-charge-codes', 'manage-credit-accounts', 'view-activity-logs', 'manage-pos-approvals'])
                 <a href="{{ route('admin.dashboard') }}"
                    class="nav-link {{ request()->routeIs('admin.dashboard') ? 'active' : '' }}">
                     <i class="fa-solid fa-chart-line me-2"></i>
                     Dashboard
                 </a>
+                @endcanany
+
+                @can('manage-users')
                 <a href="{{ route('admin.users') }}"
                    class="nav-link {{ request()->routeIs('admin.users') ? 'active' : '' }}">
                     <i class="fa-solid fa-user-group me-2"></i>
                     Users
                 </a>
+                @endcan
+
+                @can('manage-roles-permissions')
                 <a href="{{ route('admin.roles') }}"
                    class="nav-link {{ request()->routeIs('admin.roles') ? 'active' : '' }}">
                     <i class="fa-solid fa-user-shield me-2"></i>
@@ -44,21 +50,33 @@
                     <i class="fa-solid fa-key me-2"></i>
                     Permissions
                 </a>
+                @endcan
+
+                @can('manage-rooms')
                 <a href="{{ route('admin.rooms') }}"
                    class="nav-link {{ request()->routeIs('admin.rooms') ? 'active' : '' }}">
                     <i class="fa-solid fa-bed me-2"></i>
                     Rooms
                 </a>
+                @endcan
+
+                @can('manage-landing-page')
                 <a href="{{ route('admin.landing-page') }}"
                    class="nav-link {{ request()->routeIs('admin.landing-page*') ? 'active' : '' }}">
                     <i class="fa-solid fa-globe me-2"></i>
                     Landing Page
                 </a>
+                @endcan
+
+                @can('manage-charge-codes')
                 <a href="{{ route('admin.chargecodes') }}"
                    class="nav-link {{ request()->routeIs('admin.chargecodes') ? 'active' : '' }}">
                     <i class="fa-solid fa-receipt me-2"></i>
                     Charge Codes
                 </a>
+                @endcan
+
+                @can('manage-credit-accounts')
                 <a href="{{ route('admin.credit-accounts') }}"
                    class="nav-link {{ request()->routeIs('admin.credit-accounts*') ? 'active' : '' }}">
                     <i class="fa-solid fa-building-columns me-2"></i>
@@ -79,30 +97,38 @@
                 </a>
                 @endcan
 
-                @can('manage-users')
+                @can('view-activity-logs')
                 <a href="{{ route('admin.activitylogs') }}"
                    class="nav-link {{ request()->routeIs('admin.activitylogs') ? 'active' : '' }}">
                     <i class="fa-solid fa-clock-rotate-left me-2"></i>
                     Activity Logs
                 </a>
+                @endcan
+
+                @can('manage-pos-approvals')
                 <a href="{{ route('admin.pos-approvals') }}"
                    class="nav-link d-flex align-items-center justify-content-between {{ request()->routeIs('admin.pos-approvals*') ? 'active' : '' }}">
                     <span><i class="fa-solid fa-check-double me-2"></i>POS Approvals</span>
                     <span id="sidebar-pos-approvals-badge" class="badge bg-danger ms-1 d-none"></span>
                 </a>
+                @endcan
+
+                @can('manage-backup-restore')
                 <a href="{{ route('admin.backup-restore') }}"
                    class="nav-link {{ request()->routeIs('admin.backup-restore*') ? 'active' : '' }}">
                     <i class="fa-solid fa-hard-drive me-2"></i>
                     Backup & Restore
                 </a>
                 @endcan
-                @if(auth()->user()?->isSuperAdmin())
+
+                @can('manage-sidebar-settings')
                 <a href="{{ route('admin.sidebar-settings') }}"
                    class="nav-link {{ request()->routeIs('admin.sidebar-settings*') ? 'active' : '' }}">
                     <i class="fa-solid fa-sliders-h me-2"></i>
                     Sidebar Settings
                 </a>
-                @endif            </nav>
+                @endcan
+            </nav>
         </div>
         @endcanany
 
