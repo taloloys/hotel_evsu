@@ -152,6 +152,9 @@ Route::middleware('auth')->group(function () {
 
                 Route::post('/guest-folio/{folio}/reopen', [GuestFolioController::class, 'reopenFolio'])
                     ->name('frontdesk.guest-folio.reopen');
+
+                Route::post('/guest-folio/{folio}/send-email', [GuestFolioController::class, 'sendFolioEmail'])
+                    ->name('frontdesk.guest-folio.send-email');
             });
         });
 

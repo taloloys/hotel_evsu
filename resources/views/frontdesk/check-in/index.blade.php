@@ -257,6 +257,16 @@
                                 </div>
                             </div>
 
+                            <div class="col-md-6">
+                                <label class="small text-muted mb-1">
+                                    Email Address
+                                </label>
+
+                                <div class="fw-semibold" id="display_guest_email">
+                                    -
+                                </div>
+                            </div>
+
                             <div class="col-12">
                                 <label class="small text-muted mb-1">
                                     Address
@@ -799,6 +809,7 @@
         function setGuestDetails(guest, folioNum) {
             displayGuestName.textContent = `${guest.last_name}, ${guest.first_name}`;
             displayGuestContact.textContent = guest.contact_number || 'N/A';
+            if (displayGuestEmail) displayGuestEmail.textContent = guest.email || 'N/A';
             displayGuestAddress.textContent = [guest.address_line1, guest.address_line2].filter(Boolean).join(' ') || 'N/A';
             guestInfoCard.classList.remove('d-none');
 
@@ -915,6 +926,32 @@
 
         // Initialise Tom Select on the room dropdown for searchable UX
         let roomTomSelect = null;
+        let allRoomOptions = [];
+
+        function filterCheckInRooms() {
+            if (!roomTomSelect) return;
+
+            const selectedType = roomTypeFilter ? roomTypeFilter.value : '';
+            const currentVal = roomTomSelect.getValue();
+
+            roomTomSelect.clearOptions();
+
+            allRoomOptions.forEach(opt => {
+                const matches = !selectedType || opt.roomType === selectedType;
+                if (matches) {
+                    roomTomSelect.addOption(opt);
+                }
+            });
+
+            if (currentVal && roomTomSelect.options[currentVal]) {
+                roomTomSelect.setValue(currentVal, true);
+            } else {
+                roomTomSelect.clear(true);
+                updateRateDisplay();
+            }
+
+            roomTomSelect.refreshOptions(false);
+        }
 
         if (roomSelect) {
             roomTomSelect = new TomSelect('#room_id', {
@@ -935,32 +972,21 @@
                     updateRateDisplay();
                 }
             });
+
+            allRoomOptions = Object.values(roomTomSelect.options).map(opt => {
+                const optEl = roomSelect.querySelector(`option[value="${opt.value}"]`);
+                return {
+                    ...opt,
+                    roomType: optEl ? optEl.getAttribute('data-room-type') : null
+                };
+            });
+
             updateRateDisplay();
         }
 
         // Room Type filter — show/hide Tom Select options by room type
         if (roomTypeFilter && roomTomSelect) {
-            roomTypeFilter.addEventListener('change', function() {
-                const selectedType = this.value;
-
-                Object.values(roomTomSelect.options).forEach(opt => {
-                    const optEl = roomSelect.querySelector(`option[value="${opt.value}"]`);
-                    const roomType = optEl ? optEl.getAttribute('data-room-type') : null;
-                    const matches = !selectedType || roomType === selectedType;
-
-                    if (matches) {
-                        roomTomSelect.removeOption(opt.value, true);
-                        roomTomSelect.addOption(opt, true);
-                    } else {
-                        if (roomTomSelect.getValue() === opt.value) {
-                            roomTomSelect.clear(true);
-                            updateRateDisplay();
-                        }
-                        roomTomSelect.removeOption(opt.value, true);
-                    }
-                });
-                roomTomSelect.refreshOptions(false);
-            });
+            roomTypeFilter.addEventListener('change', filterCheckInRooms);
         }
 
         if (arrivalDate && departureDate) {

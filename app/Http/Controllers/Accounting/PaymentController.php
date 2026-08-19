@@ -3,12 +3,15 @@
 namespace App\Http\Controllers\Accounting;
 
 use App\Http\Controllers\Controller;
+use App\Mail\PaymentReceiptMail;
 use App\Models\ActivityLog;
 use App\Models\Folio;
 use App\Models\Shift;
 use App\Models\Transaction;
+use App\Services\EmailRecipientResolver;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Mail;
 use Illuminate\View\View;
 
 class PaymentController extends Controller
@@ -96,7 +99,7 @@ class PaymentController extends Controller
 
         $refNo = 'PAY-'.time();
 
-        Transaction::create([
+        $transaction = Transaction::create([
             'folio_id' => $folio->folio_id,
             'charge_code' => $chargeCode,
             'shift_id' => $activeShift->shift_id,
@@ -113,6 +116,16 @@ class PaymentController extends Controller
             'ADD_CHARGE',
             'Recorded payment of ₱'.number_format($request->amount, 2)." via {$request->payment_method} on Folio #{$folio->folio_number}."
         );
+
+        try {
+            $transaction->load('folio.guest');
+            $recipients = app(EmailRecipientResolver::class)->resolve('payment', $transaction);
+            if (! empty($recipients)) {
+                Mail::to($recipients)->queue(new PaymentReceiptMail($transaction));
+            }
+        } catch (\Throwable $e) {
+            // Log or ignore email dispatch failures gracefully
+        }
 
         return redirect()->route('accounting.payments')->with('success', 'Payment recorded successfully!');
     }

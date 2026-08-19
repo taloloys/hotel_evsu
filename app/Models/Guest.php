@@ -17,6 +17,7 @@ class Guest extends Model
         'address_line1',
         'address_line2',
         'contact_number',
+        'email',
         'guest_type',
     ];
 

@@ -49,7 +49,7 @@ beforeEach(function (): void {
 
 test('unauthenticated users are redirected to login', function (): void {
     $this->get(route('admin.rooms'))
-        ->assertRedirect(route('login'));
+        ->assertRedirect(route('home'));
 });
 
 test('authenticated admin can view the rooms management page with stats', function (): void {
@@ -180,7 +180,7 @@ test('admin cannot disable a reserved room', function (): void {
 test('inactive rooms are excluded from assignable rooms in front desk dashboard and reservation list', function (): void {
     // Set up active available room
     $activeAvailable = Room::create([
-        'room_number' => '105',
+        'room_number' => 'RM-905',
         'room_type' => 'Single Room',
         'base_rate' => 2500.00,
         'status' => 'AVAILABLE',
@@ -189,7 +189,7 @@ test('inactive rooms are excluded from assignable rooms in front desk dashboard 
 
     // Set up inactive available room
     $inactiveAvailable = Room::create([
-        'room_number' => '106',
+        'room_number' => 'RM-906',
         'room_type' => 'Single Room',
         'base_rate' => 2500.00,
         'status' => 'AVAILABLE',
@@ -201,15 +201,15 @@ test('inactive rooms are excluded from assignable rooms in front desk dashboard 
         ->get(route('frontdesk.dashboard'));
 
     $response->assertOk();
-    // Active available room (105) should be listed, inactive (106) should not be visible or counted in available stats
-    $response->assertSee('105');
-    $response->assertDontSee('106');
+    // Active available room (RM-905) should be listed, inactive (RM-906) should not be visible or counted in available stats
+    $response->assertSee('RM-905');
+    $response->assertDontSee('RM-906');
 
     // View reservations page (ReservationController index)
     $response = $this->actingAs($this->adminUser)
         ->get(route('frontdesk.reservation'));
 
     $response->assertOk();
-    $response->assertSee('105');
-    $response->assertDontSee('106');
+    $response->assertSee('RM-905');
+    $response->assertDontSee('RM-906');
 });

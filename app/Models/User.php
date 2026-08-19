@@ -31,6 +31,7 @@ class User extends Authenticatable
         'username',
         'password_hash',
         'full_name',
+        'email',
         'role_id',
         'is_active',
     ];
@@ -134,6 +135,11 @@ class User extends Authenticatable
     public function isSuperAdmin(): bool
     {
         return (bool) ($this->role?->is_system_admin || $this->role?->role_name === 'ADMIN');
+    }
+
+    public function isAdmin(): bool
+    {
+        return $this->isSuperAdmin() || $this->hasPermission('manage-users');
     }
 
     /**

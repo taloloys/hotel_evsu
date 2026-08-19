@@ -3,15 +3,18 @@
 namespace App\Http\Controllers\Frontdesk;
 
 use App\Http\Controllers\Controller;
+use App\Mail\CheckInConfirmationMail;
 use App\Models\Booking;
 use App\Models\Folio;
 use App\Models\Guest;
 use App\Models\Room;
+use App\Services\EmailRecipientResolver;
 use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Mail;
 use Illuminate\View\View;
 
 class CheckInController extends Controller
@@ -113,7 +116,7 @@ class CheckInController extends Controller
         $guest = Guest::findOrFail($validated['guest_id']);
         $guestName = trim($guest->first_name.' '.$guest->last_name);
 
-        DB::transaction(function () use ($validated, $room, $guest, $isOpenStay) {
+        $booking = DB::transaction(function () use ($validated, $room, $guest, $isOpenStay) {
             $folio = Folio::create([
                 'folio_number' => ! empty($validated['folio_number'])
                     ? $validated['folio_number']
@@ -153,7 +156,19 @@ class CheckInController extends Controller
 
             // Post room charges night-by-night automatically
             $booking->postRoomCharges();
+
+            return $booking;
         });
+
+        try {
+            $booking->load(['folio.guest', 'room']);
+            $recipients = app(EmailRecipientResolver::class)->resolve('checkin', $booking);
+            if (! empty($recipients)) {
+                Mail::to($recipients)->queue(new CheckInConfirmationMail($booking));
+            }
+        } catch (\Throwable $e) {
+            // Log or ignore email dispatch failures gracefully
+        }
 
         return redirect()
             ->route('frontdesk.dashboard')

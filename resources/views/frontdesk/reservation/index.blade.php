@@ -20,21 +20,22 @@
         border-color: #86b7fe !important;
         box-shadow: 0 0 0 .25rem rgba(13,110,253,.25) !important;
     }
-    #newReservationModal .ts-dropdown {
+    .ts-dropdown,
+    body > .ts-dropdown {
         border: 1px solid #ced4da;
         border-radius: .375rem;
-        box-shadow: 0 .5rem 1rem rgba(0,0,0,.1);
-        z-index: 1060;
+        box-shadow: 0 .5rem 1rem rgba(0,0,0,.15);
+        z-index: 2000 !important;
     }
-    #newReservationModal .ts-dropdown .option.selected {
+    .ts-dropdown .option.selected {
         background-color: #0d6efd;
         color: #fff;
     }
-    #newReservationModal .ts-dropdown .option:hover {
+    .ts-dropdown .option:hover {
         background-color: #e9ecef;
         color: #212529;
     }
-    #newReservationModal .ts-dropdown .option.selected:hover {
+    .ts-dropdown .option.selected:hover {
         background-color: #0b5ed7;
     }
 </style>
@@ -394,6 +395,23 @@
                                 value="{{ old('contact_number') }}"
                                 maxlength="20"
                                 placeholder="09XXXXXXXXX"
+                                style="height:46px; border:1px solid #000000;">
+                        </div>
+
+                        <!-- Email Address -->
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold" for="email">
+                                Email Address
+                            </label>
+
+                            <input
+                                type="email"
+                                class="form-control shadow-none @error('email') is-invalid @enderror"
+                                id="email"
+                                name="email"
+                                value="{{ old('email') }}"
+                                maxlength="100"
+                                placeholder="guest@example.com"
                                 style="height:46px; border:1px solid #000000;">
                         </div>
 
@@ -849,6 +867,7 @@
                                     document.getElementById('first_name').value = guest.first_name;
                                     document.getElementById('last_name').value = guest.last_name;
                                     document.getElementById('contact_number').value = guest.contact_number || '';
+                                    if (document.getElementById('email')) document.getElementById('email').value = guest.email || '';
                                     document.getElementById('address_line1').value = guest.address_line1 || '';
                                     document.getElementById('address_line2').value = guest.address_line2 || '';
                                     
@@ -882,6 +901,31 @@
         const roomTypeFilter = document.getElementById('room_type_filter');
         const roomSelect = document.getElementById('room_id');
         let roomTomSelect = null;
+        let allRoomOptions = [];
+
+        function filterReservationRooms() {
+            if (!roomTomSelect) return;
+
+            const selectedType = roomTypeFilter ? roomTypeFilter.value : '';
+            const currentVal = roomTomSelect.getValue();
+
+            roomTomSelect.clearOptions();
+
+            allRoomOptions.forEach(opt => {
+                const matches = !selectedType || opt.roomType === selectedType;
+                if (matches) {
+                    roomTomSelect.addOption(opt);
+                }
+            });
+
+            if (currentVal && roomTomSelect.options[currentVal]) {
+                roomTomSelect.setValue(currentVal, true);
+            } else {
+                roomTomSelect.clear(true);
+            }
+
+            roomTomSelect.refreshOptions(false);
+        }
 
         // Tom Select must be initialised after the modal is visible so the
         // dropdown can calculate its position correctly.
@@ -895,7 +939,6 @@
                         allowEmptyOption: true,
                         selectOnTab: true,
                         maxOptions: null,
-                        dropdownParent: 'body',
                         render: {
                             option: function(data, escape) {
                                 return `<div class="py-1">${escape(data.text)}</div>`;
@@ -906,30 +949,27 @@
                         }
                     });
 
+                    // Store master list of all room options with their roomType
+                    allRoomOptions = Object.values(roomTomSelect.options).map(opt => {
+                        const optEl = roomSelect.querySelector(`option[value="${opt.value}"]`);
+                        return {
+                            ...opt,
+                            roomType: optEl ? optEl.getAttribute('data-room-type') : null
+                        };
+                    });
+
                     // Wire up Room Type filter to Tom Select
                     if (roomTypeFilter) {
-                        roomTypeFilter.addEventListener('change', function() {
-                            const selectedType = this.value;
-
-                            Object.values(roomTomSelect.options).forEach(opt => {
-                                const optEl = roomSelect.querySelector(`option[value="${opt.value}"]`);
-                                const roomType = optEl ? optEl.getAttribute('data-room-type') : null;
-                                const matches = !selectedType || roomType === selectedType;
-
-                                if (matches) {
-                                    roomTomSelect.removeOption(opt.value, true);
-                                    roomTomSelect.addOption(opt, true);
-                                } else {
-                                    if (roomTomSelect.getValue() === opt.value) {
-                                        roomTomSelect.clear(true);
-                                    }
-                                    roomTomSelect.removeOption(opt.value, true);
-                                }
-                            });
-                            roomTomSelect.refreshOptions(false);
-                        });
+                        roomTypeFilter.addEventListener('change', filterReservationRooms);
                     }
                 }
+            });
+
+            reservationModal.addEventListener('hidden.bs.modal', function() {
+                if (roomTypeFilter) {
+                    roomTypeFilter.value = '';
+                }
+                filterReservationRooms();
             });
 
             // Re-open the modal automatically if there were validation errors

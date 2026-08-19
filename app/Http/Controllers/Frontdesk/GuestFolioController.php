@@ -3,6 +3,9 @@
 namespace App\Http\Controllers\Frontdesk;
 
 use App\Http\Controllers\Controller;
+use App\Mail\CheckInConfirmationMail;
+use App\Mail\FolioBillingMail;
+use App\Mail\PaymentReceiptMail;
 use App\Models\ActivityLog;
 use App\Models\Booking;
 use App\Models\ChargeCode;
@@ -12,10 +15,12 @@ use App\Models\Room;
 use App\Models\Shift;
 use App\Models\Transaction;
 use App\Services\CreditBillingService;
+use App\Services\EmailRecipientResolver;
 use Carbon\Carbon;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Mail;
 use Illuminate\View\View;
 
 class GuestFolioController extends Controller
@@ -150,7 +155,7 @@ class GuestFolioController extends Controller
 
         $chargeNo = 'TXN-'.time();
 
-        Transaction::create([
+        $txn = Transaction::create([
             'folio_id' => $folio->folio_id,
             'charge_code' => $validated['charge_code'],
             'shift_id' => $activeShift->shift_id,
@@ -168,6 +173,18 @@ class GuestFolioController extends Controller
             'ADD_CHARGE',
             "Posted manual {$typeName} of ₱".number_format($validated['amount'], 2)." [{$chargeCode->description}] on Folio #{$folio->folio_number}."
         );
+
+        if ($validated['type'] === 'PAYMENT') {
+            try {
+                $txn->load('folio.guest');
+                $recipients = app(EmailRecipientResolver::class)->resolve('payment', $txn);
+                if (! empty($recipients)) {
+                    Mail::to($recipients)->queue(new PaymentReceiptMail($txn));
+                }
+            } catch (\Throwable $e) {
+                // Log or ignore email dispatch failures gracefully
+            }
+        }
 
         return back()->with('success', 'Transaction posted successfully!');
     }
@@ -223,6 +240,16 @@ class GuestFolioController extends Controller
                 'CHECK_IN',
                 "Checked in guest {$guestName} to Room {$room->room_number} (Booking #{$booking->booking_id}) via Folio."
             );
+
+            try {
+                $booking->load(['folio.guest', 'room']);
+                $recipients = app(EmailRecipientResolver::class)->resolve('checkin', $booking);
+                if (! empty($recipients)) {
+                    Mail::to($recipients)->queue(new CheckInConfirmationMail($booking));
+                }
+            } catch (\Throwable $e) {
+                // Log or ignore email dispatch failures gracefully
+            }
         });
 
         return back()->with('success', 'Guest checked in successfully!');
@@ -500,6 +527,17 @@ class GuestFolioController extends Controller
                 'CHECK_OUT',
                 "Checked out guest {$guestName} from Room {$roomNumber} (Booking #{$booking->booking_id}) via Folio."
             );
+
+            try {
+                if ($booking->folio) {
+                    $recipients = app(EmailRecipientResolver::class)->resolve('folio', $booking->folio);
+                    if (! empty($recipients)) {
+                        Mail::to($recipients)->queue(new FolioBillingMail($booking->folio));
+                    }
+                }
+            } catch (\Throwable $e) {
+                // Log or ignore email dispatch failures gracefully
+            }
         });
 
         return back()->with('success', 'Guest checked out successfully! Room status updated to CLEANING.');
@@ -702,5 +740,34 @@ class GuestFolioController extends Controller
         $successMsg = $closeFolio ? "Folio #{$folio->folio_number} charged to account and closed." : "Account charge posted successfully to Folio #{$folio->folio_number}.";
 
         return back()->with('success', $successMsg);
+    }
+
+    /**
+     * Manually dispatch Folio Billing email to recipient.
+     */
+    public function sendFolioEmail(Folio $folio): RedirectResponse
+    {
+        $folio->load(['guest', 'transactions', 'bookings']);
+
+        try {
+            $recipients = app(EmailRecipientResolver::class)->resolve('folio', $folio);
+
+            if (empty($recipients)) {
+                return back()->withErrors(['email' => 'No valid recipient email address could be resolved.']);
+            }
+
+            Mail::to($recipients)->queue(new FolioBillingMail($folio));
+
+            $recipientStr = implode(', ', $recipients);
+
+            ActivityLog::log(
+                'FOLIO_EMAIL_SENT',
+                "Manually dispatched Folio statement #{$folio->folio_number} to {$recipientStr}."
+            );
+
+            return back()->with('success', "Folio billing statement queued for email delivery to {$recipientStr}!");
+        } catch (\Exception $e) {
+            return back()->withErrors(['email' => 'Failed to queue folio email: '.$e->getMessage()]);
+        }
     }
 }

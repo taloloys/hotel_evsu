@@ -269,6 +269,29 @@
                         @enderror
                     </div>
 
+                    <!-- Email Address -->
+                    <div class="col-md-6">
+                        <label class="form-label fw-semibold" for="email">
+                            Email Address
+                        </label>
+
+                        <input
+                            type="email"
+                            class="form-control shadow-none @error('email') is-invalid @enderror"
+                            id="email"
+                            name="email"
+                            value="{{ old('email') }}"
+                            maxlength="100"
+                            placeholder="guest@example.com"
+                            style="height:46px; border:1px solid #ced4da;">
+
+                        @error('email')
+                            <div class="invalid-feedback">
+                                {{ $message }}
+                            </div>
+                        @enderror
+                    </div>
+
                 </div>
 
             </div>
@@ -734,6 +757,32 @@
 
         // Initialise Tom Select on the room dropdown for searchable UX
         let roomTomSelect = null;
+        let allRoomOptions = [];
+
+        function filterRegistrationRooms() {
+            if (!roomTomSelect) return;
+
+            const selectedType = roomTypeFilter ? roomTypeFilter.value : '';
+            const currentVal = roomTomSelect.getValue();
+
+            roomTomSelect.clearOptions();
+
+            allRoomOptions.forEach(opt => {
+                const matches = !selectedType || opt.roomType === selectedType;
+                if (matches) {
+                    roomTomSelect.addOption(opt);
+                }
+            });
+
+            if (currentVal && roomTomSelect.options[currentVal]) {
+                roomTomSelect.setValue(currentVal, true);
+            } else {
+                roomTomSelect.clear(true);
+                updateRateDisplay();
+            }
+
+            roomTomSelect.refreshOptions(false);
+        }
 
         if (roomSelect) {
             roomTomSelect = new TomSelect('#room_id', {
@@ -756,34 +805,21 @@
                     updateRateDisplay();
                 }
             });
+
+            allRoomOptions = Object.values(roomTomSelect.options).map(opt => {
+                const optEl = roomSelect.querySelector(`option[value="${opt.value}"]`);
+                return {
+                    ...opt,
+                    roomType: optEl ? optEl.getAttribute('data-room-type') : null
+                };
+            });
+
             updateRateDisplay();
         }
 
         // Room Type filter — show/hide Tom Select options by room type
         if (roomTypeFilter && roomTomSelect) {
-            roomTypeFilter.addEventListener('change', function() {
-                const selectedType = this.value;
-
-                // Update which options are visible in Tom Select
-                Object.values(roomTomSelect.options).forEach(opt => {
-                    const optEl = roomSelect.querySelector(`option[value="${opt.value}"]`);
-                    const roomType = optEl ? optEl.getAttribute('data-room-type') : null;
-                    const matches = !selectedType || roomType === selectedType;
-
-                    if (matches) {
-                        roomTomSelect.removeOption(opt.value, true);
-                        roomTomSelect.addOption(opt, true);
-                    } else {
-                        // If currently selected option no longer matches, clear selection
-                        if (roomTomSelect.getValue() === opt.value) {
-                            roomTomSelect.clear(true);
-                            updateRateDisplay();
-                        }
-                        roomTomSelect.removeOption(opt.value, true);
-                    }
-                });
-                roomTomSelect.refreshOptions(false);
-            });
+            roomTypeFilter.addEventListener('change', filterRegistrationRooms);
         }
 
         if (arrivalDate && departureDate) {
@@ -877,6 +913,7 @@
                                     document.getElementById('last_name').value = guest.last_name || '';
                                     document.getElementById('address_line1').value = guest.address_line1 || '';
                                     document.getElementById('contact_number').value = guest.contact_number || '';
+                                    if (document.getElementById('email')) document.getElementById('email').value = guest.email || '';
                                     
                                     guestSuggestions.classList.add('d-none');
                                 });

@@ -3,16 +3,19 @@
 namespace App\Http\Controllers\Frontdesk;
 
 use App\Http\Controllers\Controller;
+use App\Mail\CheckInConfirmationMail;
 use App\Models\Booking;
 use App\Models\Folio;
 use App\Models\Guest;
 use App\Models\Room;
+use App\Services\EmailRecipientResolver;
 use App\Services\RoomChargeService;
 use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Mail;
 use Illuminate\View\View;
 
 class RegistrationController extends Controller
@@ -55,6 +58,7 @@ class RegistrationController extends Controller
             'first_name' => ['required', 'string', 'max:50'],
             'last_name' => ['required', 'string', 'max:50'],
             'contact_number' => ['nullable', 'string', 'max:20'],
+            'email' => ['nullable', 'email', 'max:100'],
             'address_line1' => ['nullable', 'string', 'max:100'],
             'address_line2' => ['nullable', 'string', 'max:100'],
             'folio_number' => ['nullable', 'string', 'max:20', 'unique:folios,folio_number'],
@@ -95,11 +99,12 @@ class RegistrationController extends Controller
 
         $guestName = trim($validated['first_name'].' '.$validated['last_name']);
 
-        DB::transaction(function () use ($validated, $room, $isOpenStay) {
+        $booking = DB::transaction(function () use ($validated, $room, $isOpenStay) {
             $guest = Guest::create([
                 'first_name' => $validated['first_name'],
                 'last_name' => $validated['last_name'],
                 'contact_number' => $validated['contact_number'] ?? null,
+                'email' => $validated['email'] ?? null,
                 'address_line1' => $validated['address_line1'] ?? null,
                 'address_line2' => $validated['address_line2'] ?? null,
             ]);
@@ -142,7 +147,19 @@ class RegistrationController extends Controller
 
             // Post room charges using the new service
             app(RoomChargeService::class)->processCatchUpCharges($booking->booking_id);
+
+            return $booking;
         });
+
+        try {
+            $booking->load(['folio.guest', 'room']);
+            $recipients = app(EmailRecipientResolver::class)->resolve('checkin', $booking);
+            if (! empty($recipients)) {
+                Mail::to($recipients)->queue(new CheckInConfirmationMail($booking));
+            }
+        } catch (\Throwable $e) {
+            // Log or ignore email dispatch failures gracefully
+        }
 
         return redirect()
             ->route('frontdesk.dashboard')

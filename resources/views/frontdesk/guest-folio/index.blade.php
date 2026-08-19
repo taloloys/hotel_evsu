@@ -1308,6 +1308,12 @@
                 </div>
 
                 <div class="modal-footer">
+                    <form method="POST" action="{{ route('frontdesk.guest-folio.send-email', $folio->folio_id) }}" class="d-inline">
+                        @csrf
+                        <button type="submit" class="btn btn-outline-primary d-print-none" title="Send Folio Statement via Email">
+                            <i class="fa-solid fa-paper-plane me-1"></i> Send Email
+                        </button>
+                    </form>
                     <button type="button" class="btn btn-outline-secondary d-print-none" onclick="printFolio({{ $folio->folio_id }})">
                         <i class="fa-solid fa-print me-1"></i> Print Folio
                     </button>

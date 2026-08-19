@@ -3,14 +3,18 @@
 namespace App\Http\Controllers\Frontdesk;
 
 use App\Http\Controllers\Controller;
+use App\Mail\CheckInConfirmationMail;
+use App\Mail\FolioBillingMail;
 use App\Models\ActivityLog;
 use App\Models\Booking;
 use App\Models\Room;
+use App\Services\EmailRecipientResolver;
 use App\Services\RoomChargeService;
 use Carbon\Carbon;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Mail;
 
 class BookingOperationController extends Controller
 {
@@ -77,6 +81,16 @@ class BookingOperationController extends Controller
             'CHECK_IN',
             "Checked in guest {$guestName} to Room {$roomNumber} (Booking #{$booking->booking_id})."
         );
+
+        try {
+            $booking->load(['folio.guest', 'room']);
+            $recipients = app(EmailRecipientResolver::class)->resolve('checkin', $booking);
+            if (! empty($recipients)) {
+                Mail::to($recipients)->queue(new CheckInConfirmationMail($booking));
+            }
+        } catch (\Throwable $e) {
+            // Log or ignore email dispatch failures gracefully
+        }
 
         return response()->json([
             'success' => true,
@@ -152,6 +166,17 @@ class BookingOperationController extends Controller
             'CHECK_OUT',
             "Checked out guest {$guestName} from Room {$roomNumber} (Booking #{$booking->booking_id})."
         );
+
+        try {
+            if ($booking->folio) {
+                $recipients = app(EmailRecipientResolver::class)->resolve('folio', $booking->folio);
+                if (! empty($recipients)) {
+                    Mail::to($recipients)->queue(new FolioBillingMail($booking->folio));
+                }
+            }
+        } catch (\Throwable $e) {
+            // Log or ignore email dispatch failures gracefully
+        }
 
         return response()->json([
             'success' => true,

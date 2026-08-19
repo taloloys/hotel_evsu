@@ -3,14 +3,17 @@
 namespace App\Http\Controllers\Frontdesk;
 
 use App\Http\Controllers\Controller;
+use App\Mail\ReservationConfirmationMail;
 use App\Models\ActivityLog;
 use App\Models\Booking;
 use App\Models\Folio;
 use App\Models\Guest;
 use App\Models\Room;
+use App\Services\EmailRecipientResolver;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Mail;
 use Illuminate\View\View;
 
 class ReservationController extends Controller
@@ -94,6 +97,7 @@ class ReservationController extends Controller
             'first_name' => ['required', 'string', 'max:50'],
             'last_name' => ['required', 'string', 'max:50'],
             'contact_number' => ['nullable', 'string', 'max:20'],
+            'email' => ['nullable', 'email', 'max:100'],
             'address_line1' => ['nullable', 'string', 'max:100'],
             'address_line2' => ['nullable', 'string', 'max:100'],
             'folio_number' => [
@@ -134,11 +138,12 @@ class ReservationController extends Controller
                 ->withErrors(['room_id' => 'Selected room already has a reservation for these dates.']);
         }
 
-        DB::transaction(function () use ($validated, $room, $existingGuest, $isOpenStay) {
+        $booking = DB::transaction(function () use ($validated, $room, $existingGuest, $isOpenStay) {
             if ($existingGuest) {
                 $guest = $existingGuest;
                 $guest->update([
                     'contact_number' => $validated['contact_number'] ?? $guest->contact_number,
+                    'email' => $validated['email'] ?? $guest->email,
                     'address_line1' => $validated['address_line1'] ?? $guest->address_line1,
                     'address_line2' => $validated['address_line2'] ?? $guest->address_line2,
                 ]);
@@ -147,6 +152,7 @@ class ReservationController extends Controller
                     'first_name' => $validated['first_name'],
                     'last_name' => $validated['last_name'],
                     'contact_number' => $validated['contact_number'] ?? null,
+                    'email' => $validated['email'] ?? null,
                     'address_line1' => $validated['address_line1'] ?? null,
                     'address_line2' => $validated['address_line2'] ?? null,
                 ]);
@@ -169,7 +175,7 @@ class ReservationController extends Controller
                 'net_rate' => $room->base_rate,
             ]);
 
-            Booking::create([
+            $booking = Booking::create([
                 'folio_id' => $folio->folio_id,
                 'room_id' => $room->room_id,
                 'arrival_date' => $validated['arrival_date'],
@@ -187,7 +193,19 @@ class ReservationController extends Controller
                 'RESERVATION_CREATE',
                 "Created reservation for guest {$validated['first_name']} {$validated['last_name']} with Folio #{$folio->folio_number} (Room {$room->room_number})."
             );
+
+            return $booking;
         });
+
+        try {
+            $booking->load(['folio.guest', 'room']);
+            $recipients = app(EmailRecipientResolver::class)->resolve('reservation', $booking);
+            if (! empty($recipients)) {
+                Mail::to($recipients)->queue(new ReservationConfirmationMail($booking));
+            }
+        } catch (\Throwable $e) {
+            // Log or ignore email dispatch failures gracefully
+        }
 
         return redirect()
             ->route('frontdesk.reservation')

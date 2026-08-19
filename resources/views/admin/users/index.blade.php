@@ -259,6 +259,7 @@
                                             data-user-id="{{ $user->user_id }}"
                                             data-full-name="{{ $user->full_name }}"
                                             data-username="{{ $user->username }}"
+                                            data-email="{{ $user->email ?? '' }}"
                                             data-role="{{ $roleLabel }}"
                                             data-role-badge="{{ $badgeClass }}"
                                             data-status="{{ $user->is_active ? 'Active' : 'Disabled' }}"
@@ -276,6 +277,7 @@
                                             data-user-id="{{ $user->user_id }}"
                                             data-full-name="{{ $user->full_name }}"
                                             data-username="{{ $user->username }}"
+                                            data-email="{{ $user->email ?? '' }}"
                                             data-role-id="{{ $user->role_id }}"
                                             data-permissions="{{ json_encode($user->permissions->pluck('permission_id')->toArray()) }}"
                                             data-update-url="{{ route('admin.users.update', $user) }}">
@@ -381,6 +383,17 @@
                                value="{{ old('username') }}"
                                placeholder="e.g. jdelacruz"
                                required>
+                    </div>
+
+                    <!-- EMAIL -->
+                    <div class="mb-3">
+                        <label for="add_email" class="form-label fw-semibold">Email Address</label>
+                        <input type="email"
+                               id="add_email"
+                               name="email"
+                               class="form-control form-control-lg"
+                               value="{{ old('email') }}"
+                               placeholder="e.g. jdelacruz@evsu.edu.ph">
                     </div>
 
                     <!-- PASSWORD -->
@@ -514,6 +527,10 @@
                         <span class="fw-semibold small" id="view-username">—</span>
                     </div>
                     <div class="list-group-item d-flex justify-content-between px-0">
+                        <span class="text-muted small">Email Address</span>
+                        <span class="fw-semibold small" id="view-email">—</span>
+                    </div>
+                    <div class="list-group-item d-flex justify-content-between px-0">
                         <span class="text-muted small">Role</span>
                         <span class="fw-semibold small" id="view-role">—</span>
                     </div>
@@ -579,6 +596,16 @@
                                name="username"
                                class="form-control form-control-lg"
                                required>
+                    </div>
+
+                    <!-- EMAIL -->
+                    <div class="mb-3">
+                        <label for="edit_email" class="form-label fw-semibold">Email Address</label>
+                        <input type="email"
+                               id="edit_email"
+                               name="email"
+                               class="form-control form-control-lg"
+                               placeholder="e.g. jdelacruz@evsu.edu.ph">
                     </div>
 
                     <!-- PASSWORD -->
@@ -693,6 +720,7 @@
                 document.getElementById('view-user-id').textContent   = 'U-' + String(btn.dataset.userId).padStart(3, '0');
                 document.getElementById('view-full-name').textContent = btn.dataset.fullName;
                 document.getElementById('view-username').textContent  = btn.dataset.username;
+                document.getElementById('view-email').textContent     = btn.dataset.email || '—';
                 document.getElementById('view-role').textContent      = btn.dataset.role;
 
                 const roleBadge = document.getElementById('view-role-badge');
@@ -726,6 +754,7 @@
                 const btn = event.relatedTarget;
                 document.getElementById('edit_full_name').value = btn.dataset.fullName;
                 document.getElementById('edit_username').value  = btn.dataset.username;
+                document.getElementById('edit_email').value     = btn.dataset.email || '';
                 document.getElementById('edit_password').value  = '';
                 document.getElementById('edit_role_id').value   = btn.dataset.roleId;
                 document.getElementById('editUserForm').action  = btn.dataset.updateUrl;

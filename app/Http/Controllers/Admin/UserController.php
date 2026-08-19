@@ -41,6 +41,7 @@ class UserController extends Controller
         $validated = $request->validate([
             'full_name' => ['required', 'string', 'max:100'],
             'username' => ['required', 'string', 'max:50', 'unique:users,username'],
+            'email' => ['nullable', 'email', 'max:100'],
             'role_id' => ['required', 'integer', 'exists:roles,role_id'],
             'password' => ['required', 'string', 'min:6'],
             'permissions' => ['nullable', 'array'],
@@ -50,6 +51,7 @@ class UserController extends Controller
         $user = User::create([
             'username' => $validated['username'],
             'full_name' => $validated['full_name'],
+            'email' => $validated['email'] ?? null,
             'password_hash' => Hash::make($validated['password']),
             'role_id' => $validated['role_id'],
             'is_active' => true,
@@ -102,6 +104,7 @@ class UserController extends Controller
         $validated = $request->validate([
             'full_name' => ['required', 'string', 'max:100'],
             'username' => ['required', 'string', 'max:50', 'unique:users,username,'.$user->user_id.',user_id'],
+            'email' => ['nullable', 'email', 'max:100'],
             'role_id' => ['required', 'integer', 'exists:roles,role_id'],
             'password' => ['nullable', 'string', 'min:6'],
             'permissions' => ['nullable', 'array'],
@@ -111,6 +114,7 @@ class UserController extends Controller
         $updateData = [
             'full_name' => $validated['full_name'],
             'username' => $validated['username'],
+            'email' => $validated['email'] ?? null,
             'role_id' => $validated['role_id'],
         ];
 
