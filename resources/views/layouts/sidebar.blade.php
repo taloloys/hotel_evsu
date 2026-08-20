@@ -172,9 +172,8 @@
 
                 @can('view-guest-folio')
                 <a href="{{ route('frontdesk.guest-folio') }}"
-                   class="nav-link d-flex align-items-center justify-content-between {{ request()->routeIs('frontdesk.guest-folio') ? 'active' : '' }}">
-                    <span><i class="fa-solid fa-file-invoice-dollar me-2"></i>Guest Folio</span>
-                    <span id="sidebar-pending-checkouts-badge" class="badge bg-primary ms-1 d-none"></span>
+                   class="nav-link {{ request()->routeIs('frontdesk.guest-folio') ? 'active' : '' }}">
+                    <i class="fa-solid fa-file-invoice-dollar me-2"></i>Guest Folio
                 </a>
                 @endcan
 

@@ -588,7 +588,6 @@
         function updateSidebarBadges(data) {
             const badgeMap = {
                 'sidebar-low-stock-badge': data.lowStockCount,
-                'sidebar-pending-checkouts-badge': data.pendingCheckoutsCount,
                 'sidebar-pending-expenses-badge': data.pendingExpensesCount,
                 'sidebar-pos-approvals-badge': data.posApprovalsCount
             };
