@@ -69,6 +69,7 @@
                     <option value="all" @selected($paymentMethod === 'all')>All Payments</option>
                     <option value="cash" @selected($paymentMethod === 'cash')>Cash</option>
                     <option value="gcash" @selected($paymentMethod === 'gcash')>GCash</option>
+                    <option value="maya" @selected($paymentMethod === 'maya')>Maya</option>
                     <option value="card" @selected($paymentMethod === 'card')>Card</option>
                     <option value="room_charge" @selected($paymentMethod === 'room_charge')>Room Charge</option>
                 </select>
@@ -144,6 +145,7 @@
                                     'room_charge' => 'background-color: #627e71; color: #ffffff;',
                                     'account_charge' => 'background-color: #827567; color: #ffffff;',
                                     'gcash' => 'background-color: #334c42; color: #ffffff;',
+                                    'maya' => 'background-color: #827567; color: #ffffff;',
                                     'card' => 'border: 1px solid #c2a889; color: #382e25; background: transparent;',
                                     'cash' => 'border: 1px solid #c2a889; color: #382e25; background: transparent;',
                                     default => 'background-color: #827567; color: #ffffff;'

@@ -137,6 +137,16 @@
                                 Credit Card
                             </option>
 
+                            <option value="GCash"
+                                @selected(old('payment_method') === 'GCash')>
+                                GCash
+                            </option>
+
+                            <option value="Maya"
+                                @selected(old('payment_method') === 'Maya')>
+                                Maya
+                            </option>
+
                         </select>
 
                         @error('payment_method')

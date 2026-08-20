@@ -108,6 +108,8 @@
                         <option value="All Methods" {{ $methodFilter === 'All Methods' ? 'selected' : '' }}>All Methods</option>
                         <option value="CASH" {{ $methodFilter === 'CASH' ? 'selected' : '' }}>Cash</option>
                         <option value="CREDIT_CARD" {{ $methodFilter === 'CREDIT_CARD' ? 'selected' : '' }}>Card</option>
+                        <option value="GCASH" {{ $methodFilter === 'GCASH' ? 'selected' : '' }}>GCash</option>
+                        <option value="MAYA" {{ $methodFilter === 'MAYA' ? 'selected' : '' }}>Maya</option>
                         <option value="CHECK" {{ $methodFilter === 'CHECK' ? 'selected' : '' }}>Check</option>
                     </select>
 
@@ -170,6 +172,10 @@
                                 <span class="badge rounded-pill px-2.5 py-1 fw-semibold" style="border: 1px solid #c2a889; color: #504538; background: transparent; font-size: 0.78rem;">Cash</span>
                             @elseif($p->payment_method === 'CREDIT_CARD')
                                 <span class="badge rounded-pill px-2.5 py-1 fw-semibold" style="background-color: #334c42; color: #ffffff; font-size: 0.78rem;">Card</span>
+                            @elseif($p->payment_method === 'GCASH')
+                                <span class="badge rounded-pill px-2.5 py-1 fw-semibold" style="background-color: #334c42; color: #ffffff; font-size: 0.78rem;">GCash</span>
+                            @elseif($p->payment_method === 'MAYA')
+                                <span class="badge rounded-pill px-2.5 py-1 fw-semibold" style="background-color: #827567; color: #ffffff; font-size: 0.78rem;">Maya</span>
                             @elseif($p->payment_method === 'ACCOUNT_CHARGE')
                                 <span class="badge rounded-pill px-2.5 py-1 fw-semibold" style="background-color: #827567; color: #ffffff; font-size: 0.78rem;">Account Charge</span>
                             @else

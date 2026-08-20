@@ -66,12 +66,16 @@ class PaymentController extends Controller
     {
         $request->validate([
             'folio_id' => ['required', 'exists:folios,folio_id'],
-            'payment_method' => ['required', 'in:CASH,CREDIT_CARD,CHECK'],
+            'payment_method' => ['required', 'in:CASH,CREDIT_CARD,GCASH,MAYA,CHECK'],
             'amount' => ['required', 'numeric', 'min:0.01'],
             'reference_notes' => ['nullable', 'string', 'max:255'],
         ]);
 
         $folio = Folio::findOrFail($request->folio_id);
+
+        if (round($request->amount, 2) > round($folio->balance, 2)) {
+            return back()->withErrors(['amount' => 'Payment amount cannot exceed the folio balance (₱'.number_format($folio->balance, 2).').']);
+        }
 
         // Active shift logic
         $userId = auth()->id() ?? 1;
@@ -85,17 +89,19 @@ class PaymentController extends Controller
             if (! $activeShift) {
                 $activeShift = Shift::create([
                     'user_id' => $userId,
-                    'start_time' => now(),
+                    'start_time' => Carbon::now(),
                 ]);
             }
         }
 
         // Map method to charge_code
-        // 403: CASH, 401: MASTERCARD (used for credit card), 402: VISA
-        $chargeCode = 403;
-        if ($request->payment_method === 'CREDIT_CARD') {
-            $chargeCode = 401;
-        }
+        $chargeCode = match ($request->payment_method) {
+            'CREDIT_CARD' => 401,
+            'GCASH' => 405,
+            'MAYA' => 406,
+            'CHECK' => 404,
+            default => 403,
+        };
 
         $refNo = 'PAY-'.time();
 

@@ -72,7 +72,7 @@ class RegistrationController extends Controller
             'special_arrangements' => ['nullable', 'string'],
             'num_free_breakfasts' => ['nullable', 'integer', 'min:0', 'max:20'],
             'breakfast_code' => ['nullable', 'string', 'max:20'],
-            'payment_method' => ['nullable', 'string', 'in:Cash,Credit Card'],
+            'payment_method' => ['nullable', 'string', 'in:Cash,Credit Card,GCash,Maya'],
             'net_rate' => ['nullable', 'numeric', 'min:0'],
             'open_stay' => ['nullable', 'boolean'],
             'room_id' => ['required', 'integer', 'exists:rooms,room_id'],

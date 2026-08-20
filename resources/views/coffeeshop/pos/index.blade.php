@@ -362,6 +362,19 @@
 
                     <button type="button"
                             class="btn btn-outline-secondary p-3 text-start d-flex align-items-center justify-content-between payment-method-opt"
+                            data-method="maya">
+
+                        <span class="fs-5 fw-semibold font-brand" style="font-family: 'Lucida Fax', serif;">
+                            <i class="fa-solid fa-wallet text-success me-3"></i>
+                            Maya
+                        </span>
+
+                        <i class="fa-solid fa-chevron-right text-muted"></i>
+
+                    </button>
+
+                    <button type="button"
+                            class="btn btn-outline-secondary p-3 text-start d-flex align-items-center justify-content-between payment-method-opt"
                             data-method="card">
 
                         <span class="fs-5 fw-semibold font-brand" style="font-family: 'Lucida Fax', serif;">

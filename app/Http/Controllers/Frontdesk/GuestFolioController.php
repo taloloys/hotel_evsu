@@ -596,7 +596,7 @@ class GuestFolioController extends Controller
         }
 
         $validated = $request->validate([
-            'payment_method' => ['required', 'string', 'in:Cash,Credit Card'],
+            'payment_method' => ['required', 'string', 'in:Cash,Credit Card,GCash,Maya'],
             'amount' => ['required', 'numeric', 'min:0.01'],
             'reference_notes' => ['nullable', 'string', 'max:255'],
             'close_folio' => ['nullable', 'boolean'],
@@ -621,9 +621,19 @@ class GuestFolioController extends Controller
             }
         }
 
-        // Determine payment charge code (Cash = 403, Credit Card = 401)
-        $chargeCode = $validated['payment_method'] === 'Credit Card' ? '401' : '403';
-        $paymentMethod = $validated['payment_method'] === 'Credit Card' ? 'CREDIT_CARD' : 'CASH';
+        // Determine payment charge code and payment method
+        $paymentMethod = match ($validated['payment_method']) {
+            'Credit Card' => 'CREDIT_CARD',
+            'GCash' => 'GCASH',
+            'Maya' => 'MAYA',
+            default => 'CASH',
+        };
+        $chargeCode = match ($validated['payment_method']) {
+            'Credit Card' => '401',
+            'GCash' => '405',
+            'Maya' => '406',
+            default => '403',
+        };
 
         DB::transaction(function () use ($folio, $validated, $activeShift, $userId, $chargeCode, $paymentMethod, $closeFolio) {
             Transaction::create([

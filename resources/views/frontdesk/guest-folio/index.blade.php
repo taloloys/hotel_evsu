@@ -633,6 +633,8 @@
                                                              <select class="form-select" id="paid_method_{{ $folio->folio_id }}" name="payment_method" required>
                                                                  <option value="Cash" @selected(($folio->payment_method ?? 'Cash') === 'Cash')>💵 Cash</option>
                                                                  <option value="Credit Card" @selected($folio->payment_method === 'Credit Card')>💳 Credit Card</option>
+                                                                 <option value="GCash" @selected($folio->payment_method === 'GCash')>📱 GCash</option>
+                                                                 <option value="Maya" @selected($folio->payment_method === 'Maya')>💳 Maya</option>
                                                              </select>
                                                          </div>
                                                          <div class="mb-3">

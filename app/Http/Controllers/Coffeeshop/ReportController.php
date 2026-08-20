@@ -63,6 +63,7 @@ class ReportController extends Controller
             'order_count' => $ordersAll->count(),
             'cash_total' => (float) $ordersAll->where('payment_method', 'cash')->sum('total'),
             'gcash_total' => (float) $ordersAll->where('payment_method', 'gcash')->sum('total'),
+            'maya_total' => (float) $ordersAll->where('payment_method', 'maya')->sum('total'),
             'card_total' => (float) $ordersAll->where('payment_method', 'card')->sum('total'),
             'room_total' => (float) $ordersAll->where('payment_method', 'room_charge')->sum('total'),
         ];
