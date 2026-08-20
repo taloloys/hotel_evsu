@@ -18,37 +18,37 @@
 <div class="row g-3 mb-4">
 
     <div class="col-lg-3">
-        <div class="card border-1 shadow-sm">
+        <div class="card border-1 shadow-sm rounded-4">
             <div class="card-body">
-                <div class="text-muted large">Total Payments (Collections)</div>
-                <div class="fw-bold fs-3 text-success">₱{{ number_format($totalPayments, 2) }}</div>
+                <div class="text-muted small mb-1">Total Payments (Collections)</div>
+                <div class="fw-bold fs-4 text-success">₱{{ number_format($totalPayments, 2) }}</div>
             </div>
         </div>
     </div>
 
     <div class="col-lg-3">
-        <div class="card border-1 shadow-sm">
+        <div class="card border-1 shadow-sm rounded-4">
             <div class="card-body">
-                <div class="text-muted large">Cash Payments</div>
-                <div class="fw-bold fs-3">₱{{ number_format($cashPayments, 2) }}</div>
+                <div class="text-muted small mb-1">Cash Payments</div>
+                <div class="fw-bold fs-4" style="color: #504538;">₱{{ number_format($cashPayments, 2) }}</div>
             </div>
         </div>
     </div>
 
     <div class="col-lg-3">
-        <div class="card border-1 shadow-sm">
+        <div class="card border-1 shadow-sm rounded-4">
             <div class="card-body">
-                <div class="text-muted large">Card Payments</div>
-                <div class="fw-bold fs-3">₱{{ number_format($cardPayments, 2) }}</div>
+                <div class="text-muted small mb-1">Card Payments</div>
+                <div class="fw-bold fs-4" style="color: #504538;">₱{{ number_format($cardPayments, 2) }}</div>
             </div>
         </div>
     </div>
 
     <div class="col-lg-3">
-        <div class="card border-1 shadow-sm">
+        <div class="card border-1 shadow-sm rounded-4">
             <div class="card-body">
-                <div class="text-muted large">Check / Other Payments</div>
-                <div class="fw-bold fs-3 text-warning">₱{{ number_format($pendingPayments, 2) }}</div>
+                <div class="text-muted small mb-1">Check / Other Payments</div>
+                <div class="fw-bold fs-4" style="color: #827567;">₱{{ number_format($pendingPayments, 2) }}</div>
             </div>
         </div>
     </div>
@@ -57,29 +57,29 @@
 
 
 <!-- ACTION BAR -->
-<form action="{{ route('accounting.payments') }}" method="GET" class="card border-1 shadow-sm mb-3" id="paymentsFilterForm">
+<form action="{{ route('accounting.payments') }}" method="GET" class="card border-1 shadow-sm rounded-4 mb-3" id="paymentsFilterForm">
 
     <div class="card-body d-flex justify-content-between align-items-center">
 
         <div>
-            <div class="fw-bold">Payment Records</div>
+            <div class="fw-bold" style="color: #504538;">Payment Records</div>
             <small class="text-muted">All financial settlements from guests</small>
         </div>
 
         <div class="d-flex align-items-center gap-2">
 
             {{-- Search (live) --}}
-            <div style="width: 320px; border: 1px solid #000000; border-radius: .375rem; height: 45px;">
-                <div class="input-group" style="height: 100%;">
+            <div style="width: 320px;">
+                <div class="input-group shadow-sm" style="border: 1px solid #c2a889; border-radius: 0.5rem; overflow: hidden; height: 45px; background-color: #ffffff;">
                     <span class="input-group-text bg-white border-0 px-3">
-                        <i class="fa-solid fa-magnifying-glass text-muted fs-5"></i>
+                        <i class="fa-solid fa-magnifying-glass" style="color: #627e71;"></i>
                     </span>
                     <input
                         type="text"
                         name="search"
                         id="paymentsSearch"
                         class="form-control border-0 shadow-none py-2"
-                        style="font-size: 1.05rem;"
+                        style="font-size: 1rem;"
                         placeholder="Search reference no. or guest..."
                         value="{{ $search }}"
                         autocomplete="off">
@@ -88,23 +88,23 @@
 
             {{-- Filter Dropdown --}}
             <div class="dropdown">
-                <button class="btn btn-outline-dark d-flex align-items-center gap-2 px-3 position-relative"
+                <button class="btn bg-white d-flex align-items-center gap-2 px-3 position-relative shadow-sm"
                         type="button"
                         data-bs-toggle="dropdown"
                         data-bs-auto-close="outside"
-                        style="height: 45px; border-radius: 6px; border: 1px solid black; font-size: 1.05rem;">
-                    <i class="fa-solid fa-filter fs-5"></i>
-                    <span>Filter</span>
+                        style="height: 45px; border-radius: 0.5rem; border: 1px solid #c2a889; color: #504538; font-size: 1rem;">
+                    <i class="fa-solid fa-filter" style="color: #627e71;"></i>
+                    <span class="fw-semibold">Filter</span>
                     @if($methodFilter !== 'All Methods')
                         <span class="position-absolute top-0 start-100 translate-middle p-1 bg-danger border border-light rounded-circle"></span>
                     @endif
                 </button>
                 <div class="dropdown-menu dropdown-menu-end p-3 shadow-sm"
                      onclick="event.stopPropagation()"
-                     style="min-width: 260px; border-radius: 8px; z-index: 1055;">
+                     style="min-width: 260px; border-radius: 0.75rem; z-index: 1055;">
 
                     <label class="form-label small mb-1 fw-semibold text-muted">Payment Method</label>
-                    <select name="method" class="form-select mb-3 shadow-none" style="height:38px; border-radius:4px; border: 1px solid black;">
+                    <select name="method" class="form-select mb-3 shadow-none" style="height:38px; border-radius:0.5rem; border: 1px solid #827567;">
                         <option value="All Methods" {{ $methodFilter === 'All Methods' ? 'selected' : '' }}>All Methods</option>
                         <option value="CASH" {{ $methodFilter === 'CASH' ? 'selected' : '' }}>Cash</option>
                         <option value="CREDIT_CARD" {{ $methodFilter === 'CREDIT_CARD' ? 'selected' : '' }}>Card</option>
@@ -112,14 +112,14 @@
                     </select>
 
                     <div class="d-flex gap-2">
-                        <button type="submit" class="btn btn-primary w-50" style="height: 38px;">Apply</button>
-                        <a href="{{ route('accounting.payments') }}" class="btn btn-light w-50 d-flex align-items-center justify-content-center" style="height: 38px;">Reset</a>
+                        <button type="submit" class="btn text-white w-50 fw-semibold" style="height: 38px; background-color: #334c42; border: none;">Apply</button>
+                        <a href="{{ route('accounting.payments') }}" class="btn btn-light w-50 d-flex align-items-center justify-content-center fw-semibold" style="height: 38px; border: 1px solid #827567; color: #504538;">Reset</a>
                     </div>
                 </div>
             </div>
 
             <!-- ADD PAYMENT -->
-            <button type="button" class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#recordPaymentModal" style="height: 45px; font-size: 1.05rem;">
+            <button type="button" class="btn text-white rounded-pill px-3 fw-semibold shadow-sm" data-bs-toggle="modal" data-bs-target="#recordPaymentModal" style="height: 45px; background-color: #334c42; border: none; font-size: 1rem;">
                 <i class="fa-solid fa-plus me-1"></i> Record Payment
             </button>
 
@@ -131,57 +131,57 @@
 
 
 <!-- TABLE -->
-<div class="card border-1 shadow-sm">
+<div class="card border-1 shadow-sm rounded-4 overflow-hidden">
 
     <div class="table-responsive">
 
         <table class="table align-middle mb-0">
 
-            <thead class="table-light">
-                <tr>
-                    <th>Ref No</th>
-                    <th>Guest</th>
-                    <th>Method</th>
-                    <th>Date</th>
-                    <th>Status</th>
-                    <th class="text-end">Amount</th>
-                    <th class="text-center">Action</th>
+            <thead style="background-color: #f8f3ed; border-bottom: 1px solid #e5e7eb;">
+                <tr class="text-muted small fw-bold">
+                    <th class="ps-3" style="color: #504538;">REF NO</th>
+                    <th style="color: #504538;">GUEST</th>
+                    <th style="color: #504538;">METHOD</th>
+                    <th style="color: #504538;">DATE</th>
+                    <th style="color: #504538;">STATUS</th>
+                    <th class="text-end" style="color: #504538;">AMOUNT</th>
+                    <th class="text-center pe-3" style="color: #504538;">ACTION</th>
                 </tr>
             </thead>
 
             <tbody>
 
                 @forelse($payments as $p)
-                    <tr>
-                        <td>{{ $p->charge_number }}</td>
-                        <td>
+                    <tr style="border-bottom: 1px solid #f0f0f0;">
+                        <td class="ps-3 fw-semibold" style="color: #2c241d; font-size: 0.95rem;">{{ $p->charge_number }}</td>
+                        <td class="fw-medium" style="color: #2c241d; font-size: 0.95rem;">
                             @if($p->folio && $p->folio->guest)
                                 @if(Str::contains(strtolower($p->folio->guest->first_name . ' ' . $p->folio->guest->last_name), 'walk-in') || Str::contains(strtolower($p->folio->guest->first_name), 'pos'))
-                                    <span class="badge bg-light text-secondary border me-1"><i class="fa-solid fa-user-tag me-1"></i>Walk-in</span>
+                                    <span class="badge rounded-pill me-1" style="border: 1px solid #827567; color: #827567; background: transparent;"><i class="fa-solid fa-user-tag me-1"></i>Walk-in</span>
                                 @endif
                                 {{ $p->folio->guest->first_name }} {{ $p->folio->guest->last_name }}
                             @else
-                                <span class="badge bg-light text-secondary border me-1"><i class="fa-solid fa-user-tag me-1"></i>Walk-in</span>
+                                <span class="badge rounded-pill me-1" style="border: 1px solid #827567; color: #827567; background: transparent;"><i class="fa-solid fa-user-tag me-1"></i>Walk-in</span>
                                 <span class="text-muted">General Walk-in</span>
                             @endif
                         </td>
                         <td>
                             @if($p->payment_method === 'CASH')
-                                <span class="badge bg-success">Cash</span>
+                                <span class="badge rounded-pill px-2.5 py-1 fw-semibold" style="border: 1px solid #c2a889; color: #504538; background: transparent; font-size: 0.78rem;">Cash</span>
                             @elseif($p->payment_method === 'CREDIT_CARD')
-                                <span class="badge bg-primary">Card</span>
+                                <span class="badge rounded-pill px-2.5 py-1 fw-semibold" style="background-color: #334c42; color: #ffffff; font-size: 0.78rem;">Card</span>
                             @elseif($p->payment_method === 'ACCOUNT_CHARGE')
-                                <span class="badge bg-info text-white">Account Charge</span>
+                                <span class="badge rounded-pill px-2.5 py-1 fw-semibold" style="background-color: #827567; color: #ffffff; font-size: 0.78rem;">Account Charge</span>
                             @else
-                                <span class="badge bg-secondary">{{ $p->payment_method }}</span>
+                                <span class="badge rounded-pill px-2.5 py-1 fw-semibold" style="background-color: #827567; color: #ffffff; font-size: 0.78rem;">{{ $p->payment_method }}</span>
                             @endif
                         </td>
-                        <td>{{ $p->transaction_date->toDateString() }}</td>
-                        <td><span class="badge bg-success">Completed</span></td>
-                        <td class="text-end fw-bold text-success">₱{{ number_format($p->credit_amount, 2) }}</td>
-                        <td class="text-center">
+                        <td style="color: #554d46; font-size: 0.90rem;">{{ $p->transaction_date->toDateString() }}</td>
+                        <td><span class="badge bg-success-subtle text-success fw-semibold">Completed</span></td>
+                        <td class="text-end fw-bold" style="color: #198754; font-size: 0.98rem;">₱{{ number_format($p->credit_amount, 2) }}</td>
+                        <td class="text-center pe-3">
                             @if($p->folio_id)
-                                <a href="{{ route('accounting.billing.show', $p->folio_id) }}" class="btn btn-sm btn-outline-primary">
+                                <a href="{{ route('accounting.billing.show', $p->folio_id) }}" class="btn btn-sm rounded-pill px-3 fw-semibold" style="border: 1px solid #627e71; color: #627e71; background: transparent;">
                                     <i class="fa-solid fa-eye me-1"></i> View Invoice
                                 </a>
                             @else

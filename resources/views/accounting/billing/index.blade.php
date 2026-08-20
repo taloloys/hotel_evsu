@@ -10,37 +10,37 @@
 <div class="row g-3 mb-4">
 
     <div class="col-lg-3">
-        <div class="card border-1 shadow-sm">
+        <div class="card border-1 shadow-sm rounded-4">
             <div class="card-body">
-                <div class="text-muted large">Total Sales ({{ $tab === 'pos' ? 'Coffee Shop' : 'Front Desk' }})</div>
-                <div class="fw-bold fs-3 text-primary">₱{{ number_format($totalSales, 2) }}</div>
+                <div class="text-muted small mb-1">Total Sales ({{ $tab === 'pos' ? 'Coffee Shop' : 'Front Desk' }})</div>
+                <div class="fw-bold fs-4" style="color: #504538;">₱{{ number_format($totalSales, 2) }}</div>
             </div>
         </div>
     </div>
 
     <div class="col-lg-3">
-        <div class="card border-1 shadow-sm">
+        <div class="card border-1 shadow-sm rounded-4">
             <div class="card-body">
-                <div class="text-muted large">Cash Sales ({{ $tab === 'pos' ? 'Coffee Shop' : 'Front Desk' }})</div>
-                <div class="fw-bold fs-3 text-success">₱{{ number_format($cashSales, 2) }}</div>
+                <div class="text-muted small mb-1">Cash Sales ({{ $tab === 'pos' ? 'Coffee Shop' : 'Front Desk' }})</div>
+                <div class="fw-bold fs-4 text-success">₱{{ number_format($cashSales, 2) }}</div>
             </div>
         </div>
     </div>
 
     <div class="col-lg-3">
-        <div class="card border-1 shadow-sm">
+        <div class="card border-1 shadow-sm rounded-4">
             <div class="card-body">
-                <div class="text-muted large">Credit Card Sales ({{ $tab === 'pos' ? 'Coffee Shop' : 'Front Desk' }})</div>
-                <div class="fw-bold fs-3 text-info">₱{{ number_format($creditSales, 2) }}</div>
+                <div class="text-muted small mb-1">Credit Card Sales ({{ $tab === 'pos' ? 'Coffee Shop' : 'Front Desk' }})</div>
+                <div class="fw-bold fs-4" style="color: #334c42;">₱{{ number_format($creditSales, 2) }}</div>
             </div>
         </div>
     </div>
 
     <div class="col-lg-3">
-        <div class="card border-1 shadow-sm">
+        <div class="card border-1 shadow-sm rounded-4">
             <div class="card-body">
-                <div class="text-muted large">Outstanding Balance ({{ $tab === 'pos' ? 'POS Open Tabs' : 'Guest Folios' }})</div>
-                <div class="fw-bold fs-3 text-danger">₱{{ number_format($unpaidBalance, 2) }}</div>
+                <div class="text-muted small mb-1">Outstanding Balance ({{ $tab === 'pos' ? 'POS Open Tabs' : 'Guest Folios' }})</div>
+                <div class="fw-bold fs-4 text-danger">₱{{ number_format($unpaidBalance, 2) }}</div>
             </div>
         </div>
     </div>
@@ -48,39 +48,39 @@
 </div>
 
 <!-- TABS -->
-<ul class="nav nav-tabs mb-4">
+<ul class="nav nav-pills gap-2 mb-4 coffeeshop-nav-pills">
     <li class="nav-item">
-        <a class="nav-link {{ $tab === 'front_desk' ? 'active' : '' }}" href="{{ route('accounting.billing', ['tab' => 'front_desk']) }}">Front Desk Bills</a>
+        <a class="nav-link rounded-pill {{ $tab === 'front_desk' ? 'active' : '' }}" href="{{ route('accounting.billing', ['tab' => 'front_desk']) }}">Front Desk Bills</a>
     </li>
     <li class="nav-item">
-        <a class="nav-link {{ $tab === 'pos' ? 'active' : '' }}" href="{{ route('accounting.billing', ['tab' => 'pos']) }}">Coffee Shop POS Bills</a>
+        <a class="nav-link rounded-pill {{ $tab === 'pos' ? 'active' : '' }}" href="{{ route('accounting.billing', ['tab' => 'pos']) }}">Coffee Shop POS Bills</a>
     </li>
 </ul>
 
 <!-- ACTION BAR -->
-<form action="{{ route('accounting.billing') }}" method="GET" class="card border-1 shadow-sm mb-3" id="billingFilterForm">
+<form action="{{ route('accounting.billing') }}" method="GET" class="card border-1 shadow-sm rounded-4 mb-3" id="billingFilterForm">
     <input type="hidden" name="tab" value="{{ $tab }}">
     <div class="card-body d-flex justify-content-between align-items-center">
 
         <div>
-            <div class="fw-bold">Invoices</div>
+            <div class="fw-bold" style="color: #504538;">Invoices</div>
             <small class="text-muted">All {{ $tab === 'pos' ? 'Coffee Shop' : 'Front Desk' }} billing records</small>
         </div>
 
         <div class="d-flex align-items-center gap-2">
 
             {{-- Search (live) --}}
-            <div style="width: 280px; border: 1px solid #000000; border-radius: .375rem; height: 45px;">
-                <div class="input-group" style="height: 100%;">
+            <div style="width: 280px;">
+                <div class="input-group shadow-sm" style="border: 1px solid #c2a889; border-radius: 0.5rem; overflow: hidden; height: 45px; background-color: #ffffff;">
                     <span class="input-group-text bg-white border-0 px-3">
-                        <i class="fa-solid fa-magnifying-glass text-muted fs-5"></i>
+                        <i class="fa-solid fa-magnifying-glass" style="color: #627e71;"></i>
                     </span>
                     <input
                         type="text"
                         name="search"
                         id="billingSearch"
                         class="form-control border-0 shadow-none py-2"
-                        style="font-size: 1.05rem;"
+                        style="font-size: 1rem;"
                         placeholder="Search invoice no. or guest..."
                         value="{{ $search }}"
                         autocomplete="off">
@@ -89,23 +89,23 @@
 
             {{-- Filter Dropdown --}}
             <div class="dropdown">
-                <button class="btn btn-outline-dark d-flex align-items-center gap-2 px-3 position-relative"
+                <button class="btn bg-white d-flex align-items-center gap-2 px-3 position-relative shadow-sm"
                         type="button"
                         data-bs-toggle="dropdown"
                         data-bs-auto-close="outside"
-                        style="height: 45px; border-radius: 6px; border: 1px solid black; font-size: 1.05rem;">
-                    <i class="fa-solid fa-filter fs-5"></i>
-                    <span>Filter</span>
+                        style="height: 45px; border-radius: 0.5rem; border: 1px solid #c2a889; color: #504538; font-size: 1rem;">
+                    <i class="fa-solid fa-filter" style="color: #627e71;"></i>
+                    <span class="fw-semibold">Filter</span>
                     @if($dateRange !== 'today' || $statusFilter !== 'ALL')
                         <span class="position-absolute top-0 start-100 translate-middle p-1 bg-danger border border-light rounded-circle"></span>
                     @endif
                 </button>
                 <div class="dropdown-menu dropdown-menu-end p-3 shadow-sm"
                      onclick="event.stopPropagation()"
-                     style="min-width: 290px; border-radius: 8px; z-index: 1055;">
+                     style="min-width: 290px; border-radius: 0.75rem; z-index: 1055;">
 
                     <label class="form-label small mb-1 fw-semibold text-muted">Date Range</label>
-                    <select name="date_range" id="dateRangeSelect" class="form-select mb-2 shadow-none" style="height:38px; border-radius:4px; border: 1px solid black;">
+                    <select name="date_range" id="dateRangeSelect" class="form-select mb-2 shadow-none" style="height:38px; border-radius:0.5rem; border: 1px solid #827567;">
                         <option value="today" {{ $dateRange === 'today' ? 'selected' : '' }}>Today</option>
                         <option value="weekly" {{ $dateRange === 'weekly' ? 'selected' : '' }}>This Week</option>
                         <option value="monthly" {{ $dateRange === 'monthly' ? 'selected' : '' }}>This Month</option>
@@ -116,20 +116,20 @@
 
                     <label class="form-label small mb-1 fw-semibold text-muted">Specific Date</label>
                     <input type="date" name="date" class="form-control mb-3 shadow-none"
-                           style="height:38px; border-radius:4px; border: 1px solid black;"
+                           style="height:38px; border-radius:0.5rem; border: 1px solid #827567;"
                            value="{{ $date }}"
                            onchange="document.getElementById('dateRangeSelect').value = 'specific';">
 
                     <label class="form-label small mb-1 fw-semibold text-muted">Status</label>
-                    <select name="status" class="form-select mb-3 shadow-none" style="height:38px; border-radius:4px; border: 1px solid black;">
+                    <select name="status" class="form-select mb-3 shadow-none" style="height:38px; border-radius:0.5rem; border: 1px solid #827567;">
                         <option value="ALL" {{ $statusFilter === 'ALL' ? 'selected' : '' }}>All Status</option>
                         <option value="PAID" {{ $statusFilter === 'PAID' ? 'selected' : '' }}>Paid</option>
                         <option value="UNPAID" {{ $statusFilter === 'UNPAID' ? 'selected' : '' }}>Unpaid / Pending</option>
                     </select>
 
                     <div class="d-flex gap-2">
-                        <button type="submit" class="btn btn-primary w-50" style="height: 38px;">Apply</button>
-                        <a href="{{ route('accounting.billing', ['tab' => $tab]) }}" class="btn btn-light w-50 d-flex align-items-center justify-content-center" style="height: 38px;">Reset</a>
+                        <button type="submit" class="btn text-white w-50 fw-semibold" style="height: 38px; background-color: #334c42; border: none;">Apply</button>
+                        <a href="{{ route('accounting.billing', ['tab' => $tab]) }}" class="btn btn-light w-50 d-flex align-items-center justify-content-center fw-semibold" style="height: 38px; border: 1px solid #827567; color: #504538;">Reset</a>
                     </div>
                 </div>
             </div>
@@ -139,49 +139,49 @@
 </form>
 
 <!-- TABLE -->
-<div class="card border-1 shadow-sm mb-4">
+<div class="card border-1 shadow-sm rounded-4 overflow-hidden mb-4">
     <div class="table-responsive">
         <table class="table align-middle mb-0">
-            <thead class="table-light">
-                <tr>
+            <thead style="background-color: #f8f3ed; border-bottom: 1px solid #e5e7eb;">
+                <tr class="text-muted small fw-bold">
                     @if($tab === 'pos')
-                        <th>Order No</th>
-                        <th>Customer / Guest</th>
-                        <th>Room</th>
-                        <th>Date</th>
-                        <th>Status</th>
-                        <th class="text-end">Total Amount</th>
-                        <th class="text-center">Action</th>
+                        <th class="ps-3">ORDER NO</th>
+                        <th>CUSTOMER / GUEST</th>
+                        <th>ROOM</th>
+                        <th>DATE</th>
+                        <th>STATUS</th>
+                        <th class="text-end">TOTAL AMOUNT</th>
+                        <th class="text-center pe-3">ACTION</th>
                     @else
-                        <th>Invoice / Folio No</th>
-                        <th>Guest</th>
-                        <th>Room</th>
-                        <th>Arrival Date</th>
-                        <th>Status</th>
-                        <th class="text-end">Total Charges</th>
-                        <th class="text-end">Balance</th>
-                        <th class="text-center">Action</th>
+                        <th class="ps-3">INVOICE / FOLIO NO</th>
+                        <th>GUEST</th>
+                        <th>ROOM</th>
+                        <th>ARRIVAL DATE</th>
+                        <th>STATUS</th>
+                        <th class="text-end">TOTAL CHARGES</th>
+                        <th class="text-end">BALANCE</th>
+                        <th class="text-center pe-3">ACTION</th>
                     @endif
                 </tr>
             </thead>
             <tbody>
                 @if($tab === 'pos')
                     @forelse($posOrders as $order)
-                        <tr>
-                            <td>{{ $order->order_number }}</td>
-                            <td>{{ $order->customer_name }}</td>
+                        <tr style="border-bottom: 1px solid #f0f0f0;">
+                            <td class="ps-3 fw-bold" style="color: #504538;">{{ $order->order_number }}</td>
+                            <td class="fw-semibold" style="color: #504538;">{{ $order->customer_name }}</td>
                             <td>{{ $order->room_number ? 'Room ' . $order->room_number : 'Walk-in' }}</td>
                             <td>{{ $order->created_at->format('Y-m-d') }}</td>
                             <td>
                                 @if(in_array($order->status, ['closed', 'refunded']))
-                                    <span class="badge bg-success">{{ ucfirst($order->status) }}</span>
+                                    <span class="badge bg-success-subtle text-success fw-semibold">{{ ucfirst($order->status) }}</span>
                                 @else
-                                    <span class="badge bg-warning">{{ ucfirst($order->status) }}</span>
+                                    <span class="badge bg-warning-subtle text-warning fw-semibold">{{ ucfirst($order->status) }}</span>
                                 @endif
                             </td>
-                            <td class="text-end fw-bold text-dark">₱{{ number_format($order->total, 2) }}</td>
-                            <td class="text-center">
-                                <a href="{{ route('coffeeshop.orders.show', $order->order_id) }}" class="btn btn-sm btn-outline-primary">
+                            <td class="text-end fw-bold" style="color: #504538;">₱{{ number_format($order->total, 2) }}</td>
+                            <td class="text-center pe-3">
+                                <a href="{{ route('coffeeshop.orders.show', $order->order_id) }}" class="btn btn-sm rounded-pill px-3 fw-semibold" style="border: 1px solid #627e71; color: #627e71; background: transparent;">
                                     <i class="fa-solid fa-eye me-1"></i> View Order
                                 </a>
                             </td>
@@ -193,24 +193,24 @@
                     @endforelse
                 @else
                     @forelse($folios as $folio)
-                        <tr>
-                            <td>{{ $folio->folio_number }}</td>
-                            <td>{{ $folio->guest_name }}</td>
+                        <tr style="border-bottom: 1px solid #f0f0f0;">
+                            <td class="ps-3 fw-bold" style="color: #504538;">{{ $folio->folio_number }}</td>
+                            <td class="fw-semibold" style="color: #504538;">{{ $folio->guest_name }}</td>
                             <td>{{ str_starts_with($folio->room_number, 'Room') ? $folio->room_number : 'Room ' . $folio->room_number }}</td>
                             <td>{{ $folio->date }}</td>
                             <td>
                                 @if($folio->display_status === 'Paid')
-                                    <span class="badge bg-success">Paid</span>
+                                    <span class="badge bg-success-subtle text-success fw-semibold">Paid</span>
                                 @else
-                                    <span class="badge bg-danger">Unpaid</span>
+                                    <span class="badge bg-danger-subtle text-danger fw-semibold">Unpaid</span>
                                 @endif
                             </td>
-                            <td class="text-end fw-bold text-dark">₱{{ number_format($folio->total_amount, 2) }}</td>
+                            <td class="text-end fw-bold" style="color: #504538;">₱{{ number_format($folio->total_amount, 2) }}</td>
                             <td class="text-end fw-bold {{ $folio->balance > 0 ? 'text-danger' : 'text-success' }}">
                                 ₱{{ number_format($folio->balance, 2) }}
                             </td>
-                            <td class="text-center">
-                                <a href="{{ route('accounting.billing.show', $folio->folio_id) }}" class="btn btn-sm btn-outline-primary">
+                            <td class="text-center pe-3">
+                                <a href="{{ route('accounting.billing.show', $folio->folio_id) }}" class="btn btn-sm rounded-pill px-3 fw-semibold" style="border: 1px solid #627e71; color: #627e71; background: transparent;">
                                     <i class="fa-solid fa-eye me-1"></i> View Folio
                                 </a>
                             </td>

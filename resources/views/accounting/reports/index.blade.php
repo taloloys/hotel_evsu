@@ -9,38 +9,38 @@
 <!-- TOP CONTROL BAR -->
 <div class="d-flex justify-content-between align-items-center mb-4">
     <div>
-        <h5 class="fw-bold mb-0">Financial Reports</h5>
+        <h5 class="fw-bold mb-0" style="color: #504538; font-family: 'Franklin Gothic Medium', sans-serif;">Financial Reports</h5>
         <small class="text-muted">Statement details from {{ $dateFrom }} to {{ $dateTo }}</small>
     </div>
     <form action="{{ route('accounting.reports') }}" method="GET" id="reportsFilterForm">
         <div class="dropdown">
-            <button class="btn btn-outline-dark d-flex align-items-center gap-2 px-3 position-relative"
+            <button class="btn bg-white d-flex align-items-center gap-2 px-3 position-relative shadow-sm"
                     type="button"
                     data-bs-toggle="dropdown"
                     data-bs-auto-close="outside"
-                    style="height: 45px; border-radius: 6px; border: 1px solid black; font-size: 1.05rem;">
-                <i class="fa-solid fa-filter fs-5"></i>
-                <span>Filter</span>
+                    style="height: 45px; border-radius: 0.5rem; border: 1px solid #c2a889; color: #504538; font-size: 1rem;">
+                <i class="fa-solid fa-filter" style="color: #627e71;"></i>
+                <span class="fw-semibold">Filter</span>
                 @if($reportType !== 'ALL')
                     <span class="position-absolute top-0 start-100 translate-middle p-1 bg-danger border border-light rounded-circle"></span>
                 @endif
             </button>
             <div class="dropdown-menu dropdown-menu-end p-3 shadow-sm"
                  onclick="event.stopPropagation()"
-                 style="min-width: 300px; border-radius: 8px; z-index: 1055;">
+                 style="min-width: 300px; border-radius: 0.75rem; z-index: 1055;">
 
                 <label class="form-label small mb-1 fw-semibold text-muted">Date From</label>
                 <input type="date" name="date_from" value="{{ $dateFrom }}"
                        class="form-control mb-3 shadow-none"
-                       style="height:38px; border-radius:4px; border: 1px solid black;">
+                       style="height:38px; border-radius:0.5rem; border: 1px solid #827567;">
 
                 <label class="form-label small mb-1 fw-semibold text-muted">Date To</label>
                 <input type="date" name="date_to" value="{{ $dateTo }}"
                        class="form-control mb-3 shadow-none"
-                       style="height:38px; border-radius:4px; border: 1px solid black;">
+                       style="height:38px; border-radius:0.5rem; border: 1px solid #827567;">
 
                 <label class="form-label small mb-1 fw-semibold text-muted">Report Type</label>
-                <select name="report_type" class="form-select mb-3 shadow-none" style="height:38px; border-radius:4px; border: 1px solid black;">
+                <select name="report_type" class="form-select mb-3 shadow-none" style="height:38px; border-radius:0.5rem; border: 1px solid #827567;">
                     <option value="ALL" {{ $reportType === 'ALL' ? 'selected' : '' }}>All Reports</option>
                     <option value="PL" {{ $reportType === 'PL' ? 'selected' : '' }}>Profit &amp; Loss</option>
                     <option value="CASH" {{ $reportType === 'CASH' ? 'selected' : '' }}>Cash Flow</option>
@@ -49,20 +49,20 @@
                 </select>
 
                 <div class="d-flex gap-2">
-                    <button type="submit" class="btn btn-primary w-50" style="height: 38px;">Apply</button>
-                    <a href="{{ route('accounting.reports') }}" class="btn btn-light w-50 d-flex align-items-center justify-content-center" style="height: 38px;">Reset</a>
+                    <button type="submit" class="btn text-white w-50 fw-semibold" style="height: 38px; background-color: #334c42; border: none;">Apply</button>
+                    <a href="{{ route('accounting.reports') }}" class="btn btn-light w-50 d-flex align-items-center justify-content-center fw-semibold" style="height: 38px; border: 1px solid #827567; color: #504538;">Reset</a>
                 </div>
             </div>
         </div>
     </form>
 </div>
 
-<!-- TABS (CLEAN STYLE) -->
-<ul class="nav nav-tabs mb-3">
+<!-- TABS (SEGMENTED PILLS) -->
+<ul class="nav nav-pills gap-2 mb-4 coffeeshop-nav-pills">
 
     @if($reportType === 'ALL' || $reportType === 'PL')
     <li class="nav-item">
-        <button class="nav-link {{ ($reportType === 'ALL' || $reportType === 'PL') ? 'active' : '' }}" data-bs-toggle="tab" data-bs-target="#pl">
+        <button class="nav-link rounded-pill {{ ($reportType === 'ALL' || $reportType === 'PL') ? 'active' : '' }}" data-bs-toggle="tab" data-bs-target="#pl">
             Profit & Loss
         </button>
     </li>
@@ -70,7 +70,7 @@
 
     @if($reportType === 'ALL' || $reportType === 'CASH')
     <li class="nav-item">
-        <button class="nav-link {{ ($reportType === 'CASH') ? 'active' : '' }}" data-bs-toggle="tab" data-bs-target="#cash">
+        <button class="nav-link rounded-pill {{ ($reportType === 'CASH') ? 'active' : '' }}" data-bs-toggle="tab" data-bs-target="#cash">
             Cash Flow
         </button>
     </li>
@@ -78,7 +78,7 @@
 
     @if($reportType === 'ALL' || $reportType === 'REVENUE')
     <li class="nav-item">
-        <button class="nav-link {{ ($reportType === 'REVENUE') ? 'active' : '' }}" data-bs-toggle="tab" data-bs-target="#rev">
+        <button class="nav-link rounded-pill {{ ($reportType === 'REVENUE') ? 'active' : '' }}" data-bs-toggle="tab" data-bs-target="#rev">
             Revenue Breakdown
         </button>
     </li>
@@ -86,7 +86,7 @@
 
     @if($reportType === 'ALL' || $reportType === 'TX')
     <li class="nav-item">
-        <button class="nav-link {{ ($reportType === 'TX') ? 'active' : '' }}" data-bs-toggle="tab" data-bs-target="#tx">
+        <button class="nav-link rounded-pill {{ ($reportType === 'TX') ? 'active' : '' }}" data-bs-toggle="tab" data-bs-target="#tx">
             Transactions List
         </button>
     </li>
@@ -100,10 +100,10 @@
     <!-- PROFIT & LOSS -->
     @if($reportType === 'ALL' || $reportType === 'PL')
     <div class="tab-pane fade show {{ ($reportType === 'ALL' || $reportType === 'PL') ? 'active' : '' }}" id="pl">
-        <div class="card border-0 shadow-sm">
+        <div class="card border-0 shadow-sm rounded-4">
             <div class="card-body">
 
-                <div class="fw-bold mb-3">Profit & Loss Statement</div>
+                <div class="fw-bold mb-3" style="color: #504538;">Profit & Loss Statement</div>
 
                 <div class="d-flex justify-content-between border-bottom py-2">
                     <span class="text-muted">Total Revenue (Posted Charges)</span>
@@ -116,8 +116,8 @@
                 </div>
 
                 <div class="d-flex justify-content-between pt-3 fw-bold fs-5">
-                    <span>Net Profit / Loss</span>
-                    <span class="{{ $netProfit >= 0 ? 'text-primary' : 'text-danger' }}">
+                    <span style="color: #504538;">Net Profit / Loss</span>
+                    <span class="{{ $netProfit >= 0 ? '' : 'text-danger' }}" style="{{ $netProfit >= 0 ? 'color: #504538;' : '' }}">
                         ₱{{ number_format($netProfit, 2) }}
                     </span>
                 </div>
@@ -130,10 +130,10 @@
     <!-- CASH FLOW -->
     @if($reportType === 'ALL' || $reportType === 'CASH')
     <div class="tab-pane fade show {{ ($reportType === 'CASH') ? 'active' : '' }}" id="cash">
-        <div class="card border-0 shadow-sm">
+        <div class="card border-0 shadow-sm rounded-4">
             <div class="card-body">
 
-                <div class="fw-bold mb-3">Cash Flow Statement</div>
+                <div class="fw-bold mb-3" style="color: #504538;">Cash Flow Statement</div>
 
                 <div class="d-flex justify-content-between border-bottom py-2">
                     <span class="text-muted">Cash Inflow (Guest Collections/Payments)</span>
@@ -146,8 +146,8 @@
                 </div>
 
                 <div class="d-flex justify-content-between pt-3 fw-bold fs-5">
-                    <span>Net Cash Flow</span>
-                    <span class="{{ $netCashFlow >= 0 ? 'text-primary' : 'text-danger' }}">
+                    <span style="color: #504538;">Net Cash Flow</span>
+                    <span class="{{ $netCashFlow >= 0 ? '' : 'text-danger' }}" style="{{ $netCashFlow >= 0 ? 'color: #504538;' : '' }}">
                         ₱{{ number_format($netCashFlow, 2) }}
                     </span>
                 </div>

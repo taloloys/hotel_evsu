@@ -7,28 +7,28 @@
 @section('content')
 
 <!-- FILTER / ACTION BAR -->
-<form action="{{ route('accounting.audit') }}" method="GET" class="card border-0 shadow-sm mb-4" id="auditFilterForm">
+<form action="{{ route('accounting.audit') }}" method="GET" class="card border-0 shadow-sm rounded-4 mb-4" id="auditFilterForm">
     <div class="card-body d-flex justify-content-between align-items-center">
 
         <div>
-            <h5 class="fw-bold mb-0">Audit Logs</h5>
+            <h5 class="fw-bold mb-0" style="color: #504538; font-family: 'Franklin Gothic Medium', sans-serif;">Audit Logs</h5>
             <small class="text-muted">Complete system activity tracking</small>
         </div>
 
         <div class="d-flex align-items-center gap-2">
 
             <!-- SEARCH (live) -->
-            <div style="width: 320px; border:1px solid #000; border-radius:.375rem; height: 45px;">
-                <div class="input-group" style="height: 100%;">
+            <div style="width: 320px;">
+                <div class="input-group shadow-sm" style="border: 1px solid #c2a889; border-radius: 0.5rem; overflow: hidden; height: 45px; background-color: #ffffff;">
                     <span class="input-group-text bg-white border-0 px-3">
-                        <i class="fa-solid fa-magnifying-glass text-muted fs-5"></i>
+                        <i class="fa-solid fa-magnifying-glass" style="color: #627e71;"></i>
                     </span>
                     <input
                         type="text"
                         name="search"
                         id="auditSearch"
                         class="form-control border-0 shadow-none py-2"
-                        style="font-size: 1.05rem;"
+                        style="font-size: 1rem;"
                         placeholder="Search activity logs..."
                         value="{{ $search }}"
                         autocomplete="off">
@@ -37,23 +37,23 @@
 
             <!-- FILTER DROPDOWN -->
             <div class="dropdown">
-                <button class="btn btn-outline-dark d-flex align-items-center gap-2 px-3 position-relative"
+                <button class="btn bg-white d-flex align-items-center gap-2 px-3 position-relative shadow-sm"
                         type="button"
                         data-bs-toggle="dropdown"
                         data-bs-auto-close="outside"
-                        style="height: 45px; border-radius: 6px; border: 1px solid black; font-size: 1.05rem;">
-                    <i class="fa-solid fa-filter fs-5"></i>
-                    <span>Filter</span>
+                        style="height: 45px; border-radius: 0.5rem; border: 1px solid #c2a889; color: #504538; font-size: 1rem;">
+                    <i class="fa-solid fa-filter" style="color: #627e71;"></i>
+                    <span class="fw-semibold">Filter</span>
                     @if($userIdFilter !== 'ALL' || $actionFilter !== 'ALL')
                         <span class="position-absolute top-0 start-100 translate-middle p-1 bg-danger border border-light rounded-circle"></span>
                     @endif
                 </button>
                 <div class="dropdown-menu dropdown-menu-end p-3 shadow-sm"
                      onclick="event.stopPropagation()"
-                     style="min-width: 280px; border-radius: 8px; z-index: 1055;">
+                     style="min-width: 280px; border-radius: 0.75rem; z-index: 1055;">
 
                     <label class="form-label small mb-1 fw-semibold text-muted">User</label>
-                    <select name="user_id" class="form-select mb-3 shadow-none" style="height:38px; border-radius:4px; border: 1px solid black;">
+                    <select name="user_id" class="form-select mb-3 shadow-none" style="height:38px; border-radius:0.5rem; border: 1px solid #827567;">
                         <option value="ALL" {{ $userIdFilter === 'ALL' ? 'selected' : '' }}>All Users</option>
                         @foreach($users as $u)
                             <option value="{{ $u->user_id }}" {{ $userIdFilter == $u->user_id ? 'selected' : '' }}>{{ $u->full_name }}</option>
@@ -61,7 +61,7 @@
                     </select>
 
                     <label class="form-label small mb-1 fw-semibold text-muted">Action Type</label>
-                    <select name="action_type" class="form-select mb-3 shadow-none" style="height:38px; border-radius:4px; border: 1px solid black;">
+                    <select name="action_type" class="form-select mb-3 shadow-none" style="height:38px; border-radius:0.5rem; border: 1px solid #827567;">
                         <option value="ALL" {{ $actionFilter === 'ALL' ? 'selected' : '' }}>All Actions</option>
                         @foreach($actionTypes as $type)
                             <option value="{{ $type }}" {{ $actionFilter === $type ? 'selected' : '' }}>{{ $type }}</option>
@@ -69,8 +69,8 @@
                     </select>
 
                     <div class="d-flex gap-2">
-                        <button type="submit" class="btn btn-primary w-50" style="height: 38px;">Apply</button>
-                        <a href="{{ route('accounting.audit') }}" class="btn btn-light w-50 d-flex align-items-center justify-content-center" style="height: 38px;">Reset</a>
+                        <button type="submit" class="btn text-white w-50 fw-semibold" style="height: 38px; background-color: #334c42; border: none;">Apply</button>
+                        <a href="{{ route('accounting.audit') }}" class="btn btn-light w-50 d-flex align-items-center justify-content-center fw-semibold" style="height: 38px; border: 1px solid #827567; color: #504538;">Reset</a>
                     </div>
                 </div>
             </div>
@@ -81,38 +81,46 @@
 
 
 <!-- LOG TABLE -->
-<div class="card border-0 shadow-sm mb-3">
+<div class="card border-0 shadow-sm rounded-4 overflow-hidden mb-3">
 
     <div class="table-responsive">
 
         <table class="table align-middle mb-0">
 
-            <thead class="table-light">
-                <tr>
-                    <th>Timestamp</th>
-                    <th>User</th>
-                    <th>Action</th>
-                    <th>Description</th>
-                    <th>Status</th>
-                    <th class="text-end">IP Address</th>
+            <thead style="background-color: #f8f3ed; border-bottom: 1px solid #e5e7eb;">
+                <tr class="text-muted small fw-bold">
+                    <th class="ps-4">TIMESTAMP</th>
+                    <th>USER</th>
+                    <th>ACTION</th>
+                    <th>DESCRIPTION</th>
+                    <th>STATUS</th>
+                    <th class="text-end pe-4">IP ADDRESS</th>
                 </tr>
             </thead>
 
             <tbody>
 
                 @forelse($logs as $log)
-                    <tr>
-                        <td class="text-muted">{{ $log->timestamp->format('Y-m-d H:i') }}</td>
+                    <tr style="border-bottom: 1px solid #f0f0f0;">
+                        <td class="ps-4 text-muted">{{ $log->timestamp->format('Y-m-d H:i') }}</td>
                         <td>
-                            <div class="fw-semibold">{{ $log->user ? $log->user->full_name : 'System' }}</div>
+                            <div class="fw-semibold" style="color: #504538;">{{ $log->user ? $log->user->full_name : 'System' }}</div>
                             <small class="text-muted">{{ $log->user ? $log->user->username : 'system' }}</small>
                         </td>
                         <td>
-                            <span class="badge bg-primary">{{ $log->action_type }}</span>
+                            @php
+                                $actionUpper = strtoupper($log->action_type);
+                                $badgeStyle = match(true) {
+                                    str_contains($actionUpper, 'LOGIN') => 'background-color: #334c42; color: #ffffff;',
+                                    str_contains($actionUpper, 'LOGOUT') => 'background-color: #827567; color: #ffffff;',
+                                    default => 'background-color: #627e71; color: #ffffff;'
+                                };
+                            @endphp
+                            <span class="badge rounded-pill px-2.5 py-1" style="{{ $badgeStyle }}">{{ $log->action_type }}</span>
                         </td>
                         <td>{{ $log->description }}</td>
-                        <td><span class="badge bg-success">Success</span></td>
-                        <td class="text-end text-muted">127.0.0.1</td>
+                        <td><span class="badge bg-success-subtle text-success fw-semibold">Success</span></td>
+                        <td class="text-end pe-4 text-muted">127.0.0.1</td>
                     </tr>
                 @empty
                     <tr>

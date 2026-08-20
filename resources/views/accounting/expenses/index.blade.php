@@ -18,37 +18,37 @@
 <div class="row g-3 mb-4">
 
     <div class="col-lg-3">
-        <div class="card border-1 shadow-sm">
+        <div class="card border-1 shadow-sm rounded-4">
             <div class="card-body">
-                <div class="text-muted large">Total Expenses (Approved)</div>
-                <div class="fw-bold fs-3 text-danger">₱{{ number_format($totalExpenses, 2) }}</div>
+                <div class="text-muted small mb-1">Total Expenses (Approved)</div>
+                <div class="fw-bold fs-4 text-danger">₱{{ number_format($totalExpenses, 2) }}</div>
             </div>
         </div>
     </div>
 
     <div class="col-lg-3">
-        <div class="card border-1 shadow-sm">
+        <div class="card border-1 shadow-sm rounded-4">
             <div class="card-body">
-                <div class="text-muted large">Utilities</div>
-                <div class="fw-bold fs-3">₱{{ number_format($utilities, 2) }}</div>
+                <div class="text-muted small mb-1">Utilities</div>
+                <div class="fw-bold fs-4" style="color: #504538;">₱{{ number_format($utilities, 2) }}</div>
             </div>
         </div>
     </div>
 
     <div class="col-lg-3">
-        <div class="card border-1 shadow-sm">
+        <div class="card border-1 shadow-sm rounded-4">
             <div class="card-body">
-                <div class="text-muted large">Salaries & Wages</div>
-                <div class="fw-bold fs-3">₱{{ number_format($salaries, 2) }}</div>
+                <div class="text-muted small mb-1">Salaries & Wages</div>
+                <div class="fw-bold fs-4" style="color: #504538;">₱{{ number_format($salaries, 2) }}</div>
             </div>
         </div>
     </div>
 
     <div class="col-lg-3">
-        <div class="card border-1 shadow-sm">
+        <div class="card border-1 shadow-sm rounded-4">
             <div class="card-body">
-                <div class="text-muted large">Supplies & Stationery</div>
-                <div class="fw-bold fs-3">₱{{ number_format($supplies, 2) }}</div>
+                <div class="text-muted small mb-1">Supplies & Stationery</div>
+                <div class="fw-bold fs-4" style="color: #504538;">₱{{ number_format($supplies, 2) }}</div>
             </div>
         </div>
     </div>
@@ -57,29 +57,29 @@
 
 
 <!-- ACTION BAR -->
-<form action="{{ route('accounting.expenses') }}" method="GET" class="card border-1 shadow-sm mb-3" id="expensesFilterForm">
+<form action="{{ route('accounting.expenses') }}" method="GET" class="card border-1 shadow-sm rounded-4 mb-3" id="expensesFilterForm">
 
     <div class="card-body d-flex justify-content-between align-items-center">
 
         <div>
-            <div class="fw-bold">Expense Records</div>
+            <div class="fw-bold" style="color: #504538;">Expense Records</div>
             <small class="text-muted">Operational spending by department</small>
         </div>
 
         <div class="d-flex align-items-center gap-2 flex-wrap">
 
             <!-- SEARCH (live) -->
-            <div style="width: 320px; border: 1px solid #000000; border-radius: .375rem; height: 45px;">
-                <div class="input-group" style="height: 100%;">
+            <div style="width: 320px;">
+                <div class="input-group shadow-sm" style="border: 1px solid #c2a889; border-radius: 0.5rem; overflow: hidden; height: 45px; background-color: #ffffff;">
                     <span class="input-group-text bg-white border-0 px-3">
-                        <i class="fa-solid fa-magnifying-glass text-muted fs-5"></i>
+                        <i class="fa-solid fa-magnifying-glass" style="color: #627e71;"></i>
                     </span>
                     <input
                         type="text"
                         name="search"
                         id="expensesSearch"
                         class="form-control border-0 shadow-none py-2"
-                        style="font-size: 1.05rem;"
+                        style="font-size: 1rem;"
                         placeholder="Search expense or category..."
                         value="{{ $search }}"
                         autocomplete="off">
@@ -88,24 +88,24 @@
 
             <!-- FILTER DROPDOWN -->
             <div class="dropdown">
-                <button class="btn btn-outline-dark d-flex align-items-center gap-2 px-3 position-relative"
+                <button class="btn bg-white d-flex align-items-center gap-2 px-3 position-relative shadow-sm"
                         type="button"
                         data-bs-toggle="dropdown"
                         data-bs-auto-close="outside"
-                        style="height: 45px; border-radius: 6px; border: 1px solid black; font-size: 1.05rem;">
-                    <i class="fa-solid fa-filter fs-5"></i>
-                    <span>Filter</span>
+                        style="height: 45px; border-radius: 0.5rem; border: 1px solid #c2a889; color: #504538; font-size: 1rem;">
+                    <i class="fa-solid fa-filter" style="color: #627e71;"></i>
+                    <span class="fw-semibold">Filter</span>
                     @if($departmentFilter !== 'All Departments' || (in_array(auth()->user()?->role?->role_name, ['ADMIN', 'MANAGER', 'ACCOUNTING']) && $periodFilter !== 'Today'))
                         <span class="position-absolute top-0 start-100 translate-middle p-1 bg-danger border border-light rounded-circle"></span>
                     @endif
                 </button>
                 <div class="dropdown-menu dropdown-menu-end p-3 shadow-sm"
                      onclick="event.stopPropagation()"
-                     style="min-width: 280px; border-radius: 8px; z-index: 1055;">
+                     style="min-width: 280px; border-radius: 0.75rem; z-index: 1055;">
 
                     @if(in_array(auth()->user()?->role?->role_name, ['ADMIN', 'MANAGER', 'ACCOUNTING']))
                     <label class="form-label small mb-1 fw-semibold text-muted">Period</label>
-                    <select name="period" class="form-select mb-3 shadow-none" style="height:38px; border-radius:4px; border: 1px solid black;">
+                    <select name="period" class="form-select mb-3 shadow-none" style="height:38px; border-radius:0.5rem; border: 1px solid #827567;">
                         <option value="All Time" {{ $periodFilter === 'All Time' ? 'selected' : '' }}>All Time</option>
                         <option value="Today" {{ $periodFilter === 'Today' ? 'selected' : '' }}>Today</option>
                         <option value="This Week" {{ $periodFilter === 'This Week' ? 'selected' : '' }}>This Week</option>
@@ -114,7 +114,7 @@
                     @endif
 
                     <label class="form-label small mb-1 fw-semibold text-muted">Department</label>
-                    <select name="department" class="form-select mb-3 shadow-none" style="height:38px; border-radius:4px; border: 1px solid black;">
+                    <select name="department" class="form-select mb-3 shadow-none" style="height:38px; border-radius:0.5rem; border: 1px solid #827567;">
                         <option value="All Departments" {{ $departmentFilter === 'All Departments' ? 'selected' : '' }}>All Departments</option>
                         @foreach($departments as $dept)
                             <option value="{{ $dept }}" {{ $departmentFilter === $dept ? 'selected' : '' }}>{{ $dept }}</option>
@@ -122,8 +122,8 @@
                     </select>
 
                     <div class="d-flex gap-2">
-                        <button type="submit" class="btn btn-primary w-50" style="height: 38px;">Apply</button>
-                        <a href="{{ route('accounting.expenses') }}" class="btn btn-light w-50 d-flex align-items-center justify-content-center" style="height: 38px;">Reset</a>
+                        <button type="submit" class="btn text-white w-50 fw-semibold" style="height: 38px; background-color: #334c42; border: none;">Apply</button>
+                        <a href="{{ route('accounting.expenses') }}" class="btn btn-light w-50 d-flex align-items-center justify-content-center fw-semibold" style="height: 38px; border: 1px solid #827567; color: #504538;">Reset</a>
                     </div>
                 </div>
             </div>
@@ -132,10 +132,10 @@
             <!-- ADD EXPENSE -->
             <button
                 type="button"
-                class="btn btn-primary px-3 d-flex align-items-center justify-content-center"
+                class="btn text-white rounded-pill px-3 fw-semibold shadow-sm"
                 data-bs-toggle="modal"
                 data-bs-target="#addExpenseModal"
-                style="height: 45px; font-size: 1.05rem;">
+                style="height: 45px; background-color: #334c42; border: none; font-size: 1rem;">
 
                 <i class="fa-solid fa-plus me-1"></i>
                 Add Expense
@@ -151,50 +151,50 @@
 
 
 <!-- TABLE -->
-<div class="card border-1 shadow-sm">
+<div class="card border-1 shadow-sm rounded-4 overflow-hidden">
 
     <div class="table-responsive">
 
         <table class="table align-middle mb-0">
 
-            <thead class="table-light">
-                <tr>
-                    <th class="ps-4">Date</th>
-                    <th>Department</th>
-                    <th>Purpose / Description</th>
-                    <th>Category</th>
-                    <th>Funded By</th>
-                    <th>Status</th>
-                    <th class="text-end">Amount</th>
-                    <th class="text-center">Action</th>
+            <thead style="background-color: #f8f3ed; border-bottom: 1px solid #e5e7eb;">
+                <tr class="text-muted small fw-bold">
+                    <th class="ps-4">DATE</th>
+                    <th>DEPARTMENT</th>
+                    <th>PURPOSE / DESCRIPTION</th>
+                    <th>CATEGORY</th>
+                    <th>FUNDED BY</th>
+                    <th>STATUS</th>
+                    <th class="text-end">AMOUNT</th>
+                    <th class="text-center pe-3">ACTION</th>
                 </tr>
             </thead>
 
             <tbody>
 
                 @forelse($expenses as $exp)
-                    <tr>
-                        <td>{{ $exp->expense_date->toDateString() }}</td>
-                        <td>{{ $exp->department }}</td>
+                    <tr style="border-bottom: 1px solid #f0f0f0;">
+                        <td class="ps-4">{{ $exp->expense_date->toDateString() }}</td>
+                        <td class="fw-semibold" style="color: #504538;">{{ $exp->department }}</td>
                         <td>{{ $exp->purpose }}</td>
                         <td>{{ $exp->category }}</td>
                         <td>
                             @if($exp->funding_source === 'FRONT DESK')
-                                <span class="badge bg-primary text-white">Front Desk</span>
+                                <span class="badge rounded-pill px-2.5 py-1" style="background-color: #627e71; color: #ffffff;">Front Desk</span>
                             @else
-                                <span class="badge bg-secondary text-white">Cafeteria</span>
+                                <span class="badge rounded-pill px-2.5 py-1" style="background-color: #827567; color: #ffffff;">Cafeteria</span>
                             @endif
                         </td>
                         <td>
                             @if($exp->status === 'APPROVED')
-                                <span class="badge bg-success">Approved</span>
+                                <span class="badge bg-success-subtle text-success fw-semibold">Approved</span>
                             @elseif($exp->status === 'PENDING')
-                                <span class="badge bg-warning text-dark">Pending</span>
+                                <span class="badge bg-warning-subtle text-warning fw-semibold">Pending</span>
                             @else
-                                <span class="badge bg-danger">Rejected</span>
+                                <span class="badge bg-danger-subtle text-danger fw-semibold">Rejected</span>
                             @endif
                         </td>
-                        <td class="text-end fw-bold {{ $exp->status === 'APPROVED' ? 'text-danger' : 'text-muted' }}">
+                        <td class="text-end fw-bold" style="color: #504538;">
                             ₱{{ number_format($exp->amount, 2) }}
                         </td>
                         <td class="text-center">
