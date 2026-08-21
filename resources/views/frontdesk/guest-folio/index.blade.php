@@ -35,13 +35,14 @@
 
                 <!-- SEARCH -->
                 <div style="width: 320px;">
-                    <div class="input-group fd-search">
-                        <span class="input-group-text bg-white border-0">
-                            <i class="fa-solid fa-magnifying-glass text-muted"></i>
+                    <div class="input-group shadow-sm" style="border: 1px solid #c2a889; border-radius: 0.5rem; overflow: hidden; height: 45px; background-color: #ffffff;">
+                        <span class="input-group-text bg-white border-0 px-3">
+                            <i class="fa-solid fa-magnifying-glass" style="color: #627e71;"></i>
                         </span>
                         <input
                             type="text"
-                            class="form-control border-0 shadow-none"
+                            class="form-control border-0 shadow-none py-2"
+                            style="font-size: 1rem;"
                             id="search"
                             name="search"
                             value="{{ $search }}"
@@ -53,45 +54,46 @@
 
                 <!-- FILTER DROPDOWN -->
                 <div class="dropdown">
-                    <button class="btn btn-outline-secondary d-flex align-items-center gap-1 px-3 position-relative fd-filter-btn"
+                    <button class="btn bg-white d-flex align-items-center gap-2 px-3 position-relative shadow-sm"
                             type="button"
-                            data-bs-toggle="dropdown">
-                        <i class="fa-solid fa-filter"></i>
-                        <span>Filter</span>
+                            data-bs-toggle="dropdown"
+                            style="height: 45px; border-radius: 0.5rem; border: 1px solid #c2a889; color: #504538; font-size: 1rem;">
+                        <i class="fa-solid fa-filter" style="color: #627e71;"></i>
+                        <span class="fw-semibold">Filter</span>
                         @if($folioType !== 'ALL' || $statusFilter !== 'ALL')
                             <span class="position-absolute top-0 start-100 translate-middle p-1 bg-danger border border-light rounded-circle"></span>
                         @endif
                     </button>
                     <div class="dropdown-menu dropdown-menu-end p-3 shadow-sm"
                          onclick="event.stopPropagation()"
-                         style="min-width: 280px; border-radius: 8px;">
+                         style="min-width: 280px; border-radius: 0.75rem;">
 
                         <!-- Folio Type -->
-                        <label class="form-label small mb-1 fw-semibold" for="folio_type">Folio Type</label>
-                        <select class="form-select mb-3" id="folio_type" name="folio_type" style="height:38px;border-radius:6px;">
+                        <label class="form-label small mb-1 fw-semibold text-muted" for="folio_type">Folio Type</label>
+                        <select class="form-select mb-3 shadow-none" id="folio_type" name="folio_type" style="height:38px; border-radius:0.5rem; border: 1px solid #827567;">
                             <option value="ALL" @selected($folioType === 'ALL')>All Types</option>
                             <option value="GUEST" @selected($folioType === 'GUEST')>Guest</option>
                             <option value="HOUSE" @selected($folioType === 'HOUSE')>House</option>
                         </select>
 
                         <!-- Status -->
-                        <label class="form-label small mb-1 fw-semibold" for="status">Folio Status</label>
-                        <select class="form-select mb-3" id="status" name="status" style="height:38px;border-radius:6px;">
+                        <label class="form-label small mb-1 fw-semibold text-muted" for="status">Folio Status</label>
+                        <select class="form-select mb-3 shadow-none" id="status" name="status" style="height:38px; border-radius:0.5rem; border: 1px solid #827567;">
                             <option value="ALL" @selected($statusFilter === 'ALL')>All</option>
                             <option value="OPEN" @selected($statusFilter === 'OPEN')>Open</option>
                             <option value="CLOSED" @selected($statusFilter === 'CLOSED')>Closed</option>
                         </select>
 
                         <div class="d-flex gap-2">
-                            <button type="submit" class="btn btn-primary w-50" style="height: 38px;">Apply</button>
-                            <a href="{{ route('frontdesk.guest-folio') }}" class="btn btn-light w-50 d-flex align-items-center justify-content-center" style="height: 38px;">Reset</a>
+                            <button type="submit" class="btn text-white w-50 fw-semibold" style="height: 38px; background-color: #334c42; border: none;">Apply</button>
+                            <a href="{{ route('frontdesk.guest-folio') }}" class="btn btn-light w-50 d-flex align-items-center justify-content-center fw-semibold" style="height: 38px; border: 1px solid #827567; color: #504538;">Reset</a>
                         </div>
                     </div>
                 </div>
 
                 <!-- PRINT BUTTON -->
-                <button type="button" class="btn btn-outline-secondary d-flex align-items-center gap-1" style="height: 45px; border-radius: 6px; border: 1px solid #000;" onclick="printFolioList()" title="Print folio summary list">
-                    <i class="fa-solid fa-print me-1"></i> Print
+                <button type="button" class="btn rounded-pill px-3 fw-semibold shadow-sm" style="height: 45px; border: 1px solid #c2a889; color: #504538; background: transparent; font-size: 1rem;" onclick="printFolioList()" title="Print folio summary list">
+                    <i class="fa-solid fa-print me-1" style="color: #627e71;"></i> Print
                 </button>
 
             </form>
@@ -105,30 +107,30 @@
             @if($search) for "<strong>{{ $search }}</strong>" @endif
         </p>
         @if($folios->hasPages())
-            <span class="badge bg-primary-subtle text-primary border border-primary-subtle px-3 py-2">
+            <span class="badge rounded-pill px-3 py-2 fw-semibold" style="border: 1px solid #627e71; color: #627e71; background: transparent;">
                 Page {{ $folios->currentPage() }} of {{ $folios->lastPage() }}
             </span>
         @endif
     </div>
 
     {{-- Folio Table --}}
-    <div class="card border-0 shadow-sm">
+    <div class="card border-1 shadow-sm rounded-4 overflow-hidden">
         <div class="card-body p-0">
             <div class="table-responsive">
-                <table class="table table-hover align-middle mb-0" id="folioTable">
-                    <thead class="table-light">
-                        <tr>
-                            <th class="px-4 py-3">Folio No.</th>
-                            <th class="py-3">Guest Name</th>
-                            <th class="py-3">Room</th>
-                            <th class="py-3 text-center">Type</th>
-                            <th class="py-3">Arrival</th>
-                            <th class="py-3">Departure</th>
-                            <th class="py-3 text-end d-none d-xl-table-cell">Base Rate</th>
-                            <th class="py-3 text-end">Net Rate</th>
-                            <th class="py-3 text-center">Payment</th>
-                            <th class="py-3 text-center">Status</th>
-                            <th class="py-3 text-center">Action</th>
+                <table class="table align-middle mb-0" id="folioTable">
+                    <thead style="background-color: #f8f3ed; border-bottom: 2px solid #c2a889;">
+                        <tr class="small fw-bold">
+                            <th class="px-4 py-3" style="color: #2c241d;">FOLIO NO.</th>
+                            <th class="py-3" style="color: #2c241d;">GUEST NAME</th>
+                            <th class="py-3" style="color: #2c241d;">ROOM</th>
+                            <th class="py-3 text-center" style="color: #2c241d;">TYPE</th>
+                            <th class="py-3" style="color: #2c241d;">ARRIVAL</th>
+                            <th class="py-3" style="color: #2c241d;">DEPARTURE</th>
+                            <th class="py-3 text-end d-none d-xl-table-cell" style="color: #2c241d;">BASE RATE</th>
+                            <th class="py-3 text-end" style="color: #2c241d;">NET RATE</th>
+                            <th class="py-3 text-center" style="color: #2c241d;">PAYMENT</th>
+                            <th class="py-3 text-center" style="color: #2c241d;">STATUS</th>
+                            <th class="py-3 text-center pe-3" style="color: #2c241d;">ACTION</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -140,13 +142,13 @@
                                 $totalCredit = $folio->total_credits;
                                 $balance     = $folio->balance;
                             @endphp
-                            <tr>
+                            <tr style="border-bottom: 1px solid #f0f0f0;">
                                 <td class="px-4">
-                                    <span class="fw-semibold text-primary">{{ $folio->folio_number }}</span>
+                                    <span class="fw-bold" style="color: #627e71;">{{ $folio->folio_number }}</span>
                                 </td>
                                 <td>
                                     @if($folio->guest)
-                                        <div class="fw-semibold">{{ $folio->guest->last_name }}, {{ $folio->guest->first_name }}</div>
+                                        <div class="fw-bold" style="color: #2c241d;">{{ $folio->guest->last_name }}, {{ $folio->guest->first_name }}</div>
                                         <div class="text-muted small">{{ $folio->guest->contact_number ?: '' }}</div>
                                     @else
                                         <span class="text-muted fst-italic opacity-60">—</span>
@@ -154,22 +156,22 @@
                                 </td>
                                 <td>
                                     @if($room)
-                                        <span class="fw-semibold">{{ $room->room_number }}</span>
+                                        <span class="fw-bold" style="color: #2c241d;">{{ $room->room_number }}</span>
                                         <div class="text-muted small">{{ $room->room_type }}</div>
                                     @else
                                         <span class="text-muted fst-italic opacity-60">—</span>
                                     @endif
                                 </td>
                                 <td class="text-center">
-                                    <span class="badge bg-light text-secondary border">{{ $folio->folio_type }}</span>
+                                    <span class="badge px-2.5 py-1 fw-semibold" style="border: 1px solid #827567; color: #504538; background: transparent; border-radius: 0.375rem;">{{ $folio->folio_type }}</span>
                                 </td>
-                                <td class="small">
+                                <td class="small" style="color: #2c241d;">
                                     {{ $booking?->arrival_date?->format('M d, Y') ?? '—' }}
                                 </td>
-                                <td class="small">
+                                <td class="small" style="color: #2c241d;">
                                     {{ $booking?->departure_date?->format('M d, Y') ?? '—' }}
                                 </td>
-                                <td class="text-end small d-none d-xl-table-cell">
+                                <td class="text-end small d-none d-xl-table-cell" style="color: #2c241d;">
                                     @if($room)
                                         ₱{{ number_format($room->base_rate, 2) }}
                                     @else
@@ -178,30 +180,45 @@
                                 </td>
                                 <td class="text-end small">
                                     @if($folio->net_rate !== null)
-                                        <span class="text-success fw-semibold">₱{{ number_format($folio->net_rate, 2) }}</span>
+                                        <span class="fw-bold" style="color: #2c241d;">₱{{ number_format($folio->net_rate, 2) }}</span>
                                     @else
                                         <span class="text-muted fst-italic opacity-60">—</span>
                                     @endif
                                 </td>
-                                <td class="text-center small">
+                                <td class="text-center">
                                     @if($folio->payment_method)
-                                        {{ $folio->payment_method === 'Cash' ? '💵' : '💳' }}
-                                        {{ $folio->payment_method }}
+                                        @php
+                                            $methodUpper = strtoupper($folio->payment_method);
+                                        @endphp
+                                        @if(Str::contains($methodUpper, 'CASH'))
+                                            <span class="badge px-2.5 py-1 fw-semibold" style="background-color: #d1e7dd; color: #0f5132; border: 1px solid #a3cfbb; font-size: 0.78rem; border-radius: 0.375rem;">Cash</span>
+                                        @elseif(Str::contains($methodUpper, 'CARD') || Str::contains($methodUpper, 'CREDIT'))
+                                            <span class="badge px-2.5 py-1 fw-semibold" style="background-color: #334c42; color: #ffffff; font-size: 0.78rem; border-radius: 0.375rem;">Card</span>
+                                        @elseif(Str::contains($methodUpper, 'GCASH'))
+                                            <span class="badge px-2.5 py-1 fw-semibold" style="background-color: #007dfe; color: #ffffff; font-size: 0.78rem; border-radius: 0.375rem;">GCash</span>
+                                        @elseif(Str::contains($methodUpper, 'MAYA'))
+                                            <span class="badge px-2.5 py-1 fw-semibold" style="background-color: #00b875; color: #ffffff; font-size: 0.78rem; border-radius: 0.375rem;">Maya</span>
+                                        @elseif(Str::contains($methodUpper, 'ACCOUNT') || Str::contains($methodUpper, 'ROOM'))
+                                            <span class="badge px-2.5 py-1 fw-semibold" style="background-color: #627e71; color: #ffffff; font-size: 0.78rem; border-radius: 0.375rem;">Account Charge</span>
+                                        @else
+                                            <span class="badge px-2.5 py-1 fw-semibold" style="background-color: #827567; color: #ffffff; font-size: 0.78rem; border-radius: 0.375rem;">{{ $folio->payment_method }}</span>
+                                        @endif
                                     @else
                                         <span class="text-muted fst-italic opacity-60">—</span>
                                     @endif
                                 </td>
                                 <td class="text-center">
                                     @if($folio->status === 'OPEN')
-                                        <span class="badge-status badge-status-open">Open</span>
+                                        <span class="badge-status badge-status-open" style="border-radius: 0.375rem;">Open</span>
                                     @else
-                                        <span class="badge-status badge-status-closed">Closed</span>
+                                        <span class="badge-status badge-status-closed" style="border-radius: 0.375rem;">Closed</span>
                                     @endif
                                 </td>
-                                <td class="text-center">
+                                <td class="text-center pe-3">
                                     <button
                                         type="button"
-                                        class="btn btn-sm btn-outline-primary"
+                                        class="btn btn-sm fw-semibold"
+                                        style="border: 1px solid #334c42; color: #334c42; background: #ffffff; border-radius: 0.375rem; padding: 0.35rem 0.75rem;"
                                         data-bs-toggle="modal"
                                         data-bs-target="#folioModal{{ $folio->folio_id }}"
                                         title="View folio details"

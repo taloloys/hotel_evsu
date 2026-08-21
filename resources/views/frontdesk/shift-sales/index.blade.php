@@ -36,19 +36,33 @@
         border-radius: 10px;
         font-weight: 600;
         padding: 0.5rem 1.25rem;
-        border: 2px solid #dee2e6;
+        border: 1px solid #c2a889;
         background: transparent;
-        color: #6c757d;
+        color: #504538;
         transition: all 0.15s;
     }
     .mode-tab.active {
-        background: #0d6efd;
-        border-color: #0d6efd;
+        background: #504538;
+        border-color: #504538;
         color: #fff;
     }
     .mode-tab:hover:not(.active) {
-        border-color: #0d6efd;
-        color: #0d6efd;
+        border-color: #334c42;
+        color: #334c42;
+    }
+    .btn-check:checked + .btn-segmented-category {
+        background-color: #504538 !important;
+        border-color: #504538 !important;
+        color: #ffffff !important;
+    }
+    .btn-segmented-category {
+        border: 1px solid #c2a889 !important;
+        color: #504538 !important;
+        background-color: transparent;
+    }
+    .btn-segmented-category:hover {
+        background-color: #f8f3ed !important;
+        color: #504538 !important;
     }
     .filter-panel { display: none; }
     .filter-panel.active { display: block; }
@@ -79,13 +93,13 @@
                 <div class="card-body p-4">
 
                     <div class="d-flex align-items-center justify-content-between mb-4">
-                        <h4 class="fw-bold mb-0">
-                            <i class="fa-solid fa-file-chart-column me-2 text-primary"></i>
+                        <h4 class="fw-bold mb-0" style="color: #504538; font-family: 'Franklin Gothic Medium', sans-serif;">
+                            <i class="fa-solid fa-file-chart-column me-2" style="color: #334c42;"></i>
                             Shift Sales Report Criteria
                         </h4>
                         @if($activeShift)
                             <a href="{{ route(request()->routeIs('admin.*') ? 'admin.shift-sales' : 'frontdesk.shift-sales', ['shift_id' => $activeShift->shift_id]) }}"
-                               class="btn btn-success btn-sm px-3">
+                               class="btn text-white btn-sm px-3 py-2 fw-semibold" style="background-color: #334c42; border: none; border-radius: 0.5rem;">
                                 <i class="fa-solid fa-circle-dot fa-beat me-1"></i>
                                 My Active Shift
                             </a>
@@ -177,7 +191,7 @@
                                     @else
                                         <input type="hidden" name="employee_id" value="{{ auth()->id() }}">
                                         <div class="fd-static-field">
-                                            <i class="fa-solid fa-user-check text-success me-2"></i>
+                                            <i class="fa-solid fa-user-check me-2" style="color: #627e71;"></i>
                                             <span>{{ auth()->user()->full_name }}</span>
                                             <small class="text-muted ms-2">({{ auth()->user()->role?->role_name ?? 'Cashier' }})</small>
                                         </div>
@@ -196,7 +210,7 @@
                                             <input type="radio" class="btn-check" name="report_type"
                                                 id="type_{{ $val }}" value="{{ $val }}"
                                                 {{ (!isset($filters['report_type']) && $val === 'hotel') || (isset($filters['report_type']) && $filters['report_type'] === $val) ? 'checked' : '' }}>
-                                            <label class="btn btn-outline-primary px-3 py-2 fw-semibold" for="type_{{ $val }}">{{ $label }}</label>
+                                            <label class="btn btn-segmented-category px-3 py-2 fw-semibold" for="type_{{ $val }}">{{ $label }}</label>
                                         @endforeach
                                     </div>
                                 </div>
@@ -247,7 +261,7 @@
 
                         {{-- Action Buttons --}}
                         <div class="d-flex gap-2 justify-content-end mt-4 hide-on-print">
-                            <button type="submit" class="btn btn-primary px-4" id="generateReportBtn">
+                            <button type="submit" class="btn text-white px-4 py-2 fw-semibold shadow-sm" id="generateReportBtn" style="background-color: #334c42; border: none; border-radius: 0.5rem;">
                                 <i class="fa-solid fa-chart-line me-1"></i> Generate Report
                             </button>
                             @if($hasSearched && $transactions->isNotEmpty())

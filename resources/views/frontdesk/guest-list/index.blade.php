@@ -15,13 +15,14 @@
                 
                 <!-- SEARCH -->
                 <div style="width: 320px;">
-                    <div class="input-group" style="border: 1px solid #000000; border-radius: 6px; overflow: hidden; height: 38px;">
-                        <span class="input-group-text bg-white border-0">
-                            <i class="fa-solid fa-magnifying-glass text-muted"></i>
+                    <div class="input-group shadow-sm" style="border: 1px solid #c2a889; border-radius: 0.5rem; overflow: hidden; height: 45px; background-color: #ffffff;">
+                        <span class="input-group-text bg-white border-0 px-3">
+                            <i class="fa-solid fa-magnifying-glass" style="color: #627e71;"></i>
                         </span>
                         <input
                             type="text"
-                            class="form-control border-0 shadow-none"
+                            class="form-control border-0 shadow-none py-2"
+                            style="font-size: 1rem;"
                             id="search"
                             name="search"
                             value="{{ $search }}"
@@ -33,31 +34,31 @@
 
                 <!-- FILTER DROPDOWN -->
                 <div class="dropdown">
-                    <button class="btn btn-outline-secondary d-flex align-items-center gap-1 px-3 position-relative"
+                    <button class="btn bg-white d-flex align-items-center gap-2 px-3 position-relative shadow-sm"
                             type="button"
                             data-bs-toggle="dropdown"
-                            style="height: 38px; border-radius: 6px; border: 1px solid;">
-                        <i class="fa-solid fa-filter"></i>
-                        <span>Filter</span>
+                            style="height: 45px; border-radius: 0.5rem; border: 1px solid #c2a889; color: #504538; font-size: 1rem;">
+                        <i class="fa-solid fa-filter" style="color: #627e71;"></i>
+                        <span class="fw-semibold">Filter</span>
                         @if($status !== '' && $status !== null)
                             <span class="position-absolute top-0 start-100 translate-middle p-1 bg-danger border border-light rounded-circle"></span>
                         @endif
                     </button>
                     <div class="dropdown-menu dropdown-menu-end p-3 shadow-sm"
                          onclick="event.stopPropagation()"
-                         style="min-width: 280px; border-radius: 8px;">
+                         style="min-width: 280px; border-radius: 0.75rem;">
 
                         <!-- Status -->
-                        <label class="form-label small mb-1 fw-semibold" for="status">Status</label>
-                        <select class="form-select mb-3" id="status" name="status" style="height:38px;border-radius:6px;">
+                        <label class="form-label small mb-1 fw-semibold text-muted" for="status">Status</label>
+                        <select class="form-select mb-3 shadow-none" id="status" name="status" style="height:38px; border-radius:0.5rem; border: 1px solid #827567;">
                             <option value="" {{ $status === '' || $status === null ? 'selected' : '' }}>All Statuses</option>
                             <option value="checked_in" {{ $status === 'checked_in' ? 'selected' : '' }}>Checked In (In-House)</option>
                             <option value="checked_out" {{ $status === 'checked_out' ? 'selected' : '' }}>Checked Out</option>
                         </select>
 
                         <div class="d-flex gap-2">
-                            <button type="submit" class="btn btn-primary w-50" style="height: 38px;">Apply</button>
-                            <a href="{{ route('frontdesk.guest-list') }}" class="btn btn-light w-50 d-flex align-items-center justify-content-center" style="height: 38px;">Reset</a>
+                            <button type="submit" class="btn text-white w-50 fw-semibold" style="height: 38px; background-color: #334c42; border: none;">Apply</button>
+                            <a href="{{ route('frontdesk.guest-list') }}" class="btn btn-light w-50 d-flex align-items-center justify-content-center fw-semibold" style="height: 38px; border: 1px solid #827567; color: #504538;">Reset</a>
                         </div>
                     </div>
                 </div>
@@ -65,17 +66,9 @@
                 <!-- PRINT BUTTON -->
                 @php
                     $printText = 'Print Guest List';
-                    $printBtnClass = 'btn-outline-secondary';
-                    if ($status === 'checked_in') {
-                        $printText = 'Print Checked In';
-                        $printBtnClass = 'btn-outline-success';
-                    } elseif ($status === 'checked_out') {
-                        $printText = 'Print Checked Out';
-                        $printBtnClass = 'btn-outline-success';
-                    }
                 @endphp
-                <button type="button" class="btn {{ $printBtnClass }}" style="height: 38px; border-radius: 6px;" onclick="window.print()">
-                    <i class="fa-solid fa-print me-1"></i> {{ $printText }}
+                <button type="button" class="btn px-3 py-2 fw-semibold shadow-sm" style="height: 45px; border: 1px solid #c2a889; color: #504538; background: transparent; font-size: 1rem; border-radius: 0.5rem;" onclick="window.print()">
+                    <i class="fa-solid fa-print me-1" style="color: #627e71;"></i> {{ $printText }}
                 </button>
 
             </form>
@@ -92,27 +85,27 @@
                 Showing all <strong>{{ $guests->total() }}</strong> registered guest(s)
             @endif
         </p>
-        <span class="badge bg-primary-subtle text-primary border border-primary-subtle px-3 py-2">
+        <span class="badge px-3 py-2 fw-semibold" style="border: 1px solid #627e71; color: #627e71; background: transparent; border-radius: 0.375rem;">
             Page {{ $guests->currentPage() }} of {{ $guests->lastPage() }}
         </span>
     </div>
 
     {{-- Guest Table --}}
-    <div class="card border-1 shadow-sm">
+    <div class="card border-1 shadow-sm rounded-4 overflow-hidden">
         <div class="card-body p-0">
             <div class="table-responsive">
-                <table class="table table-hover align-middle mb-0" id="guestTable">
-                    <thead class="table-light">
-                        <tr>
-                            <th class="px-4 py-3">#</th>
-                            <th class="py-3">Guest Name</th>
-                            <th class="py-3">Mobile Number</th>
-                            <th class="py-3">Address</th>
-                            <th class="py-3 text-center">Total Stays</th>
-                            <th class="py-3 text-center">Last Room</th>
-                            <th class="py-3 text-center">Last Stay</th>
-                            <th class="py-3 text-center">Status</th>
-                            <th class="py-3 text-center">Action</th>
+                <table class="table align-middle mb-0" id="guestTable">
+                    <thead style="background-color: #f8f3ed; border-bottom: 2px solid #c2a889;">
+                        <tr class="small fw-bold">
+                            <th class="px-4 py-3" style="color: #2c241d;">#</th>
+                            <th class="py-3" style="color: #2c241d;">GUEST NAME</th>
+                            <th class="py-3" style="color: #2c241d;">MOBILE NUMBER</th>
+                            <th class="py-3" style="color: #2c241d;">ADDRESS</th>
+                            <th class="py-3 text-center" style="color: #2c241d;">TOTAL STAYS</th>
+                            <th class="py-3 text-center" style="color: #2c241d;">LAST ROOM</th>
+                            <th class="py-3 text-center" style="color: #2c241d;">LAST STAY</th>
+                            <th class="py-3 text-center" style="color: #2c241d;">STATUS</th>
+                            <th class="py-3 text-center" style="color: #2c241d;">ACTION</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -124,38 +117,38 @@
                                 $lastRoom       = $lastBooking?->room;
                                 $isCurrentlyIn  = $lastBooking && $lastBooking->status === 'CHECKED_IN';
                             @endphp
-                            <tr>
-                                <td class="px-4 text-muted small">
+                            <tr style="border-bottom: 1px solid #f0f0f0;">
+                                <td class="px-4 fw-medium" style="color: #2c241d;">
                                     {{ ($guests->currentPage() - 1) * $guests->perPage() + $index + 1 }}
                                 </td>
                                 <td>
-                                    <div class="fw-semibold">
+                                    <div class="fw-bold" style="color: #2c241d;">
                                         {{ $guest->last_name }}, {{ $guest->first_name }}
                                     </div>
                                     <div class="text-muted small">
                                         Registered {{ $guest->created_at->format('M d, Y') }}
                                     </div>
                                 </td>
-                                <td>
+                                <td style="color: #2c241d;">
                                     {{ $guest->contact_number ?: '—' }}
                                 </td>
-                                <td class="text-muted small">
+                                <td class="small" style="color: #2c241d;">
                                     {{ $guest->address_line1 ?: '—' }}
                                 </td>
                                 <td class="text-center">
-                                    <span class="badge bg-secondary-subtle text-secondary border border-secondary-subtle px-2">
+                                    <span class="badge px-2.5 py-1 fw-semibold" style="border: 1px solid #827567; color: #504538; background: transparent; border-radius: 0.375rem;">
                                         {{ $totalStays }} {{ Str::plural('stay', $totalStays) }}
                                     </span>
                                 </td>
                                 <td class="text-center">
                                     @if($lastRoom)
-                                        <span class="fw-semibold">{{ $lastRoom->room_number }}</span>
+                                        <span class="fw-bold" style="color: #2c241d;">{{ $lastRoom->room_number }}</span>
                                         <div class="text-muted small">{{ $lastRoom->room_type }}</div>
                                     @else
                                         <span class="text-muted">—</span>
                                     @endif
                                 </td>
-                                <td class="text-center small">
+                                <td class="text-center small" style="color: #2c241d;">
                                     @if($lastBooking)
                                         {{ $lastBooking->arrival_date->format('M d, Y') }}
                                         <div class="text-muted">→ {{ $lastBooking->departure_date ? $lastBooking->departure_date->format('M d, Y') : 'Open Stay' }}</div>
@@ -165,29 +158,30 @@
                                 </td>
                                 <td class="text-center">
                                     @if($isCurrentlyIn)
-                                        <span class="badge bg-success-subtle text-success border border-success-subtle mb-1">
+                                        <span class="badge bg-success-subtle text-success border border-success-subtle mb-1 fw-semibold" style="border-radius: 0.375rem;">
                                             <i class="fa-solid fa-circle-dot me-1"></i> In-House
                                         </span>
                                         @if($lastFolio)
                                             <div class="text-muted small">Folio: <strong>{{ $lastFolio->folio_number }}</strong></div>
                                         @endif
                                     @elseif($lastBooking?->status === 'CHECKED_OUT')
-                                        <span class="badge bg-secondary-subtle text-secondary border border-secondary-subtle">
+                                        <span class="badge px-2.5 py-1 fw-semibold" style="border: 1px solid #827567; color: #827567; background: transparent; border-radius: 0.375rem;">
                                             Checked Out
                                         </span>
                                     @else
-                                        <span class="badge bg-light text-muted border">No Stay</span>
+                                        <span class="badge px-2.5 py-1 fw-semibold" style="border: 1px solid #827567; color: #827567; background: transparent; border-radius: 0.375rem;">No Stay</span>
                                     @endif
                                 </td>
                                 <td class="text-center">
                                     <button
                                         type="button"
-                                        class="btn btn-sm btn-outline-primary"
+                                        class="btn btn-sm fw-semibold"
+                                        style="border: 1px solid #334c42; color: #334c42; background: #ffffff; border-radius: 0.375rem; padding: 0.35rem 0.75rem;"
                                         data-bs-toggle="modal"
                                         data-bs-target="#guestModal{{ $guest->guest_id }}"
                                         title="View booking history"
                                     >
-                                        <i class="fa-solid fa-eye"></i>
+                                        <i class="fa-solid fa-eye me-1"></i> View
                                     </button>
                                 </td>
                             </tr>

@@ -82,8 +82,8 @@
 
             <!-- Card Header -->
             <div class="card-header bg-white py-3">
-                <h5 class="fw-bold mb-0">
-                    <i class="fa-solid fa-file-invoice text-primary me-2"></i>
+                <h5 class="fw-bold mb-0" style="color: #504538;">
+                    <i class="fa-solid fa-file-invoice me-2" style="color: #334c42;"></i>
                     Registration Information
                 </h5>
             </div>
@@ -170,8 +170,8 @@
 
             <!-- Card Header -->
             <div class="card-header bg-white py-3">
-                <h5 class="fw-bold mb-0">
-                    <i class="fa-solid fa-user-check text-primary me-2"></i>
+                <h5 class="fw-bold mb-0" style="color: #504538;">
+                    <i class="fa-solid fa-user-check me-2" style="color: #334c42;"></i>
                     Guest Selection
                 </h5>
             </div>
@@ -508,8 +508,8 @@
 
             <!-- Card Header -->
             <div class="card-header bg-white py-3">
-                <h5 class="fw-bold mb-0">
-                    <i class="fa-solid fa-bed text-primary me-2"></i>
+                <h5 class="fw-bold mb-0" style="color: #504538;">
+                    <i class="fa-solid fa-bed me-2" style="color: #334c42;"></i>
                     Room Information
                 </h5>
             </div>
@@ -676,8 +676,8 @@
 
             <!-- Card Header -->
             <div class="card-header bg-white py-3">
-                <h5 class="fw-bold mb-0">
-                    <i class="fa-solid fa-clipboard-list text-primary me-2"></i>
+                <h5 class="fw-bold mb-0" style="color: #504538;">
+                    <i class="fa-solid fa-clipboard-list me-2" style="color: #334c42;"></i>
                     Additional Information
                 </h5>
             </div>
@@ -700,7 +700,7 @@
                             name="special_arrangements"
                             rows="4"
                             placeholder="Example: Extra pillows, early check-in request, late check-out, etc."
-                            style="border:1px solid #ced4da; resize:none;">{{ old('special_arrangements') }}</textarea>
+                            style="border:1px solid #827567; border-radius: 0.5rem; resize:none;">{{ old('special_arrangements') }}</textarea>
 
                         @error('special_arrangements')
                             <div class="invalid-feedback">
@@ -717,19 +717,19 @@
                     <!-- Information -->
                     <div class="col-12">
 
-                        <div class="border rounded-3 p-3 bg-light">
+                        <div class="border rounded-3 p-3" style="background-color: #f8f3ed; border-color: #c2a889 !important; color: #504538;">
 
                             <div class="d-flex align-items-start">
 
-                                <i class="fa-solid fa-circle-info text-primary me-3 mt-1"></i>
+                                <i class="fa-solid fa-circle-info me-3 mt-1" style="color: #504538;"></i>
 
                                 <div>
 
-                                    <div class="fw-semibold mb-1">
+                                    <div class="fw-semibold mb-1" style="color: #504538;">
                                         Check-in Information
                                     </div>
 
-                                    <div class="text-muted small">
+                                    <div class="small" style="color: #504538;">
                                         Saving this registration will immediately
                                         <strong>check in the guest</strong> and update the
                                         selected room's status to
@@ -753,8 +753,8 @@
         <div class="card border-0 shadow-sm">
             <div class="card-body">
                 <div class="d-flex justify-content-end gap-2">
-                    <a href="{{ route('frontdesk.checkin') }}" class="btn btn-secondary">Clear</a>
-                    <button type="submit" class="btn btn-primary" @disabled($assignableRooms->isEmpty())>
+                    <a href="{{ route('frontdesk.checkin') }}" class="btn px-4 py-2 fw-semibold" style="border: 1px solid #827567; color: #504538; background: transparent; border-radius: 0.5rem;">Clear</a>
+                    <button type="submit" class="btn text-white px-4 py-2 fw-semibold shadow-sm" style="background-color: #334c42; border: none; border-radius: 0.5rem;" @disabled($assignableRooms->isEmpty())>
                         <i class="fa-solid fa-floppy-disk me-1"></i> Save Check In
                     </button>
                 </div>

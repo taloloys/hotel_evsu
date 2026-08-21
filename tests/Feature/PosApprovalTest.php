@@ -22,7 +22,7 @@ beforeEach(function (): void {
 
     $this->admin = User::whereHas('role', fn ($q) => $q->where('role_name', 'ADMIN'))->firstOrFail();
     $this->cashier = User::whereHas('role', fn ($q) => $q->where('role_name', 'CAFETERIA'))->firstOrFail();
-    $this->product = PosProduct::firstOrFail();
+    $this->product = PosProduct::where('stock_tracking', 'manual')->first() ?? PosProduct::firstOrFail();
 });
 
 test('cashier cancel non-empty tab creates pending request', function (): void {

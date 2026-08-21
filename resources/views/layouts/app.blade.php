@@ -500,7 +500,7 @@
             text-transform: uppercase;
         }
 
-        .badge-status-checkedin { background-color: #dbeafe; color: #1e40af; border: 1px solid #bfdbfe; }
+        .badge-status-checkedin { background-color: #334c42; color: #ffffff; border: 1px solid #334c42; }
         .badge-status-reserved { background-color: #fef3c7; color: #92400e; border: 1px solid #fde68a; }
         .badge-status-open { background-color: #d1fae5; color: #065f46; border: 1px solid #a7f3d0; }
         .badge-status-available { background-color: #dcfce7; color: #166534; border: 1px solid #bbf7d0; }

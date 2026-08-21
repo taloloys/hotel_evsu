@@ -278,10 +278,14 @@
             if (chargeAccountBtn) {
                 chargeAccountBtn.innerHTML = `<i class="fa-solid fa-crown me-1" style="color: #c2a889;"></i> Charge to VIP Account (${tab.credit_account_name || 'Account'})`;
             }
-            activeTabBadge.innerHTML = `<span class="badge px-2.5 py-1 fs-7 fw-bold shadow-sm" style="background: #504538; color: #ffffff; border: 1px solid #504538; font-family: 'Lucida Fax', serif;"><i class="fa-solid fa-crown me-1" style="color: #c2a889;"></i> VIP Account (${tab.credit_account_name || 'N/A'})</span>`;
+            activeTabBadge.innerHTML = `<span class="badge px-2.5 py-1 fs-7 fw-bold shadow-sm" style="background: #504538; color: #ffffff; border: 1px solid #504538; font-family: 'Lucida Fax', serif;"><i class="fa-solid fa-crown me-1" style="color: #c2a889;"></i> VIP (${tab.credit_account_name || 'N/A'})</span>`;
+            const creditAlert = document.getElementById('active-tab-credit-alert');
+            if (creditAlert) creditAlert.remove();
         } else {
             walkinActions.classList.remove('d-none');
             activeTabBadge.innerHTML = `<span class="badge px-2.5 py-1 fs-7 fw-semibold" style="background: #504538; color: #ffffff; font-family: 'Lucida Fax', serif;">Walk-in</span>`;
+            const creditAlert = document.getElementById('active-tab-credit-alert');
+            if (creditAlert) creditAlert.remove();
         }
 
         const discountBadge = document.getElementById('active-tab-discount-badge');
@@ -1175,13 +1179,65 @@
         chargeAccountBtn.addEventListener('click', () => {
             const tab = getActiveTab();
             if (!tab) return;
-            document.getElementById('account-charge-warning-text').textContent = `Are you sure you want to charge ${formatMoney(tab.total)} to ${tab.credit_account_name}?`;
-            accountChargeCallback = async () => {
-                await executeClose({
-                    payment_method: 'account_charge',
-                    credit_account_id: tab.credit_account_id
-                });
-            };
+
+            const headerEl = document.getElementById('account-charge-modal-header');
+            const titleEl = document.getElementById('account-charge-modal-title');
+            const alertBanner = document.getElementById('account-charge-alert-banner');
+            const warningText = document.getElementById('account-charge-warning-text');
+            const breakdownBox = document.getElementById('account-credit-breakdown-box');
+            const submitBtn = document.getElementById('confirm-account-charge-submit-btn');
+            const exceededRow = document.getElementById('acc-modal-exceeded-row');
+
+            const available = tab.credit_account_available !== null && tab.credit_account_available !== undefined ? tab.credit_account_available : 0;
+            const limit = tab.credit_account_limit !== null && tab.credit_account_limit !== undefined ? tab.credit_account_limit : 0;
+            const balance = tab.credit_account_balance !== null && tab.credit_account_balance !== undefined ? tab.credit_account_balance : 0;
+            const total = tab.total || 0;
+            const exceeded = total - available;
+
+            document.getElementById('acc-modal-name').textContent = tab.credit_account_name || 'N/A';
+            document.getElementById('acc-modal-limit').textContent = formatMoney(limit);
+            document.getElementById('acc-modal-balance').textContent = formatMoney(balance);
+            document.getElementById('acc-modal-available').textContent = formatMoney(available);
+            document.getElementById('acc-modal-total').textContent = formatMoney(total);
+            breakdownBox.classList.remove('d-none');
+
+            if (exceeded > 0) {
+                // CREDIT LIMIT EXCEEDED WARNING ALERT STATE
+                headerEl.style.backgroundColor = '#dc3545';
+                titleEl.innerHTML = `<i class="fa-solid fa-triangle-exclamation me-2"></i>VIP Credit Limit Exceeded!`;
+                alertBanner.className = 'alert alert-danger border-danger fw-bold small mb-3';
+                alertBanner.innerHTML = `<i class="fa-solid fa-circle-exclamation me-1"></i> <strong>ALERT:</strong> Order total exceeds available VIP credit limit by <strong>${formatMoney(exceeded)}</strong>! Account charge cannot be completed.`;
+                alertBanner.classList.remove('d-none');
+                warningText.textContent = `This transaction exceeds the account's allowed credit limit (${formatMoney(limit)}). Please select another payment method (Cash, Card, GCash, Maya) or settle outstanding account balance.`;
+
+                exceededRow.classList.remove('d-none');
+                document.getElementById('acc-modal-exceeded').textContent = `+${formatMoney(exceeded)}`;
+
+                submitBtn.classList.add('d-none');
+                accountChargeCallback = null;
+            } else {
+                // NORMAL CONFIRMATION STATE
+                headerEl.style.backgroundColor = '#504538';
+                titleEl.innerHTML = `<i class="fa-solid fa-file-invoice-dollar me-2" style="color: #c2a889;"></i>Charge to Account`;
+                alertBanner.classList.add('d-none');
+                warningText.textContent = `Are you sure you want to charge ${formatMoney(total)} to ${tab.credit_account_name}?`;
+
+                exceededRow.classList.add('d-none');
+
+                submitBtn.classList.remove('d-none');
+                submitBtn.disabled = false;
+                submitBtn.className = 'btn btn-sm text-white font-brand';
+                submitBtn.style.backgroundColor = '#334c42';
+                submitBtn.textContent = 'Confirm Charge';
+
+                accountChargeCallback = async () => {
+                    await executeClose({
+                        payment_method: 'account_charge',
+                        credit_account_id: tab.credit_account_id
+                    });
+                };
+            }
+
             confirmAccountChargeModal.show();
         });
     }

@@ -250,7 +250,7 @@ class PosController extends Controller
                 isset($validated['folio_id']) ? (int) $validated['folio_id'] : null,
                 isset($validated['credit_account_id']) ? (int) $validated['credit_account_id'] : null
             );
-        } catch (\RuntimeException $e) {
+        } catch (\Throwable $e) {
             return response()->json(['message' => $e->getMessage()], 422);
         }
 

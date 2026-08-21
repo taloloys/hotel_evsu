@@ -190,7 +190,13 @@
                         <select id="new-tab-account" class="form-select py-3 border-warning fw-medium" style="background-color: #fffdf5;">
                             <option value="">Select VIP credit account...</option>
                             @foreach($creditAccounts as $account)
-                                <option value="{{ $account->account_id }}">👑 VIP — {{ $account->account_name }} (Limit: ₱{{ number_format($account->available_credit, 2) }})</option>
+                                <option value="{{ $account->account_id }}"
+                                        data-name="{{ $account->account_name }}"
+                                        data-available="{{ $account->available_credit }}"
+                                        data-limit="{{ $account->credit_limit }}"
+                                        data-balance="{{ $account->outstanding_balance }}">
+                                    👑 VIP — {{ $account->account_name }} (Avail: ₱{{ number_format($account->available_credit, 2) }} / Limit: ₱{{ number_format($account->credit_limit, 2) }})
+                                </option>
                             @endforeach
                         </select>
                     </div>
@@ -207,7 +213,6 @@
                             <div id="active-tab-badge" class="mt-1"></div>
                             <div id="active-tab-discount-badge" class="mt-1 d-none text-success small fw-bold" style="font-family: 'Lucida Fax', 'Georgia', serif;"></div>
                         </div>
-                        <span class="badge px-3 py-2 fs-6 shadow-sm" id="active-tab-total" style="background: #334c42 !important; color: #ffffff !important; font-family: 'Lucida Fax', 'Georgia', serif;">₱0.00</span>
                     </div>
 
                     <!-- Alert message if there is a pending cancel request -->
@@ -519,7 +524,13 @@
                     <select id="transfer-account" class="form-select border-warning">
                         <option value="">Select VIP credit account...</option>
                         @foreach($creditAccounts as $account)
-                            <option value="{{ $account->account_id }}">👑 VIP — {{ $account->account_name }}</option>
+                            <option value="{{ $account->account_id }}"
+                                    data-name="{{ $account->account_name }}"
+                                    data-available="{{ $account->available_credit }}"
+                                    data-limit="{{ $account->credit_limit }}"
+                                    data-balance="{{ $account->outstanding_balance }}">
+                                👑 VIP — {{ $account->account_name }} (Avail: ₱{{ number_format($account->available_credit, 2) }} / Limit: ₱{{ number_format($account->credit_limit, 2) }})
+                            </option>
                         @endforeach
                     </select>
                 </div>
@@ -569,18 +580,49 @@
 </div>
 
 <div class="modal fade" id="confirmAccountChargeModal" tabindex="-1">
-    <div class="modal-dialog modal-dialog-centered">
-        <div class="modal-content border-0 shadow">
-            <div class="modal-header text-white" style="background-color: #504538;">
-                <h5 class="modal-title font-display" style="font-family: 'Franklin Gothic Medium', 'Franklin Gothic', sans-serif;"><i class="fa-solid fa-file-invoice-dollar me-2" style="color: #c2a889;"></i>Charge to Account</h5>
+    <div class="modal-dialog modal-dialog-centered" style="max-width: 520px;">
+        <div class="modal-content border-0 shadow-lg" style="border-radius: 0.75rem;">
+            <div class="modal-header text-white p-3.5" id="account-charge-modal-header" style="background-color: #504538;">
+                <h5 class="modal-title font-display fw-bold" id="account-charge-modal-title" style="font-family: 'Franklin Gothic Medium', 'Franklin Gothic', sans-serif; font-size: 1.2rem;">
+                    <i class="fa-solid fa-file-invoice-dollar me-2" style="color: #c2a889;"></i>Charge to Account
+                </h5>
                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
             </div>
             <div class="modal-body p-4">
-                <p id="account-charge-warning-text" class="text-muted small mb-0" style="font-family: 'Lucida Fax', serif;">Are you sure you want to charge the total amount to the selected corporate/VIP account?</p>
+                <div id="account-charge-alert-banner" class="alert d-none mb-3 p-3 rounded-3" style="font-size: 0.95rem; line-height: 1.5;"></div>
+                <p id="account-charge-warning-text" class="text-muted mb-3" style="font-family: 'Lucida Fax', serif; font-size: 0.98rem;"></p>
+                
+                <div id="account-credit-breakdown-box" class="p-3 bg-light rounded-3 border d-none" style="font-size: 0.95rem;">
+                    <div class="d-flex justify-content-between mb-1.5">
+                        <span class="text-muted">Account Name:</span>
+                        <strong id="acc-modal-name" class="text-dark"></strong>
+                    </div>
+                    <div class="d-flex justify-content-between mb-1.5">
+                        <span class="text-muted">Credit Limit:</span>
+                        <strong id="acc-modal-limit"></strong>
+                    </div>
+                    <div class="d-flex justify-content-between mb-1.5">
+                        <span class="text-muted">Outstanding Balance:</span>
+                        <strong id="acc-modal-balance"></strong>
+                    </div>
+                    <div class="d-flex justify-content-between mb-1.5">
+                        <span class="text-muted">Available Credit:</span>
+                        <strong id="acc-modal-available" class="text-success fw-bold"></strong>
+                    </div>
+                    <hr class="my-2">
+                    <div class="d-flex justify-content-between mb-1.5">
+                        <span class="fw-semibold text-dark">Order Total:</span>
+                        <strong id="acc-modal-total" class="fw-bold fs-6" style="color: #504538;"></strong>
+                    </div>
+                    <div id="acc-modal-exceeded-row" class="d-flex justify-content-between text-danger fw-bold d-none">
+                        <span>Exceeded Amount:</span>
+                        <span id="acc-modal-exceeded"></span>
+                    </div>
+                </div>
             </div>
-            <div class="modal-footer border-0">
-                <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Cancel</button>
-                <button type="button" class="btn btn-sm text-white font-brand" id="confirm-account-charge-submit-btn" style="background-color: #334c42; border: none; font-family: 'Lucida Fax', serif;">Confirm Charge</button>
+            <div class="modal-footer border-0 p-3 pt-0">
+                <button type="button" class="btn btn-secondary px-4 py-2 fw-semibold" style="border-radius: 0.5rem;" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn text-white px-4 py-2 fw-bold shadow-sm" id="confirm-account-charge-submit-btn" style="background-color: #334c42; border: none; border-radius: 0.5rem; font-family: 'Lucida Fax', serif;">Confirm Charge</button>
             </div>
         </div>
     </div>

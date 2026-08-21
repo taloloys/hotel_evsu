@@ -83,8 +83,8 @@
 
             <!-- Card Header -->
             <div class="card-header bg-white py-3">
-                <h5 class="fw-bold mb-0">
-                    <i class="fa-solid fa-file-invoice text-primary me-2"></i>
+                <h5 class="fw-bold mb-0" style="color: #504538;">
+                    <i class="fa-solid fa-file-invoice me-2" style="color: #334c42;"></i>
                     Registration Information
                 </h5>
             </div>
@@ -168,8 +168,8 @@
 
             <!-- Card Header -->
             <div class="card-header bg-white py-3">
-                <h5 class="fw-bold mb-0">
-                    <i class="fa-solid fa-user text-primary me-2"></i>
+                <h5 class="fw-bold mb-0" style="color: #504538;">
+                    <i class="fa-solid fa-user me-2" style="color: #334c42;"></i>
                     Guest Information
                 </h5>
             </div>
@@ -312,8 +312,8 @@
 
             <!-- Card Header -->
             <div class="card-header bg-white py-3">
-                <h5 class="fw-bold mb-0">
-                    <i class="fa-solid fa-bed text-primary me-2"></i>
+                <h5 class="fw-bold mb-0" style="color: #504538;">
+                    <i class="fa-solid fa-bed me-2" style="color: #334c42;"></i>
                     Stay Information
                 </h5>
             </div>
@@ -513,8 +513,8 @@
 
             <!-- Card Header -->
             <div class="card-header bg-white py-3">
-                <h5 class="fw-bold mb-0">
-                    <i class="fa-solid fa-bed text-primary me-2"></i>
+                <h5 class="fw-bold mb-0" style="color: #504538;">
+                    <i class="fa-solid fa-bed me-2" style="color: #334c42;"></i>
                     Room Information
                 </h5>
             </div>
@@ -598,35 +598,23 @@
                     <!-- Base Rate -->
                     <div class="col-md-6">
                         <label class="form-label fw-semibold">
-                            Published Room Rate
+                            Base Room Rate
                         </label>
 
                         <div class="input-group">
-
-                            <span class="input-group-text bg-light">
-                                ₱
-                            </span>
-
+                            <span class="input-group-text">₱</span>
                             <input
                                 type="text"
                                 class="form-control bg-light shadow-none"
-                                id="room_base_rate_display"
-                                value="—"
+                                id="base_rate_display"
+                                value="0.00"
                                 readonly
                                 style="height:46px; border:1px solid #ced4da;">
-
-                            <span class="input-group-text bg-light">
-                                /night
-                            </span>
-
+                            <span class="input-group-text">/night</span>
                         </div>
-
-                        <small class="text-muted">
-                            Standard rate of the selected room.
-                        </small>
                     </div>
 
-                    <!-- Net Rate -->
+                    <!-- Agreed Net Rate -->
                     <div class="col-md-6">
                         <label class="form-label fw-semibold" for="net_rate">
                             Agreed Room Rate
@@ -674,20 +662,20 @@
         </div>
 
         <div class="card border-0 shadow-sm mb-4">
-            <div class="card-header bg-white">
-                <h5 class="fw-bold mb-0">Additional Information</h5>
+            <div class="card-header bg-white py-3">
+                <h5 class="fw-bold mb-0" style="color: #504538;">Additional Information</h5>
             </div>
 
             <div class="card-body">
                 <div class="row g-3">
                     <div class="col-md-12">
-                        <label class="form-label" for="special_arrangements">Special Arrangements</label>
-                        <textarea class="form-control @error('special_arrangements') is-invalid @enderror" id="special_arrangements" name="special_arrangements" rows="2" placeholder="e.g. extra pillows, early check-in request...">{{ old('special_arrangements') }}</textarea>
+                        <label class="form-label fw-semibold" for="special_arrangements">Special Arrangements</label>
+                        <textarea class="form-control @error('special_arrangements') is-invalid @enderror shadow-none" id="special_arrangements" name="special_arrangements" rows="2" placeholder="e.g. extra pillows, early check-in request..." style="border: 1px solid #827567; border-radius: 0.5rem;">{{ old('special_arrangements') }}</textarea>
                     </div>
 
                     <div class="col-md-12">
-                        <div class="alert alert-light border mb-0">
-                            <i class="fa-solid fa-circle-info text-primary me-1"></i>
+                        <div class="alert border mb-0 rounded-3" style="background-color: #f8f3ed; border-color: #c2a889 !important; color: #504538;">
+                            <i class="fa-solid fa-circle-info me-2" style="color: #504538;"></i>
                             Saving this registration will immediately check the guest in and mark the selected room as <strong>OCCUPIED</strong> on the dashboard.
                         </div>
                     </div>
@@ -706,24 +694,23 @@
             <div class="d-flex gap-2">
 
                 <a href="{{ route('frontdesk.registration') }}"
-                class="btn btn-outline-secondary px-4">
+                class="btn px-4 py-2 fw-semibold"
+                style="border: 1px solid #827567; color: #504538; background: transparent; border-radius: 0.5rem;">
                     <i class="fa-solid fa-rotate-left me-2"></i>
                     Clear
                 </a>
 
                 <button
                     type="submit"
-                    class="btn btn-primary px-4"
+                    class="btn text-white px-4 py-2 fw-semibold shadow-sm"
+                    style="background-color: #334c42; border: none; border-radius: 0.5rem;"
                     @disabled($assignableRooms->isEmpty())>
 
                     <i class="fa-solid fa-floppy-disk me-2"></i>
                     Save Registration
-
                 </button>
-
             </div>
-
-        </div>
+        </div>      </div>
 
     </form>
 
