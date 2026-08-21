@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\ActivityLog;
 use App\Models\LandingPageShowcase;
 use App\Models\Room;
+use App\Models\User;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -271,8 +272,21 @@ class LoginController extends Controller
 
         $request->session()->regenerate();
 
+        /** @var User|null $user */
+        $user = Auth::user();
+        $targetRoute = $this->dashboardRouteForUser($user);
+
+        $intendedUrl = $request->session()->get('url.intended');
+        if (! $intendedUrl || $intendedUrl === route('home') || $intendedUrl === url('/')) {
+            $request->session()->forget('url.intended');
+
+            return redirect()
+                ->to($targetRoute)
+                ->with('show_login_confirmation', true);
+        }
+
         return redirect()
-            ->intended($this->dashboardRouteForRole(Auth::user()?->role?->role_name))
+            ->intended($targetRoute)
             ->with('show_login_confirmation', true);
     }
 
@@ -288,15 +302,62 @@ class LoginController extends Controller
         return redirect()->route('home');
     }
 
-    private function dashboardRouteForRole(?string $role): string
+    private function dashboardRouteForUser(?User $user): string
     {
-        return match ($role) {
-            'SUPER_ADMIN', 'ADMIN' => route('admin.dashboard'),
-            'FRONT_DESK' => route('frontdesk.dashboard'),
-            'ACCOUNTING' => route('accounting.dashboard'),
-            'CAFETERIA' => route('coffeeshop.dashboard'),
-            default => route('home'),
-        };
+        if (! $user) {
+            return route('home');
+        }
+
+        $roleName = strtoupper(trim($user->role?->role_name ?? ''));
+        $normalizedRole = str_replace(['_', ' ', '-'], '', $roleName);
+
+        // 1. Direct match on role names (handles FRONTDESK, FRONT_DESK, etc.)
+        if (in_array($normalizedRole, ['SUPERADMIN', 'ADMIN'], true)) {
+            return route('admin.dashboard');
+        }
+        if (in_array($normalizedRole, ['FRONTDESK', 'FRONTDESKOPERATIONS'], true)) {
+            return route('frontdesk.dashboard');
+        }
+        if (in_array($normalizedRole, ['ACCOUNTING', 'FINANCE'], true)) {
+            return route('accounting.dashboard');
+        }
+        if (in_array($normalizedRole, ['CAFETERIA', 'POS', 'COFFEESHOP'], true)) {
+            return route('coffeeshop.dashboard');
+        }
+
+        // 2. Dynamic permission check for custom roles
+        if ($user->isAdmin() || $user->hasPermission('manage-users') || $user->hasPermission('manage-landing-page') || $user->hasPermission('manage-roles') || $user->hasPermission('manage-backup-restore')) {
+            return route('admin.dashboard');
+        }
+
+        if (
+            $user->hasPermission('manage-reservations') ||
+            $user->hasPermission('view-guest-list') ||
+            $user->hasPermission('view-guest-folio') ||
+            $user->hasPermission('manage-guest-folio') ||
+            $user->hasPermission('process-checkout') ||
+            $user->hasPermission('view-shift-sales')
+        ) {
+            return route('frontdesk.dashboard');
+        }
+
+        if (
+            $user->hasPermission('view-accounting-dashboard') ||
+            $user->hasPermission('manage-accounting-billing') ||
+            $user->hasPermission('manage-accounting-payments') ||
+            $user->hasPermission('manage-accounting-expenses') ||
+            $user->hasPermission('manage-accounting-receivables') ||
+            $user->hasPermission('view-accounting-reports') ||
+            $user->hasPermission('view-accounting-audit')
+        ) {
+            return route('accounting.dashboard');
+        }
+
+        if ($user->hasPermission('manage-inventory')) {
+            return route('coffeeshop.dashboard');
+        }
+
+        return route('home');
     }
 
     private function determineRoomCapacity(string $roomType): string
