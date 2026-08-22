@@ -17,11 +17,17 @@
     <div class="sidebar-sections">
         
         <!-- ADMIN CONTROL -->
-        @canany(['manage-users', 'manage-admins', 'manage-roles-permissions', 'manage-landing-page', 'manage-backup-restore', 'manage-rooms', 'manage-charge-codes', 'manage-credit-accounts', 'view-activity-logs', 'manage-pos-approvals', 'manage-sidebar-settings', 'manage-shifts'])
+        @canany(['manage-users', 'manage-admins', 'manage-roles-permissions', 'manage-landing-page', 'manage-backup-restore', 'manage-rooms', 'manage-charge-codes', 'manage-credit-accounts', 'view-activity-logs', 'manage-pos-approvals', 'manage-shifts'])
         <div class="menu-section mb-4">
-            <div class="text-uppercase small fw-bold mb-2" style="color: #d4c5b3; font-family: 'Plus Jakarta Sans', sans-serif;">
-                Admin Control
-            </div>
+            @php $isAdminActive = request()->routeIs('admin.*') && !request()->routeIs('admin.food-delivery'); @endphp
+            <button class="btn btn-link text-decoration-none w-100 p-0 text-start d-flex justify-content-between align-items-center sidebar-accordion-btn mb-2 {{ $isAdminActive ? '' : 'collapsed' }}"
+                    type="button" data-bs-toggle="collapse" data-bs-target="#collapseAdmin" aria-expanded="{{ $isAdminActive ? 'true' : 'false' }}" aria-controls="collapseAdmin">
+                <div class="text-uppercase small fw-bold" style="color: #d4c5b3; font-family: 'Plus Jakarta Sans', sans-serif;">
+                    Admin Control
+                </div>
+                <i class="fa-solid fa-chevron-down accordion-chevron" style="color: #d4c5b3; font-size: 0.8rem;"></i>
+            </button>
+            <div class="collapse {{ $isAdminActive ? 'show' : '' }}" id="collapseAdmin">
             <nav class="nav flex-column">
                 @canany(['manage-users', 'manage-admins', 'manage-roles-permissions', 'manage-landing-page', 'manage-backup-restore', 'manage-rooms', 'manage-charge-codes', 'manage-credit-accounts', 'view-activity-logs', 'manage-pos-approvals'])
                 <a href="{{ route('admin.dashboard') }}"
@@ -121,24 +127,25 @@
                 </a>
                 @endcan
 
-                @can('manage-sidebar-settings')
-                <a href="{{ route('admin.sidebar-settings') }}"
-                   class="nav-link {{ request()->routeIs('admin.sidebar-settings*') ? 'active' : '' }}">
-                    <i class="fa-solid fa-sliders-h me-2"></i>
-                    Sidebar Settings
-                </a>
-                @endcan
+
             </nav>
+            </div>
         </div>
         @endcanany
 
         <!-- FRONT DESK -->
-        @if(auth()->user()?->isModuleVisibleInSidebar('frontdesk'))
+
             @canany(['manage-reservations', 'view-guest-list', 'view-guest-folio', 'view-shift-sales'])
             <div class="menu-section mb-4">
-                <div class="text-uppercase small fw-bold mb-2" style="color: #d4c5b3; font-family: 'Plus Jakarta Sans', sans-serif;">
-                    Front Desk
-                </div>
+                @php $isFrontDeskActive = request()->routeIs('frontdesk.*'); @endphp
+                <button class="btn btn-link text-decoration-none w-100 p-0 text-start d-flex justify-content-between align-items-center sidebar-accordion-btn mb-2 {{ $isFrontDeskActive ? '' : 'collapsed' }}"
+                        type="button" data-bs-toggle="collapse" data-bs-target="#collapseFrontDesk" aria-expanded="{{ $isFrontDeskActive ? 'true' : 'false' }}" aria-controls="collapseFrontDesk">
+                    <div class="text-uppercase small fw-bold" style="color: #d4c5b3; font-family: 'Plus Jakarta Sans', sans-serif;">
+                        Front Desk
+                    </div>
+                    <i class="fa-solid fa-chevron-down accordion-chevron" style="color: #d4c5b3; font-size: 0.8rem;"></i>
+                </button>
+                <div class="collapse {{ $isFrontDeskActive ? 'show' : '' }}" id="collapseFrontDesk">
             <nav class="nav flex-column">
                 @can('manage-reservations')
                 <a href="{{ route('frontdesk.dashboard') }}"
@@ -185,17 +192,24 @@
                 </a>
                 @endcan
             </nav>
+            </div>
         </div>
             @endcanany
-        @endif
+
 
         <!-- COFFEE SHOP -->
-        @if(auth()->user()?->isModuleVisibleInSidebar('coffeeshop'))
+
             @can('manage-inventory')
             <div class="menu-section mb-4">
-            <div class="text-uppercase small fw-bold mb-2" style="color: #d4c5b3; font-family: 'Plus Jakarta Sans', sans-serif;">
-                Coffee Shop
-            </div>
+            @php $isCoffeeShopActive = request()->routeIs('coffeeshop.*'); @endphp
+            <button class="btn btn-link text-decoration-none w-100 p-0 text-start d-flex justify-content-between align-items-center sidebar-accordion-btn mb-2 {{ $isCoffeeShopActive ? '' : 'collapsed' }}"
+                    type="button" data-bs-toggle="collapse" data-bs-target="#collapseCoffeeShop" aria-expanded="{{ $isCoffeeShopActive ? 'true' : 'false' }}" aria-controls="collapseCoffeeShop">
+                <div class="text-uppercase small fw-bold" style="color: #d4c5b3; font-family: 'Plus Jakarta Sans', sans-serif;">
+                    Coffee Shop
+                </div>
+                <i class="fa-solid fa-chevron-down accordion-chevron" style="color: #d4c5b3; font-size: 0.8rem;"></i>
+            </button>
+            <div class="collapse {{ $isCoffeeShopActive ? 'show' : '' }}" id="collapseCoffeeShop">
             <nav class="nav flex-column coffeeshop-nav">
                 <a href="{{ route('coffeeshop.dashboard') }}"
                    class="nav-link {{ request()->routeIs('coffeeshop.dashboard') ? 'active' : '' }}">
@@ -249,12 +263,13 @@
                     Settings
                 </a>
             </nav>
+            </div>
         </div>
             @endcan
-        @endif
+
 
         <!-- ACCOUNTING -->
-        @if(auth()->user()?->isModuleVisibleInSidebar('accounting'))
+
             @canany([
             'view-accounting-dashboard',
             'manage-accounting-billing',
@@ -265,9 +280,15 @@
             'view-accounting-audit'
         ])
         <div class="menu-section mb-4">
-            <div class="text-uppercase small fw-bold mb-2" style="color: #d4c5b3; font-family: 'Plus Jakarta Sans', sans-serif;">
-                Accounting
-            </div>
+            @php $isAccountingActive = request()->routeIs('accounting.*'); @endphp
+            <button class="btn btn-link text-decoration-none w-100 p-0 text-start d-flex justify-content-between align-items-center sidebar-accordion-btn mb-2 {{ $isAccountingActive ? '' : 'collapsed' }}"
+                    type="button" data-bs-toggle="collapse" data-bs-target="#collapseAccounting" aria-expanded="{{ $isAccountingActive ? 'true' : 'false' }}" aria-controls="collapseAccounting">
+                <div class="text-uppercase small fw-bold" style="color: #d4c5b3; font-family: 'Plus Jakarta Sans', sans-serif;">
+                    Accounting
+                </div>
+                <i class="fa-solid fa-chevron-down accordion-chevron" style="color: #d4c5b3; font-size: 0.8rem;"></i>
+            </button>
+            <div class="collapse {{ $isAccountingActive ? 'show' : '' }}" id="collapseAccounting">
             <nav class="nav flex-column">
                 @can('view-accounting-dashboard')
                 <a href="{{ route('accounting.dashboard') }}"
@@ -319,17 +340,24 @@
                 </a>
                 @endcan
             </nav>
+            </div>
         </div>
             @endcanany
-        @endif
+
 
         <!-- FOOD ORDER -->
-        @if(auth()->user()?->isModuleVisibleInSidebar('food_delivery'))
+
             @can('access-foodpanda')
         <div class="menu-section mb-4">
-            <div class="text-uppercase small fw-bold mb-2" style="color: #d4c5b3; font-family: 'Plus Jakarta Sans', sans-serif;">
-                Food Order
-            </div>
+            @php $isFoodOrderActive = request()->routeIs('admin.food-delivery'); @endphp
+            <button class="btn btn-link text-decoration-none w-100 p-0 text-start d-flex justify-content-between align-items-center sidebar-accordion-btn mb-2 {{ $isFoodOrderActive ? '' : 'collapsed' }}"
+                    type="button" data-bs-toggle="collapse" data-bs-target="#collapseFoodOrder" aria-expanded="{{ $isFoodOrderActive ? 'true' : 'false' }}" aria-controls="collapseFoodOrder">
+                <div class="text-uppercase small fw-bold" style="color: #d4c5b3; font-family: 'Plus Jakarta Sans', sans-serif;">
+                    Food Order
+                </div>
+                <i class="fa-solid fa-chevron-down accordion-chevron" style="color: #d4c5b3; font-size: 0.8rem;"></i>
+            </button>
+            <div class="collapse {{ $isFoodOrderActive ? 'show' : '' }}" id="collapseFoodOrder">
             <nav class="nav flex-column">
                 <a href="{{ route('admin.food-delivery') }}"
                    class="nav-link {{ request()->routeIs('admin.food-delivery') ? 'active' : '' }}">
@@ -337,9 +365,10 @@
                     Food Delivery
                 </a>
             </nav>
+            </div>
         </div>
             @endcan
-        @endif
+
 
     </div>
 

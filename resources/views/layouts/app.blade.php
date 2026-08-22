@@ -151,6 +151,19 @@
             font-size: 0.78rem;
             font-family: 'Plus Jakarta Sans', 'Inter', sans-serif;
         }
+        
+        .sidebar-accordion-btn:focus, .sidebar-accordion-btn:active {
+            outline: none;
+            box-shadow: none;
+        }
+
+        .accordion-chevron {
+            transition: transform 0.3s ease;
+        }
+        
+        .sidebar-accordion-btn.collapsed .accordion-chevron {
+            transform: rotate(-90deg);
+        }
 
         .sidebar .nav-link {
             color: #f4eee6;
