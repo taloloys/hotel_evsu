@@ -139,15 +139,15 @@
 
         <table class="table align-middle mb-0">
 
-            <thead style="background-color: #f8f3ed; border-bottom: 1px solid #e5e7eb;">
-                <tr class="text-muted small fw-bold">
-                    <th class="ps-3" style="color: #504538;">REF NO</th>
-                    <th style="color: #504538;">GUEST</th>
-                    <th style="color: #504538;">METHOD</th>
-                    <th style="color: #504538;">DATE</th>
-                    <th style="color: #504538;">STATUS</th>
-                    <th class="text-end" style="color: #504538;">AMOUNT</th>
-                    <th class="text-center pe-3" style="color: #504538;">ACTION</th>
+            <thead style="background-color: #f8f3ed; border-bottom: 2px solid #c2a889;">
+                <tr class="small fw-bold" style="color: #1a1a1a;">
+                    <th class="ps-3">REF NO</th>
+                    <th>GUEST</th>
+                    <th>METHOD</th>
+                    <th>DATE</th>
+                    <th>STATUS</th>
+                    <th class="text-end">AMOUNT</th>
+                    <th class="text-center pe-3">ACTION</th>
                 </tr>
             </thead>
 
@@ -155,39 +155,38 @@
 
                 @forelse($payments as $p)
                     <tr style="border-bottom: 1px solid #f0f0f0;">
-                        <td class="ps-3 fw-semibold" style="color: #2c241d; font-size: 0.95rem;">{{ $p->charge_number }}</td>
-                        <td class="fw-medium" style="color: #2c241d; font-size: 0.95rem;">
+                        <td class="ps-3 fw-bold" style="color: #1a1a1a; font-size: 0.95rem;">{{ $p->charge_number }}</td>
+                        <td class="fw-semibold" style="color: #1a1a1a; font-size: 0.95rem;">
                             @if($p->folio && $p->folio->guest)
                                 @if(Str::contains(strtolower($p->folio->guest->first_name . ' ' . $p->folio->guest->last_name), 'walk-in') || Str::contains(strtolower($p->folio->guest->first_name), 'pos'))
-                                    <span class="badge rounded-pill me-1" style="border: 1px solid #827567; color: #827567; background: transparent;"><i class="fa-solid fa-user-tag me-1"></i>Walk-in</span>
+                                    <span class="badge me-1" style="border: 1px solid #c2a889; color: #262626; background-color: #f3ede4; border-radius: 0.375rem;"><i class="fa-solid fa-user-tag me-1"></i>Walk-in</span>
                                 @endif
                                 {{ $p->folio->guest->first_name }} {{ $p->folio->guest->last_name }}
                             @else
-                                <span class="badge rounded-pill me-1" style="border: 1px solid #827567; color: #827567; background: transparent;"><i class="fa-solid fa-user-tag me-1"></i>Walk-in</span>
-                                <span class="text-muted">General Walk-in</span>
+                                <span class="badge me-1" style="border: 1px solid #c2a889; color: #262626; background-color: #f3ede4; border-radius: 0.375rem;"><i class="fa-solid fa-user-tag me-1"></i>Walk-in</span>
+                                <span style="color: #6b7280;">General Walk-in</span>
                             @endif
                         </td>
                         <td>
-                            @if($p->payment_method === 'CASH')
-                                <span class="badge rounded-pill px-2.5 py-1 fw-semibold" style="border: 1px solid #c2a889; color: #504538; background: transparent; font-size: 0.78rem;">Cash</span>
-                            @elseif($p->payment_method === 'CREDIT_CARD')
-                                <span class="badge rounded-pill px-2.5 py-1 fw-semibold" style="background-color: #334c42; color: #ffffff; font-size: 0.78rem;">Card</span>
-                            @elseif($p->payment_method === 'GCASH')
-                                <span class="badge rounded-pill px-2.5 py-1 fw-semibold" style="background-color: #334c42; color: #ffffff; font-size: 0.78rem;">GCash</span>
-                            @elseif($p->payment_method === 'MAYA')
-                                <span class="badge rounded-pill px-2.5 py-1 fw-semibold" style="background-color: #827567; color: #ffffff; font-size: 0.78rem;">Maya</span>
-                            @elseif($p->payment_method === 'ACCOUNT_CHARGE')
-                                <span class="badge rounded-pill px-2.5 py-1 fw-semibold" style="background-color: #827567; color: #ffffff; font-size: 0.78rem;">Account Charge</span>
-                            @else
-                                <span class="badge rounded-pill px-2.5 py-1 fw-semibold" style="background-color: #827567; color: #ffffff; font-size: 0.78rem;">{{ $p->payment_method }}</span>
-                            @endif
+                            @php
+                                $m = strtolower($p->payment_method ?? '');
+                                $pmClass = match($m) {
+                                    'cash' => 'badge-payment-cash',
+                                    'gcash' => 'badge-payment-gcash',
+                                    'maya' => 'badge-payment-maya',
+                                    'credit_card', 'card' => 'badge-payment-card',
+                                    'account_charge', 'room_charge' => 'badge-payment-account',
+                                    default => 'badge-payment-other',
+                                };
+                            @endphp
+                            <span class="badge-payment {{ $pmClass }}">{{ str_replace('_', ' ', strtoupper($p->payment_method)) }}</span>
                         </td>
-                        <td style="color: #554d46; font-size: 0.90rem;">{{ $p->transaction_date->toDateString() }}</td>
+                        <td style="color: #262626; font-size: 0.90rem;">{{ $p->transaction_date->toDateString() }}</td>
                         <td><span class="badge bg-success-subtle text-success fw-semibold">Completed</span></td>
                         <td class="text-end fw-bold" style="color: #198754; font-size: 0.98rem;">₱{{ number_format($p->credit_amount, 2) }}</td>
                         <td class="text-center pe-3">
                             @if($p->folio_id)
-                                <a href="{{ route('accounting.billing.show', $p->folio_id) }}" class="btn btn-sm rounded-pill px-3 fw-semibold" style="border: 1px solid #627e71; color: #627e71; background: transparent;">
+                                <a href="{{ route('accounting.billing.show', $p->folio_id) }}" class="btn btn-sm px-3 fw-semibold shadow-sm" style="border: 1px solid #627e71; color: #1e332b; background-color: #e8f0ec; border-radius: 0.375rem;">
                                     <i class="fa-solid fa-eye me-1"></i> View Invoice
                                 </a>
                             @else
@@ -197,7 +196,7 @@
                     </tr>
                 @empty
                     <tr>
-                        <td colspan="7" class="text-center text-muted py-4">No payments found.</td>
+                        <td colspan="7" class="text-center py-4" style="color: #6b7280;">No payments found.</td>
                     </tr>
                 @endforelse
 

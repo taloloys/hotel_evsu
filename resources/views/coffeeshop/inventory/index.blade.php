@@ -37,12 +37,25 @@
         <div class="col-md-4"><div class="coffeeshop-card p-4 h-100"><div class="text-muted small">Out of Stock</div><div class="fs-3 fw-bold text-dark">{{ $outOfStockCount }}</div></div></div>
     </div>
 
-    @if($lowStockProducts->count() > 0)
-    <div class="alert alert-danger rounded-4 border-0 d-flex align-items-center">
-        <i class="fa-solid fa-bell me-2"></i>
-        <strong>Low Stock Alert:</strong>
-        <span class="ms-2">{{ $lowStockProducts->pluck('name')->take(5)->join(', ') }}</span>
-    </div>
+    @php
+        $outOfStockNames = $lowStockProducts->filter(fn($p) => (int)$p->stock_quantity === 0)->pluck('name');
+        $criticalStockNames = $lowStockProducts->filter(fn($p) => (int)$p->stock_quantity > 0)->pluck('name');
+    @endphp
+
+    @if($outOfStockNames->isNotEmpty())
+        <div class="alert alert-danger rounded-4 border-0 d-flex align-items-center mb-2 shadow-sm">
+            <i class="fa-solid fa-triangle-exclamation me-2"></i>
+            <strong>Out of Stock Alert:</strong>
+            <span class="ms-2">{{ $outOfStockNames->take(5)->join(', ') }}</span>
+        </div>
+    @endif
+
+    @if($criticalStockNames->isNotEmpty())
+        <div class="alert alert-warning rounded-4 border-0 d-flex align-items-center mb-2 shadow-sm" style="background-color: #fff3cd; color: #664d03;">
+            <i class="fa-solid fa-bell me-2"></i>
+            <strong>Low Stock Alert:</strong>
+            <span class="ms-2">{{ $criticalStockNames->take(5)->join(', ') }}</span>
+        </div>
     @endif
 
     <form method="GET" class="d-flex align-items-center gap-2 flex-wrap justify-content-end mb-3" id="inventoryFilterForm">
@@ -99,7 +112,7 @@
             <div class="table-responsive">
                 <table class="table align-middle mb-0 coffeeshop-table">
                     <thead style="background-color: #f8f3ed; border-bottom: 1px solid #e5e7eb; color: #2c241d; font-family: 'Plus Jakarta Sans', 'Inter', 'Segoe UI', sans-serif; font-size: 0.90rem; font-weight: 700; text-transform: uppercase;">
-                        <tr><th style="color: #2c241d; padding: 0.9rem 1rem;">Product</th><th style="color: #2c241d; padding: 0.9rem 1rem;">Category</th><th style="color: #2c241d; padding: 0.9rem 1rem;">Stock</th><th style="color: #2c241d; padding: 0.9rem 1rem;">Status</th><th style="color: #2c241d; padding: 0.9rem 1rem;">Adjust</th></tr>
+                        <tr><th style="color: #2c241d; padding: 0.9rem 1rem;">Product</th><th style="color: #2c241d; padding: 0.9rem 1rem;">Category</th><th style="color: #2c241d; padding: 0.9rem 1rem;">Stock</th><th style="color: #2c241d; padding: 0.9rem 1rem;" class="text-nowrap">Status</th><th style="color: #2c241d; padding: 0.9rem 1rem;">Adjust</th></tr>
                     </thead>
                     <tbody style="font-family: 'Plus Jakarta Sans', 'Inter', 'Segoe UI', sans-serif;">
                     @foreach($products as $product)
@@ -108,7 +121,20 @@
                             <td style="padding: 1.05rem 1rem; color: #2c241d; font-weight: 600; font-size: 1.05rem;">{{ $product->name }}</td>
                             <td style="padding: 1.05rem 1rem; color: #382e25; font-weight: 500; font-size: 1.02rem;">{{ $product->category?->name ?? '—' }}</td>
                             <td style="padding: 1.05rem 1rem; color: #2c241d; font-weight: 600; font-size: 1.04rem;">{{ $product->stock_quantity }}</td>
-                            <td style="padding: 1.05rem 1rem;"><span class="coffeeshop-pill fw-semibold bg-{{ $color }}-subtle text-{{ $color }}" style="font-size: 0.88rem; padding: 0.28rem 0.8rem;">{{ $label }}</span></td>
+                            <td style="padding: 1.05rem 0.75rem;" class="text-nowrap">
+                                @php
+                                    $badgeStyle = match($color) {
+                                        'danger' => 'background-color: #fee2e2; color: #991b1b; border: 1px solid #fca5a5;',
+                                        'warning' => 'background-color: #fef3c7; color: #92400e; border: 1px solid #fde68a;',
+                                        'success' => 'background-color: #d1e7dd; color: #0f5132; border: 1px solid #a3cfbb;',
+                                        'primary' => 'background-color: #e0f2fe; color: #0369a1; border: 1px solid #bae6fd;',
+                                        default => 'background-color: #f1f5f9; color: #475569; border: 1px solid #cbd5e1;',
+                                    };
+                                @endphp
+                                <span class="badge rounded-pill fw-bold text-nowrap" style="font-size: 0.75rem; padding: 0.35rem 0.65rem; text-transform: uppercase; letter-spacing: 0.03em; {{ $badgeStyle }}">
+                                    {{ $label }}
+                                </span>
+                            </td>
                             <td style="padding: 1.05rem 1rem;">
                                 <form action="{{ route('coffeeshop.inventory.adjust', $product) }}" method="POST" class="d-flex gap-2 align-items-center flex-nowrap">
                                     @csrf

@@ -109,10 +109,10 @@
 
                     @php
                         $badge = match($tab->status){
-                            'open' => 'bg-primary-subtle text-primary',
-                            'closed' => 'bg-success-subtle text-success',
-                            'cancelled' => 'bg-danger-subtle text-danger',
-                            default => 'bg-secondary-subtle text-secondary'
+                            'open' => 'badge-status-open',
+                            'closed' => 'badge-status-closed',
+                            'cancelled' => 'bg-danger text-white',
+                            default => 'bg-secondary text-white'
                         };
                     @endphp
 
@@ -124,9 +124,11 @@
                                 {{ $tab->tab_name }}
                             </div>
 
-                            <div class="my-1">
+                            <div class="mt-1">
                                 @if($tab->tab_type === 'room')
-                                    <span class="badge px-2.5 py-1 rounded-pill fw-semibold" style="background-color: #627e71; color: #ffffff; font-size: 0.78rem; font-family: 'Plus Jakarta Sans', 'Inter', 'Segoe UI', sans-serif;">Room Charge</span>
+                                    <span class="badge px-2.5 py-1 rounded-pill fw-semibold" style="background-color: #334c42; color: #ffffff; font-size: 0.78rem; font-family: 'Plus Jakarta Sans', 'Inter', 'Segoe UI', sans-serif;">
+                                        <i class="fa-solid fa-bed me-1"></i>Room Guest
+                                    </span>
                                 @elseif($tab->tab_type === 'account')
                                     <span class="badge px-2.5 py-1 rounded-pill fw-semibold" style="background-color: #627e71; color: #ffffff; font-size: 0.78rem; font-family: 'Plus Jakarta Sans', 'Inter', 'Segoe UI', sans-serif;">
                                         <i class="fa-solid fa-crown me-1" style="color: #c2a889;"></i>Credit Account

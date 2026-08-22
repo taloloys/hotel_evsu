@@ -142,8 +142,8 @@
 <div class="card border-1 shadow-sm rounded-4 overflow-hidden mb-4">
     <div class="table-responsive">
         <table class="table align-middle mb-0">
-            <thead style="background-color: #f8f3ed; border-bottom: 1px solid #e5e7eb;">
-                <tr class="text-muted small fw-bold">
+            <thead style="background-color: #f8f3ed; border-bottom: 2px solid #c2a889;">
+                <tr class="small fw-bold" style="color: #1a1a1a;">
                     @if($tab === 'pos')
                         <th class="ps-3">ORDER NO</th>
                         <th>CUSTOMER / GUEST</th>
@@ -168,10 +168,10 @@
                 @if($tab === 'pos')
                     @forelse($posOrders as $order)
                         <tr style="border-bottom: 1px solid #f0f0f0;">
-                            <td class="ps-3 fw-bold" style="color: #504538;">{{ $order->order_number }}</td>
-                            <td class="fw-semibold" style="color: #504538;">{{ $order->customer_name }}</td>
-                            <td>{{ $order->room_number ? 'Room ' . $order->room_number : 'Walk-in' }}</td>
-                            <td>{{ $order->created_at->format('Y-m-d') }}</td>
+                            <td class="ps-3 fw-bold" style="color: #1a1a1a;">{{ $order->order_number }}</td>
+                            <td class="fw-semibold" style="color: #1a1a1a;">{{ $order->customer_name }}</td>
+                            <td style="color: #262626;">{{ $order->room_number ? 'Room ' . $order->room_number : 'Walk-in' }}</td>
+                            <td style="color: #262626;">{{ $order->created_at->format('Y-m-d') }}</td>
                             <td>
                                 @if(in_array($order->status, ['closed', 'refunded']))
                                     <span class="badge bg-success-subtle text-success fw-semibold">{{ ucfirst($order->status) }}</span>
@@ -179,25 +179,25 @@
                                     <span class="badge bg-warning-subtle text-warning fw-semibold">{{ ucfirst($order->status) }}</span>
                                 @endif
                             </td>
-                            <td class="text-end fw-bold" style="color: #504538;">₱{{ number_format($order->total, 2) }}</td>
+                            <td class="text-end fw-bold" style="color: #1a1a1a;">₱{{ number_format($order->total, 2) }}</td>
                             <td class="text-center pe-3">
-                                <a href="{{ route('coffeeshop.orders.show', $order->order_id) }}" class="btn btn-sm rounded-pill px-3 fw-semibold" style="border: 1px solid #627e71; color: #627e71; background: transparent;">
+                                <a href="{{ route('coffeeshop.orders.show', $order->order_id) }}" class="btn btn-sm px-3 fw-semibold shadow-sm" style="border: 1px solid #627e71; color: #1e332b; background-color: #e8f0ec; border-radius: 0.375rem;">
                                     <i class="fa-solid fa-eye me-1"></i> View Order
                                 </a>
                             </td>
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="7" class="text-center text-muted py-4">No POS billing records found for this date.</td>
+                            <td colspan="7" class="text-center py-4" style="color: #6b7280;">No POS billing records found for this date.</td>
                         </tr>
                     @endforelse
                 @else
                     @forelse($folios as $folio)
                         <tr style="border-bottom: 1px solid #f0f0f0;">
-                            <td class="ps-3 fw-bold" style="color: #504538;">{{ $folio->folio_number }}</td>
-                            <td class="fw-semibold" style="color: #504538;">{{ $folio->guest_name }}</td>
-                            <td>{{ str_starts_with($folio->room_number, 'Room') ? $folio->room_number : 'Room ' . $folio->room_number }}</td>
-                            <td>{{ $folio->date }}</td>
+                            <td class="ps-3 fw-bold" style="color: #1a1a1a;">{{ $folio->folio_number }}</td>
+                            <td class="fw-semibold" style="color: #1a1a1a;">{{ $folio->guest_name }}</td>
+                            <td style="color: #262626;">{{ str_starts_with($folio->room_number, 'Room') ? $folio->room_number : 'Room ' . $folio->room_number }}</td>
+                            <td style="color: #262626;">{{ $folio->date }}</td>
                             <td>
                                 @if($folio->display_status === 'Paid')
                                     <span class="badge bg-success-subtle text-success fw-semibold">Paid</span>
@@ -205,12 +205,12 @@
                                     <span class="badge bg-danger-subtle text-danger fw-semibold">Unpaid</span>
                                 @endif
                             </td>
-                            <td class="text-end fw-bold" style="color: #504538;">₱{{ number_format($folio->total_amount, 2) }}</td>
+                            <td class="text-end fw-bold" style="color: #1a1a1a;">₱{{ number_format($folio->total_amount, 2) }}</td>
                             <td class="text-end fw-bold {{ $folio->balance > 0 ? 'text-danger' : 'text-success' }}">
                                 ₱{{ number_format($folio->balance, 2) }}
                             </td>
                             <td class="text-center pe-3">
-                                <a href="{{ route('accounting.billing.show', $folio->folio_id) }}" class="btn btn-sm rounded-pill px-3 fw-semibold" style="border: 1px solid #627e71; color: #627e71; background: transparent;">
+                                <a href="{{ route('accounting.billing.show', $folio->folio_id) }}" class="btn btn-sm px-3 fw-semibold shadow-sm" style="border: 1px solid #627e71; color: #1e332b; background-color: #e8f0ec; border-radius: 0.375rem;">
                                     <i class="fa-solid fa-eye me-1"></i> View Folio
                                 </a>
                             </td>

@@ -187,14 +187,18 @@ class LayoutDataController extends Controller
 
             foreach ($lowStockProducts as $product) {
                 $threshold = $product->effectiveLowStockThreshold();
+                $isOutOfStock = ((int) $product->stock_quantity === 0);
+
                 $notifications[] = [
                     'id' => 'inventory-low-'.$product->product_id,
                     'type' => 'inventory',
                     'severity' => 'danger',
-                    'icon' => 'fa-box-open text-danger',
-                    'message' => "Low Stock: '{$product->name}' is below {$threshold} (Current: {$product->stock_quantity}).",
-                    'link' => route('coffeeshop.inventory', ['filter' => 'critical_stock', 'search' => $product->name]),
-                    'time' => 'Low Stock',
+                    'icon' => $isOutOfStock ? 'fa-triangle-exclamation text-danger' : 'fa-box-open text-danger',
+                    'message' => $isOutOfStock
+                        ? "Out of Stock: '{$product->name}' is completely out of stock (Current: 0)."
+                        : "Low Stock: '{$product->name}' is below {$threshold} (Current: {$product->stock_quantity}).",
+                    'link' => route('coffeeshop.inventory', ['filter' => $isOutOfStock ? 'out_of_stock' : 'critical_stock', 'search' => $product->name]),
+                    'time' => $isOutOfStock ? 'Out of Stock' : 'Low Stock',
                 ];
             }
 

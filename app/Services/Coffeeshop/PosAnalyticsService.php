@@ -186,7 +186,7 @@ class PosAnalyticsService
         }
 
         return [
-            'tabs' => $tabsQuery->limit(50)->get(),
+            'tabs' => $tabsQuery->paginate(10, ['*'], 'tabs_page')->withQueryString(),
             'orders' => $ordersQuery->limit(50)->get(),
             'frequent' => $this->frequentCustomers(10),
         ];

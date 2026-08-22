@@ -6,6 +6,7 @@
 
 @section('content')
 
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/tom-select@2.3.1/dist/css/tom-select.bootstrap5.min.css">
 <style>
     .shift-card {
         transition: all 0.2s ease;
@@ -67,6 +68,30 @@
     .filter-panel { display: none; }
     .filter-panel.active { display: block; }
 
+    /* TomSelect Custom Styling */
+    .ts-control {
+        border-color: #c2a889 !important;
+        border-radius: 0.5rem !important;
+        padding: 0.5rem 0.85rem !important;
+        font-size: 0.95rem !important;
+        background-color: #ffffff !important;
+        box-shadow: none !important;
+    }
+    .ts-wrapper.focus .ts-control {
+        border-color: #334c42 !important;
+        box-shadow: 0 0 0 0.25rem rgba(51, 76, 66, 0.15) !important;
+    }
+    .ts-dropdown {
+        border-color: #c2a889 !important;
+        border-radius: 0.5rem !important;
+        box-shadow: 0 8px 24px rgba(0,0,0,0.12) !important;
+        z-index: 1050 !important;
+    }
+    .ts-dropdown .active {
+        background-color: #334c42 !important;
+        color: #ffffff !important;
+    }
+
     @media print {
         body { background: #fff !important; color: #000 !important; font-size: 11px !important; }
         .sidebar, .main-content > .card:first-child, .hide-on-print, .btn, .btn-group, nav { display: none !important; }
@@ -107,7 +132,6 @@
                     </div>
 
                     {{-- Filter Mode Tabs --}}
-                    @if($isAdmin)
                     <div class="d-flex gap-2 mb-4" id="modeTabs">
                         <button type="button" class="mode-tab {{ (empty($filters['shift_id']) && ($filters['mode'] ?? '') !== 'shift') ? 'active' : '' }}" onclick="switchMode('date')">
                             <i class="fa-solid fa-calendar-range me-1"></i> By Date Range
@@ -116,15 +140,12 @@
                             <i class="fa-solid fa-clock-rotate-left me-1"></i> By Shift
                         </button>
                     </div>
-                    @endif
 
                     <form action="{{ request()->routeIs('admin.*') ? route('admin.shift-sales') : route('frontdesk.shift-sales') }}" method="GET" id="reportForm">
                         <input type="hidden" name="mode" id="reportModeInput" value="{{ $filters['mode'] ?? ( !empty($filters['shift_id']) ? 'shift' : 'date' ) }}">
 
                         {{-- ============ DATE RANGE MODE ============ --}}
-                        {{-- ============ DATE RANGE MODE ============ --}}
-                        {{-- ============ DATE RANGE MODE ============ --}}
-                        <div id="datePanel" class="filter-panel {{ !$isAdmin || (empty($filters['shift_id']) && ($filters['mode'] ?? '') !== 'shift') ? 'active' : '' }}">
+                        <div id="datePanel" class="filter-panel {{ (empty($filters['shift_id']) && ($filters['mode'] ?? '') !== 'shift') ? 'active' : '' }}">
 
                             {{-- Charge Code Range --}}
                             <div class="row mb-3 align-items-center">
@@ -132,7 +153,7 @@
                                     <label class="form-label fw-semibold">Charge Code Range</label>
                                 </div>
                                 <div class="col-md-4">
-                                    <select class="form-select" name="charge_code_from">
+                                    <select class="form-select" name="charge_code_from" id="chargeCodeFromSelect">
                                         <option value="">From (Any)</option>
                                         @foreach($chargeCodes as $code)
                                             <option value="{{ $code->charge_code }}"
@@ -144,7 +165,7 @@
                                 </div>
                                 <div class="col-md-1 text-center text-muted">to</div>
                                 <div class="col-md-4">
-                                    <select class="form-select" name="charge_code_until">
+                                    <select class="form-select" name="charge_code_until" id="chargeCodeUntilSelect">
                                         <option value="">To (Any)</option>
                                         @foreach($chargeCodes as $code)
                                             <option value="{{ $code->charge_code }}"
@@ -218,7 +239,6 @@
                         </div>
 
                         {{-- ============ SHIFT SELECTOR MODE ============ --}}
-                        @if($isAdmin)
                         <div id="shiftPanel" class="filter-panel {{ (!empty($filters['shift_id']) || ($filters['mode'] ?? '') === 'shift') ? 'active' : '' }}">
                             <div class="row mb-2 align-items-center">
                                 <div class="col-md-3">
@@ -257,7 +277,6 @@
                                 </div>
                             @endif
                         </div>
-                        @endif
 
                         {{-- Action Buttons --}}
                         <div class="d-flex gap-2 justify-content-end mt-4 hide-on-print">
@@ -271,7 +290,8 @@
                             @endif
                             @if($hasSearched)
                                 <a href="{{ request()->routeIs('admin.*') ? route('admin.shift-sales') : route('frontdesk.shift-sales') }}{{ (!empty($filters['shift_id']) || ($filters['mode'] ?? '') === 'shift') ? '?mode=shift' : '' }}"
-                                   class="btn btn-outline-secondary">
+                                   class="btn px-4 py-2 fw-semibold"
+                                   style="border: 1px solid #827567; background-color: #eee9e0; color: #4a3e35; border-radius: 0.5rem;">
                                     <i class="fa-solid fa-xmark me-1"></i> Clear
                                 </a>
                             @endif
@@ -775,7 +795,48 @@
 @endif
 
 @push('scripts')
+<script src="https://cdn.jsdelivr.net/npm/tom-select@2.3.1/dist/js/tom-select.complete.min.js"></script>
 <script>
+    document.addEventListener('DOMContentLoaded', function() {
+        if (document.getElementById('shiftSelect')) {
+            window.shiftTomSelect = new TomSelect('#shiftSelect', {
+                create: false,
+                placeholder: '— Choose a shift —',
+                allowEmptyOption: true,
+                plugins: ['dropdown_input'],
+                maxOptions: 500
+            });
+        }
+
+        if (document.getElementById('employeeSelect')) {
+            window.employeeTomSelect = new TomSelect('#employeeSelect', {
+                create: false,
+                placeholder: 'All Employees',
+                allowEmptyOption: true,
+                plugins: ['dropdown_input'],
+                maxOptions: 500
+            });
+        }
+
+        if (document.getElementById('chargeCodeFromSelect')) {
+            window.chargeCodeFromTomSelect = new TomSelect('#chargeCodeFromSelect', {
+                create: false,
+                placeholder: 'From (Any)',
+                allowEmptyOption: true,
+                plugins: ['dropdown_input']
+            });
+        }
+
+        if (document.getElementById('chargeCodeUntilSelect')) {
+            window.chargeCodeUntilTomSelect = new TomSelect('#chargeCodeUntilSelect', {
+                create: false,
+                placeholder: 'To (Any)',
+                allowEmptyOption: true,
+                plugins: ['dropdown_input']
+            });
+        }
+    });
+
     window.switchMode = function(mode) {
         const datePanel = document.getElementById('datePanel');
         const shiftPanel = document.getElementById('shiftPanel');
@@ -799,10 +860,20 @@
 
         // Clear fields from the inactive panel
         if (isDate) {
-            const sel = document.getElementById('shiftSelect');
-            if (sel) sel.value = '';
+            if (window.shiftTomSelect) {
+                window.shiftTomSelect.setValue('');
+            } else {
+                const sel = document.getElementById('shiftSelect');
+                if (sel) sel.value = '';
+            }
         } else {
-            document.querySelectorAll('#datePanel input, #datePanel select').forEach(el => el.value = '');
+            document.querySelectorAll('#datePanel input, #datePanel select').forEach(el => {
+                if (el.tomselect) {
+                    el.tomselect.setValue('');
+                } else {
+                    el.value = '';
+                }
+            });
         }
     };
 

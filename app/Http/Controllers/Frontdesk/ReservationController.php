@@ -50,7 +50,7 @@ class ReservationController extends Controller
         $reservations = $query
             ->orderByDesc('arrival_date')
             ->orderByDesc('booking_id')
-            ->paginate(20)
+            ->paginate(10)
             ->withQueryString();
 
         $roomTypes = Room::query()

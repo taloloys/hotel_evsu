@@ -500,15 +500,45 @@
             text-transform: uppercase;
         }
 
-        .badge-status-checkedin { background-color: #334c42; color: #ffffff; border: 1px solid #334c42; }
-        .badge-status-reserved { background-color: #fef3c7; color: #92400e; border: 1px solid #fde68a; }
-        .badge-status-open { background-color: #d1fae5; color: #065f46; border: 1px solid #a7f3d0; }
-        .badge-status-available { background-color: #dcfce7; color: #166534; border: 1px solid #bbf7d0; }
-        .badge-status-cleaning { background-color: #ffedd5; color: #9a3412; border: 1px solid #fed7aa; }
-        .badge-status-maintenance { background-color: #f3f4f6; color: #374151; border: 1px solid #e5e7eb; }
-        .badge-status-occupied { background-color: #e0e7ff; color: #3730a3; border: 1px solid #c7d2fe; }
-        .badge-status-closed { background-color: #e5e7eb; color: #1f2937; border: 1px solid #d1d5db; }
-        .badge-status-active { background-color: #ccfbf1; color: #115e59; border: 1px solid #99f6e4; }
+        .badge-status-checkedin { background-color: #334c42; color: #ffffff !important; border: 1px solid #334c42; font-weight: 700; }
+        .badge-status-reserved { background-color: #fef3c7; color: #92400e !important; border: 1px solid #fde68a; font-weight: 700; }
+        .badge-status-open { background-color: #fcf8f2; color: #504538 !important; border: 1px solid #c2a889; font-weight: 700; }
+        .badge-status-available { background-color: #e8f0ec; color: #1e332b !important; border: 1px solid #627e71; font-weight: 700; }
+        .badge-status-cleaning { background-color: #ffedd5; color: #9a3412 !important; border: 1px solid #fed7aa; font-weight: 700; }
+        .badge-status-maintenance { background-color: #f3f4f6; color: #374151 !important; border: 1px solid #e5e7eb; font-weight: 700; }
+        .badge-status-occupied { background-color: #e0e7ff; color: #3730a3 !important; border: 1px solid #c7d2fe; font-weight: 700; }
+        .badge-status-closed { background-color: #334c42 !important; color: #ffffff !important; border: 1px solid #334c42 !important; font-weight: 700; }
+        .badge-status-active { background-color: #ccfbf1; color: #115e59 !important; border: 1px solid #99f6e4; font-weight: 700; }
+
+        /* Distinct High-Contrast Payment Method Badges (HTM Brand Aligned) */
+        .badge-payment {
+            padding: 0.38rem 0.8rem;
+            font-size: 0.78rem;
+            font-weight: 700 !important;
+            border-radius: 999px;
+            letter-spacing: 0.04em;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.3rem;
+            text-transform: uppercase;
+            color: #ffffff !important;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+        .badge-payment-cash { background-color: #334c42 !important; color: #ffffff !important; border: 1px solid #283d35 !important; }
+        .badge-payment-gcash { background-color: #007dfe !important; color: #ffffff !important; border: 1px solid #0066d6 !important; }
+        .badge-payment-maya { background-color: #00b875 !important; color: #ffffff !important; border: 1px solid #00965f !important; }
+        .badge-payment-card { background-color: #2563eb !important; color: #ffffff !important; border: 1px solid #1d4ed8 !important; }
+        .badge-payment-account { background-color: #627e71 !important; color: #ffffff !important; border: 1px solid #4f685c !important; }
+        .badge-payment-other { background-color: #504538 !important; color: #ffffff !important; border: 1px solid #382e25 !important; }
+
+        .coffeeshop-pill.badge-status-closed,
+        .coffeeshop-pill.bg-success,
+        .coffeeshop-pill.bg-success-subtle {
+            background-color: #334c42 !important;
+            color: #ffffff !important;
+            border: 1px solid #334c42 !important;
+            font-weight: 700 !important;
+        }
 
         .fd-toolbar {
             display: flex;

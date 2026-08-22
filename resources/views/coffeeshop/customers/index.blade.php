@@ -94,12 +94,15 @@
             <div class="card-body">
 
                 {{-- TAB NAVIGATION --}}
+                @php
+                    $activeTab = request()->has('tabs_page') ? 'tabs' : 'customers';
+                @endphp
                 <div class="px-3 pt-3 bg-white border-bottom">
 
                     <ul class="nav nav-pills nav-fill gap-2 fw-semibold coffeeshop-nav-pills" id="customerNav" style="font-family: 'Franklin Gothic Medium', 'Franklin Gothic', sans-serif;">
 
                         <li class="nav-item">
-                            <button class="nav-link active rounded-pill"
+                            <button class="nav-link {{ $activeTab === 'customers' ? 'active' : '' }} rounded-pill"
                                     data-bs-toggle="tab"
                                     data-bs-target="#tab-customers"
                                     type="button">
@@ -108,7 +111,7 @@
                         </li>
 
                         <li class="nav-item">
-                            <button class="nav-link rounded-pill"
+                            <button class="nav-link {{ $activeTab === 'orders' ? 'active' : '' }} rounded-pill"
                                     data-bs-toggle="tab"
                                     data-bs-target="#tab-orders"
                                     type="button">
@@ -117,7 +120,7 @@
                         </li>
 
                         <li class="nav-item">
-                            <button class="nav-link rounded-pill"
+                            <button class="nav-link {{ $activeTab === 'tabs' ? 'active' : '' }} rounded-pill"
                                     data-bs-toggle="tab"
                                     data-bs-target="#tab-tabs"
                                     type="button">
@@ -133,7 +136,7 @@
                 <div class="tab-content">
 
                     {{-- ===================== FREQUENT CUSTOMERS ===================== --}}
-                    <div class="tab-pane fade show active" id="tab-customers">
+                    <div class="tab-pane fade {{ $activeTab === 'customers' ? 'show active' : '' }}" id="tab-customers">
 
                         <div class="table-responsive border rounded-4 bg-white overflow-hidden shadow-sm mt-3">
 
@@ -185,7 +188,7 @@
                     </div>
 
                     {{-- ===================== ORDERS ===================== --}}
-                    <div class="tab-pane fade" id="tab-orders">
+                    <div class="tab-pane fade {{ $activeTab === 'orders' ? 'show active' : '' }}" id="tab-orders">
 
                         <div class="table-responsive border rounded-4 bg-white overflow-hidden shadow-sm mt-3">
 
@@ -226,10 +229,10 @@
                                                     $status = strtoupper($order->status);
 
                                                     $badgeClass = match(strtolower($order->status)) {
-                                                        'closed', 'paid', 'completed' => 'bg-success-subtle text-success',
-                                                        'cancelled' => 'bg-danger-subtle text-danger',
-                                                        'refunded' => 'bg-info-subtle text-info',
-                                                        default => 'bg-secondary-subtle text-secondary'
+                                                        'closed', 'paid', 'completed' => 'badge-status-closed',
+                                                        'cancelled' => 'bg-danger text-white',
+                                                        'refunded' => 'bg-info text-white',
+                                                        default => 'badge-status-open'
                                                     };
                                                 @endphp
 
@@ -258,7 +261,7 @@
                     </div>
 
                     {{-- ===================== TABS ===================== --}}
-                    <div class="tab-pane fade" id="tab-tabs">
+                    <div class="tab-pane fade {{ $activeTab === 'tabs' ? 'show active' : '' }}" id="tab-tabs">
 
                         <div class="d-flex justify-content-center px-3 pb-4">
 
@@ -293,9 +296,9 @@
                                                     <td class="pe-4 text-end" style="padding: 1.05rem 1rem;">
                                                         @php
                                                             $badgeClass = match(strtolower($tab->status)) {
-                                                                'closed' => 'bg-success-subtle text-success',
-                                                                'cancelled' => 'bg-danger-subtle text-danger',
-                                                                default => 'bg-primary-subtle text-primary'
+                                                                'closed' => 'badge-status-closed',
+                                                                'cancelled' => 'bg-danger text-white',
+                                                                default => 'badge-status-open'
                                                             };
                                                         @endphp
 
@@ -319,6 +322,12 @@
                                     </table>
 
                                 </div>
+
+                                @if($tabs->hasPages())
+                                    <div class="pt-3 d-flex justify-content-center">
+                                        {{ $tabs->links() }}
+                                    </div>
+                                @endif
                             </div>
 
                         </div>

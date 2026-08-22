@@ -202,11 +202,13 @@
 @endif
 
 @if($overdueGuests->count() > 0)
-<div class="alert alert-danger border-0 shadow-sm mb-4 rounded-3" role="alert">
+<div class="alert border-0 shadow-sm mb-4 p-4" role="alert" style="background: #fff5f5; border: 1px solid #fecaca !important; border-left: 5px solid #dc2626 !important; border-radius: 0.75rem;">
     <div class="d-flex align-items-start gap-3">
-        <i class="fa-solid fa-triangle-exclamation fs-4 mt-1 flex-shrink-0"></i>
+        <div class="rounded-circle d-flex align-items-center justify-content-center flex-shrink-0" style="width: 44px; height: 44px; background: #fee2e2; color: #dc2626;">
+            <i class="fa-solid fa-triangle-exclamation fs-5"></i>
+        </div>
         <div class="flex-grow-1">
-            <h6 class="fw-bold mb-2 font-display">
+            <h6 class="fw-bold mb-2 font-display" style="color: #991b1b; font-size: 1.05rem;">
                 {{ $overdueGuests->count() }} Overdue {{ Str::plural('Guest', $overdueGuests->count()) }} — Past Departure Date
             </h6>
             <div class="table-responsive">
@@ -214,20 +216,20 @@
                     <tbody>
                         @foreach($overdueGuests as $b)
                         <tr>
-                            <td class="ps-0 fw-semibold">
+                            <td class="ps-0 fw-bold" style="color: #1a1a1a; font-size: 0.95rem;">
                                 {{ $b->folio?->guest?->first_name }} {{ $b->folio?->guest?->last_name }}
                             </td>
                             <td>
-                                <span class="badge bg-dark">Room {{ $b->room?->room_number }}</span>
+                                <span class="badge px-2.5 py-1 fw-semibold" style="background-color: #fee2e2; color: #991b1b; border: 1px solid #f87171; border-radius: 0.375rem;">Room {{ $b->room?->room_number }}</span>
                             </td>
-                            <td class="text-danger fw-semibold">
+                            <td class="fw-bold" style="color: #dc2626;">
                                 Due out: {{ $b->departure_date->format('M d, Y') }}
                             </td>
                             <td>
                                 @if($b->folio)
                                     <a href="{{ route('frontdesk.guest-folio.show', $b->folio->folio_id) }}"
-                                       class="btn btn-sm text-white"
-                                       style="background-color: #334c42; border: none;">
+                                       class="btn btn-sm text-white fw-semibold shadow-sm"
+                                       style="background-color: #334c42; border: none; border-radius: 0.375rem; padding: 0.35rem 0.85rem;">
                                         <i class="fa-solid fa-clock me-1"></i> Extend Stay
                                     </a>
                                 @endif
@@ -243,27 +245,27 @@
 @endif
 
 <!-- SHIFT MANAGEMENT BAR -->
-<div class="card border-0 shadow-sm mb-4 rounded-4" style="border-left: 4px solid {{ $activeShift ? '#627e71' : '#ffc107' }} !important; background: #ffffff;">
+<div class="card border-0 shadow-sm mb-4 rounded-4" style="border-left: 5px solid {{ $activeShift ? '#627e71' : '#d97706' }} !important; background: {{ $activeShift ? '#ffffff' : '#fffbe6' }}; border: 1px solid {{ $activeShift ? '#c2a889' : '#ffe58f' }} !important;">
     <div class="card-body p-4">
         <div class="d-flex justify-content-between align-items-center flex-wrap gap-3">
             <div class="d-flex align-items-center">
-                <div class="rounded-circle d-flex align-items-center justify-content-center me-3" style="width: 48px; height: 48px; background: {{ $activeShift ? 'rgba(98,126,113,0.15)' : 'rgba(255,193,7,0.15)' }}; color: {{ $activeShift ? '#627e71' : '#d97706' }};">
+                <div class="rounded-circle d-flex align-items-center justify-content-center me-3 flex-shrink-0" style="width: 48px; height: 48px; background: {{ $activeShift ? 'rgba(98,126,113,0.15)' : '#fff1b8' }}; color: {{ $activeShift ? '#627e71' : '#d48806' }};">
                     <i class="fa-solid fa-cash-register fs-4"></i>
                 </div>
                 <div>
                     @if($activeShift)
-                        <h6 class="fw-bold mb-1 font-display" style="color: #504538;">
-                            Active Shift Session: <span style="color: #627e71;">{{ $activeShift->schedule ? $activeShift->schedule->shift_name : 'Unscheduled Shift' }}</span>
+                        <h6 class="fw-bold mb-1 font-display" style="color: #1a1a1a;">
+                            Active Shift Session: <span style="color: #334c42;">{{ $activeShift->schedule ? $activeShift->schedule->shift_name : 'Unscheduled Shift' }}</span>
                         </h6>
-                        <small style="color: #827567; font-family: 'Plus Jakarta Sans', 'Inter', sans-serif;">
+                        <small style="color: #3d332a; font-family: 'Plus Jakarta Sans', 'Inter', sans-serif;">
                             Opened at {{ $activeShift->start_time->format('M d, g:i A') }} | Live Sales: 
-                            <strong style="color: #627e71;">₱{{ number_format($shiftSales['payments'], 2) }}</strong> (Cash: ₱{{ number_format($shiftSales['cash'], 2) }}, Card: ₱{{ number_format($shiftSales['card'], 2) }}) | Charges posted: <strong class="text-danger">₱{{ number_format($shiftSales['charges'], 2) }}</strong>
+                            <strong style="color: #334c42;">₱{{ number_format($shiftSales['payments'], 2) }}</strong> (Cash: ₱{{ number_format($shiftSales['cash'], 2) }}, Card: ₱{{ number_format($shiftSales['card'], 2) }}) | Charges posted: <strong class="text-danger">₱{{ number_format($shiftSales['charges'], 2) }}</strong>
                         </small>
                     @else
-                        <h6 class="fw-bold mb-1 font-display text-warning">
+                        <h6 class="fw-bold mb-1 font-display" style="color: #78350f; font-size: 1.05rem;">
                             ⚠️ No Active Shift Session
                         </h6>
-                        <small style="color: #827567; font-family: 'Plus Jakarta Sans', 'Inter', sans-serif;">
+                        <small style="color: #4a3e35; font-family: 'Plus Jakarta Sans', 'Inter', sans-serif; font-size: 0.90rem;">
                             Please open a cashier shift drawer session to perform reservation check-ins, check-outs, and billing postings.
                         </small>
                     @endif
@@ -271,11 +273,11 @@
             </div>
             <div>
                 @if($activeShift)
-                    <button class="btn btn-sm px-3 font-body" style="border: 1px solid #827567; color: #504538; background: transparent;" data-bs-toggle="modal" data-bs-target="#closeShiftModal">
+                    <button class="btn btn-sm px-3 fw-semibold font-body shadow-sm" style="background-color: #f3ede4; border: 1px solid #c2a889; color: #1a1a1a; border-radius: 0.5rem;" data-bs-toggle="modal" data-bs-target="#closeShiftModal">
                         <i class="fa-solid fa-power-off me-1"></i> Close Shift
                     </button>
                 @else
-                    <button class="btn text-white btn-sm px-3 font-body" style="background-color: #334c42; border: none;" data-bs-toggle="modal" data-bs-target="#openShiftModal">
+                    <button class="btn text-white btn-sm px-3.5 py-2 fw-semibold font-body shadow-sm" style="background-color: #334c42; border: none; border-radius: 0.5rem;" data-bs-toggle="modal" data-bs-target="#openShiftModal">
                         <i class="fa-solid fa-play me-1"></i> Open Shift / Drawer
                     </button>
                 @endif
@@ -288,56 +290,56 @@
 <div class="row g-4 mb-4">
 
     <div class="col-lg-3 col-md-6">
-        <div class="card border-0 shadow-sm rounded-4" style="background: #ffffff; border: 1px solid rgba(130, 117, 103, 0.3) !important;">
+        <div class="card border-0 shadow-sm rounded-4" style="background: #ffffff; border: 1px solid #c2a889 !important;">
             <div class="card-body p-4 d-flex align-items-center gap-3">
-                <div class="rounded-circle d-flex align-items-center justify-content-center flex-shrink-0" style="width: 52px; height: 52px; background: rgba(51,76,66,0.15); color: #334c42;">
+                <div class="rounded-circle d-flex align-items-center justify-content-center flex-shrink-0" style="width: 52px; height: 52px; background: #e8f0ec; color: #334c42;">
                     <i class="fa-solid fa-plane-arrival fs-4"></i>
                 </div>
                 <div>
-                    <div class="small fw-bold font-body" style="color: #3a3025;">Today's Arrivals</div>
-                    <h3 class="fw-bold mb-0 mt-1 font-display" style="color: #1a140e;">{{ $todayArrivals }}</h3>
+                    <div class="small fw-bold font-body" style="color: #1a1a1a;">Today's Arrivals</div>
+                    <h3 class="fw-bold mb-0 mt-1 font-display" style="color: #1a1a1a; font-size: 1.85rem;">{{ $todayArrivals }}</h3>
                 </div>
             </div>
         </div>
     </div>
 
     <div class="col-lg-3 col-md-6">
-        <div class="card border-0 shadow-sm rounded-4" style="background: #ffffff; border: 1px solid rgba(130, 117, 103, 0.3) !important;">
+        <div class="card border-0 shadow-sm rounded-4" style="background: #ffffff; border: 1px solid #c2a889 !important;">
             <div class="card-body p-4 d-flex align-items-center gap-3">
-                <div class="rounded-circle d-flex align-items-center justify-content-center flex-shrink-0" style="width: 52px; height: 52px; background: rgba(130,117,103,0.15); color: #3a3025;">
+                <div class="rounded-circle d-flex align-items-center justify-content-center flex-shrink-0" style="width: 52px; height: 52px; background: #f3ede4; color: #504538;">
                     <i class="fa-solid fa-plane-departure fs-4"></i>
                 </div>
                 <div>
-                    <div class="small fw-bold font-body" style="color: #3a3025;">Today's Departures</div>
-                    <h3 class="fw-bold mb-0 mt-1 font-display" style="color: #1a140e;">{{ $todayDepartures }}</h3>
+                    <div class="small fw-bold font-body" style="color: #1a1a1a;">Today's Departures</div>
+                    <h3 class="fw-bold mb-0 mt-1 font-display" style="color: #1a1a1a; font-size: 1.85rem;">{{ $todayDepartures }}</h3>
                 </div>
             </div>
         </div>
     </div>
 
     <div class="col-lg-3 col-md-6">
-        <div class="card border-0 shadow-sm rounded-4" style="background: #ffffff; border: 1px solid rgba(130, 117, 103, 0.3) !important;">
+        <div class="card border-0 shadow-sm rounded-4" style="background: #ffffff; border: 1px solid #c2a889 !important;">
             <div class="card-body p-4 d-flex align-items-center gap-3">
-                <div class="rounded-circle d-flex align-items-center justify-content-center flex-shrink-0" style="width: 52px; height: 52px; background: rgba(98,126,113,0.15); color: #334c42;">
+                <div class="rounded-circle d-flex align-items-center justify-content-center flex-shrink-0" style="width: 52px; height: 52px; background: #e8f0ec; color: #334c42;">
                     <i class="fa-solid fa-bed fs-4"></i>
                 </div>
                 <div>
-                    <div class="small fw-bold font-body" style="color: #3a3025;">Occupied Rooms</div>
-                    <h3 class="fw-bold mb-0 mt-1 font-display" style="color: #1a140e;">{{ $occupiedRooms }}</h3>
+                    <div class="small fw-bold font-body" style="color: #1a1a1a;">Occupied Rooms</div>
+                    <h3 class="fw-bold mb-0 mt-1 font-display" style="color: #1a1a1a; font-size: 1.85rem;">{{ $occupiedRooms }}</h3>
                 </div>
             </div>
         </div>
     </div>
 
     <div class="col-lg-3 col-md-6">
-        <div class="card border-0 shadow-sm rounded-4" style="background: #ffffff; border: 1px solid rgba(130, 117, 103, 0.3) !important;">
+        <div class="card border-0 shadow-sm rounded-4" style="background: #ffffff; border: 1px solid #c2a889 !important;">
             <div class="card-body p-4 d-flex align-items-center gap-3">
-                <div class="rounded-circle d-flex align-items-center justify-content-center flex-shrink-0" style="width: 52px; height: 52px; background: rgba(51,76,66,0.15); color: #334c42;">
+                <div class="rounded-circle d-flex align-items-center justify-content-center flex-shrink-0" style="width: 52px; height: 52px; background: #e8f0ec; color: #334c42;">
                     <i class="fa-solid fa-door-open fs-4"></i>
                 </div>
                 <div>
-                    <div class="small fw-bold font-body" style="color: #3a3025;">Available Rooms</div>
-                    <h3 class="fw-bold mb-0 mt-1 font-display" style="color: #1a140e;">{{ $availableRooms }}</h3>
+                    <div class="small fw-bold font-body" style="color: #1a1a1a;">Available Rooms</div>
+                    <h3 class="fw-bold mb-0 mt-1 font-display" style="color: #1a1a1a; font-size: 1.85rem;">{{ $availableRooms }}</h3>
                 </div>
             </div>
         </div>
@@ -346,70 +348,92 @@
 </div>
 
 <!-- TODAY'S CHECK-IN & RESERVATIONS -->
-<div class="card border-1 shadow-sm mb-4" style="background: #ffffff; border: 1px solid rgba(130, 117, 103, 0.25) !important;">
-    <div class="card-header bg-white border-0 pt-3 pb-2">
-        <div class="d-flex flex-wrap justify-content-between align-items-center gap-3">
-            <h5 class="fw-bold mb-0 font-display" style="color: #504538;">
+<div class="card border-0 shadow-sm mb-4 rounded-4 overflow-hidden" style="background: #ffffff; border: 1px solid #c2a889 !important;">
+    <div class="card-body p-4">
+        <div class="d-flex flex-wrap justify-content-between align-items-center gap-3 mb-3">
+            <h5 class="fw-bold mb-0 font-display" style="color: #1a1a1a;">
                 <i class="fa-solid fa-plane-arrival me-2" style="color: #334c42;"></i> Today's Check-In & Reservations
             </h5>
             @if($todayCheckIns->count() > 0)
                 <div class="room-toolbar-group">
-                    <div class="input-group room-toolbar-search">
+                    <div class="input-group room-toolbar-search" style="width: 280px; height: 42px; border: 1px solid #c2a889; border-radius: 0.5rem;">
                         <span class="input-group-text bg-white border-0">
-                            <i class="fa-solid fa-search" style="color: #827567;"></i>
+                            <i class="fa-solid fa-search" style="color: #627e71;"></i>
                         </span>
                         <input
                             type="text"
                             class="form-control border-0 shadow-none"
                             id="checkinSearch"
-                            placeholder="Search guest name..."
+                            placeholder="Search guest, room, or folio..."
+                            style="font-size: 0.95rem;"
                         >
                     </div>
                     <select
                         id="checkinSort"
                         class="form-select shadow-none room-toolbar-select"
+                        style="height: 42px; border: 1px solid #c2a889; border-radius: 0.5rem; font-size: 0.95rem; color: #1a1a1a;"
                     >
-                        <option value="guest-asc">Guest (A-Z)</option>
-                        <option value="guest-desc">Guest (Z-A)</option>
-                        <option value="room-asc">Room (Low-High)</option>
-                        <option value="room-desc">Room (High-Low)</option>
-                        <option value="status-reserved">Reserved First</option>
-                        <option value="status-checkedin">Checked In First</option>
+                        <option value="all">All Check-Ins</option>
+                        <option value="status-reserved">Filter: Reserved Only</option>
+                        <option value="status-checkedin">Filter: Checked In Only</option>
+                        <option value="guest-asc">Sort: Guest (A-Z)</option>
+                        <option value="guest-desc">Sort: Guest (Z-A)</option>
+                        <option value="room-asc">Sort: Room (Low to High)</option>
+                        <option value="room-desc">Sort: Room (High to Low)</option>
                     </select>
                 </div>
             @endif
         </div>
-    </div>
-    <div class="card-body">
+
         @if($todayCheckIns->count() > 0)
             <div class="table-responsive">
-                <table class="table table-hover" id="checkinTable">
-                    <thead style="background: #efe1cf; color: #504538;">
-                        <tr>
-                            <th>Guest</th>
-                            <th>Room</th>
-                            <th>Type</th>
-                            <th>Status</th>
-                            <th>Arrival</th>
-                            <th>Departure</th>
-                            <th>Actions</th>
+                <table class="table table-hover align-middle mb-0" id="checkinTable">
+                    <thead style="background-color: transparent; border-bottom: 2px solid #c2a889;">
+                        <tr class="small fw-bold" style="color: #2c241d;">
+                            <th class="ps-3">ROOM NO.</th>
+                            <th>TYPE</th>
+                            <th>GUEST NAME</th>
+                            <th>FOLIO NO.</th>
+                            <th>ARRIVAL</th>
+                            <th>DEPARTURE</th>
+                            <th>STATUS</th>
+                            <th class="pe-3">ACTIONS</th>
                         </tr>
                     </thead>
                     <tbody id="checkinTableBody">
                         @foreach($todayCheckIns as $booking)
                             @if($booking->folio && $booking->folio->guest)
                             <tr
+                                style="border-bottom: 1px solid #f0f0f0;"
                                 data-guest-name="{{ strtolower($booking->folio->guest->first_name . ' ' . $booking->folio->guest->last_name) }}"
                                 data-room-number="{{ $booking->room->room_number }}"
+                                data-folio-number="{{ strtolower($booking->folio->folio_number) }}"
                                 data-status="{{ $booking->status }}"
                             >
-                                <td>
-                                    <span style="color: #212529; font-weight: 500;">{{ $booking->folio->guest->first_name }} {{ $booking->folio->guest->last_name }}</span>
+                                <td class="ps-3 fw-bold" style="color: #1a1a1a;">
+                                    {{ $booking->room->room_number }}
                                 </td>
-                                <td>
-                                    <span class="badge bg-secondary">{{ $booking->room->room_number }}</span>
+                                <td style="color: #4a4a4a; font-weight: 400;">
+                                    {{ $booking->room->room_type }}
                                 </td>
-                                <td>{{ $booking->room->room_type }}</td>
+                                <td class="fw-bold" style="color: #1a1a1a;">
+                                    {{ $booking->folio->guest->first_name }} {{ $booking->folio->guest->last_name }}
+                                </td>
+                                <td class="fw-bold" style="color: #1a1a1a;">
+                                    {{ $booking->folio->folio_number }}
+                                </td>
+                                <td style="color: #262626;">
+                                    {{ $booking->arrival_date->format('m/d/Y') }}
+                                    @if($booking->arrival_time)
+                                        <small class="d-block" style="color: #71717a;">{{ \Carbon\Carbon::parse($booking->arrival_time)->format('g:i A') }}</small>
+                                    @endif
+                                </td>
+                                <td style="color: #262626;">
+                                    {{ $booking->departure_date ? $booking->departure_date->format('m/d/Y') : '—' }}
+                                    @if($booking->departure_time)
+                                        <small class="d-block" style="color: #71717a;">{{ \Carbon\Carbon::parse($booking->departure_time)->format('g:i A') }}</small>
+                                    @endif
+                                </td>
                                 <td>
                                     @if($booking->status === 'RESERVED')
                                         <span class="badge-status badge-status-reserved">RESERVED</span>
@@ -419,12 +443,10 @@
                                         <span class="badge-status badge-status-maintenance">{{ $booking->status }}</span>
                                     @endif
                                 </td>
-                                <td>{{ $booking->arrival_date->format('M d') }} @ {{ $booking->arrival_time }}</td>
-                                <td>{{ $booking->departure_date?->format('M d') ?? 'Open' }} @ {{ $booking->departure_time ?? '—' }}</td>
-                                <td>
+                                <td class="pe-3">
                                     @if($booking->status === 'RESERVED')
-                                        <button class="btn btn-sm text-white check-in-btn" 
-                                                style="background-color: #334c42; border: none;"
+                                        <button class="btn btn-sm text-white check-in-btn fw-semibold shadow-sm" 
+                                                style="background-color: #334c42; border: none; border-radius: 0.375rem; padding: 0.35rem 0.85rem;"
                                                 data-booking-id="{{ $booking->booking_id }}" 
                                                 data-guest-name="{{ $booking->folio->guest->first_name }} {{ $booking->folio->guest->last_name }}"
                                                 data-room-number="{{ $booking->room->room_number }}"
@@ -455,72 +477,70 @@
 </div>
 
 <!-- AVAILABLE ROOMS (NOT RESERVED OR IN USE) -->
-<div class="card border-1 shadow-sm mb-4" style="background: #f5ebe0; border: 1px solid #827567 !important;">
-    <div class="card-header border-0 pt-3 pb-2" style="background: #f5ebe0;">
-        <div class="d-flex flex-wrap justify-content-between align-items-center gap-3">
-            <h5 class="fw-bold mb-0 font-display" style="color: #504538;">
+<div class="card border-0 shadow-sm mb-4 rounded-4 overflow-hidden" style="background: #ffffff; border: 1px solid #c2a889 !important;">
+    <div class="card-body p-4">
+        <div class="d-flex flex-wrap justify-content-between align-items-center gap-3 mb-3">
+            <h5 class="fw-bold mb-0 font-display" style="color: #1a1a1a;">
                 <i class="fa-solid fa-door-open me-2" style="color: #334c42;"></i> Available Rooms
-                <span class="badge ms-2" style="background: #334c42; color: #ffffff;">{{ $vacantRooms->count() }}</span>
+                <span class="badge ms-2" style="background: #334c42; color: #ffffff; border-radius: 0.375rem; font-size: 0.85rem;">{{ $vacantRooms->count() }}</span>
             </h5>
             @if($vacantRooms->count() > 0)
                 <div class="room-toolbar-group">
 
                     <!-- Search -->
-                    <div class="input-group room-toolbar-search">
-                        <span class="input-group-text border-0" style="background: #faf7f2;">
+                    <div class="input-group room-toolbar-search" style="width: 280px; height: 42px; border: 1px solid #c2a889; border-radius: 0.5rem;">
+                        <span class="input-group-text bg-white border-0">
                             <i class="fa-solid fa-search" style="color: #627e71;"></i>
                         </span>
 
                         <input
                             type="text"
-                            class="form-control border-0 shadow-none font-body"
-                            style="background: #faf7f2; color: #504538; border: 1px solid #827567;"
+                            class="form-control border-0 shadow-none"
                             id="vacantRoomSearch"
                             placeholder="Search room or type..."
+                            style="font-size: 0.95rem;"
                         >
                     </div>
 
                     <!-- Sort -->
                     <select
                         id="vacantRoomSort"
-                        class="form-select shadow-none room-toolbar-select font-body"
-                        style="background: #faf7f2; color: #504538; border: 1px solid #827567;"
+                        class="form-select shadow-none room-toolbar-select"
+                        style="height: 42px; border: 1px solid #c2a889; border-radius: 0.5rem; font-size: 0.95rem; color: #1a1a1a;"
                     >
-                        <option value="room-asc">Room (Low-High)</option>
-                        <option value="room-desc">Room (High-Low)</option>
-                        <option value="type-asc">Type (A-Z)</option>
-                        <option value="type-desc">Type (Z-A)</option>
+                        <option value="room-asc">Sort: Room (Low to High)</option>
+                        <option value="room-desc">Sort: Room (High to Low)</option>
+                        <option value="type-asc">Sort: Room Type (A-Z)</option>
+                        <option value="type-desc">Sort: Room Type (Z-A)</option>
                     </select>
 
                 </div>
             @endif
         </div>
-    </div>
-    <div class="card-body">
         @if($vacantRooms->count() > 0)
-            <p class="small mb-3 font-body fw-medium" style="color: #827567;">Rooms that are ready and not reserved or currently in use.</p>
+            <p class="small mb-3 font-body" style="color: #4a3e35; font-size: 0.95rem;">Rooms that are ready and not reserved or currently in use.</p>
             <div id="vacantRoomsList" class="row g-3">
                 @foreach($vacantRooms->groupBy('room_type') as $type => $roomsInType)
                     <div class="col-lg-6 vacant-room-group" data-room-type-group="{{ strtolower($type) }}">
-                        <div class="p-3 rounded-3 h-100" style="background: #faf7f2; border: 1px solid rgba(130, 117, 103, 0.35);">
-                            <div class="d-flex align-items-center justify-content-between mb-2.5 pb-2 border-bottom" style="border-color: rgba(130, 117, 103, 0.2) !important;">
+                        <div class="p-3 rounded-3 h-100" style="background: #f8f3ed; border: 1px solid #c2a889;">
+                            <div class="d-flex align-items-center justify-content-between mb-2.5 pb-2 border-bottom" style="border-color: #c2a889 !important;">
                                 <div class="d-flex align-items-center gap-2">
-                                    <i class="fa-solid fa-layer-group small" style="color: #627e71;"></i>
-                                    <span class="fw-bold font-display" style="color: #504538; font-size: 0.95rem;">{{ $type }}</span>
+                                    <i class="fa-solid fa-layer-group small" style="color: #334c42;"></i>
+                                    <span class="fw-bold font-display" style="color: #1a1a1a; font-size: 0.95rem;">{{ $type }}</span>
                                 </div>
-                                <span class="badge rounded-pill fw-semibold" style="font-size: 0.75rem; background: rgba(98, 126, 113, 0.12); color: #334c42; border: 1px solid #627e71; font-family: 'Lucida Fax', 'Georgia', serif;">{{ $roomsInType->count() }} available</span>
+                                <span class="badge rounded-pill fw-semibold" style="font-size: 0.75rem; background: #e8f0ec; color: #1e332b; border: 1px solid #627e71;">{{ $roomsInType->count() }} available</span>
                             </div>
                             <div class="d-flex flex-wrap gap-2 pt-1">
                                 @foreach($roomsInType as $room)
                                     <span
                                         class="badge vacant-room-badge shadow-sm"
-                                        style="background: #ffffff !important; color: #504538 !important; border: 1px solid #827567 !important; font-family: 'Lucida Fax', 'Georgia', serif !important; font-weight: 600; font-size: 0.9rem; transition: all 0.2s ease;"
+                                        style="background-color: #334c42 !important; color: #ffffff !important; border: none !important; font-weight: 600; font-size: 0.9rem; border-radius: 0.375rem; padding: 0.4rem 0.75rem;"
                                         data-room-number="{{ strtolower($room->room_number) }}"
                                         data-room-type="{{ strtolower($room->room_type) }}"
                                         data-room-sort="{{ $room->room_number }}"
                                         data-type-sort="{{ strtolower($room->room_type) }}"
                                     >
-                                        <i class="fa-solid fa-bed me-1" style="color: #627e71;"></i>
+                                        <i class="fa-solid fa-bed me-1"></i>
                                         {{ $room->room_number }}
                                     </span>
                                 @endforeach
@@ -533,83 +553,91 @@
         @else
             <div class="fd-empty-state text-center py-4">
                 <i class="fa-solid fa-door-closed d-block fs-2 mb-2" style="color: #827567;"></i>
-                <div class="fw-bold font-display" style="color: #504538;">No vacant rooms available right now</div>
-                <small style="color: #827567; font-weight: 500; font-family: 'Plus Jakarta Sans', 'Inter', sans-serif;">All rooms are currently occupied or under maintenance.</small>
+                <div class="fw-bold font-display" style="color: #1a1a1a;">No vacant rooms available right now</div>
+                <small style="color: #6b7280; font-weight: 500;">All rooms are currently occupied or under maintenance.</small>
             </div>
         @endif
     </div>
 </div>
 
 <!-- OCCUPIED ROOMS -->
-<div class="card border-1 shadow-sm mb-4" style="background: #ffffff; border: 1px solid rgba(130, 117, 103, 0.25) !important;">
-    <div class="card-header bg-white border-0 pt-3 pb-2">
-        <div class="d-flex flex-wrap justify-content-between align-items-center gap-3">
-            <h5 class="fw-bold mb-0 font-display" style="color: #1a140e;">
+<div class="card border-0 shadow-sm mb-4 rounded-4 overflow-hidden" style="background: #ffffff; border: 1px solid #c2a889 !important;">
+    <div class="card-body p-4">
+        <div class="d-flex flex-wrap justify-content-between align-items-center gap-3 mb-3">
+            <h5 class="fw-bold mb-0 font-display" style="color: #1a1a1a;">
                 <i class="fa-solid fa-bed me-2" style="color: #334c42;"></i> Occupied Rooms
-                <span class="badge ms-2" style="background: #334c42; color: #ffffff;">{{ $occupiedRoomList->count() }}</span>
+                <span class="badge ms-2" style="background: #334c42; color: #ffffff; border-radius: 0.375rem; font-size: 0.85rem;">{{ $occupiedRoomList->count() }}</span>
             </h5>
 
             @if($occupiedRoomList->count() > 0)
                 <div class="room-toolbar-group">
 
                     <!-- Search -->
-                    <div class="input-group room-toolbar-search">
+                    <div class="input-group room-toolbar-search" style="width: 280px; height: 42px; border: 1px solid #c2a889; border-radius: 0.5rem;">
                         <span class="input-group-text bg-white border-0">
-                            <i class="fa-solid fa-search" style="color: #3a3025;"></i>
+                            <i class="fa-solid fa-search" style="color: #627e71;"></i>
                         </span>
 
                         <input
                             type="text"
                             class="form-control border-0 shadow-none"
                             id="occupiedRoomSearch"
-                            placeholder="Search room or guest..."
+                            placeholder="Search room, guest, or folio..."
+                            style="font-size: 0.95rem;"
                         >
                     </div>
 
-                    <!-- Sort -->
+                    <!-- Sort / Filter -->
                     <select
                         id="occupiedRoomSort"
                         class="form-select shadow-none room-toolbar-select"
+                        style="height: 42px; border: 1px solid #c2a889; border-radius: 0.5rem; font-size: 0.95rem; color: #1a1a1a;"
                     >
-                        <option value="room-asc">Room (Low-High)</option>
-                        <option value="room-desc">Room (High-Low)</option>
-                        <option value="guest-asc">Guest (A-Z)</option>
-                        <option value="guest-desc">Guest (Z-A)</option>
+                        <option value="all">All Occupied Rooms</option>
+                        <option value="overdue-only">Filter: Overdue Only</option>
+                        <option value="open-stay-only">Filter: Open Stays Only</option>
+                        <option value="room-asc">Sort: Room (Low to High)</option>
+                        <option value="room-desc">Sort: Room (High to Low)</option>
+                        <option value="guest-asc">Sort: Guest (A-Z)</option>
+                        <option value="guest-desc">Sort: Guest (Z-A)</option>
+                        <option value="type-asc">Sort: Room Type (A-Z)</option>
                     </select>
 
                 </div>
             @endif
         </div>
-    </div>
-    <div class="card-body">
         @if($occupiedRoomList->count() > 0)
-            <p class="small mb-3 font-body fw-semibold" style="color: #2c221e;">Rooms currently checked in, including walk-in registrations.</p>
+            <p class="small mb-3 font-body" style="color: #4a3e35; font-size: 0.95rem;">Rooms currently checked in, including walk-in registrations.</p>
             <div class="table-responsive">
                 <table class="table table-hover align-middle mb-0" id="occupiedRoomsTable">
-                    <thead style="background: #ece2d4; color: #2b231b;">
-                        <tr>
-                            <th style="color: #2b231b; font-weight: 700; font-family: 'Plus Jakarta Sans', sans-serif;">Room</th>
-                            <th style="color: #2b231b; font-weight: 700; font-family: 'Plus Jakarta Sans', sans-serif;">Type</th>
-                            <th style="color: #2b231b; font-weight: 700; font-family: 'Plus Jakarta Sans', sans-serif;">Guest</th>
-                            <th style="color: #2b231b; font-weight: 700; font-family: 'Plus Jakarta Sans', sans-serif;">Folio</th>
-                            <th style="color: #2b231b; font-weight: 700; font-family: 'Plus Jakarta Sans', sans-serif;">Departure</th>
+                    <thead style="background-color: transparent; border-bottom: 2px solid #c2a889;">
+                        <tr class="small fw-bold" style="color: #1a1a1a;">
+                            <th class="ps-4">Room</th>
+                            <th>Type</th>
+                            <th>Guest</th>
+                            <th>Folio</th>
+                            <th class="pe-4">Departure</th>
                         </tr>
                     </thead>
                     <tbody id="occupiedRoomsTableBody">
                         @foreach($occupiedRoomList as $room)
                             <tr
+                                style="border-bottom: 1px solid #f0f0f0;"
                                 data-room-number="{{ strtolower($room['room_number']) }}"
                                 data-room-type="{{ strtolower($room['room_type']) }}"
                                 data-guest-name="{{ strtolower($room['guest_name'] ?? '') }}"
+                                data-folio-number="{{ strtolower($room['folio_number'] ?? '') }}"
+                                data-is-overdue="{{ $room['is_overdue'] ? '1' : '0' }}"
+                                data-is-open-stay="{{ $room['departure_date'] ? '0' : '1' }}"
                                 data-room-sort="{{ $room['room_number'] }}"
                             >
-                                <td><span class="badge px-2.5 py-1.5 fw-bold" style="font-size: 0.88rem; background: #334c42 !important; color: #ffffff !important; border: 1px solid #334c42;">{{ $room['room_number'] }}</span></td>
-                                <td style="color: #212529; font-weight: 400;">{{ $room['room_type'] }}</td>
-                                <td style="color: #212529; font-weight: 500;">{{ $room['guest_name'] ?: '—' }}</td>
-                                <td style="color: #212529; font-weight: 400;">{{ $room['folio_number'] ?: '—' }}</td>
-                                <td style="color: #212529; font-weight: 400;">
+                                <td class="ps-4"><span class="badge px-2.5 py-1.5 fw-bold" style="font-size: 0.88rem; background-color: #334c42 !important; color: #ffffff !important; border-radius: 0.375rem;">{{ $room['room_number'] }}</span></td>
+                                <td style="color: #4a4a4a; font-weight: 400;">{{ $room['room_type'] }}</td>
+                                <td style="color: #262626; font-weight: 400;">{{ $room['guest_name'] ?: '—' }}</td>
+                                <td style="color: #262626; font-weight: 400;">{{ $room['folio_number'] ?: '—' }}</td>
+                                <td class="pe-4" style="color: #262626; font-weight: 400;">
                                     @if($room['is_overdue'])
-                                        <span class="badge bg-danger me-1">OVERDUE</span>
+                                        <span class="badge fw-bold me-1" style="background-color: #dc2626; color: #ffffff; border-radius: 0.375rem; font-size: 0.75rem; padding: 0.3rem 0.5rem;">OVERDUE</span>
                                     @endif
                                     {{ $room['departure_date']?->format('M d, Y') ?? 'Open Stay' }}
                                 </td>
@@ -620,82 +648,84 @@
             </div>
             <p class="text-muted small mb-0 mt-3 d-none" id="occupiedRoomsNoResults">No occupied rooms match your search.</p>
         @else
-            <p class="text-center py-4 mb-0 fw-semibold font-body" style="color: #2c221e;">No occupied rooms right now</p>
+            <p class="text-center py-4 mb-0 fw-semibold font-body" style="color: #4a3e35;">No occupied rooms right now</p>
         @endif
     </div>
 </div>
 
 <!-- TODAY'S CHECK-OUT -->
-<div class="card border-1 shadow-sm mb-4" style="background: #ffffff; border: 1px solid rgba(130, 117, 103, 0.25) !important;">
-    <div class="card-header bg-white border-0 pt-3 pb-2">
-        <div class="d-flex flex-wrap justify-content-between align-items-center gap-3">
-            <h5 class="fw-bold mb-0 font-display" style="color: #504538;">
-                <i class="fa-solid fa-plane-departure me-2" style="color: #827567;"></i> Today's Check-Out
+<div class="card border-0 shadow-sm mb-4 rounded-4 overflow-hidden" style="background: #ffffff; border: 1px solid #c2a889 !important;">
+    <div class="card-body p-4">
+        <div class="d-flex flex-wrap justify-content-between align-items-center gap-3 mb-3">
+            <h5 class="fw-bold mb-0 font-display" style="color: #1a1a1a;">
+                <i class="fa-solid fa-plane-departure me-2" style="color: #334c42;"></i> Today's Check-Out
             </h5>
             @if($todayCheckOuts->count() > 0)
                 <div class="d-flex flex-wrap gap-2">
-                    <div class="input-group input-group-sm" style="width: 220px;">
-                        <span class="input-group-text bg-white border-0"><i class="fa-solid fa-search" style="color: #827567;"></i></span>
-                        <input type="text" class="form-control font-body" style="border: 1px solid #827567;" id="checkoutSearch" placeholder="Search guest name...">
+                    <div class="input-group" style="width: 240px; height: 42px; border: 1px solid #c2a889; border-radius: 0.5rem;">
+                        <span class="input-group-text bg-white border-0"><i class="fa-solid fa-search" style="color: #627e71;"></i></span>
+                        <input type="text" class="form-control border-0 shadow-none" id="checkoutSearch" placeholder="Search guest, room, or folio..." style="font-size: 0.95rem;">
                     </div>
-                    <select class="form-select form-select-sm font-body" id="checkoutSort" style="width: 180px; border: 1px solid #827567; color: #504538;">
-                        <option value="guest-asc">Guest (A-Z)</option>
-                        <option value="guest-desc">Guest (Z-A)</option>
-                        <option value="room-asc">Room (Low-High)</option>
-                        <option value="room-desc">Room (High-Low)</option>
-                        <option value="status-pending">Pending First</option>
-                        <option value="status-done">Checked Out First</option>
+                    <select class="form-select shadow-none" id="checkoutSort" style="width: 220px; height: 42px; border: 1px solid #c2a889; border-radius: 0.5rem; font-size: 0.95rem; color: #1a1a1a;">
+                        <option value="all">All Check-Outs</option>
+                        <option value="overdue-only">Filter: Overdue Check-Outs</option>
+                        <option value="status-pending">Filter: Pending Check-Out</option>
+                        <option value="status-done">Filter: Checked Out</option>
+                        <option value="guest-asc">Sort: Guest (A-Z)</option>
+                        <option value="guest-desc">Sort: Guest (Z-A)</option>
+                        <option value="room-asc">Sort: Room (Low to High)</option>
+                        <option value="room-desc">Sort: Room (High to Low)</option>
                     </select>
                 </div>
             @endif
         </div>
-    </div>
-    <div class="card-body">
+
         @if($todayCheckOuts->count() > 0)
             <div class="table-responsive">
-                <table class="table table-hover" id="checkoutTable">
-                    <thead style="background: #efe1cf; color: #504538;">
-                        <tr>
-                            <th>Guest</th>
-                            <th>Room</th>
+                <table class="table table-hover align-middle mb-0" id="checkoutTable">
+                    <thead style="background-color: transparent; border-bottom: 2px solid #c2a889;">
+                        <tr class="small fw-bold" style="color: #1a1a1a;">
+                            <th class="ps-4">Room</th>
                             <th>Type</th>
+                            <th>Guest</th>
                             <th>Status</th>
                             <th>Departure</th>
                             <th>Check-Out Time</th>
-                            <th>Actions</th>
+                            <th class="pe-4">Actions</th>
                         </tr>
                     </thead>
                     <tbody id="checkoutTableBody">
                         @foreach($todayCheckOuts as $booking)
                             @if($booking->folio && $booking->folio->guest)
+                            @php
+                                $isOverdueRow = $booking->status === 'CHECKED_IN'
+                                    && $booking->departure_date
+                                    && $booking->departure_date->lt(now()->startOfDay());
+                            @endphp
                             <tr
+                                style="border-bottom: 1px solid #f0f0f0;"
                                 data-guest-name="{{ strtolower($booking->folio->guest->first_name . ' ' . $booking->folio->guest->last_name) }}"
-                                data-room-number="{{ $booking->room->room_number }}"
+                                data-room-number="{{ strtolower($booking->room->room_number) }}"
+                                data-folio-number="{{ strtolower($booking->folio->folio_number) }}"
                                 data-status="{{ $booking->status }}"
+                                data-is-overdue="{{ $isOverdueRow ? '1' : '0' }}"
                                 data-checkout-time="{{ $booking->actual_check_out?->timestamp ?? 0 }}"
                             >
-                                <td>
-                                    <span style="color: #212529; font-weight: 500;">{{ $booking->folio->guest->first_name }} {{ $booking->folio->guest->last_name }}</span>
+                                <td class="ps-4">
+                                    <span class="badge px-2.5 py-1.5 fw-bold" style="font-size: 0.88rem; background-color: #334c42 !important; color: #ffffff !important; border-radius: 0.375rem;">{{ $booking->room->room_number }}</span>
                                 </td>
-                                <td>
-                                    <span class="badge bg-secondary">{{ $booking->room->room_number }}</span>
-                                </td>
-                                <td>{{ $booking->room->room_type }}</td>
-                                @php
-                                    $isOverdueRow = $booking->status === 'CHECKED_IN'
-                                        && $booking->departure_date
-                                        && $booking->departure_date->lt(now()->startOfDay());
-                                @endphp
+                                <td style="color: #4a4a4a; font-weight: 400;">{{ $booking->room->room_type }}</td>
+                                <td style="color: #262626; font-weight: 400;">{{ $booking->folio->guest->first_name }} {{ $booking->folio->guest->last_name }}</td>
                                 <td>
                                     @if($isOverdueRow)
-                                        <span class="badge bg-danger">OVERDUE</span>
+                                        <span class="badge fw-bold" style="background-color: #dc2626; color: #ffffff; border-radius: 0.375rem;">OVERDUE</span>
                                     @elseif($booking->status === 'CHECKED_IN')
-                                        <span class="badge bg-info">PENDING CHECK-OUT</span>
+                                        <span class="badge-status badge-status-open">PENDING CHECK-OUT</span>
                                     @elseif($booking->status === 'CHECKED_OUT')
-                                        <span class="badge bg-success">CHECKED OUT</span>
+                                        <span class="badge-status badge-status-closed">CHECKED OUT</span>
                                     @endif
                                 </td>
-                                <td>{{ $booking->departure_date?->format('M d') ?? 'Open' }} @ {{ $booking->departure_time ?? '—' }}</td>
+                                <td style="color: #262626;">{{ $booking->departure_date?->format('M d') ?? 'Open' }} @ {{ $booking->departure_time ?? '—' }}</td>
                                 <td>
                                     @if($booking->status === 'CHECKED_OUT' && $booking->actual_check_out)
                                         {{ $booking->actual_check_out->format('g:i A') }}
@@ -703,7 +733,7 @@
                                         <span class="text-muted">—</span>
                                     @endif
                                 </td>
-                                <td>
+                                <td class="pe-4">
                                     @if($booking->status === 'CHECKED_IN')
                                         <button class="btn btn-sm btn-danger check-out-btn" data-booking-id="{{ $booking->booking_id }}" title="Check out guest">
                                             <i class="fa-solid fa-arrow-right-from-bracket"></i> Check Out
@@ -718,7 +748,7 @@
                     </tbody>
                 </table>
             </div>
-            <p class="text-muted small mb-0 d-none" id="checkoutNoResults">No guests match your search.</p>
+            <p class="text-muted small mb-0 mt-3 d-none px-4 pb-3" id="checkoutNoResults">No guests match your search.</p>
         @else
             <p class="text-muted text-center py-4 font-body">No check-outs scheduled for today</p>
         @endif
@@ -726,9 +756,9 @@
 </div>
 
 <!-- ROOM MONITORING -->
-<div class="card border-1 shadow-sm" style="background: #ffffff; border: 1px solid rgba(130, 117, 103, 0.25) !important;">
+<div class="card border-0 shadow-sm mb-4 rounded-4 overflow-hidden" style="background: #ffffff; border: 1px solid #c2a889 !important;">
     <div class="card-header bg-white border-0 pt-3 pb-2">
-        <h5 class="fw-bold mb-0 font-display" style="color: #504538;">
+        <h5 class="fw-bold mb-0 font-display" style="color: #1a1a1a;">
             Hotel Room Monitoring
         </h5>
     </div>
@@ -1251,8 +1281,12 @@
         let visibleCount = 0;
 
         rows.forEach(row => {
-            const guestName = row.getAttribute('data-guest-name') || '';
-            const matches = guestName.includes(searchTerm);
+            const guestName = (row.getAttribute('data-guest-name') || '').toLowerCase();
+            const roomNumber = (row.getAttribute('data-room-number') || '').toLowerCase();
+            const folioNumber = (row.getAttribute('data-folio-number') || '').toLowerCase();
+            const matches = guestName.includes(searchTerm)
+                || roomNumber.includes(searchTerm)
+                || folioNumber.includes(searchTerm);
             row.style.display = matches ? '' : 'none';
             if (matches) {
                 visibleCount++;
@@ -1374,19 +1408,33 @@
         }
 
         const searchTerm = (document.getElementById('occupiedRoomSearch')?.value || '').toLowerCase().trim();
-        const sortBy = document.getElementById('occupiedRoomSort')?.value || 'room-asc';
+        const sortBy = document.getElementById('occupiedRoomSort')?.value || 'all';
         const rows = Array.from(tbody.querySelectorAll('tr'));
         let visibleCount = 0;
 
         rows.forEach(row => {
-            const roomNumber = row.getAttribute('data-room-number') || '';
-            const roomType = row.getAttribute('data-room-type') || '';
-            const guestName = row.getAttribute('data-guest-name') || '';
-            const matches = roomNumber.includes(searchTerm)
+            const roomNumber = (row.getAttribute('data-room-number') || '').toLowerCase();
+            const roomType = (row.getAttribute('data-room-type') || '').toLowerCase();
+            const guestName = (row.getAttribute('data-guest-name') || '').toLowerCase();
+            const folioNumber = (row.getAttribute('data-folio-number') || '').toLowerCase();
+            const isOverdue = row.getAttribute('data-is-overdue') === '1';
+            const isOpenStay = row.getAttribute('data-is-open-stay') === '1';
+
+            let matchesSearch = roomNumber.includes(searchTerm)
                 || roomType.includes(searchTerm)
-                || guestName.includes(searchTerm);
-            row.style.display = matches ? '' : 'none';
-            if (matches) {
+                || guestName.includes(searchTerm)
+                || folioNumber.includes(searchTerm);
+
+            let matchesFilter = true;
+            if (sortBy === 'overdue-only') {
+                matchesFilter = isOverdue;
+            } else if (sortBy === 'open-stay-only') {
+                matchesFilter = isOpenStay;
+            }
+
+            const visible = matchesSearch && matchesFilter;
+            row.style.display = visible ? '' : 'none';
+            if (visible) {
                 visibleCount++;
             }
         });
@@ -1398,6 +1446,8 @@
             const roomB = parseInt(b.getAttribute('data-room-sort'), 10) || 0;
             const guestA = a.getAttribute('data-guest-name') || '';
             const guestB = b.getAttribute('data-guest-name') || '';
+            const typeA = a.getAttribute('data-room-type') || '';
+            const typeB = b.getAttribute('data-room-type') || '';
 
             switch (sortBy) {
                 case 'room-desc':
@@ -1406,6 +1456,8 @@
                     return guestA.localeCompare(guestB) || roomA - roomB;
                 case 'guest-desc':
                     return guestB.localeCompare(guestA) || roomA - roomB;
+                case 'type-asc':
+                    return typeA.localeCompare(typeB) || roomA - roomB;
                 case 'room-asc':
                 default:
                     return roomA - roomB;
@@ -1427,15 +1479,33 @@
         }
 
         const searchTerm = (document.getElementById('checkoutSearch')?.value || '').toLowerCase().trim();
-        const sortBy = document.getElementById('checkoutSort')?.value || 'guest-asc';
+        const sortBy = document.getElementById('checkoutSort')?.value || 'all';
         const rows = Array.from(tbody.querySelectorAll('tr'));
         let visibleCount = 0;
 
         rows.forEach(row => {
-            const guestName = row.getAttribute('data-guest-name') || '';
-            const matches = guestName.includes(searchTerm);
-            row.style.display = matches ? '' : 'none';
-            if (matches) {
+            const guestName = (row.getAttribute('data-guest-name') || '').toLowerCase();
+            const roomNumber = (row.getAttribute('data-room-number') || '').toLowerCase();
+            const folioNumber = (row.getAttribute('data-folio-number') || '').toLowerCase();
+            const isOverdue = row.getAttribute('data-is-overdue') === '1';
+            const status = row.getAttribute('data-status');
+
+            let matchesSearch = guestName.includes(searchTerm)
+                || roomNumber.includes(searchTerm)
+                || folioNumber.includes(searchTerm);
+
+            let matchesFilter = true;
+            if (sortBy === 'overdue-only') {
+                matchesFilter = isOverdue;
+            } else if (sortBy === 'status-pending') {
+                matchesFilter = (status === 'CHECKED_IN');
+            } else if (sortBy === 'status-done') {
+                matchesFilter = (status === 'CHECKED_OUT');
+            }
+
+            const visible = matchesSearch && matchesFilter;
+            row.style.display = visible ? '' : 'none';
+            if (visible) {
                 visibleCount++;
             }
         });
@@ -1447,8 +1517,6 @@
             const guestB = b.getAttribute('data-guest-name') || '';
             const roomA = parseInt(a.getAttribute('data-room-number'), 10) || 0;
             const roomB = parseInt(b.getAttribute('data-room-number'), 10) || 0;
-            const statusA = a.getAttribute('data-status');
-            const statusB = b.getAttribute('data-status');
 
             switch (sortBy) {
                 case 'guest-desc':
@@ -1457,12 +1525,6 @@
                     return roomA - roomB;
                 case 'room-desc':
                     return roomB - roomA;
-                case 'status-pending':
-                    if (statusA === statusB) return guestA.localeCompare(guestB);
-                    return statusA === 'CHECKED_IN' ? -1 : 1;
-                case 'status-done':
-                    if (statusA === statusB) return guestA.localeCompare(guestB);
-                    return statusA === 'CHECKED_OUT' ? -1 : 1;
                 case 'guest-asc':
                 default:
                     return guestA.localeCompare(guestB);

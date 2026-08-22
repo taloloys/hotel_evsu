@@ -50,15 +50,17 @@
                     <div class="fw-semibold">
                         @if($order->payment_method)
                             @php
-                                $paymentBadge = match($order->payment_method) {
-                                    'room_charge' => 'bg-info',
-                                    'account_charge' => 'bg-primary',
-                                    'gcash' => 'bg-success',
-                                    'card' => 'bg-warning text-dark',
-                                    default => 'bg-secondary'
+                                $paymentMethod = strtolower($order->payment_method);
+                                $paymentBadgeClass = match($paymentMethod) {
+                                    'cash' => 'badge-payment-cash',
+                                    'gcash' => 'badge-payment-gcash',
+                                    'maya' => 'badge-payment-maya',
+                                    'card', 'credit_card', 'debit_card' => 'badge-payment-card',
+                                    'room_charge', 'account_charge' => 'badge-payment-account',
+                                    default => 'badge-payment-other',
                                 };
                             @endphp
-                            <span class="badge {{ $paymentBadge }} text-white">
+                            <span class="badge-payment {{ $paymentBadgeClass }}">
                                 {{ str_replace('_',' ',strtoupper($order->payment_method)) }}
                             </span>
                         @else

@@ -124,8 +124,8 @@
 
         <table class="table align-middle mb-0">
 
-            <thead style="background-color: #f8f3ed; border-bottom: 1px solid #e5e7eb;">
-                <tr class="text-muted small fw-bold">
+            <thead style="background-color: #f8f3ed; border-bottom: 2px solid #c2a889;">
+                <tr class="small fw-bold" style="color: #1a1a1a;">
                     <th class="ps-3">GUEST</th>
                     <th>ROOM</th>
                     <th>FOLIO NO</th>
@@ -140,10 +140,10 @@
 
                 @forelse($receivables as $rec)
                     <tr style="border-bottom: 1px solid #f0f0f0;">
-                        <td class="ps-3 fw-bold" style="color: #504538;">{{ $rec->guest_name }}</td>
-                        <td class="fw-semibold" style="color: #504538;">Room {{ $rec->room_number }}</td>
-                        <td>{{ $rec->folio_number }}</td>
-                        <td>{{ $rec->due_date }}</td>
+                        <td class="ps-3 fw-bold" style="color: #1a1a1a;">{{ $rec->guest_name }}</td>
+                        <td style="color: #262626;">Room {{ $rec->room_number }}</td>
+                        <td style="color: #262626;">{{ $rec->folio_number }}</td>
+                        <td style="color: #262626;">{{ $rec->due_date }}</td>
                         <td>
                             @if($rec->status === 'Current')
                                 <span class="badge bg-success-subtle text-success fw-semibold">Current @if($rec->days_old > 0)({{ $rec->days_old }} days)@endif</span>
@@ -155,14 +155,14 @@
                         </td>
                         <td class="text-end fw-bold text-danger">₱{{ number_format($rec->balance, 2) }}</td>
                         <td class="text-center pe-3">
-                            <a href="{{ route('accounting.billing.show', $rec->folio_id) }}" class="btn btn-sm rounded-pill px-3 fw-semibold" style="border: 1px solid #627e71; color: #627e71; background: transparent;">
+                            <a href="{{ route('accounting.billing.show', $rec->folio_id) }}" class="btn btn-sm px-3 fw-semibold shadow-sm" style="border: 1px solid #627e71; color: #1e332b; background-color: #e8f0ec; border-radius: 0.375rem;">
                                 <i class="fa-solid fa-eye me-1"></i> View Folio
                             </a>
                         </td>
                     </tr>
                 @empty
                     <tr>
-                        <td colspan="7" class="text-center text-muted py-4">No outstanding accounts receivable found.</td>
+                        <td colspan="7" class="text-center py-4" style="color: #6b7280;">No outstanding accounts receivable found.</td>
                     </tr>
                 @endforelse
 

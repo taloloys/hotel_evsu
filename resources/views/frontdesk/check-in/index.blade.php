@@ -753,7 +753,7 @@
         <div class="card border-0 shadow-sm">
             <div class="card-body">
                 <div class="d-flex justify-content-end gap-2">
-                    <a href="{{ route('frontdesk.checkin') }}" class="btn px-4 py-2 fw-semibold" style="border: 1px solid #827567; color: #504538; background: transparent; border-radius: 0.5rem;">Clear</a>
+                    <a href="{{ route('frontdesk.checkin') }}" class="btn px-4 py-2 fw-semibold" style="border: 1px solid #827567; background-color: #eee9e0; color: #4a3e35; border-radius: 0.5rem;">Clear</a>
                     <button type="submit" class="btn text-white px-4 py-2 fw-semibold shadow-sm" style="background-color: #334c42; border: none; border-radius: 0.5rem;" @disabled($assignableRooms->isEmpty())>
                         <i class="fa-solid fa-floppy-disk me-1"></i> Save Check In
                     </button>
@@ -777,6 +777,7 @@
         const guestInfoCard = document.getElementById('guest_info_card');
         const displayGuestName = document.getElementById('display_guest_name');
         const displayGuestContact = document.getElementById('display_guest_contact');
+        const displayGuestEmail = document.getElementById('display_guest_email');
         const displayGuestAddress = document.getElementById('display_guest_address');
         const roomTypeFilter = document.getElementById('room_type_filter');
         const roomSelect = document.getElementById('room_id');
@@ -912,16 +913,22 @@
 
         // Room rate and filtering
         function updateRateDisplay() {
-            const selected = roomSelect.options[roomSelect.selectedIndex];
-            if (!selected || !selected.value) {
-                rateDisplay.value = '—';
+            if (!rateDisplay) return;
+
+            const selectedVal = roomTomSelect ? roomTomSelect.getValue() : (roomSelect ? roomSelect.value : '');
+            const optObj = allRoomOptions.find(o => String(o.value) === String(selectedVal));
+
+            if (!optObj || !optObj.value) {
+                rateDisplay.value = '0.00';
+                if (netRateInput && !netRateInput.dataset.userEdited) {
+                    netRateInput.value = '';
+                }
                 return;
             }
 
-            const rate = parseFloat(selected.getAttribute('data-base-rate') || '0');
+            const rate = parseFloat(optObj.baseRate || '0');
             rateDisplay.value = rate.toFixed(2);
 
-            // Auto-fill net_rate if user hasn't typed something custom
             if (netRateInput && !netRateInput.dataset.userEdited) {
                 netRateInput.value = rate.toFixed(2);
             }
@@ -947,9 +954,14 @@
             roomTomSelect.clearOptions();
 
             allRoomOptions.forEach(opt => {
-                const matches = !selectedType || opt.roomType === selectedType;
+                const matches = !opt.value || !selectedType || opt.roomType === selectedType;
                 if (matches) {
-                    roomTomSelect.addOption(opt);
+                    roomTomSelect.addOption({
+                        value: opt.value,
+                        text: opt.text,
+                        roomType: opt.roomType,
+                        baseRate: opt.baseRate
+                    });
                 }
             });
 
@@ -964,6 +976,13 @@
         }
 
         if (roomSelect) {
+            allRoomOptions = Array.from(roomSelect.options).map(opt => ({
+                value: opt.value,
+                text: opt.text,
+                roomType: opt.getAttribute('data-room-type') || '',
+                baseRate: opt.getAttribute('data-base-rate') || '0'
+            }));
+
             roomTomSelect = new TomSelect('#room_id', {
                 placeholder: 'Search or select a room…',
                 allowEmptyOption: true,
@@ -983,19 +1002,12 @@
                 }
             });
 
-            allRoomOptions = Object.values(roomTomSelect.options).map(opt => {
-                const optEl = roomSelect.querySelector(`option[value="${opt.value}"]`);
-                return {
-                    ...opt,
-                    roomType: optEl ? optEl.getAttribute('data-room-type') : null
-                };
-            });
-
+            filterCheckInRooms();
             updateRateDisplay();
         }
 
         // Room Type filter — show/hide Tom Select options by room type
-        if (roomTypeFilter && roomTomSelect) {
+        if (roomTypeFilter) {
             roomTypeFilter.addEventListener('change', filterCheckInRooms);
         }
 

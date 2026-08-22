@@ -75,7 +75,11 @@
 
     <div class="card-body">
 
-        <div class="d-flex justify-content-between align-items-center mb-4">
+        <form method="GET"
+            action="{{ route('frontdesk.reservation') }}"
+            class="d-flex justify-content-between align-items-center flex-wrap gap-3 mb-4"
+            id="reservationFilterForm">
+
             <div>
                 <h5 class="fw-bold mb-1" style="color: #504538; font-family: 'Franklin Gothic Medium', sans-serif;">Room Reservation Entry</h5>
                 <small class="text-muted">
@@ -83,91 +87,88 @@
                 </small>
             </div>
 
-            <button class="btn text-white px-3 py-2 fw-semibold shadow-sm" data-bs-toggle="modal" data-bs-target="#newReservationModal" style="background-color: #334c42; border: none; border-radius: 0.5rem;">
-                <i class="fa-solid fa-plus me-2"></i>
-                New Reservation
-            </button>
-        </div>
+            <div class="d-flex align-items-center gap-2 flex-wrap ms-auto">
+                <!-- Search -->
+                <div style="width: 320px;">
+                    <div class="input-group shadow-sm" style="border: 1px solid #c2a889; border-radius: 0.5rem; overflow: hidden; height: 45px; background-color: #ffffff;">
+                        <span class="input-group-text bg-white border-0 px-3">
+                            <i class="fa-solid fa-magnifying-glass" style="color: #627e71;"></i>
+                        </span>
 
-        <form method="GET"
-            action="{{ route('frontdesk.reservation') }}"
-            class="d-flex align-items-center gap-2 flex-wrap justify-content-end mb-4"
-            id="reservationFilterForm">
-
-            <!-- Search -->
-            <div style="width: 320px;">
-                <div class="input-group shadow-sm" style="border: 1px solid #c2a889; border-radius: 0.5rem; overflow: hidden; height: 45px; background-color: #ffffff;">
-                    <span class="input-group-text bg-white border-0 px-3">
-                        <i class="fa-solid fa-magnifying-glass" style="color: #627e71;"></i>
-                    </span>
-
-                    <input
-                        type="text"
-                        class="form-control border-0 shadow-none py-2"
-                        style="font-size: 1rem;"
-                        id="filterSearch"
-                        name="search"
-                        value="{{ $filters['search'] }}"
-                        placeholder="Guest name or folio..."
-                        autocomplete="off">
-                </div>
-            </div>
-
-            <!-- FILTER DROPDOWN -->
-            <div class="dropdown">
-                <button class="btn bg-white d-flex align-items-center gap-2 px-3 position-relative shadow-sm"
-                        type="button"
-                        data-bs-toggle="dropdown"
-                        style="height: 45px; border-radius: 0.5rem; border: 1px solid #c2a889; color: #504538; font-size: 1rem;">
-                    <i class="fa-solid fa-filter" style="color: #627e71;"></i>
-                    <span class="fw-semibold">Filter</span>
-                    @if($filters['status'] !== 'all' || !empty($filters['date_from']) || !empty($filters['date_to']))
-                        <span class="position-absolute top-0 start-100 translate-middle p-1 bg-danger border border-light rounded-circle"></span>
-                    @endif
-                </button>
-                <div class="dropdown-menu dropdown-menu-end p-3 shadow-sm"
-                     onclick="event.stopPropagation()"
-                     style="min-width: 280px; border-radius: 0.75rem;">
-
-                    <!-- Status -->
-                    <label class="form-label small mb-1 fw-semibold text-muted">Status</label>
-                    <select
-                        class="form-select mb-3 shadow-none"
-                        id="filterStatus"
-                        name="status"
-                        style="height:38px; border-radius:0.5rem; border: 1px solid #827567;">
-                        <option value="all" @selected($filters['status'] === 'all')>All</option>
-                        <option value="RESERVED" @selected($filters['status'] === 'RESERVED')>Reserved</option>
-                        <option value="CHECKED_IN" @selected($filters['status'] === 'CHECKED_IN')>Checked In</option>
-                        <option value="CHECKED_OUT" @selected($filters['status'] === 'CHECKED_OUT')>Checked Out</option>
-                        <option value="CANCELLED" @selected($filters['status'] === 'CANCELLED')>Cancelled</option>
-                    </select>
-
-                    <!-- Date From -->
-                    <label class="form-label small mb-1 fw-semibold text-muted">Date From</label>
-                    <input
-                        type="date"
-                        class="form-control mb-3 shadow-none"
-                        id="filterDateFrom"
-                        name="date_from"
-                        value="{{ $filters['date_from'] }}"
-                        style="height:38px; border-radius:0.5rem; border: 1px solid #827567;">
-
-                    <!-- Date To -->
-                    <label class="form-label small mb-1 fw-semibold text-muted">Date To</label>
-                    <input
-                        type="date"
-                        class="form-control mb-3 shadow-none"
-                        id="filterDateTo"
-                        name="date_to"
-                        value="{{ $filters['date_to'] }}"
-                        style="height:38px; border-radius:0.5rem; border: 1px solid #827567;">
-
-                    <div class="d-flex gap-2">
-                        <button type="submit" class="btn text-white w-50 fw-semibold" style="height: 38px; background-color: #334c42; border: none; border-radius: 0.375rem;">Apply</button>
-                        <a href="{{ route('frontdesk.reservation') }}" class="btn btn-light w-50 d-flex align-items-center justify-content-center fw-semibold" style="height: 38px; border: 1px solid #827567; color: #504538; border-radius: 0.375rem;">Reset</a>
+                        <input
+                            type="text"
+                            class="form-control border-0 shadow-none py-2"
+                            style="font-size: 1rem;"
+                            id="filterSearch"
+                            name="search"
+                            value="{{ $filters['search'] }}"
+                            placeholder="Guest name or folio..."
+                            autocomplete="off">
                     </div>
                 </div>
+
+                <!-- FILTER DROPDOWN -->
+                <div class="dropdown">
+                    <button class="btn d-flex align-items-center gap-2 px-3 position-relative shadow-sm"
+                            type="button"
+                            data-bs-toggle="dropdown"
+                            style="height: 45px; border-radius: 0.5rem; border: 1px solid #c2a889; background-color: #f3ede4; color: #3d332a; font-size: 1rem;">
+                        <i class="fa-solid fa-filter" style="color: #334c42;"></i>
+                        <span class="fw-semibold">Filter</span>
+                        @if($filters['status'] !== 'all' || !empty($filters['date_from']) || !empty($filters['date_to']))
+                            <span class="position-absolute top-0 start-100 translate-middle p-1 bg-danger border border-light rounded-circle"></span>
+                        @endif
+                    </button>
+                    <div class="dropdown-menu dropdown-menu-end p-3 shadow-sm"
+                         onclick="event.stopPropagation()"
+                         style="min-width: 280px; border-radius: 0.75rem;">
+
+                        <!-- Status -->
+                        <label class="form-label small mb-1 fw-semibold text-muted">Status</label>
+                        <select
+                            class="form-select mb-3 shadow-none"
+                            id="filterStatus"
+                            name="status"
+                            style="height:38px; border-radius:0.5rem; border: 1px solid #827567;">
+                            <option value="all" @selected($filters['status'] === 'all')>All</option>
+                            <option value="RESERVED" @selected($filters['status'] === 'RESERVED')>Reserved</option>
+                            <option value="CHECKED_IN" @selected($filters['status'] === 'CHECKED_IN')>Checked In</option>
+                            <option value="CHECKED_OUT" @selected($filters['status'] === 'CHECKED_OUT')>Checked Out</option>
+                            <option value="CANCELLED" @selected($filters['status'] === 'CANCELLED')>Cancelled</option>
+                        </select>
+
+                        <!-- Date From -->
+                        <label class="form-label small mb-1 fw-semibold text-muted">Date From</label>
+                        <input
+                            type="date"
+                            class="form-control mb-3 shadow-none"
+                            id="filterDateFrom"
+                            name="date_from"
+                            value="{{ $filters['date_from'] }}"
+                            style="height:38px; border-radius:0.5rem; border: 1px solid #827567;">
+
+                        <!-- Date To -->
+                        <label class="form-label small mb-1 fw-semibold text-muted">Date To</label>
+                        <input
+                            type="date"
+                            class="form-control mb-3 shadow-none"
+                            id="filterDateTo"
+                            name="date_to"
+                            value="{{ $filters['date_to'] }}"
+                            style="height:38px; border-radius:0.5rem; border: 1px solid #827567;">
+
+                        <div class="d-flex gap-2">
+                            <button type="submit" class="btn text-white w-50 fw-semibold" style="height: 38px; background-color: #334c42; border: none; border-radius: 0.375rem;">Apply</button>
+                            <a href="{{ route('frontdesk.reservation') }}" class="btn w-50 d-flex align-items-center justify-content-center fw-semibold" style="height: 38px; border: 1px solid #827567; background-color: #eee9e0; color: #4a3e35; border-radius: 0.375rem;">Reset</a>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- NEW RESERVATION BUTTON -->
+                <button type="button" class="btn text-white px-3.5 d-flex align-items-center gap-2 fw-semibold shadow-sm" data-bs-toggle="modal" data-bs-target="#newReservationModal" style="height: 45px; background-color: #334c42; border: none; border-radius: 0.5rem; font-size: 1rem;">
+                    <i class="fa-solid fa-plus"></i>
+                    New Reservation
+                </button>
             </div>
 
         </form>
@@ -189,23 +190,23 @@
                 <tbody>
                     @forelse($reservations as $reservation)
                         <tr style="border-bottom: 1px solid #f0f0f0;">
-                            <td class="ps-3 fw-bold" style="color: #2c241d;">{{ $reservation->room->room_number }}</td>
-                            <td style="color: #2c241d;">{{ $reservation->room->room_type }}</td>
-                            <td class="fw-bold" style="color: #2c241d;">
+                            <td class="ps-3 fw-bold" style="color: #1a1a1a;">{{ $reservation->room->room_number }}</td>
+                            <td style="color: #262626; font-weight: 400;">{{ $reservation->room->room_type }}</td>
+                            <td class="fw-bold" style="color: #1a1a1a;">
                                 {{ $reservation->folio->guest->first_name }}
                                 {{ $reservation->folio->guest->last_name }}
                             </td>
-                            <td class="fw-semibold" style="color: #627e71;">{{ $reservation->folio->folio_number }}</td>
-                            <td style="color: #2c241d;">
+                            <td class="fw-semibold" style="color: #1a1a1a;">{{ $reservation->folio->folio_number }}</td>
+                            <td style="color: #262626;">
                                 {{ $reservation->arrival_date->format('m/d/Y') }}
                                 @if($reservation->arrival_time)
-                                    <small class="text-muted d-block">{{ \Carbon\Carbon::parse($reservation->arrival_time)->format('g:i A') }}</small>
+                                    <small class="d-block" style="color: #6b7280;">{{ \Carbon\Carbon::parse($reservation->arrival_time)->format('g:i A') }}</small>
                                 @endif
                             </td>
-                            <td style="color: #2c241d;">
+                            <td style="color: #262626;">
                                 {{ $reservation->departure_date ? $reservation->departure_date->format('m/d/Y') : '—' }}
                                 @if($reservation->departure_time)
-                                    <small class="text-muted d-block">{{ \Carbon\Carbon::parse($reservation->departure_time)->format('g:i A') }}</small>
+                                    <small class="d-block" style="color: #6b7280;">{{ \Carbon\Carbon::parse($reservation->departure_time)->format('g:i A') }}</small>
                                 @endif
                             </td>
                             <td>
@@ -227,11 +228,11 @@
                                 @endswitch
                             </td>
                             <td class="text-center pe-3">
-                                <div class="d-flex align-items-center justify-content-center gap-1">
+                                <div class="d-inline-flex align-items-center justify-content-center gap-1.5">
                                     <button
                                         type="button"
-                                        class="btn btn-sm view-reservation-btn fw-semibold"
-                                        style="border: 1px solid #334c42; color: #334c42; background: #ffffff; border-radius: 0.375rem; padding: 0.35rem 0.75rem;"
+                                        class="btn btn-sm view-reservation-btn d-flex align-items-center justify-content-center shadow-sm"
+                                        style="width: 36px; height: 36px; border: 1px solid #627e71; color: #1e332b; background-color: #e8f0ec; border-radius: 0.375rem;"
                                         title="View reservation details"
                                         data-bs-toggle="modal"
                                         data-bs-target="#viewReservationModal"
@@ -248,16 +249,16 @@
                                         data-status="{{ $reservation->status }}"
                                         data-pax="{{ $reservation->folio->num_pax }}"
                                     >
-                                        <i class="fa-solid fa-eye me-1"></i> View
+                                        <i class="fa-solid fa-eye fs-6"></i>
                                     </button>
 
                                     @if($reservation->status === 'RESERVED')
-                                        <form method="POST" action="{{ route('frontdesk.reservation.cancel', $reservation) }}" class="d-inline">
+                                        <form method="POST" action="{{ route('frontdesk.reservation.cancel', $reservation) }}" class="d-inline m-0">
                                             @csrf
                                             @method('PATCH')
-                                            <button type="button" class="btn btn-sm btn-outline-danger fw-semibold" style="border-radius: 0.375rem; padding: 0.35rem 0.75rem;" title="Cancel this reservation"
+                                            <button type="button" class="btn btn-sm d-flex align-items-center justify-content-center shadow-sm" style="width: 36px; height: 36px; border: 1px solid #f87171; color: #991b1b; background-color: #fee2e2; border-radius: 0.375rem;" title="Cancel reservation"
                                                 onclick="swalConfirmCancelReservation(this)">
-                                                <i class="fa-solid fa-ban me-1"></i> Cancel
+                                                <i class="fa-solid fa-ban fs-6"></i>
                                             </button>
                                         </form>
                                     @endif
@@ -279,11 +280,21 @@
             </table>
         </div>
 
-        @if($reservations->hasPages())
-            <div class="d-flex justify-content-end mt-4">
-                {{ $reservations->links() }}
-            </div>
-        @endif
+        <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mt-4">
+            <p class="mb-0" style="color: #3d332a;">
+                Showing <strong>{{ $reservations->firstItem() ?? 0 }}</strong>–<strong>{{ $reservations->lastItem() ?? 0 }}</strong> of <strong>{{ $reservations->total() }}</strong> reservation(s)
+            </p>
+            @if($reservations->hasPages())
+                <div class="d-flex align-items-center gap-3 ms-auto">
+                    <span class="badge px-3 py-2 fw-semibold shadow-sm" style="border: 1px solid #627e71; color: #1e332b; background-color: #e8f0ec; border-radius: 0.375rem;">
+                        Page {{ $reservations->currentPage() }} of {{ $reservations->lastPage() }}
+                    </span>
+                    <div>
+                        {{ $reservations->links() }}
+                    </div>
+                </div>
+            @endif
+        </div>
 
     </div>
 </div>
@@ -696,9 +707,9 @@
                     </div>
                 </div>
 
-            <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                <button type="submit" class="btn btn-primary" @disabled($assignableRooms->isEmpty())>
+            <div class="modal-footer border-0 p-3 pt-0">
+                <button type="button" class="btn btn-secondary px-4 py-2 fw-semibold" style="border-radius: 0.5rem;" data-bs-dismiss="modal">Cancel</button>
+                <button type="submit" class="btn text-white px-4 py-2 fw-semibold shadow-sm" style="background-color: #334c42; border: none; border-radius: 0.5rem;" @disabled($assignableRooms->isEmpty())>
                     <i class="fa-solid fa-floppy-disk me-1"></i> Save Reservation
                 </button>
             </div>
@@ -915,9 +926,13 @@
             roomTomSelect.clearOptions();
 
             allRoomOptions.forEach(opt => {
-                const matches = !selectedType || opt.roomType === selectedType;
+                const matches = !opt.value || !selectedType || opt.roomType === selectedType;
                 if (matches) {
-                    roomTomSelect.addOption(opt);
+                    roomTomSelect.addOption({
+                        value: opt.value,
+                        text: opt.text,
+                        roomType: opt.roomType
+                    });
                 }
             });
 
@@ -937,6 +952,12 @@
             reservationModal.addEventListener('shown.bs.modal', function() {
                 // Only initialise once
                 if (!roomTomSelect && roomSelect) {
+                    allRoomOptions = Array.from(roomSelect.options).map(opt => ({
+                        value: opt.value,
+                        text: opt.text,
+                        roomType: opt.getAttribute('data-room-type') || ''
+                    }));
+
                     roomTomSelect = new TomSelect('#room_id', {
                         placeholder: 'Search or select a room…',
                         allowEmptyOption: true,
@@ -952,19 +973,12 @@
                         }
                     });
 
-                    // Store master list of all room options with their roomType
-                    allRoomOptions = Object.values(roomTomSelect.options).map(opt => {
-                        const optEl = roomSelect.querySelector(`option[value="${opt.value}"]`);
-                        return {
-                            ...opt,
-                            roomType: optEl ? optEl.getAttribute('data-room-type') : null
-                        };
-                    });
-
                     // Wire up Room Type filter to Tom Select
                     if (roomTypeFilter) {
                         roomTypeFilter.addEventListener('change', filterReservationRooms);
                     }
+
+                    filterReservationRooms();
                 }
             });
 

@@ -67,8 +67,8 @@
                 @php
                     $printText = 'Print Guest List';
                 @endphp
-                <button type="button" class="btn px-3 py-2 fw-semibold shadow-sm" style="height: 45px; border: 1px solid #c2a889; color: #504538; background: transparent; font-size: 1rem; border-radius: 0.5rem;" onclick="window.print()">
-                    <i class="fa-solid fa-print me-1" style="color: #627e71;"></i> {{ $printText }}
+                <button type="button" class="btn px-3 py-2 fw-semibold shadow-sm" style="height: 45px; border: 1px solid #c2a889; background-color: #f3ede4; color: #3d332a; font-size: 1rem; border-radius: 0.5rem;" onclick="window.print()">
+                    <i class="fa-solid fa-print me-1" style="color: #334c42;"></i> {{ $printText }}
                 </button>
 
             </form>
@@ -77,7 +77,7 @@
 
     {{-- Results Summary --}}
     <div class="d-flex justify-content-between align-items-center mb-3">
-        <p class="text-muted mb-0">
+        <p class="mb-0" style="color: #3d332a;">
             @if($search)
                 Showing <strong>{{ $guests->total() }}</strong> result(s) for
                 "<strong>{{ $search }}</strong>"
@@ -85,7 +85,7 @@
                 Showing all <strong>{{ $guests->total() }}</strong> registered guest(s)
             @endif
         </p>
-        <span class="badge px-3 py-2 fw-semibold" style="border: 1px solid #627e71; color: #627e71; background: transparent; border-radius: 0.375rem;">
+        <span class="badge px-3 py-2 fw-semibold shadow-sm" style="border: 1px solid #627e71; color: #1e332b; background-color: #e8f0ec; border-radius: 0.375rem;">
             Page {{ $guests->currentPage() }} of {{ $guests->lastPage() }}
         </span>
     </div>
@@ -118,42 +118,42 @@
                                 $isCurrentlyIn  = $lastBooking && $lastBooking->status === 'CHECKED_IN';
                             @endphp
                             <tr style="border-bottom: 1px solid #f0f0f0;">
-                                <td class="px-4 fw-medium" style="color: #2c241d;">
+                                <td class="px-4 fw-medium" style="color: #1a1a1a;">
                                     {{ ($guests->currentPage() - 1) * $guests->perPage() + $index + 1 }}
                                 </td>
                                 <td>
-                                    <div class="fw-bold" style="color: #2c241d;">
+                                    <div class="fw-bold" style="color: #1a1a1a;">
                                         {{ $guest->last_name }}, {{ $guest->first_name }}
                                     </div>
-                                    <div class="text-muted small">
+                                    <div class="small" style="color: #6b7280;">
                                         Registered {{ $guest->created_at->format('M d, Y') }}
                                     </div>
                                 </td>
-                                <td style="color: #2c241d;">
+                                <td style="color: #262626;">
                                     {{ $guest->contact_number ?: '—' }}
                                 </td>
-                                <td class="small" style="color: #2c241d;">
+                                <td class="small" style="color: #262626;">
                                     {{ $guest->address_line1 ?: '—' }}
                                 </td>
                                 <td class="text-center">
-                                    <span class="badge px-2.5 py-1 fw-semibold" style="border: 1px solid #827567; color: #504538; background: transparent; border-radius: 0.375rem;">
+                                    <span class="badge px-2.5 py-1 fw-semibold" style="border: 1px solid #c2a889; color: #262626; background-color: #f3ede4; border-radius: 0.375rem;">
                                         {{ $totalStays }} {{ Str::plural('stay', $totalStays) }}
                                     </span>
                                 </td>
                                 <td class="text-center">
                                     @if($lastRoom)
-                                        <span class="fw-bold" style="color: #2c241d;">{{ $lastRoom->room_number }}</span>
-                                        <div class="text-muted small">{{ $lastRoom->room_type }}</div>
+                                        <span class="fw-bold" style="color: #1a1a1a;">{{ $lastRoom->room_number }}</span>
+                                        <div class="small" style="color: #6b7280;">{{ $lastRoom->room_type }}</div>
                                     @else
-                                        <span class="text-muted">—</span>
+                                        <span style="color: #6b7280;">—</span>
                                     @endif
                                 </td>
-                                <td class="text-center small" style="color: #2c241d;">
+                                <td class="text-center small" style="color: #262626;">
                                     @if($lastBooking)
                                         {{ $lastBooking->arrival_date->format('M d, Y') }}
-                                        <div class="text-muted">→ {{ $lastBooking->departure_date ? $lastBooking->departure_date->format('M d, Y') : 'Open Stay' }}</div>
+                                        <div style="color: #6b7280;">→ {{ $lastBooking->departure_date ? $lastBooking->departure_date->format('M d, Y') : 'Open Stay' }}</div>
                                     @else
-                                        <span class="text-muted">—</span>
+                                        <span style="color: #6b7280;">—</span>
                                     @endif
                                 </td>
                                 <td class="text-center">
@@ -162,26 +162,26 @@
                                             <i class="fa-solid fa-circle-dot me-1"></i> In-House
                                         </span>
                                         @if($lastFolio)
-                                            <div class="text-muted small">Folio: <strong>{{ $lastFolio->folio_number }}</strong></div>
+                                            <div class="small" style="color: #4a3e35;">Folio: <strong>{{ $lastFolio->folio_number }}</strong></div>
                                         @endif
                                     @elseif($lastBooking?->status === 'CHECKED_OUT')
-                                        <span class="badge px-2.5 py-1 fw-semibold" style="border: 1px solid #827567; color: #827567; background: transparent; border-radius: 0.375rem;">
+                                        <span class="badge px-2.5 py-1 fw-semibold" style="border: 1px solid #827567; color: #4a3e35; background-color: #eee9e0; border-radius: 0.375rem;">
                                             Checked Out
                                         </span>
                                     @else
-                                        <span class="badge px-2.5 py-1 fw-semibold" style="border: 1px solid #827567; color: #827567; background: transparent; border-radius: 0.375rem;">No Stay</span>
+                                        <span class="badge px-2.5 py-1 fw-semibold" style="border: 1px solid #827567; color: #4a3e35; background-color: #eee9e0; border-radius: 0.375rem;">No Stay</span>
                                     @endif
                                 </td>
                                 <td class="text-center">
                                     <button
                                         type="button"
-                                        class="btn btn-sm fw-semibold"
-                                        style="border: 1px solid #334c42; color: #334c42; background: #ffffff; border-radius: 0.375rem; padding: 0.35rem 0.75rem;"
+                                        class="btn btn-sm d-inline-flex align-items-center justify-content-center shadow-sm"
+                                        style="width: 36px; height: 36px; border: 1px solid #627e71; color: #1e332b; background-color: #e8f0ec; border-radius: 0.375rem;"
                                         data-bs-toggle="modal"
                                         data-bs-target="#guestModal{{ $guest->guest_id }}"
                                         title="View booking history"
                                     >
-                                        <i class="fa-solid fa-eye me-1"></i> View
+                                        <i class="fa-solid fa-eye fs-6"></i>
                                     </button>
                                 </td>
                             </tr>

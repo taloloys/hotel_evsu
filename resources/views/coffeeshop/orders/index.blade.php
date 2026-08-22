@@ -88,19 +88,21 @@
                             @if($order->payment_method)
                                 @php
                                     $paymentMethod = strtolower($order->payment_method);
+                                    $paymentBadgeClass = match($paymentMethod) {
+                                        'cash' => 'badge-payment-cash',
+                                        'gcash' => 'badge-payment-gcash',
+                                        'maya' => 'badge-payment-maya',
+                                        'card', 'credit_card', 'debit_card' => 'badge-payment-card',
+                                        'room_charge', 'account_charge' => 'badge-payment-account',
+                                        default => 'badge-payment-other',
+                                    };
                                 @endphp
-                                @if(in_array($paymentMethod, ['room_charge', 'account_charge']))
-                                    <span class="badge px-2.5 py-1 rounded-pill fw-semibold" style="background-color: #627e71; color: #ffffff; font-size: 0.78rem; font-family: 'Plus Jakarta Sans', 'Inter', 'Segoe UI', sans-serif;">
-                                        @if($paymentMethod === 'account_charge')
-                                            <i class="fa-solid fa-crown me-1" style="color: #c2a889;"></i>
-                                        @endif
-                                        {{ str_replace('_', ' ', strtoupper($order->payment_method)) }}
-                                    </span>
-                                @else
-                                    <span class="badge px-2.5 py-1 rounded-pill fw-semibold" style="border: 1px solid #c2a889; color: #382e25; background: transparent; font-size: 0.78rem; font-family: 'Plus Jakarta Sans', 'Inter', 'Segoe UI', sans-serif;">
-                                        {{ str_replace('_', ' ', strtoupper($order->payment_method)) }}
-                                    </span>
-                                @endif
+                                <span class="badge-payment {{ $paymentBadgeClass }}">
+                                    @if($paymentMethod === 'account_charge')
+                                        <i class="fa-solid fa-crown me-1" style="color: #c2a889;"></i>
+                                    @endif
+                                    {{ str_replace('_', ' ', strtoupper($order->payment_method)) }}
+                                </span>
                             @else
                                 <span style="color: #554d46; font-size: 0.92rem; font-family: 'Plus Jakarta Sans', 'Inter', 'Segoe UI', sans-serif;">—</span>
                             @endif
@@ -109,22 +111,22 @@
                         <td style="padding: 1.05rem 1rem;">
                             @php
                                 $statusBadgeClass = match(strtolower($order->status)) {
-                                    'closed', 'paid', 'completed' => 'bg-success-subtle text-success',
-                                    'cancelled' => 'bg-danger-subtle text-danger',
-                                    'refunded' => 'bg-info-subtle text-info',
-                                    default => 'bg-secondary-subtle text-secondary'
+                                    'closed', 'paid', 'completed' => 'badge-status-closed',
+                                    'cancelled' => 'bg-danger text-white',
+                                    'refunded' => 'bg-info text-white',
+                                    default => 'badge-status-open'
                                 };
                             @endphp
-                            <span class="coffeeshop-pill fw-semibold {{ $statusBadgeClass }}" style="font-size: 0.88rem; padding: 0.28rem 0.8rem; font-family: 'Plus Jakarta Sans', 'Inter', 'Segoe UI', sans-serif;">{{ strtoupper($order->status) }}</span>
+                            <span class="coffeeshop-pill fw-semibold {{ $statusBadgeClass }}" style="font-size: 0.88rem; padding: 0.35rem 0.85rem; font-family: 'Plus Jakarta Sans', 'Inter', 'Segoe UI', sans-serif;">{{ strtoupper($order->status) }}</span>
                             @php
                                 $rejectedRefund = $order->approvalRequests->where('request_type', 'refund')->where('status', 'rejected')->first();
                                 $rejectedCancel = $order->approvalRequests->where('request_type', 'cancel_order')->where('status', 'rejected')->first();
                             @endphp
                             @if($rejectedRefund)
-                                <span class="coffeeshop-pill bg-danger-subtle text-danger ms-1 fw-semibold" style="font-size: 0.78rem;">REFUND REJECTED</span>
+                                <span class="coffeeshop-pill bg-danger text-white ms-1 fw-semibold" style="font-size: 0.78rem;">REFUND REJECTED</span>
                             @endif
                             @if($rejectedCancel)
-                                <span class="coffeeshop-pill bg-danger-subtle text-danger ms-1 fw-semibold" style="font-size: 0.78rem;">CANCEL REJECTED</span>
+                                <span class="coffeeshop-pill bg-danger text-white ms-1 fw-semibold" style="font-size: 0.78rem;">CANCEL REJECTED</span>
                             @endif
                         </td>
                         <td class="text-end pe-4" style="padding: 1.05rem 1rem;">

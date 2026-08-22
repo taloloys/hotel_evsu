@@ -60,7 +60,7 @@ class GuestFolioController extends Controller
             $query->where('status', $statusFilter);
         }
 
-        $folios = $query->orderByDesc('folio_id')->paginate(20)->withQueryString();
+        $folios = $query->orderByDesc('folio_id')->paginate(10)->withQueryString();
 
         // Load available rooms and active charge codes for the controls in the modals
         $availableRooms = Room::where('is_active', true)
