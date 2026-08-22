@@ -28,7 +28,6 @@ class AdminSeeder extends Seeder
             'manage-credit-accounts' => ['desc' => 'Manage credit accounts and record payments', 'module' => 'System'],
             'view-activity-logs' => ['desc' => 'View and export system activity and audit logs', 'module' => 'System'],
             'manage-pos-approvals' => ['desc' => 'Approve or reject POS void and discount requests', 'module' => 'System'],
-            'manage-sidebar-settings' => ['desc' => 'Configure sidebar module visibility settings', 'module' => 'System'],
             'manage-shifts' => ['desc' => 'Manage shift schedules and view sales reports', 'module' => 'System'],
             'access-foodpanda' => ['desc' => 'Access Food Panda food delivery link', 'module' => 'System'],
 

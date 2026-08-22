@@ -18,7 +18,7 @@ use App\Http\Controllers\Admin\PosApprovalController;
 use App\Http\Controllers\Admin\RoleController;
 use App\Http\Controllers\Admin\RoomController;
 use App\Http\Controllers\Admin\ShiftScheduleController;
-use App\Http\Controllers\Admin\SidebarSettingsController;
+
 use App\Http\Controllers\Admin\UserController;
 use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\Coffeeshop\CustomerController as CoffeeshopCustomerController;
@@ -469,13 +469,7 @@ Route::middleware('auth')->group(function () {
                 ->name('admin.backup-restore.delete-local');
         });
 
-        // SIDEBAR SETTINGS
-        Route::middleware('can:manage-sidebar-settings')->group(function () {
-            Route::get('/sidebar-settings', [SidebarSettingsController::class, 'index'])
-                ->name('admin.sidebar-settings');
-            Route::post('/sidebar-settings/{moduleKey}/toggle', [SidebarSettingsController::class, 'toggle'])
-                ->name('admin.sidebar-settings.toggle');
-        });
+
 
         Route::middleware('can:access-foodpanda')->get('/food-delivery', function () {
             return view('admin.food-delivery.index');
