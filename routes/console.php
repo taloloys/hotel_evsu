@@ -11,7 +11,6 @@ Artisan::command('inspire', function () {
 use App\Services\BackupSettingsService;
 
 Schedule::command('app:post-nightly-room-charges')->daily();
-Schedule::command('billing:post-daily-charges')->daily();
 Schedule::command('shifts:close-orphaned')->everyFifteenMinutes();
 Schedule::command('app:archive-old-data')->dailyAt('02:00');
 
