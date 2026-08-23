@@ -102,11 +102,82 @@
             top: 0;
             overflow-y: auto;
             box-shadow: 0 0 30px rgba(0,0,0,.18);
+            z-index: 1040;
+            transition: transform 0.3s ease-in-out;
         }
 
         .main-content {
             margin-left: 260px;
             padding: 30px;
+            min-width: 0;
+            transition: margin-left 0.3s ease-in-out;
+        }
+
+        .sidebar-backdrop {
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.5);
+            backdrop-filter: blur(2px);
+            z-index: 1035;
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.25s ease, visibility 0.25s ease;
+        }
+
+        .sidebar-backdrop.show {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        .table-responsive {
+            -webkit-overflow-scrolling: touch;
+        }
+
+        @media (max-width: 991.98px) {
+            .sidebar {
+                width: 275px;
+                transform: translateX(-100%);
+                box-shadow: 0 0 35px rgba(0,0,0,0.35);
+            }
+
+            .sidebar.show {
+                transform: translateX(0);
+            }
+
+            .main-content {
+                margin-left: 0 !important;
+                padding: 18px !important;
+            }
+
+            #sidebarToggleBtn {
+                position: fixed !important;
+                bottom: 24px !important;
+                left: 20px !important;
+                z-index: 1045 !important;
+                width: 50px !important;
+                height: 50px !important;
+                background-color: #334c42 !important;
+                color: #ffffff !important;
+                border: 2px solid #ffffff !important;
+                box-shadow: 0 8px 24px rgba(51, 76, 66, 0.4) !important;
+                transition: transform 0.2s ease, box-shadow 0.2s ease !important;
+            }
+
+            #sidebarToggleBtn:hover,
+            #sidebarToggleBtn:focus {
+                background-color: #283d35 !important;
+                color: #ffffff !important;
+            }
+
+            #sidebarToggleBtn:active {
+                transform: scale(0.92) !important;
+            }
+        }
+
+        @media (max-width: 575.98px) {
+            .main-content {
+                padding: 12px !important;
+            }
         }
 
         .content-card {
@@ -757,7 +828,8 @@
     data-login-role="{{ Auth::user()?->role?->role_name ?? '' }}"
 >
 
-<div class="sidebar">
+<div class="sidebar-backdrop" id="sidebarBackdrop" onclick="window.closeAppSidebar()"></div>
+<div class="sidebar" id="appSidebar">
     @include('layouts.sidebar')
 </div>
 
@@ -990,6 +1062,31 @@
         };
         restoreFS();
     }
+
+    // Global Mobile Sidebar Off-Canvas Functions
+    window.toggleAppSidebar = function() {
+        const sidebar = document.getElementById('appSidebar');
+        const backdrop = document.getElementById('sidebarBackdrop');
+        if (sidebar) sidebar.classList.toggle('show');
+        if (backdrop) backdrop.classList.toggle('show');
+    };
+
+    window.closeAppSidebar = function() {
+        const sidebar = document.getElementById('appSidebar');
+        const backdrop = document.getElementById('sidebarBackdrop');
+        if (sidebar) sidebar.classList.remove('show');
+        if (backdrop) backdrop.classList.remove('show');
+    };
+
+    document.addEventListener('turbo:load', function() {
+        window.closeAppSidebar();
+    });
+
+    document.addEventListener('click', function(e) {
+        if (window.innerWidth < 992 && e.target.closest('.sidebar .nav-link')) {
+            window.closeAppSidebar();
+        }
+    });
 </script>
 
 

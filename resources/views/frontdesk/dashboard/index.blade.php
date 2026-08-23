@@ -146,6 +146,7 @@
 
     .room-toolbar-search {
         width: 360px;
+        max-width: 100%;
         height: 45px;
         border: 1px solid #827567;
         border-radius: 0.375rem;
@@ -168,6 +169,7 @@
 
     .room-toolbar-select {
         width: 200px;
+        max-width: 100%;
         height: 45px;
         border: 1px solid #827567 !important;
         border-radius: 8px;

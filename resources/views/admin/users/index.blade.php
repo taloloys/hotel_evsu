@@ -87,7 +87,7 @@
 </div>
 
 <!-- HEADER -->
-<div class="d-flex justify-content-between align-items-center mb-3">
+<div class="d-flex justify-content-between align-items-center flex-wrap gap-3 mb-3">
 
     <div>
         <h5 class="fw-bold mb-0">Hotel Staff Users</h5>
@@ -95,10 +95,10 @@
     </div>
 
     <!-- RIGHT ACTIONS WRAPPER -->
-    <div class="d-flex justify-content-end align-items-center gap-2">
+    <div class="d-flex justify-content-end align-items-center gap-2 flex-wrap ms-auto">
 
         <!-- SEARCH -->
-        <div style="width: 340px;">
+        <div style="width: 340px; max-width: 100%;">
             <div class="input-group"
                 style="border: 1px solid; border-radius: 6px; overflow: hidden; height: 38px;">
 

@@ -222,7 +222,7 @@ test('admin can update a user and sync direct permissions', function (): void {
     ];
 
     $response = $this->actingAs($this->adminUser)
-        ->put(route('admin.users.update', $staffUser), $updateData);
+        ->patch(route('admin.users.update', $staffUser), $updateData);
 
     $response->assertRedirect(route('admin.users'));
     $response->assertSessionHas('success', 'User updated successfully.');

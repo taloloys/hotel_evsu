@@ -28,6 +28,15 @@
 
             <div class="d-flex align-items-center">
 
+                <button class="btn btn-light d-lg-none me-2 shadow-sm rounded-circle d-flex align-items-center justify-content-center"
+                        type="button"
+                        id="sidebarToggleBtn"
+                        title="Toggle Navigation Menu"
+                        onclick="window.toggleAppSidebar()"
+                        style="width:40px;height:40px; background: #ffffff; border: 1px solid rgba(130,117,103,0.3); color: #334c42;">
+                    <i class="fa-solid fa-bars fs-5"></i>
+                </button>
+
                 <div>
 
                     <small class="text-uppercase fw-bold" style="color: #3d3329; font-family: 'Plus Jakarta Sans', sans-serif;">
@@ -38,7 +47,7 @@
 
                         <i class="fa-solid fa-location-dot me-2" style="color: #3a594b;"></i>
 
-                        <span class="fw-bold font-display" style="color: #29211a; font-size: 1.1rem;">
+                        <span class="fw-bold font-display text-truncate" style="color: #29211a; font-size: 1.1rem; max-width: 220px;">
                             @yield('pageTitle')
                         </span>
 
@@ -50,7 +59,7 @@
 
             <!-- Right Section -->
 
-            <div class="d-flex align-items-center gap-3">
+            <div class="d-flex align-items-center gap-2 gap-sm-3">
 
                 <!-- Date -->
 
@@ -98,7 +107,7 @@
 
                     <ul class="dropdown-menu dropdown-menu-end shadow border-0 rounded-3 py-0"
                         aria-labelledby="notificationDropdown"
-                        style="width: 320px; z-index: 1050;">
+                        style="width: 320px; max-width: calc(100vw - 32px); z-index: 1050;">
 
                         <li class="p-3 border-bottom bg-light">
                             <span class="fw-bold font-display" style="color: #504538;">Notifications</span>

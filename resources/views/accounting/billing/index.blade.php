@@ -9,8 +9,8 @@
 <!-- KPI ROW -->
 <div class="row g-3 mb-4">
 
-    <div class="col-lg-3">
-        <div class="card border-1 shadow-sm rounded-4">
+    <div class="col-12 col-sm-6 col-lg-3">
+        <div class="card border-1 shadow-sm rounded-4 h-100">
             <div class="card-body">
                 <div class="text-muted small mb-1">Total Sales ({{ $tab === 'pos' ? 'Coffee Shop' : 'Front Desk' }})</div>
                 <div class="fw-bold fs-4" style="color: #504538;">₱{{ number_format($totalSales, 2) }}</div>
@@ -18,8 +18,8 @@
         </div>
     </div>
 
-    <div class="col-lg-3">
-        <div class="card border-1 shadow-sm rounded-4">
+    <div class="col-12 col-sm-6 col-lg-3">
+        <div class="card border-1 shadow-sm rounded-4 h-100">
             <div class="card-body">
                 <div class="text-muted small mb-1">Cash Sales ({{ $tab === 'pos' ? 'Coffee Shop' : 'Front Desk' }})</div>
                 <div class="fw-bold fs-4 text-success">₱{{ number_format($cashSales, 2) }}</div>
@@ -27,8 +27,8 @@
         </div>
     </div>
 
-    <div class="col-lg-3">
-        <div class="card border-1 shadow-sm rounded-4">
+    <div class="col-12 col-sm-6 col-lg-3">
+        <div class="card border-1 shadow-sm rounded-4 h-100">
             <div class="card-body">
                 <div class="text-muted small mb-1">Credit Card Sales ({{ $tab === 'pos' ? 'Coffee Shop' : 'Front Desk' }})</div>
                 <div class="fw-bold fs-4" style="color: #334c42;">₱{{ number_format($creditSales, 2) }}</div>
@@ -36,8 +36,8 @@
         </div>
     </div>
 
-    <div class="col-lg-3">
-        <div class="card border-1 shadow-sm rounded-4">
+    <div class="col-12 col-sm-6 col-lg-3">
+        <div class="card border-1 shadow-sm rounded-4 h-100">
             <div class="card-body">
                 <div class="text-muted small mb-1">Outstanding Balance ({{ $tab === 'pos' ? 'POS Open Tabs' : 'Guest Folios' }})</div>
                 <div class="fw-bold fs-4 text-danger">₱{{ number_format($unpaidBalance, 2) }}</div>
@@ -60,17 +60,17 @@
 <!-- ACTION BAR -->
 <form action="{{ route('accounting.billing') }}" method="GET" class="card border-1 shadow-sm rounded-4 mb-3" id="billingFilterForm">
     <input type="hidden" name="tab" value="{{ $tab }}">
-    <div class="card-body d-flex justify-content-between align-items-center">
+    <div class="card-body d-flex justify-content-between align-items-center flex-wrap gap-3">
 
         <div>
             <div class="fw-bold" style="color: #504538;">Invoices</div>
             <small class="text-muted">All {{ $tab === 'pos' ? 'Coffee Shop' : 'Front Desk' }} billing records</small>
         </div>
 
-        <div class="d-flex align-items-center gap-2">
+        <div class="d-flex align-items-center gap-2 flex-wrap ms-auto">
 
             {{-- Search (live) --}}
-            <div style="width: 280px;">
+            <div style="width: 280px; max-width: 100%;">
                 <div class="input-group shadow-sm" style="border: 1px solid #c2a889; border-radius: 0.5rem; overflow: hidden; height: 45px; background-color: #ffffff;">
                     <span class="input-group-text bg-white border-0 px-3">
                         <i class="fa-solid fa-magnifying-glass" style="color: #627e71;"></i>

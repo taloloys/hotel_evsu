@@ -18,7 +18,6 @@ use App\Http\Controllers\Admin\PosApprovalController;
 use App\Http\Controllers\Admin\RoleController;
 use App\Http\Controllers\Admin\RoomController;
 use App\Http\Controllers\Admin\ShiftScheduleController;
-
 use App\Http\Controllers\Admin\UserController;
 use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\Coffeeshop\CustomerController as CoffeeshopCustomerController;
@@ -468,8 +467,6 @@ Route::middleware('auth')->group(function () {
             Route::delete('/backup-restore/delete/{filename}', [BackupRestoreController::class, 'deleteLocal'])
                 ->name('admin.backup-restore.delete-local');
         });
-
-
 
         Route::middleware('can:access-foodpanda')->get('/food-delivery', function () {
             return view('admin.food-delivery.index');

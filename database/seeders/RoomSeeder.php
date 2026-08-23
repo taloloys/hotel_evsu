@@ -31,6 +31,6 @@ class RoomSeeder extends Seeder
             }
         }
 
-        DB::table('rooms')->insert($rooms);
+        DB::table('rooms')->upsert($rooms, ['room_number'], ['room_type', 'base_rate', 'status']);
     }
 }

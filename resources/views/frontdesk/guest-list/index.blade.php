@@ -14,7 +14,7 @@
             <form method="GET" action="{{ route('frontdesk.guest-list') }}" id="searchForm" class="d-flex align-items-center gap-2 flex-wrap justify-content-end m-0">
                 
                 <!-- SEARCH -->
-                <div style="width: 320px;">
+                <div style="width: 320px; max-width: 100%;">
                     <div class="input-group shadow-sm" style="border: 1px solid #c2a889; border-radius: 0.5rem; overflow: hidden; height: 45px; background-color: #ffffff;">
                         <span class="input-group-text bg-white border-0 px-3">
                             <i class="fa-solid fa-magnifying-glass" style="color: #627e71;"></i>

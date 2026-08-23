@@ -23,7 +23,7 @@
     <form class="d-flex align-items-center gap-2 flex-wrap justify-content-end mb-3" method="GET" id="productsFilterForm">
 
         <!-- SEARCH -->
-        <div style="width: 320px;">
+        <div style="width: 320px; max-width: 100%;">
             <div class="input-group coffeeshop-form-control" style="border: 1px solid #827567; border-radius: 6px; height: 45px; overflow: hidden;">
                 <span class="input-group-text bg-white border-0 px-3">
                     <i class="fa-solid fa-magnifying-glass" style="color: #627e71; font-size: 1.05rem;"></i>

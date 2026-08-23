@@ -127,7 +127,6 @@ class User extends Authenticatable
         ];
     }
 
-
     public function isSuperAdmin(): bool
     {
         return (bool) ($this->role?->role_name === 'SUPER_ADMIN' || ($this->role?->is_system_admin && $this->role?->role_name !== 'ADMIN'));
@@ -137,7 +136,6 @@ class User extends Authenticatable
     {
         return $this->isSuperAdmin() || $this->role?->role_name === 'ADMIN' || $this->hasPermission('manage-users');
     }
-
 
     public function refresh()
     {
