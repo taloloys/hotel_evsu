@@ -248,8 +248,8 @@ class CheckInController extends Controller
      */
     private function generateFolioNumber(): string
     {
-        $year = now()->year;
-        $prefix = "REG-{$year}";
+        $date = now()->format('Ymd');
+        $prefix = "REG-{$date}-";
 
         $latest = Folio::query()
             ->where('folio_number', 'like', "{$prefix}%")
@@ -257,11 +257,11 @@ class CheckInController extends Controller
             ->value('folio_number');
 
         if (! $latest) {
-            return $prefix.'001';
+            return $prefix.'0001';
         }
 
         $sequence = (int) substr($latest, strlen($prefix)) + 1;
 
-        return $prefix.str_pad((string) $sequence, 3, '0', STR_PAD_LEFT);
+        return $prefix.str_pad((string) $sequence, 4, '0', STR_PAD_LEFT);
     }
 }

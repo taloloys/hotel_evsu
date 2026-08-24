@@ -67,7 +67,7 @@ class GuestListController extends Controller
             ->orderBy('last_name')
             ->orderBy('first_name');
 
-        $guests = $query->paginate(20)->withQueryString();
+        $guests = $query->paginate(10)->withQueryString();
 
         return view('frontdesk.guest-list.index', [
             'guests' => $guests,

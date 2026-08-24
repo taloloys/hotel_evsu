@@ -469,7 +469,7 @@
                     <div class="row g-4 mb-4">
 
                         <!-- Folio Number -->
-                        <div class="col-md-4">
+                        <div class="col-12 col-md-6">
                             <label class="form-label fw-semibold" for="folio_number">
                                 Folio Number
                             </label>
@@ -485,42 +485,8 @@
                                 style="height:46px; border:1px solid #000000;">
                         </div>
 
-                        <!-- Registration Number -->
-                        <div class="col-md-4">
-                            <label class="form-label fw-semibold" for="registration_number">
-                                Registration Number
-                            </label>
-
-                            <input
-                                type="text"
-                                class="form-control shadow-none @error('registration_number') is-invalid @enderror"
-                                id="registration_number"
-                                name="registration_number"
-                                value="{{ old('registration_number') }}"
-                                maxlength="20"
-                                placeholder="Enter registration number"
-                                style="height:46px; border:1px solid #000000;">
-                        </div>
-
-                        <!-- Account Number -->
-                        <div class="col-md-4">
-                            <label class="form-label fw-semibold" for="account_number">
-                                Account Number
-                            </label>
-
-                            <input
-                                type="text"
-                                class="form-control shadow-none @error('account_number') is-invalid @enderror"
-                                id="account_number"
-                                name="account_number"
-                                value="{{ old('account_number') }}"
-                                maxlength="20"
-                                placeholder="Enter account number"
-                                style="height:46px; border:1px solid #000000;">
-                        </div>
-
                         <!-- Number of Guests -->
-                        <div class="col-md-4">
+                        <div class="col-12 col-md-6">
                             <label class="form-label fw-semibold" for="num_pax">
                                 Number of Guests
                             </label>
