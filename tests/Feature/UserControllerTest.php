@@ -1,10 +1,12 @@
 <?php
 
+use App\Mail\UserAccountCreatedMail;
 use App\Models\Permission;
 use App\Models\Role;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Mail;
 
 uses(RefreshDatabase::class);
 
@@ -72,9 +74,12 @@ test('authenticated admin can view the users management page', function (): void
 });
 
 test('admin can create a new user with valid data', function (): void {
+    Mail::fake();
+
     $userData = [
         'full_name' => 'Jane Smith',
         'username' => 'janesmith',
+        'email' => 'jane@example.com',
         'password' => 'secret123',
         'role_id' => $this->staffRole->role_id,
     ];
@@ -88,11 +93,18 @@ test('admin can create a new user with valid data', function (): void {
     $this->assertDatabaseHas('users', [
         'username' => 'janesmith',
         'full_name' => 'Jane Smith',
+        'email' => 'jane@example.com',
         'role_id' => $this->staffRole->role_id,
     ]);
 
     $createdUser = User::where('username', 'janesmith')->first();
     expect(Hash::check('secret123', $createdUser->password_hash))->toBeTrue();
+
+    Mail::assertQueued(UserAccountCreatedMail::class, function ($mail) use ($createdUser) {
+        return $mail->hasTo('jane@example.com') &&
+               $mail->user->user_id === $createdUser->user_id &&
+               $mail->plainPassword === 'secret123';
+    });
 });
 
 test('user creation validation fails with missing data', function (): void {

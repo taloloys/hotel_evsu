@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Mail\UserAccountCreatedMail;
 use App\Models\ActivityLog;
 use App\Models\Permission;
 use App\Models\Role;
@@ -10,6 +11,7 @@ use App\Models\User;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Mail;
 use Illuminate\View\View;
 
 class UserController extends Controller
@@ -84,6 +86,14 @@ class UserController extends Controller
         ]);
 
         $user->permissions()->sync($request->input('permissions', []));
+
+        if (! empty($user->email)) {
+            try {
+                Mail::to($user->email)->queue(new UserAccountCreatedMail($user, $validated['password']));
+            } catch (\Throwable $e) {
+                \Illuminate\Support\Facades\Log::error('Failed to send account creation email: ' . $e->getMessage());
+            }
+        }
 
         ActivityLog::log(
             'USER_CREATED',

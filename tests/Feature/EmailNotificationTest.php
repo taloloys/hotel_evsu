@@ -15,8 +15,8 @@ beforeEach(function () {
     Mail::fake();
 
     $role = Role::firstOrCreate(
-        ['role_name' => 'ADMIN'],
-        ['description' => 'Administrator', 'is_system_admin' => true, 'is_active' => true]
+        ['role_name' => 'SUPER_ADMIN'],
+        ['description' => 'Super Administrator', 'is_system_admin' => true, 'is_active' => true]
     );
 
     $this->user = User::factory()->create([

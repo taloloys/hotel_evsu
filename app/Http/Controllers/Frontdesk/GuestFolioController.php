@@ -182,7 +182,7 @@ class GuestFolioController extends Controller
                     Mail::to($recipients)->queue(new PaymentReceiptMail($txn));
                 }
             } catch (\Throwable $e) {
-                // Log or ignore email dispatch failures gracefully
+                \Illuminate\Support\Facades\Log::error('Payment Receipt Email failed: ' . $e->getMessage());
             }
         }
 

@@ -2,7 +2,7 @@
 <html>
 <head>
     <meta charset="utf-8">
-    <title>Reservation Confirmation</title>
+    <title>Account Created - EVSU Ormoc - Hotel</title>
     <style>
         body { font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; background-color: #f4eee6; color: #504538; margin: 0; padding: 20px; }
         .container { max-width: 600px; margin: 0 auto; background: #ffffff; border-radius: 8px; overflow: hidden; box-shadow: 0 4px 10px rgba(0,0,0,0.05); }
@@ -16,50 +16,49 @@
         .detail-table td.label { color: #627e71; font-weight: 600; width: 40%; }
         .detail-table td.value { color: #111; font-weight: 500; text-align: right; }
         .footer { background-color: #f4eee6; padding: 15px 30px; text-align: center; font-size: 12px; color: #504538; border-top: 1px solid #e0d8cd; }
+        .btn { display: inline-block; padding: 12px 24px; background-color: #334e42; color: #ffffff; text-decoration: none; border-radius: 4px; font-weight: 600; font-size: 14px; margin-top: 25px; text-align: center; }
+        .btn:hover { background-color: #504538; }
     </style>
 </head>
 <body>
     <div class="container">
         <div class="header">
             <h1>EVSU Ormoc - Hotel</h1>
-            <p>EVSU Lodging & Conference Center</p>
+            <p>System Account Details</p>
         </div>
         <div class="content">
-            <span class="badge">Reservation Confirmed</span>
-            <h2 style="margin-top: 15px; font-size: 20px; color: #334e42;">Hello, {{ $guest ? ($guest->first_name . ' ' . $guest->last_name) : 'Valued Guest' }}!</h2>
-            <p>Thank you for choosing EVSU Ormoc - Hotel. Your room reservation has been successfully confirmed. Below are your booking details:</p>
+            <span class="badge">Account Created</span>
+            <h2 style="margin-top: 15px; font-size: 20px; color: #334e42;">Hello, {{ $user->full_name }}!</h2>
+            <p>An account has been created for you in the EVSU Ormoc - Hotel system. Below are your login credentials and account details:</p>
             
             <table class="detail-table">
                 <tr>
-                    <td class="label">Folio Number</td>
-                    <td class="value">#{{ $folio?->folio_number ?? 'N/A' }}</td>
+                    <td class="label">Full Name</td>
+                    <td class="value">{{ $user->full_name }}</td>
                 </tr>
                 <tr>
-                    <td class="label">Room Number</td>
-                    <td class="value">Room {{ $room?->room_number ?? 'Assigned on Arrival' }} ({{ $room?->room_type ?? 'Standard' }})</td>
+                    <td class="label">Username</td>
+                    <td class="value">{{ $user->username }}</td>
                 </tr>
                 <tr>
-                    <td class="label">Arrival Date & Time</td>
-                    <td class="value">{{ \Carbon\Carbon::parse($booking->arrival_date)->format('M d, Y') }} at {{ $booking->arrival_time ?? '14:00' }}</td>
+                    <td class="label">Role</td>
+                    <td class="value">{{ $user->role?->description ?? $user->role?->role_name ?? 'Staff' }}</td>
                 </tr>
                 <tr>
-                    <td class="label">Departure Date</td>
-                    <td class="value">{{ $booking->departure_date ? \Carbon\Carbon::parse($booking->departure_date)->format('M d, Y') : 'Open Stay' }}</td>
-                </tr>
-                <tr>
-                    <td class="label">Number of Guests</td>
-                    <td class="value">{{ $folio?->num_pax ?? 1 }} Pax</td>
-                </tr>
-                <tr>
-                    <td class="label">Nightly Rate</td>
-                    <td class="value">₱{{ number_format($folio?->net_rate ?? $room?->base_rate ?? 0, 2) }}</td>
+                    <td class="label">Password</td>
+                    <td class="value"><code>{{ $plainPassword }}</code></td>
                 </tr>
             </table>
 
-            <p style="margin-top: 25px; font-size: 14px; color: #555;">If you have any questions or need to make changes to your stay, please contact our Frontdesk team.</p>
+            <div style="text-align: center;">
+                <a href="{{ route('login') }}" class="btn">Login to System</a>
+            </div>
+
+            <p style="margin-top: 25px; font-size: 14px; color: #555;">For security reasons, we strongly recommend that you change your password immediately after logging in for the first time.</p>
         </div>
         <div class="footer">
-            &copy; {{ date('Y') }} EVSU Ormoc - Hotel. All rights reserved.
+            <p>&copy; {{ date('Y') }} EVSU Ormoc - Hotel. All rights reserved.</p>
+            <p>This is an automated system email. Please do not reply directly.</p>
         </div>
     </div>
 </body>

@@ -1,24 +1,27 @@
 <!DOCTYPE html>
 <html>
+
 <head>
     <meta charset="utf-8">
-    <title>Official Guest Folio - EVSU Hotel</title>
+    <title>Official Guest Folio - EVSU Ormoc - Hotel</title>
     <style>
         body {
             font-family: Arial, sans-serif;
-            background-color: #f4f6f9;
-            color: #000000;
+            background-color: #f4eee6;
+            color: #504538;
             margin: 0;
             padding: 20px;
         }
+
         .folio-container {
             max-width: 720px;
             margin: 0 auto;
             background: #ffffff;
             border: 1px solid #dcdcdc;
             padding: 25px;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
         }
+
         .header-table {
             width: 100%;
             border-collapse: collapse;
@@ -26,6 +29,7 @@
             border-bottom: 1px solid #000000;
             padding-bottom: 15px;
         }
+
         .hotel-title {
             font-size: 18px;
             font-weight: bold;
@@ -33,6 +37,7 @@
             letter-spacing: 0.5px;
             margin: 0;
         }
+
         .meta-table {
             width: 100%;
             font-size: 11px;
@@ -40,24 +45,29 @@
             line-height: 1.5;
             border-collapse: collapse;
         }
+
         .meta-table td {
             padding: 2px 4px;
         }
+
         .ledger-table {
             width: 100%;
             border-collapse: collapse;
             font-size: 11px;
             margin-bottom: 15px;
         }
+
         .ledger-table th {
             border-top: 1px solid #000;
             border-bottom: 1px solid #000;
             padding: 6px 4px;
             text-align: left;
         }
+
         .ledger-table td {
             padding: 5px 4px;
         }
+
         .summary-block {
             display: flex;
             justify-content: space-between;
@@ -67,30 +77,33 @@
         }
     </style>
 </head>
+
 <body>
     @php
         $booking = $folio->bookings->sortByDesc('booking_id')->first();
-        $room    = $booking?->room;
+        $room = $booking?->room;
     @endphp
 
     <div class="folio-container">
-        
+
         {{-- Header block --}}
         <table class="header-table">
             <tr>
                 <td style="width: 20%; vertical-align: top;">
-                    <img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.png" alt="EVSU Hotel" style="width: 70px; height: auto;" />
+                    <img src="{{ asset('images/htmd_side_brand.png') }}"
+                        alt="EVSU Ormoc - Hotel" style="width: 140px; height: auto;" />
                 </td>
-                <td style="width: 60%; text-align: center; vertical-align: top;">
-                    <h3 class="hotel-title">EVSU Hotel</h3>
-                    <div style="font-size: 10px; margin-top: 3px; line-height: 1.3; color: #333;">
-                        Bonifacio Street, Ormoc City<br>
-                        Tel. Nos. 255-3580 &bull; Fax No. 561-9620<br>
-                        Email: hdfelipe@yahoo.com
+                <td style="width: 60%; text-align: center; vertical-align: top; color: #334e42;">
+                    <h3 class="hotel-title">EVSU Ormoc - Hotel</h3>
+                    <div style="font-size: 10px; margin-top: 4px; line-height: 1.3; color: #504538;">
+                        Brgy. Don Felipe Larrazabal, Ormoc City, Leyte, Philippines
                     </div>
-                    <h4 style="font-size: 13px; font-weight: bold; margin: 12px 0 0 0; text-transform: uppercase; letter-spacing: 1px;">Guest Folio Statement</h4>
+                    <h4
+                        style="font-size: 13px; font-weight: bold; margin: 12px 0 0 0; text-transform: uppercase; letter-spacing: 1px;">
+                        Guest Folio Statement</h4>
                 </td>
-                <td style="width: 20%; text-align: right; font-size: 10px; font-weight: bold; line-height: 1.4; vertical-align: top;">
+                <td
+                    style="width: 20%; text-align: right; font-size: 10px; font-weight: bold; line-height: 1.4; vertical-align: top;">
                     <div>REG. NO. &nbsp;: {{ $folio->registration_number ?? '—' }}</div>
                     <div>FOLIO NO. : {{ $folio->folio_number }}</div>
                 </td>
@@ -106,23 +119,27 @@
                 <td style="width: 35%;">
                     : @if($folio->bookings->count() > 1)
                         @foreach($folio->bookings->sortBy('booking_id') as $b)
-                            Room {{ $b->room?->room_number }} [{{ $b->arrival_date?->format('m/d') }} to {{ $b->departure_date?->format('m/d') ?? 'Open' }}]{{ !$loop->last ? '; ' : '' }}
+                            Room {{ $b->room?->room_number }} [{{ $b->arrival_date?->format('m/d') }} to
+                            {{ $b->departure_date?->format('m/d') ?? 'Open' }}]{{ !$loop->last ? '; ' : '' }}
                         @endforeach
-                      @else
+                    @else
                         Room {{ $booking?->room?->room_number ?? 'N/A' }}
-                      @endif
-                    <br>&nbsp;&nbsp;Rate: <strong>₱{{ number_format($folio->net_rate ?? ($booking?->room?->base_rate ?? 0), 2) }}</strong>
+                    @endif
+                    <br>&nbsp;&nbsp;Rate:
+                    <strong>₱{{ number_format($folio->net_rate ?? ($booking?->room?->base_rate ?? 0), 2) }}</strong>
                 </td>
             </tr>
             <tr>
                 <td style="font-weight: bold;">GUEST NAME</td>
-                <td>: {{ strtoupper($folio->guest?->last_name ?? '') }}, {{ strtoupper($folio->guest?->first_name ?? '') }}</td>
+                <td>: {{ strtoupper($folio->guest?->last_name ?? '') }},
+                    {{ strtoupper($folio->guest?->first_name ?? '') }}</td>
                 <td style="font-weight: bold;">STATUS</td>
                 <td>: <strong>{{ strtoupper($folio->status) }}</strong></td>
             </tr>
             <tr>
                 <td style="font-weight: bold;">ADDRESS</td>
-                <td colspan="3">: {{ strtoupper($folio->guest?->address_line1 ?? '') }} {{ strtoupper($folio->guest?->address_line2 ?? '') }}</td>
+                <td colspan="3">: {{ strtoupper($folio->guest?->address_line1 ?? '') }}
+                    {{ strtoupper($folio->guest?->address_line2 ?? '') }}</td>
             </tr>
             <tr>
                 <td style="font-weight: bold;">CHECK-IN</td>
@@ -132,9 +149,13 @@
             </tr>
             <tr>
                 <td style="font-weight: bold;">TIME</td>
-                <td>: {{ $booking?->arrival_time ? \Carbon\Carbon::parse($booking->arrival_time)->format('h:i A') : 'N/A' }}</td>
+                <td>:
+                    {{ $booking?->arrival_time ? \Carbon\Carbon::parse($booking->arrival_time)->format('h:i A') : 'N/A' }}
+                </td>
                 <td style="font-weight: bold;">TIME</td>
-                <td>: {{ $booking?->departure_time ? \Carbon\Carbon::parse($booking->departure_time)->format('h:i A') : 'N/A' }}</td>
+                <td>:
+                    {{ $booking?->departure_time ? \Carbon\Carbon::parse($booking->departure_time)->format('h:i A') : 'N/A' }}
+                </td>
             </tr>
             <tr>
                 <td style="font-weight: bold;">PAYMENT</td>
@@ -170,7 +191,7 @@
                     @php
                         $runningBal += ($txn->charge_amount - $txn->credit_amount);
                         $printCode = (int) $txn->charge_code;
-                        $printCat  = $txn->chargeCode?->category ?? 'HOTEL';
+                        $printCat = $txn->chargeCode?->category ?? 'HOTEL';
 
                         if ($printCat === 'PAYMENT') {
                             $printSumPayments += $txn->credit_amount;
@@ -216,7 +237,8 @@
         </div>
 
         {{-- Summary Breakdown --}}
-        <table style="width: 100%; border-collapse: collapse; font-size: 11px; margin-top: 15px; border-top: 1px solid #eee; padding-top: 10px;">
+        <table
+            style="width: 100%; border-collapse: collapse; font-size: 11px; margin-top: 15px; border-top: 1px solid #eee; padding-top: 10px;">
             <tr>
                 <td style="width: 50%; vertical-align: top; padding-right: 20px;">
                     <div style="font-weight: bold; margin-bottom: 5px;">Remarks:</div>
@@ -276,10 +298,12 @@
             </tr>
         </table>
 
-        <div style="margin-top: 25px; text-align: center; font-size: 11px; color: #666; border-top: 1px solid #eee; padding-top: 15px;">
-            Thank you for staying at <strong>EVSU Hotel</strong>! We look forward to welcoming you back.
+        <div
+            style="margin-top: 25px; text-align: center; font-size: 11px; color: #627e71; border-top: 1px solid #c2a889; padding-top: 15px;">
+            Thank you for staying at <strong>EVSU Ormoc - Hotel</strong>! We look forward to welcoming you back.
         </div>
 
     </div>
 </body>
+
 </html>
