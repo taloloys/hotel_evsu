@@ -10,7 +10,9 @@ use Illuminate\Mail\Mailable;
 use Illuminate\Mail\Mailables\Address;
 use Illuminate\Mail\Mailables\Content;
 use Illuminate\Mail\Mailables\Envelope;
+use Illuminate\Mail\Mailables\Attachment;
 use Illuminate\Queue\SerializesModels;
+use Barryvdh\DomPDF\Facade\Pdf;
 
 class FolioBillingMail extends Mailable implements ShouldQueue
 {
@@ -32,14 +34,22 @@ class FolioBillingMail extends Mailable implements ShouldQueue
         $this->folio->load(['guest', 'transactions.chargeCode', 'bookings.room']);
 
         return new Content(
-            view: 'emails.folio-billing',
+            view: 'emails.folio-email-body',
             with: [
                 'folio' => $this->folio,
                 'guest' => $this->folio->guest,
-                'transactions' => $this->folio->transactions,
-                'bookings' => $this->folio->bookings,
             ],
         );
+    }
+
+    public function attachments(): array
+    {
+        return [
+            Attachment::fromData(fn () => Pdf::loadView('emails.folio-billing', [
+                'folio' => $this->folio,
+            ])->output(), "Folio-{$this->folio->folio_number}.pdf")
+                ->withMime('application/pdf'),
+        ];
     }
 
     protected function resolveSender(): ?Address

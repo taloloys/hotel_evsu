@@ -1341,226 +1341,228 @@
 
     {{-- High-fidelity printable folio view --}}
 
-    <div class="d-none d-print-block print-only-folio" id="print-folio-{{ $folio->folio_id }}" style="font-family: Arial, sans-serif; color: #000000; background: #ffffff; padding: 20px; line-height: 1.4; width: 100%;">
-        
-        {{-- Header block --}}
-        <table style="width: 100%; border-collapse: collapse; margin-bottom: 20px; border-bottom: 1px solid #000; padding-bottom: 15px;">
-            <tr>
-                <!-- Left Logo -->
-                <td style="width: 20%; vertical-align: top;">
-                    <img src="{{ asset('images/logo.png') }}" alt="Logo" style="width: 75px; height: auto; object-fit: contain;">
-                </td>
-                <!-- Center Hotel Info -->
-                <td style="width: 60%; text-align: center; vertical-align: top;">
-                    <h3 style="font-size: 18px; font-weight: bold; margin: 0; text-transform: uppercase; letter-spacing: 0.5px;">EVSU Hotel</h3>
-                    <div style="font-size: 10px; margin-top: 3px; line-height: 1.3;">
-                        Bonifacio Street, Ormoc City<br>
-                        Tel. Nos. 255-3580 &bull; Fax No. 561-9620<br>
-                        Email: hdfelipe@yahoo.com
-                    </div>
-                    <h4 style="font-size: 13px; font-weight: bold; margin: 12px 0 0 0; text-transform: uppercase; letter-spacing: 1px;">Guest Folio</h4>
-                </td>
-                <!-- Right Registration/Folio Numbers -->
-                <td style="width: 20%; text-align: right; font-size: 10px; font-weight: bold; line-height: 1.4; vertical-align: top; padding-top: 5px;">
-                    <div>REG. NO. &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;: {{ $folio->registration_number ?? '—' }}</div>
-                    <div>FOLIO NO. : {{ $folio->folio_number }}</div>
-                </td>
-            </tr>
-        </table>
-
-        {{-- Metadata grid --}}
-        <table style="width: 100%; font-size: 11px; margin-bottom: 20px; line-height: 1.5; border-collapse: collapse;">
-            <tr>
-                <td style="width: 13%; font-weight: bold; vertical-align: top;">DATE</td>
-                <td style="width: 37%; vertical-align: top;">: {{ now()->format('m/d/Y') }}</td>
-                <td style="width: 13%; font-weight: bold; vertical-align: top;">ROOM(S)</td>
-                <td style="width: 37%; vertical-align: top;" colspan="3">
-                    : @if($folio->bookings->count() > 1)
-                        @foreach($folio->bookings->sortBy('booking_id') as $b)
-                            Room {{ $b->room?->room_number }} [{{ $b->arrival_date?->format('m/d') }} to {{ $b->departure_date?->format('m/d') ?? 'Open' }}]{{ !$loop->last ? '; ' : '' }}
-                        @endforeach
-                      @else
-                        Room {{ $booking?->room?->room_number ?? 'N/A' }}
-                      @endif
-                    <br>
-                    &nbsp;&nbsp;Rate: <strong>₱{{ number_format($folio->net_rate ?? ($booking?->room?->base_rate ?? 0), 2) }}</strong>
-                </td>
-            </tr>
-            <tr>
-                <td style="font-weight: bold; vertical-align: top;">GUEST NAME</td>
-                <td style="vertical-align: top;">: {{ strtoupper($folio->guest?->last_name ?? '') }}, {{ strtoupper($folio->guest?->first_name ?? '') }}</td>
-                <td style="vertical-align: top;" colspan="4">&nbsp;</td>
-            </tr>
-            <tr>
-                <td style="font-weight: bold; vertical-align: top;">ADDRESS</td>
-                <td style="vertical-align: top;">: {{ strtoupper($folio->guest?->address_line1 ?? '') }} {{ strtoupper($folio->guest?->address_line2 ?? '') }}</td>
-                <td style="vertical-align: top;" colspan="4">&nbsp;</td>
-            </tr>
-            <tr>
-                <td style="font-weight: bold; vertical-align: top;">CHECK-IN</td>
-                <td style="vertical-align: top;">: {{ $booking?->arrival_date?->format('m/d/Y') ?? 'N/A' }}</td>
-                <td style="font-weight: bold; vertical-align: top;">CHECK-OUT</td>
-                <td style="vertical-align: top;">: {{ $booking?->departure_date?->format('m/d/Y') ?? 'N/A' }}</td>
-                <td style="font-weight: bold; vertical-align: top; width: 12%;">PERSON/S</td>
-                <td style="vertical-align: top; width: 8%;">: {{ $folio->num_pax }}</td>
-            </tr>
-            <tr>
-                <td style="font-weight: bold; vertical-align: top;">TIME</td>
-                <td style="vertical-align: top;">: {{ $booking?->arrival_time ? \Carbon\Carbon::parse($booking->arrival_time)->format('h:i A') : 'N/A' }}</td>
-                <td style="font-weight: bold; vertical-align: top;">TIME</td>
-                <td style="vertical-align: top;" colspan="3">: {{ $booking?->departure_time ? \Carbon\Carbon::parse($booking->departure_time)->format('h:i A') : 'N/A' }}</td>
-            </tr>
-            <tr>
-                <td style="font-weight: bold; vertical-align: top;">PAYMENT</td>
-                <td style="vertical-align: top;">: {{ strtoupper($folio->payment_method ?? 'NONE') }}</td>
-                <td style="font-weight: bold; vertical-align: top;">F/DESK</td>
-                <td style="vertical-align: top;">: {{ strtoupper(auth()->user()?->full_name ?? auth()->user()?->username ?? 'SYSTEM') }}</td>
-                <td style="font-weight: bold; vertical-align: top;">SYMBOL</td>
-                <td style="vertical-align: top;">: </td>
-            </tr>
-            <tr>
-                <td style="font-weight: bold; vertical-align: top;">MODE</td>
-                <td style="vertical-align: top;">: </td>
-                <td style="vertical-align: top;" colspan="2">&nbsp;</td>
-                <td style="vertical-align: top;" colspan="2">&nbsp;&nbsp;{{ $folio->symbol }}</td>
-            </tr>
-        </table>
-
-        {{-- Transactions table --}}
-        <table style="width: 100%; font-size: 11px; border-collapse: collapse; margin-bottom: 20px;">
-            <thead>
-                <tr style="border-top: 1px solid #000; border-bottom: 1px solid #000; font-weight: bold;">
-                    <th style="padding: 5px 0; text-align: left; width: 15%;">DATE</th>
-                    <th style="padding: 5px 0; text-align: left; width: 45%;">REFERENCE</th>
-                    <th style="padding: 5px 0; text-align: right; width: 13%;">CHARGE</th>
-                    <th style="padding: 5px 0; text-align: right; width: 13%;">CREDIT</th>
-                    <th style="padding: 5px 0; text-align: right; width: 14%;">BALANCE</th>
+    <div class="d-none d-print-block print-only-folio" id="print-folio-{{ $folio->folio_id }}" style="font-family: Arial, sans-serif; background-color: #f4eee6; color: #504538; padding: 20px; width: 100%;">
+        <div style="max-width: 100%; margin: 0 auto; background: #ffffff; border: 1px solid #dcdcdc; padding: 25px; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);">
+            {{-- Header block --}}
+            <table style="width: 100%; border-collapse: collapse; margin-bottom: 20px; border-bottom: 1px solid #000000; padding-bottom: 15px;">
+                <tr>
+                    <td style="width: 20%; vertical-align: top;">
+                        <img src="{{ asset('images/logo.png') }}"
+                            alt="EVSU Ormoc - Hotel" style="width: 80px; height: auto;" />
+                    </td>
+                    <td style="width: 60%; text-align: center; vertical-align: top; color: #334e42;">
+                        <h3 style="font-size: 18px; font-weight: bold; text-transform: uppercase; letter-spacing: 0.5px; margin: 0;">EVSU Ormoc - Hotel</h3>
+                        <div style="font-size: 10px; margin-top: 4px; line-height: 1.3; color: #504538;">
+                            Brgy. Don Felipe Larrazabal, Ormoc City, Leyte, Philippines
+                        </div>
+                        <h4
+                            style="font-size: 13px; font-weight: bold; margin: 12px 0 0 0; text-transform: uppercase; letter-spacing: 1px;">
+                            Guest Folio Statement</h4>
+                    </td>
+                    <td
+                        style="width: 20%; text-align: right; font-size: 10px; font-weight: bold; line-height: 1.4; vertical-align: top;">
+                        <div>REG. NO. &nbsp;: {{ $folio->registration_number ?? '—' }}</div>
+                        <div>FOLIO NO. : {{ $folio->folio_number }}</div>
+                    </td>
                 </tr>
-            </thead>
-            <tbody>
-                @php
-                    $runningBal = 0.00;
-                    $printSumRoom = 0.00;
-                    $printSumRestaurant = 0.00;
-                    $printSumLaundry = 0.00;
-                    $printSumTax = 0.00;
-                    $printSumDiscounts = 0.00;
-                    $printSumOther = 0.00;
-                    $printSumPayments = 0.00;
-                @endphp
-                @foreach($folio->transactions->sortBy('timestamp') as $txn)
-                    @php
-                        $runningBal += ($txn->charge_amount - $txn->credit_amount);
-                        $printCode = (int) $txn->charge_code;
-                        $printCat  = $txn->chargeCode?->category ?? 'HOTEL';
+            </table>
 
-                        if ($printCat === 'PAYMENT') {
-                            $printSumPayments += $txn->credit_amount;
-                        } elseif ($printCode === 100 || $printCode === 103) {
-                            $printSumRoom += $txn->charge_amount;
-                        } elseif ($printCode === 104 || $printCode === 105) {
-                            $printSumLaundry += $txn->charge_amount;
-                        } elseif ($printCode === 200) {
-                            $printSumRestaurant += $txn->charge_amount;
-                        } elseif ($printCat === 'TAX_SERVICE') {
-                            $printSumTax += $txn->charge_amount;
-                        } elseif ($printCode === 201) {
-                            $printSumDiscounts += $txn->charge_amount;
-                        } else {
-                            $printSumOther += $txn->charge_amount;
-                        }
-                    @endphp
+            {{-- Metadata grid --}}
+            <table style="width: 100%; font-size: 11px; margin-bottom: 20px; line-height: 1.5; border-collapse: collapse;">
+                <tr>
+                    <td style="width: 15%; font-weight: bold; padding: 2px 4px;">DATE</td>
+                    <td style="width: 35%; padding: 2px 4px;">: {{ now()->format('m/d/Y') }}</td>
+                    <td style="width: 15%; font-weight: bold; padding: 2px 4px;">ROOM(S)</td>
+                    <td style="width: 35%; padding: 2px 4px;">
+                        : @if($folio->bookings->count() > 1)
+                            @foreach($folio->bookings->sortBy('booking_id') as $b)
+                                Room {{ $b->room?->room_number }} [{{ $b->arrival_date?->format('m/d') }} to
+                                {{ $b->departure_date?->format('m/d') ?? 'Open' }}]{{ !$loop->last ? '; ' : '' }}
+                            @endforeach
+                        @else
+                            Room {{ $booking?->room?->room_number ?? 'N/A' }}
+                        @endif
+                        <br>&nbsp;&nbsp;Rate:
+                        <strong>₱{{ number_format($folio->net_rate ?? ($booking?->room?->base_rate ?? 0), 2) }}</strong>
+                    </td>
+                </tr>
+                <tr>
+                    <td style="font-weight: bold; padding: 2px 4px;">GUEST NAME</td>
+                    <td style="padding: 2px 4px;">: {{ strtoupper($folio->guest?->last_name ?? '') }},
+                        {{ strtoupper($folio->guest?->first_name ?? '') }}</td>
+                    <td style="font-weight: bold; padding: 2px 4px;">STATUS</td>
+                    <td style="padding: 2px 4px;">: <strong>{{ strtoupper($folio->status) }}</strong></td>
+                </tr>
+                <tr>
+                    <td style="font-weight: bold; padding: 2px 4px;">ADDRESS</td>
+                    <td colspan="3" style="padding: 2px 4px;">: {{ strtoupper($folio->guest?->address_line1 ?? '') }}
+                        {{ strtoupper($folio->guest?->address_line2 ?? '') }}</td>
+                </tr>
+                <tr>
+                    <td style="font-weight: bold; padding: 2px 4px;">CHECK-IN</td>
+                    <td style="padding: 2px 4px;">: {{ $booking?->arrival_date?->format('m/d/Y') ?? 'N/A' }}</td>
+                    <td style="font-weight: bold; padding: 2px 4px;">CHECK-OUT</td>
+                    <td style="padding: 2px 4px;">: {{ $booking?->departure_date?->format('m/d/Y') ?? 'N/A' }} (PAX: {{ $folio->num_pax }})</td>
+                </tr>
+                <tr>
+                    <td style="font-weight: bold; padding: 2px 4px;">TIME</td>
+                    <td style="padding: 2px 4px;">:
+                        {{ $booking?->arrival_time ? \Carbon\Carbon::parse($booking->arrival_time)->format('h:i A') : 'N/A' }}
+                    </td>
+                    <td style="font-weight: bold; padding: 2px 4px;">TIME</td>
+                    <td style="padding: 2px 4px;">:
+                        {{ $booking?->departure_time ? \Carbon\Carbon::parse($booking->departure_time)->format('h:i A') : 'N/A' }}
+                    </td>
+                </tr>
+                <tr>
+                    <td style="font-weight: bold; padding: 2px 4px;">PAYMENT</td>
+                    <td style="padding: 2px 4px;">: {{ strtoupper($folio->payment_method ?? 'NONE') }}</td>
+                    <td style="font-weight: bold; padding: 2px 4px;">FRONTDESK</td>
+                    <td style="padding: 2px 4px;">: {{ strtoupper(auth()->user()?->full_name ?? auth()->user()?->username ?? 'STAFF') }}</td>
+                </tr>
+            </table>
+
+            {{-- Itemized Ledger Table --}}
+            <table style="width: 100%; border-collapse: collapse; font-size: 11px; margin-bottom: 15px;">
+                <thead>
                     <tr>
-                        <td style="padding: 4px 0;">{{ $txn->transaction_date->format('m/d/Y') }}</td>
-                        <td style="padding: 4px 0;">
-                            {{ $txn->chargeCode?->description ?? 'CHARGE' }}
-                            @if($txn->reference_notes) — {{ $txn->reference_notes }} @endif
-                            @if($txn->charge_number) ({{ $txn->charge_number }}) @endif
-                        </td>
-                        <td style="padding: 4px 0; text-align: right;">
-                            {{ $txn->charge_amount > 0 ? number_format($txn->charge_amount, 2) : '' }}
-                        </td>
-                        <td style="padding: 4px 0; text-align: right;">
-                            {{ $txn->credit_amount > 0 ? number_format($txn->credit_amount, 2) : '' }}
-                        </td>
-                        <td style="padding: 4px 0; text-align: right;">{{ number_format($runningBal, 2) }}</td>
+                        <th style="width: 15%; border-top: 1px solid #000; border-bottom: 1px solid #000; padding: 6px 4px; text-align: left;">DATE</th>
+                        <th style="width: 45%; border-top: 1px solid #000; border-bottom: 1px solid #000; padding: 6px 4px; text-align: left;">REFERENCE</th>
+                        <th style="text-align: right; width: 13%; border-top: 1px solid #000; border-bottom: 1px solid #000; padding: 6px 4px;">CHARGE</th>
+                        <th style="text-align: right; width: 13%; border-top: 1px solid #000; border-bottom: 1px solid #000; padding: 6px 4px;">CREDIT</th>
+                        <th style="text-align: right; width: 14%; border-top: 1px solid #000; border-bottom: 1px solid #000; padding: 6px 4px;">BALANCE</th>
                     </tr>
-                @endforeach
-                {{-- Total balance row --}}
-                <tr style="border-top: 1px solid #000; border-bottom: 3px double #000; font-weight: bold;">
-                    <td colspan="4" style="padding: 8px 0;">Total Balance - ₱</td>
-                    <td style="padding: 8px 0; text-align: right;">{{ number_format($runningBal, 2) }}</td>
-                </tr>
-            </tbody>
-        </table>
+                </thead>
+                <tbody>
+                    @php
+                        $runningBal = 0.00;
+                        $printSumRoom = 0.00;
+                        $printSumRestaurant = 0.00;
+                        $printSumLaundry = 0.00;
+                        $printSumTax = 0.00;
+                        $printSumDiscounts = 0.00;
+                        $printSumOther = 0.00;
+                        $printSumPayments = 0.00;
+                    @endphp
+                    @foreach($folio->transactions->sortBy('timestamp') as $txn)
+                        @php
+                            $runningBal += ($txn->charge_amount - $txn->credit_amount);
+                            $printCode = (int) $txn->charge_code;
+                            $printCat = $txn->chargeCode?->category ?? 'HOTEL';
 
-        {{-- Nothing follows centered --}}
-        <div style="text-align: center; font-size: 10px; font-weight: bold; font-style: italic; margin-bottom: 25px;">
-            *** Nothing follows ***
-        </div>
-
-        {{-- Summary & Remarks --}}
-        <div style="display: flex; justify-content: space-between; align-items: flex-start; font-size: 11px;">
-            <!-- Left Remarks -->
-            <div style="width: 50%;">
-                <div style="font-weight: bold; margin-bottom: 5px;">Remarks :</div>
-                <div style="border-bottom: 1px dashed #ccc; height: 40px; width: 90%;"></div>
-            </div>
-            <!-- Right Summary -->
-            <div style="width: 45%;">
-                <div style="font-weight: bold; font-style: italic; margin-bottom: 8px;">SUMMARY :</div>
-                <table style="width: 100%; border-collapse: collapse; line-height: 1.5;">
-                    @if($printSumRoom > 0)
+                            if ($printCat === 'PAYMENT') {
+                                $printSumPayments += $txn->credit_amount;
+                            } elseif ($printCode === 100 || $printCode === 103) {
+                                $printSumRoom += $txn->charge_amount;
+                            } elseif ($printCode === 104 || $printCode === 105) {
+                                $printSumLaundry += $txn->charge_amount;
+                            } elseif ($printCode === 200) {
+                                $printSumRestaurant += $txn->charge_amount;
+                            } elseif ($printCat === 'TAX_SERVICE') {
+                                $printSumTax += $txn->charge_amount;
+                            } elseif ($printCode === 201) {
+                                $printSumDiscounts += $txn->charge_amount;
+                            } else {
+                                $printSumOther += $txn->charge_amount;
+                            }
+                        @endphp
                         <tr>
-                            <td>ROOM CHARGES</td>
-                            <td style="text-align: right;">{{ number_format($printSumRoom, 2) }}</td>
+                            <td style="padding: 5px 4px;">{{ $txn->transaction_date->format('m/d/Y') }}</td>
+                            <td style="padding: 5px 4px;">
+                                {{ $txn->chargeCode?->description ?? 'CHARGE' }}
+                                @if($txn->reference_notes) — {{ $txn->reference_notes }} @endif
+                                @if($txn->charge_number) ({{ $txn->charge_number }}) @endif
+                            </td>
+                            <td style="text-align: right; padding: 5px 4px;">
+                                {{ $txn->charge_amount > 0 ? number_format($txn->charge_amount, 2) : '' }}
+                            </td>
+                            <td style="text-align: right; padding: 5px 4px;">
+                                {{ $txn->credit_amount > 0 ? number_format($txn->credit_amount, 2) : '' }}
+                            </td>
+                            <td style="text-align: right; padding: 5px 4px;">{{ number_format($runningBal, 2) }}</td>
                         </tr>
-                    @endif
-                    @if($printSumRestaurant > 0)
-                        <tr>
-                            <td>RESTAURANT / FOOD &amp; BEVERAGE</td>
-                            <td style="text-align: right;">{{ number_format($printSumRestaurant, 2) }}</td>
-                        </tr>
-                    @endif
-                    @if($printSumLaundry > 0)
-                        <tr>
-                            <td>LAUNDRY SERVICE &amp; PRESSING</td>
-                            <td style="text-align: right;">{{ number_format($printSumLaundry, 2) }}</td>
-                        </tr>
-                    @endif
-                    @if($printSumTax > 0)
-                        <tr>
-                            <td>TAXES &amp; SERVICE CHARGES</td>
-                            <td style="text-align: right;">{{ number_format($printSumTax, 2) }}</td>
-                        </tr>
-                    @endif
-                    @if($printSumDiscounts > 0)
-                        <tr>
-                            <td>DISCOUNTS / COMPLIMENTARY</td>
-                            <td style="text-align: right;">{{ number_format($printSumDiscounts, 2) }}</td>
-                        </tr>
-                    @endif
-                    @if($printSumOther > 0)
-                        <tr>
-                            <td>OTHER CHARGES</td>
-                            <td style="text-align: right;">{{ number_format($printSumOther, 2) }}</td>
-                        </tr>
-                    @endif
-                    @if($printSumPayments > 0)
-                        <tr style="border-top: 1px solid #999;">
-                            <td>TOTAL PAYMENTS</td>
-                            <td style="text-align: right;">({{ number_format($printSumPayments, 2) }})</td>
-                        </tr>
-                    @endif
+                    @endforeach
                     <tr style="border-top: 1px solid #000; border-bottom: 3px double #000; font-weight: bold;">
-                        <td style="padding: 5px 0;">OUTSTANDING BALANCE</td>
-                        <td style="padding: 5px 0; text-align: right;">{{ number_format($runningBal, 2) }}</td>
+                        <td colspan="4" style="padding: 8px 4px;">Total Balance - ₱</td>
+                        <td style="padding: 8px 4px; text-align: right;">{{ number_format($runningBal, 2) }}</td>
                     </tr>
-                </table>
-            </div>
-        </div>
+                </tbody>
+            </table>
 
+            <div style="text-align: center; font-size: 10px; font-weight: bold; font-style: italic; margin-bottom: 20px;">
+                *** Nothing follows ***
+            </div>
+
+            {{-- Summary Breakdown --}}
+            <table
+                style="width: 100%; border-collapse: collapse; font-size: 11px; margin-top: 15px; border-top: 1px solid #eee; padding-top: 10px;">
+                <tr>
+                    <td style="width: 50%; vertical-align: top; padding-right: 20px;">
+                        <div style="font-weight: bold; margin-bottom: 5px;">Remarks:</div>
+                        <div style="border-bottom: 1px dashed #ccc; height: 35px; width: 100%;"></div>
+                    </td>
+                    <td style="width: 50%; vertical-align: top;">
+                        <div style="font-weight: bold; font-style: italic; margin-bottom: 6px;">SUMMARY:</div>
+                        <table style="width: 100%; border-collapse: collapse; line-height: 1.5;">
+                            @if($printSumRoom > 0)
+                                <tr>
+                                    <td>ROOM CHARGES</td>
+                                    <td style="text-align: right;">{{ number_format($printSumRoom, 2) }}</td>
+                                </tr>
+                            @endif
+                            @if($printSumRestaurant > 0)
+                                <tr>
+                                    <td>RESTAURANT / FOOD</td>
+                                    <td style="text-align: right;">{{ number_format($printSumRestaurant, 2) }}</td>
+                                </tr>
+                            @endif
+                            @if($printSumLaundry > 0)
+                                <tr>
+                                    <td>LAUNDRY CHARGES</td>
+                                    <td style="text-align: right;">{{ number_format($printSumLaundry, 2) }}</td>
+                                </tr>
+                            @endif
+                            @if($printSumTax > 0)
+                                <tr>
+                                    <td>TAXES &amp; SERVICE CHARGES</td>
+                                    <td style="text-align: right;">{{ number_format($printSumTax, 2) }}</td>
+                                </tr>
+                            @endif
+                            @if($printSumDiscounts > 0)
+                                <tr>
+                                    <td>DISCOUNTS / COMPLIMENTARY</td>
+                                    <td style="text-align: right;">{{ number_format($printSumDiscounts, 2) }}</td>
+                                </tr>
+                            @endif
+                            @if($printSumOther > 0)
+                                <tr>
+                                    <td>OTHER CHARGES</td>
+                                    <td style="text-align: right;">{{ number_format($printSumOther, 2) }}</td>
+                                </tr>
+                            @endif
+                            @if($printSumPayments > 0)
+                                <tr style="border-top: 1px solid #999;">
+                                    <td>TOTAL PAYMENTS</td>
+                                    <td style="text-align: right;">({{ number_format($printSumPayments, 2) }})</td>
+                                </tr>
+                            @endif
+                            <tr style="border-top: 1px solid #000; border-bottom: 3px double #000; font-weight: bold;">
+                                <td style="padding: 5px 0;">OUTSTANDING BALANCE</td>
+                                <td style="padding: 5px 0; text-align: right;">₱ {{ number_format($runningBal, 2) }}</td>
+                            </tr>
+                        </table>
+                    </td>
+                </tr>
+            </table>
+
+            <div
+                style="margin-top: 25px; text-align: center; font-size: 11px; color: #627e71; border-top: 1px solid #c2a889; padding-top: 15px;">
+                Thank you for staying at <strong>EVSU Ormoc - Hotel</strong>! We look forward to welcoming you back.
+            </div>
+
+        </div>
     </div>
+
 @endforeach
 
 {{-- Printable Folio List View --}}

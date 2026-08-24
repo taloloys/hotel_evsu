@@ -90,8 +90,12 @@
         <table class="header-table">
             <tr>
                 <td style="width: 20%; vertical-align: top;">
-                    <img src="{{ asset('images/htmd_side_brand.png') }}"
-                        alt="EVSU Ormoc - Hotel" style="width: 140px; height: auto;" />
+                    @php
+                        $logoPath = public_path('images/logo.png');
+                        $logoSrc = file_exists($logoPath) ? 'data:image/png;base64,' . base64_encode(file_get_contents($logoPath)) : '';
+                    @endphp
+                    <img src="{{ $logoSrc }}"
+                        alt="EVSU Ormoc - Hotel" style="width: 80px; height: auto;" />
                 </td>
                 <td style="width: 60%; text-align: center; vertical-align: top; color: #334e42;">
                     <h3 class="hotel-title">EVSU Ormoc - Hotel</h3>

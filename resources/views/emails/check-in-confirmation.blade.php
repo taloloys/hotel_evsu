@@ -23,25 +23,31 @@
         }
 
         .header {
-            background-color: #334e42;
-            color: #ffffff;
-            padding: 25px;
+            background-color: #ffffff;
+            padding: 25px 25px 15px 25px;
             text-align: center;
-            border-bottom: 4px solid #c2a889;
+            border-bottom: 4px solid #334e42;
+        }
+
+        .header img {
+            max-width: 100%;
+            height: auto;
+            max-height: 80px;
+            margin-bottom: 10px;
         }
 
         .header h1 {
-            margin: 0;
-            font-size: 24px;
-            font-weight: 700;
+            display: none;
         }
 
         .header p {
             margin: 5px 0 0 0;
             opacity: 1;
-            color: #c2a889;
-            font-size: 14px;
+            color: #627e71;
+            font-size: 15px;
             font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 1px;
         }
 
         .content {
@@ -96,6 +102,7 @@
 <body>
     <div class="container">
         <div class="header">
+            <img src="{{ asset('images/htmd_side_brand.png') }}" alt="EVSU Ormoc - Hotel">
             <h1>EVSU Ormoc - Hotel</h1>
             <p>Welcome! You are Checked In</p>
         </div>
