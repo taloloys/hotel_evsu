@@ -11,6 +11,7 @@ use App\Models\User;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\View\View;
 
@@ -91,7 +92,7 @@ class UserController extends Controller
             try {
                 Mail::to($user->email)->queue(new UserAccountCreatedMail($user, $validated['password']));
             } catch (\Throwable $e) {
-                \Illuminate\Support\Facades\Log::error('Failed to send account creation email: ' . $e->getMessage());
+                Log::error('Failed to send account creation email: '.$e->getMessage());
             }
         }
 

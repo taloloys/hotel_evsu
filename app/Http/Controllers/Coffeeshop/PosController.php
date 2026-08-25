@@ -236,7 +236,7 @@ class PosController extends Controller
     public function closeTab(Request $request, PosTab $tab, PosOrderService $orderService, PosTabService $tabService): JsonResponse
     {
         $validated = $request->validate([
-            'payment_method' => ['required', 'in:cash,gcash,maya,card,room_charge,account_charge'],
+            'payment_method' => ['required', 'string', 'max:50'],
             'booking_id' => ['nullable', 'exists:bookings,booking_id'],
             'folio_id' => ['nullable', 'exists:folios,folio_id'],
             'credit_account_id' => ['nullable', 'exists:credit_accounts,account_id'],

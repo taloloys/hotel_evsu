@@ -27,18 +27,18 @@ beforeEach(function () {
         'role_id' => $role->role_id,
         'email' => 'admin@evsu.edu.ph',
     ]);
-    
+
     $this->guest = Guest::create([
         'first_name' => 'John',
         'last_name' => 'Doe',
         'email' => 'klenth240@gmail.com',
     ]);
-    
+
     $this->room = Room::create([
         'room_number' => '101',
         'room_type' => 'Standard',
         'base_rate' => 1500,
-        'status' => 'AVAILABLE'
+        'status' => 'AVAILABLE',
     ]);
 });
 
@@ -61,7 +61,7 @@ test('reservation creation queues ReservationConfirmationMail', function () {
         ]);
 
     $response->assertRedirect();
-    
+
     Mail::assertQueued(ReservationConfirmationMail::class);
 });
 
@@ -70,7 +70,7 @@ test('guest checkin queues CheckInConfirmationMail', function () {
     $folio = Folio::create([
         'folio_number' => 'FOL-001',
         'guest_id' => $this->guest->guest_id,
-        'status' => 'OPEN'
+        'status' => 'OPEN',
     ]);
 
     $booking = Booking::create([
@@ -81,20 +81,20 @@ test('guest checkin queues CheckInConfirmationMail', function () {
         'departure_date' => now()->addDays(3)->format('Y-m-d'),
         'num_pax' => 2,
         'net_rate' => 1500,
-        'status' => 'RESERVED'
+        'status' => 'RESERVED',
     ]);
 
     $response = $this->actingAs($this->user)
         ->post(route('frontdesk.guest-folio.checkin', $booking->booking_id));
 
     $response->assertRedirect();
-    
+
     Mail::assertQueued(CheckInConfirmationMail::class);
 });
 
 test('adding payment transaction queues PaymentReceiptMail', function () {
     $this->withoutExceptionHandling();
-    
+
     $folio = Folio::create([
         'folio_number' => 'FOL-002',
         'guest_id' => $this->guest->guest_id,
@@ -106,7 +106,7 @@ test('adding payment transaction queues PaymentReceiptMail', function () {
     ], [
         'description' => 'CASH',
         'is_active' => true,
-        'category' => 'PAYMENT'
+        'category' => 'PAYMENT',
     ]);
 
     $response = $this->actingAs($this->user)
@@ -118,6 +118,6 @@ test('adding payment transaction queues PaymentReceiptMail', function () {
         ]);
 
     $response->assertRedirect();
-    
+
     Mail::assertQueued(PaymentReceiptMail::class);
 });

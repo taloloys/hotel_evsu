@@ -20,6 +20,7 @@ use Carbon\Carbon;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\View\View;
 
@@ -182,7 +183,7 @@ class GuestFolioController extends Controller
                     Mail::to($recipients)->queue(new PaymentReceiptMail($txn));
                 }
             } catch (\Throwable $e) {
-                \Illuminate\Support\Facades\Log::error('Payment Receipt Email failed: ' . $e->getMessage());
+                Log::error('Payment Receipt Email failed: '.$e->getMessage());
             }
         }
 
