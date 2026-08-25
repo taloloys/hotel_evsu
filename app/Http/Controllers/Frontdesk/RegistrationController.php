@@ -15,6 +15,7 @@ use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\View\View;
 
@@ -145,11 +146,16 @@ class RegistrationController extends Controller
 
             $room->update(['status' => 'OCCUPIED']);
 
-            // Post room charges using the new service
-            app(RoomChargeService::class)->processCatchUpCharges($booking->booking_id);
-
             return $booking;
         });
+
+        // Post initial room charge outside the transaction so a charge failure
+        // does not roll back the entire guest registration.
+        try {
+            app(RoomChargeService::class)->processCatchUpCharges($booking->booking_id);
+        } catch (\Throwable $e) {
+            Log::error('Failed to post initial room charge for booking #'.$booking->booking_id.': '.$e->getMessage());
+        }
 
         try {
             $booking->load(['folio.guest', 'room']);
@@ -176,7 +182,10 @@ class RegistrationController extends Controller
             ->where('status', 'AVAILABLE')
             ->whereDoesntHave('bookings', function ($query) use ($today) {
                 $query->whereIn('status', ['RESERVED', 'CHECKED_IN'])
-                    ->whereDate('departure_date', '>=', $today);
+                    ->where(function ($q) use ($today) {
+                        $q->whereNull('departure_date')
+                            ->orWhereDate('departure_date', '>=', $today);
+                    });
             })
             ->orderBy('room_type')
             ->orderBy('room_number')
@@ -195,7 +204,10 @@ class RegistrationController extends Controller
 
         return ! $room->bookings()
             ->whereIn('status', ['RESERVED', 'CHECKED_IN'])
-            ->whereDate('departure_date', '>=', $today)
+            ->where(function ($q) use ($today) {
+                $q->whereNull('departure_date')
+                    ->orWhereDate('departure_date', '>=', $today);
+            })
             ->exists();
     }
 

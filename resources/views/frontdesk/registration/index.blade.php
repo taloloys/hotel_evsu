@@ -378,8 +378,7 @@
                             id="departure_date"
                             name="departure_date"
                             value="{{ old('departure_date') }}"
-                            style="height:46px; border:1px solid #ced4da;"
-                            required>
+                            style="height:46px; border:1px solid #ced4da;">
 
                         @error('departure_date')
                             <div class="invalid-feedback">{{ $message }}</div>
@@ -399,8 +398,7 @@
                             id="departure_time"
                             name="departure_time"
                             value="{{ old('departure_time', $defaults['departure_time']) }}"
-                            style="height:46px; border:1px solid #ced4da;"
-                            required>
+                            style="height:46px; border:1px solid #ced4da;">
 
                         @error('departure_time')
                             <div class="invalid-feedback">{{ $message }}</div>

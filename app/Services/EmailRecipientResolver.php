@@ -26,9 +26,7 @@ class EmailRecipientResolver
             return [$guestEmail];
         }
 
-        $fallback = config('mail.from.address', 'evsu.hotel@evsu.edu.ph');
-
-        return ! empty($fallback) ? [$fallback] : [];
+        return [];
     }
 
     /**
