@@ -10,7 +10,10 @@ use Illuminate\Auth\Events\Logout;
 use Illuminate\Pagination\Paginator;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Gate;
+use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\ServiceProvider;
+use Symfony\Component\Mailer\Bridge\Brevo\Transport\BrevoTransportFactory;
+use Symfony\Component\Mailer\Transport\Dsn;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -36,5 +39,15 @@ class AppServiceProvider extends ServiceProvider
         Event::listen(Login::class, [ShiftLifecycleListener::class, 'handleLogin']);
         Event::listen(Login::class, CheckArchiveStatusListener::class);
         Event::listen(Logout::class, [ShiftLifecycleListener::class, 'handleLogout']);
+
+        Mail::extend('brevo', function (array $config) {
+            return (new BrevoTransportFactory)->create(
+                new Dsn(
+                    'brevo+api',
+                    'default',
+                    $config['key'] ?? ''
+                )
+            );
+        });
     }
 }
