@@ -4,7 +4,6 @@ namespace App\Services\Coffeeshop;
 
 use App\Models\ActivityLog;
 use App\Models\Booking;
-use App\Models\Folio;
 use App\Models\PosOrder;
 use App\Models\PosSetting;
 use App\Models\Shift;
@@ -73,11 +72,7 @@ class PosGuestChargeService
 
     public function postWalkInSale(PosOrder $order, string $paymentMethod, string $itemSummary): Transaction
     {
-        $folioId = PosSetting::walkInFolioId() ?? Folio::where('folio_number', 'POS-WALKIN')->value('folio_id');
-
-        if (! $folioId) {
-            throw new RuntimeException('Walk-in folio is not configured. Run POS seeders.');
-        }
+        $folioId = PosSetting::walkInFolioId();
 
         $userId = auth()->id() ?? $order->user_id;
         $shift = $this->resolveActiveShift($userId);
