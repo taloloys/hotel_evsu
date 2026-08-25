@@ -82,10 +82,23 @@
     const tabGuestSelect = document.getElementById('new-tab-guest');
 
     function showAlert(message, type = 'success') {
-        alertBox.className = `alert alert-${type}`;
-        alertBox.textContent = message;
-        alertBox.classList.remove('d-none');
-        setTimeout(() => alertBox.classList.add('d-none'), 4000);
+        if (window.Swal) {
+            Swal.fire({
+                icon: type === 'danger' ? 'error' : (type === 'warning' ? 'warning' : 'success'),
+                title: type === 'danger' ? 'Error' : (type === 'warning' ? 'Notice' : 'Success'),
+                text: message,
+                confirmButtonColor: '#334c42',
+            });
+            return;
+        }
+        if (alertBox) {
+            alertBox.className = `alert alert-${type}`;
+            alertBox.textContent = message;
+            alertBox.classList.remove('d-none');
+            setTimeout(() => alertBox.classList.add('d-none'), 4000);
+        } else {
+            alert(message);
+        }
     }
 
     function showSuccess(message) {

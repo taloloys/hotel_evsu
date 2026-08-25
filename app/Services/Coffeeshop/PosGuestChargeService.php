@@ -4,6 +4,7 @@ namespace App\Services\Coffeeshop;
 
 use App\Models\ActivityLog;
 use App\Models\Booking;
+use App\Models\Folio;
 use App\Models\PosOrder;
 use App\Models\PosSetting;
 use App\Models\Shift;
@@ -40,6 +41,9 @@ class PosGuestChargeService
         $userId = auth()->id() ?? $order->user_id;
         $shift = $this->resolveActiveShift($userId);
         $chargeNumber = 'POS-'.$order->order_id;
+        if (strlen($chargeNumber) > 30) {
+            $chargeNumber = substr($chargeNumber, 0, 30);
+        }
 
         if (Transaction::where('charge_number', $chargeNumber)->exists()) {
             throw new RuntimeException('This order has already been charged to a folio.');
@@ -69,7 +73,7 @@ class PosGuestChargeService
 
     public function postWalkInSale(PosOrder $order, string $paymentMethod, string $itemSummary): Transaction
     {
-        $folioId = PosSetting::walkInFolioId();
+        $folioId = PosSetting::walkInFolioId() ?? Folio::where('folio_number', 'POS-WALKIN')->value('folio_id');
 
         if (! $folioId) {
             throw new RuntimeException('Walk-in folio is not configured. Run POS seeders.');
@@ -79,6 +83,13 @@ class PosGuestChargeService
         $shift = $this->resolveActiveShift($userId);
         $methodLabel = strtoupper($paymentMethod);
         $chargeNumber = 'POS-'.$methodLabel.'-'.$order->order_id;
+        if (strlen($chargeNumber) > 30) {
+            $chargeNumber = substr($chargeNumber, 0, 30);
+        }
+        $payChargeNumber = $chargeNumber.'-PAY';
+        if (strlen($payChargeNumber) > 30) {
+            $payChargeNumber = substr('POS-'.$order->order_id.'-PAY', 0, 30);
+        }
         $today = Carbon::now()->toDateString();
         $notes = "POS {$methodLabel} Order {$order->order_number}: {$itemSummary}";
 
@@ -96,7 +107,15 @@ class PosGuestChargeService
             'department' => 'COFFEE_SHOP',
         ]);
 
-        $txPaymentMethod = ($paymentMethod === 'card') ? 'CREDIT_CARD' : 'CASH';
+        $txPaymentMethod = match ($methodLabel) {
+            'CARD', 'CREDIT_CARD' => 'CREDIT_CARD',
+            'GCASH' => 'GCASH',
+            'MAYA' => 'MAYA',
+            'CHECK' => 'CHECK',
+            'ACCOUNT_CHARGE' => 'ACCOUNT_CHARGE',
+            'NONE' => 'NONE',
+            default => 'CASH',
+        };
 
         $payment = Transaction::create([
             'folio_id' => $folioId,
@@ -104,7 +123,7 @@ class PosGuestChargeService
             'shift_id' => $shift->shift_id,
             'user_id' => $userId,
             'transaction_date' => $today,
-            'charge_number' => $chargeNumber.'-PAY',
+            'charge_number' => $payChargeNumber,
             'payment_method' => $txPaymentMethod,
             'reference_notes' => "{$methodLabel} payment for {$order->order_number}",
             'charge_amount' => 0.00,
