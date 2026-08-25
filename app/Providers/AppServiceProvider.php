@@ -45,7 +45,7 @@ class AppServiceProvider extends ServiceProvider
                 new Dsn(
                     'brevo+api',
                     'default',
-                    $config['key'] ?? ''
+                    config('services.brevo.key') ?? ''
                 )
             );
         });
