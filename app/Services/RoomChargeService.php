@@ -4,12 +4,12 @@ namespace App\Services;
 
 use App\Models\ActivityLog;
 use App\Models\Booking;
-use App\Models\ChargeCode;
 use App\Models\Shift;
 use App\Models\Transaction;
 use App\Models\User;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 
 class RoomChargeService
 {
@@ -29,15 +29,13 @@ class RoomChargeService
             return;
         }
 
-        // Defensive charge code verification/creation
-        ChargeCode::firstOrCreate(
-            ['charge_code' => 100],
-            [
-                'description' => 'ROOM CHARGE',
-                'category' => 'HOTEL',
-                'is_active' => true,
-            ]
-        );
+        // Resolve room charge code dynamically by slug
+        $roomChargeCode = ChargeCodeResolver::resolve(ChargeCodeResolver::ROOM_CHARGE);
+        if ($roomChargeCode === null) {
+            Log::warning('RoomChargeService: Room charge code slug is not configured. Skipping charge posting.');
+
+            return;
+        }
 
         $userId = auth()->id() ?: (User::where('username', 'system')->value('user_id') ?: (User::first()?->user_id ?: 1));
 
@@ -94,7 +92,7 @@ class RoomChargeService
             if (! $exists) {
                 Transaction::create([
                     'folio_id' => $booking->folio_id,
-                    'charge_code' => 100, // ROOM CHARGE
+                    'charge_code' => $roomChargeCode, // resolved via slug
                     'shift_id' => $activeShift->shift_id,
                     'user_id' => $userId,
                     'transaction_date' => $chargeDate,

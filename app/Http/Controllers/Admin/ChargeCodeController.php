@@ -70,10 +70,12 @@ class ChargeCodeController extends Controller
             'charge_code' => ['required', 'integer', 'min:1', 'unique:chargecodes,charge_code'],
             'description' => ['required', 'string', 'max:100'],
             'category' => ['required', 'string', 'in:HOTEL,RESTAURANT,TAX_SERVICE,PAYMENT'],
+            'slug' => ['nullable', 'string', 'max:50', 'regex:/^[a-z0-9_]+$/', 'unique:chargecodes,slug'],
         ]);
 
         ChargeCode::create([
             'charge_code' => $validated['charge_code'],
+            'slug' => $validated['slug'] ?? null,
             'description' => strtoupper($validated['description']),
             'category' => $validated['category'],
             'is_active' => true,
@@ -89,15 +91,29 @@ class ChargeCodeController extends Controller
      */
     public function update(Request $request, ChargeCode $chargeCode): RedirectResponse
     {
-        $validated = $request->validate([
+        $rules = [
             'description' => ['required', 'string', 'max:100'],
             'category' => ['required', 'string', 'in:HOTEL,RESTAURANT,TAX_SERVICE,PAYMENT'],
-        ]);
+        ];
 
-        $chargeCode->update([
+        // Only Super Admin can change the slug
+        $isSuperAdmin = auth()->user()?->isSuperAdmin();
+        if ($isSuperAdmin) {
+            $rules['slug'] = ['nullable', 'string', 'max:50', 'regex:/^[a-z0-9_]+$/', 'unique:chargecodes,slug,'.$chargeCode->charge_code.',charge_code'];
+        }
+
+        $validated = $request->validate($rules);
+
+        $data = [
             'description' => strtoupper($validated['description']),
             'category' => $validated['category'],
-        ]);
+        ];
+
+        if ($isSuperAdmin && array_key_exists('slug', $validated)) {
+            $data['slug'] = $validated['slug'] ?: null;
+        }
+
+        $chargeCode->update($data);
 
         return redirect()
             ->route('admin.chargecodes')

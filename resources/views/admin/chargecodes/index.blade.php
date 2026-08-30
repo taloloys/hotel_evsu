@@ -190,6 +190,7 @@
                 <tr>
                     <th class="ps-3" style="width: 120px;">Code</th>
                     <th>Charge Name / Description</th>
+                    <th>Slug</th>
                     <th>Category</th>
                     <th>Status</th>
                     <th class="text-center" style="width: 140px;">Action</th>
@@ -211,6 +212,14 @@
                         <td class="fw-semibold">
                             <span class="text-muted me-2">[{{ $charge->charge_code }}]</span>
                             {{ $charge->description }}
+                        </td>
+
+                        <td>
+                            @if($charge->slug)
+                                <code class="small">{{ $charge->slug }}</code>
+                            @else
+                                <span class="text-muted small">&mdash;</span>
+                            @endif
                         </td>
 
                         <td>
@@ -243,6 +252,7 @@
                                         data-bs-target="#editChargeModal"
                                         data-charge-code="{{ $charge->charge_code }}"
                                         data-description="{{ $charge->description }}"
+                                        data-slug="{{ $charge->slug ?? '' }}"
                                         data-category="{{ $charge->category }}"
                                         data-update-url="{{ route('admin.chargecodes.update', $charge) }}">
                                     <i class="fa-solid fa-pen"></i>
@@ -271,14 +281,14 @@
                     </tr>
                 @empty
                     <tr id="noResultsRow">
-                        <td colspan="5" class="text-center py-4 text-muted">
+                        <td colspan="6" class="text-center py-4 text-muted">
                             No charge codes found in the system.
                         </td>
                     </tr>
                 @endforelse
 
                 <tr id="noFilterResultsRow" style="display:none;">
-                    <td colspan="5" class="text-center py-4 text-muted">
+                    <td colspan="6" class="text-center py-4 text-muted">
                         <i class="fa-solid fa-magnifying-glass me-2"></i>
                         No charge codes match your search or filter.
                     </td>
@@ -342,6 +352,12 @@
                         </select>
                     </div>
 
+                    <div class="mb-3">
+                        <label for="add_slug" class="form-label">System Slug <span class="text-muted small">(optional)</span></label>
+                        <input type="text" id="add_slug" name="slug" class="form-control" placeholder="e.g. gcash" pattern="[a-z0-9_]+">
+                        <small class="text-muted">Lowercase letters, numbers and underscores only. Used by system modules to identify this charge code.</small>
+                    </div>
+
                 </div>
 
                 <div class="modal-footer">
@@ -396,6 +412,17 @@
                         </select>
                     </div>
 
+                    <div class="mb-3">
+                        <label for="edit_slug" class="form-label">System Slug</label>
+                        <input type="text" id="edit_slug" name="slug" class="form-control" placeholder="e.g. gcash" pattern="[a-z0-9_]+"
+                               @if(!auth()->user()?->isSuperAdmin()) disabled @endif>
+                        @if(!auth()->user()?->isSuperAdmin())
+                            <small class="text-muted">Only Super Admin can modify the system slug.</small>
+                        @else
+                            <small class="text-muted">Lowercase letters, numbers and underscores only.</small>
+                        @endif
+                    </div>
+
                 </div>
 
                 <div class="modal-footer">
@@ -427,6 +454,7 @@
                 const btn = event.relatedTarget;
                 document.getElementById('edit_charge_code').value = btn.dataset.chargeCode;
                 document.getElementById('edit_description').value = btn.dataset.description;
+                document.getElementById('edit_slug').value         = btn.dataset.slug || '';
                 document.getElementById('edit_category').value    = btn.dataset.category;
                 document.getElementById('editChargeForm').action  = btn.dataset.updateUrl;
             });

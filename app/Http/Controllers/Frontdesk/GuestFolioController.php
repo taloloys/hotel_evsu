@@ -14,6 +14,7 @@ use App\Models\Folio;
 use App\Models\Room;
 use App\Models\Shift;
 use App\Models\Transaction;
+use App\Services\ChargeCodeResolver;
 use App\Services\CreditBillingService;
 use App\Services\EmailRecipientResolver;
 use Carbon\Carbon;
@@ -145,13 +146,13 @@ class GuestFolioController extends Controller
             $chargeAmount = $validated['amount'];
         } else {
             $creditAmount = $validated['amount'];
-            if (in_array((int) $validated['charge_code'], [401, 402])) {
-                $paymentMethod = 'CREDIT_CARD';
-            } elseif ((int) $validated['charge_code'] === 403) {
-                $paymentMethod = 'CASH';
-            } else {
-                $paymentMethod = 'CASH';
-            }
+            $paymentMethod = match ($chargeCode->slug ?? null) {
+                ChargeCodeResolver::CREDIT_CARD, 'visa' => 'CREDIT_CARD',
+                ChargeCodeResolver::GCASH => 'GCASH',
+                ChargeCodeResolver::MAYA => 'MAYA',
+                ChargeCodeResolver::ACCOUNT_CHARGE => 'ACCOUNT_CHARGE',
+                default => 'CASH',
+            };
         }
 
         $chargeNo = 'TXN-'.time();
@@ -302,8 +303,9 @@ class GuestFolioController extends Controller
             if ($isSameDayTransfer) {
                 $booking->update(['room_id' => $newRoom->room_id]);
 
+                $roomChargeCode = ChargeCodeResolver::resolve(ChargeCodeResolver::ROOM_CHARGE);
                 Transaction::where('folio_id', $booking->folio_id)
-                    ->where('charge_code', 100)
+                    ->where('charge_code', $roomChargeCode)
                     ->where('charge_number', 'like', 'RM-'.$booking->booking_id.'-%')
                     ->update(['charge_amount' => $rate]);
 
@@ -322,8 +324,9 @@ class GuestFolioController extends Controller
                     'status' => 'CHECKED_OUT',
                 ]);
 
+                $roomChargeCode = ChargeCodeResolver::resolve(ChargeCodeResolver::ROOM_CHARGE);
                 Transaction::where('folio_id', $booking->folio_id)
-                    ->where('charge_code', 100)
+                    ->where('charge_code', $roomChargeCode)
                     ->where('charge_number', 'like', 'RM-'.$booking->booking_id.'-%')
                     ->whereDate('transaction_date', '>', $today)
                     ->delete();
@@ -402,8 +405,9 @@ class GuestFolioController extends Controller
                 }
 
                 if ($booking->folio->net_rate !== null) {
+                    $roomChargeCode = ChargeCodeResolver::resolve(ChargeCodeResolver::ROOM_CHARGE);
                     Transaction::where('folio_id', $booking->folio_id)
-                        ->where('charge_code', 100)
+                        ->where('charge_code', $roomChargeCode)
                         ->where('charge_number', 'like', 'RM-'.$booking->booking_id.'-%')
                         ->update(['charge_amount' => $booking->folio->net_rate]);
                 }
@@ -475,8 +479,9 @@ class GuestFolioController extends Controller
             $booking->update(['departure_date' => $today]);
 
             // Clean up any unstayed future room charges
+            $roomChargeCode = ChargeCodeResolver::resolve(ChargeCodeResolver::ROOM_CHARGE);
             Transaction::where('folio_id', $booking->folio_id)
-                ->where('charge_code', 100)
+                ->where('charge_code', $roomChargeCode)
                 ->where('charge_number', 'like', 'RM-'.$booking->booking_id.'-%')
                 ->whereDate('transaction_date', '>', $today)
                 ->delete();
@@ -622,19 +627,15 @@ class GuestFolioController extends Controller
             }
         }
 
-        // Determine payment charge code and payment method
-        $paymentMethod = match ($validated['payment_method']) {
-            'Credit Card' => 'CREDIT_CARD',
-            'GCash' => 'GCASH',
-            'Maya' => 'MAYA',
-            default => 'CASH',
-        };
-        $chargeCode = match ($validated['payment_method']) {
-            'Credit Card' => '401',
-            'GCash' => '405',
-            'Maya' => '406',
-            default => '403',
-        };
+        // Resolve payment charge code dynamically via slug
+        $paymentMethod = ChargeCodeResolver::PAYMENT_METHOD_VALUES[$validated['payment_method']] ?? 'CASH';
+        $chargeCode = ChargeCodeResolver::resolvePaymentMethod($validated['payment_method']);
+
+        if ($chargeCode === null) {
+            return back()->withErrors([
+                'payment' => "Payment could not be recorded: the system charge code for \"{$validated['payment_method']}\" is not set up. Please contact your system administrator to add it under Charge Code settings.",
+            ]);
+        }
 
         DB::transaction(function () use ($folio, $validated, $activeShift, $userId, $chargeCode, $paymentMethod, $closeFolio) {
             Transaction::create([
@@ -721,7 +722,7 @@ class GuestFolioController extends Controller
 
             Transaction::create([
                 'folio_id' => $folio->folio_id,
-                'charge_code' => 404, // Use 404 for Account Charge (or 403/other if 404 is not defined)
+                'charge_code' => ChargeCodeResolver::resolve(ChargeCodeResolver::ACCOUNT_CHARGE) ?? 404,
                 'shift_id' => $activeShift->shift_id,
                 'user_id' => $userId,
                 'transaction_date' => Carbon::now()->toDateString(),

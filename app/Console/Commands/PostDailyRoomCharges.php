@@ -4,11 +4,11 @@ namespace App\Console\Commands;
 
 use App\Models\ActivityLog;
 use App\Models\Booking;
-use App\Models\ChargeCode;
 use App\Models\Role;
 use App\Models\Shift;
 use App\Models\Transaction;
 use App\Models\User;
+use App\Services\ChargeCodeResolver;
 use Carbon\Carbon;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\DB;
@@ -69,15 +69,12 @@ class PostDailyRoomCharges extends Command
             }
         }
 
-        // Defensive charge code verification/creation
-        $chargeCode = ChargeCode::where('charge_code', 100)->first();
-        if (! $chargeCode) {
-            ChargeCode::create([
-                'charge_code' => 100,
-                'description' => 'ROOM CHARGE',
-                'category' => 'HOTEL',
-                'is_active' => true,
-            ]);
+        // Resolve room charge code dynamically by slug
+        $roomChargeCode = ChargeCodeResolver::resolve(ChargeCodeResolver::ROOM_CHARGE);
+        if ($roomChargeCode === null) {
+            $this->error('Room charge code slug (room_charge) is not configured. Aborting.');
+
+            return;
         }
 
         $today = Carbon::today();
@@ -117,7 +114,7 @@ class PostDailyRoomCharges extends Command
                     if (! $exists) {
                         Transaction::create([
                             'folio_id' => $booking->folio_id,
-                            'charge_code' => 100, // ROOM CHARGE
+                            'charge_code' => $roomChargeCode, // resolved via slug
                             'shift_id' => $activeShift->shift_id,
                             'user_id' => $systemUser->user_id,
                             'transaction_date' => $chargeDate,

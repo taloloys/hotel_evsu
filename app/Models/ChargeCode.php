@@ -17,6 +17,7 @@ class ChargeCode extends Model
 
     protected $fillable = [
         'charge_code',
+        'slug',
         'description',
         'category',
         'is_active',

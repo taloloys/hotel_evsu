@@ -8,6 +8,7 @@ use App\Models\PosOrder;
 use App\Models\PosSetting;
 use App\Models\Shift;
 use App\Models\Transaction;
+use App\Services\ChargeCodeResolver;
 use Carbon\Carbon;
 use RuntimeException;
 
@@ -48,9 +49,14 @@ class PosGuestChargeService
             throw new RuntimeException('This order has already been charged to a folio.');
         }
 
+        $fbChargeCode = ChargeCodeResolver::resolve(ChargeCodeResolver::FOOD_BEVERAGE);
+        if ($fbChargeCode === null) {
+            throw new RuntimeException('The Food & Beverage charge code is not configured. Please contact your system administrator.');
+        }
+
         $transaction = Transaction::create([
             'folio_id' => $folioId,
-            'charge_code' => 200,
+            'charge_code' => $fbChargeCode,
             'shift_id' => $shift->shift_id,
             'user_id' => $userId,
             'transaction_date' => Carbon::now()->toDateString(),
@@ -88,9 +94,14 @@ class PosGuestChargeService
         $today = Carbon::now()->toDateString();
         $notes = "POS {$methodLabel} Order {$order->order_number}: {$itemSummary}";
 
+        $fbChargeCode = ChargeCodeResolver::resolve(ChargeCodeResolver::FOOD_BEVERAGE);
+        if ($fbChargeCode === null) {
+            throw new RuntimeException('The Food & Beverage charge code is not configured. Please contact your system administrator.');
+        }
+
         Transaction::create([
             'folio_id' => $folioId,
-            'charge_code' => 200,
+            'charge_code' => $fbChargeCode,
             'shift_id' => $shift->shift_id,
             'user_id' => $userId,
             'transaction_date' => $today,
@@ -112,9 +123,15 @@ class PosGuestChargeService
             default => 'CASH',
         };
 
+        $paymentSlug = ChargeCodeResolver::slugForPosPaymentLabel($methodLabel);
+        $paymentChargeCode = ChargeCodeResolver::resolve($paymentSlug);
+        if ($paymentChargeCode === null) {
+            throw new RuntimeException("The payment charge code for \"{$methodLabel}\" is not configured. Please contact your system administrator.");
+        }
+
         $payment = Transaction::create([
             'folio_id' => $folioId,
-            'charge_code' => 403,
+            'charge_code' => $paymentChargeCode,
             'shift_id' => $shift->shift_id,
             'user_id' => $userId,
             'transaction_date' => $today,
