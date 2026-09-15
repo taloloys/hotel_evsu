@@ -447,14 +447,46 @@
                                 </td>
                                 <td class="pe-3">
                                     @if($booking->status === 'RESERVED')
-                                        <button class="btn btn-sm text-white check-in-btn fw-semibold shadow-sm" 
-                                                style="background-color: #334c42; border: none; border-radius: 0.375rem; padding: 0.35rem 0.85rem;"
-                                                data-booking-id="{{ $booking->booking_id }}" 
-                                                data-guest-name="{{ $booking->folio->guest->first_name }} {{ $booking->folio->guest->last_name }}"
-                                                data-room-number="{{ $booking->room->room_number }}"
-                                                title="Check in guest">
-                                            <i class="fa-solid fa-arrow-right-to-bracket me-1"></i>Check In
-                                        </button>
+                                        <div class="d-flex align-items-center gap-1.5">
+                                            <button type="button"
+                                                    class="btn btn-sm text-white check-in-btn d-inline-flex align-items-center justify-content-center shadow-sm" 
+                                                    style="width: 34px; height: 34px; background-color: #334c42; border: none; border-radius: 0.375rem;"
+                                                    data-booking-id="{{ $booking->booking_id }}" 
+                                                    data-guest-name="{{ $booking->folio->guest->first_name }} {{ $booking->folio->guest->last_name }}"
+                                                    data-room-number="{{ $booking->room->room_number }}"
+                                                    title="Check in guest">
+                                                <i class="fa-solid fa-arrow-right-to-bracket"></i>
+                                            </button>
+                                            <button type="button" 
+                                                    class="btn btn-sm extend-departure-btn d-inline-flex align-items-center justify-content-center shadow-sm" 
+                                                    style="width: 34px; height: 34px; background-color: #f8f3ed; border: 1px solid #c2a889; color: #334c42; border-radius: 0.375rem;"
+                                                    data-booking-id="{{ $booking->booking_id }}" 
+                                                    data-guest-name="{{ $booking->folio->guest->first_name }} {{ $booking->folio->guest->last_name }}"
+                                                    data-folio-number="{{ $booking->folio->folio_number }}"
+                                                    data-room-number="{{ $booking->room->room_number }}"
+                                                    data-room-type="{{ $booking->room->room_type }}"
+                                                    data-status="{{ $booking->status }}"
+                                                    data-arrival-date="{{ $booking->arrival_date->format('Y-m-d') }}"
+                                                    data-arrival-display="{{ $booking->arrival_date->format('m/d/Y') }}{{ $booking->arrival_time ? ' ' . \Carbon\Carbon::parse($booking->arrival_time)->format('g:i A') : '' }}"
+                                                    data-departure-date="{{ $booking->departure_date ? $booking->departure_date->format('Y-m-d') : '' }}"
+                                                    data-departure-time="{{ $booking->departure_time ? \Carbon\Carbon::parse($booking->departure_time)->format('H:i') : '12:00' }}"
+                                                    data-departure-display="{{ $booking->departure_date ? $booking->departure_date->format('m/d/Y') : 'Open Stay' }}{{ $booking->departure_time ? ' ' . \Carbon\Carbon::parse($booking->departure_time)->format('g:i A') : '' }}"
+                                                    data-net-rate="{{ $booking->folio->net_rate ?? $booking->room->base_rate }}"
+                                                    title="Move reservation">
+                                                <i class="fa-solid fa-calendar-plus" style="color: #627e71;"></i>
+                                            </button>
+                                            <form method="POST" action="{{ route('frontdesk.reservation.cancel', $booking->booking_id) }}" class="d-inline m-0">
+                                                @csrf
+                                                @method('PATCH')
+                                                <button type="button" 
+                                                        class="btn btn-sm d-inline-flex align-items-center justify-content-center shadow-sm" 
+                                                        style="width: 34px; height: 34px; border: 1px solid #f87171; color: #991b1b; background-color: #fee2e2; border-radius: 0.375rem;" 
+                                                        title="Cancel reservation"
+                                                        onclick="swalConfirmCancelDashboardReservation(this)">
+                                                    <i class="fa-solid fa-ban"></i>
+                                                </button>
+                                            </form>
+                                        </div>
                                     @elseif($booking->status === 'CHECKED_IN' && $booking->actual_check_in)
                                         <span class="badge-status badge-status-checkedin" title="Guest checked in">
                                             <i class="fa-solid fa-check-double me-1"></i>In at {{ $booking->actual_check_in->format('g:i A') }}
@@ -898,6 +930,95 @@
     </div>
 </div>
 
+<!-- Move Departure Modal -->
+<div class="modal fade" id="extendDepartureModal" tabindex="-1" aria-labelledby="extendDepartureModalLabel" aria-hidden="true" style="z-index: 1065;">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow">
+            <div class="modal-header border-0 pb-0">
+                <h5 class="modal-title fw-bold" id="extendDepartureModalLabel" style="color: #1a1a1a;">
+                    <i class="fa-solid fa-calendar-plus me-2" style="color: #334c42;"></i> Move Guest Departure
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <!-- Guest & Stay Summary -->
+                <div class="p-3 rounded-3 mb-3" style="background: #f8f3ed; border: 1px solid #c2a889;">
+                    <div class="d-flex justify-content-between align-items-start mb-2">
+                        <div>
+                            <span class="text-muted small d-block">Guest Name</span>
+                            <span class="fw-bold fs-6" id="extendModalGuestName" style="color: #1a1a1a;">—</span>
+                        </div>
+                        <div class="text-end">
+                            <span class="badge" id="extendModalRoomBadge" style="background-color: #334c42; color: #ffffff; font-size: 0.85rem;">Room —</span>
+                            <small class="d-block text-muted" id="extendModalRoomType">—</small>
+                        </div>
+                    </div>
+                    <div class="row g-2 pt-2 border-top" style="border-color: #e2d3be !important;">
+                        <div class="col-6">
+                            <span class="text-muted small d-block">Folio Number:</span>
+                            <span class="fw-semibold small" id="extendModalFolioNumber" style="color: #1a1a1a;">—</span>
+                        </div>
+                        <div class="col-6 text-end">
+                            <span class="text-muted small d-block">Booking Status:</span>
+                            <span class="badge-status" id="extendModalStatus">—</span>
+                        </div>
+                        <div class="col-6">
+                            <span class="text-muted small d-block">Arrival:</span>
+                            <span class="small fw-semibold" id="extendModalArrival" style="color: #262626;">—</span>
+                        </div>
+                        <div class="col-6 text-end">
+                            <span class="text-muted small d-block">Current Departure:</span>
+                            <span class="small fw-semibold text-danger" id="extendModalCurrentDeparture">—</span>
+                        </div>
+                    </div>
+                </div>
+
+                <form id="extendDepartureForm">
+                    <input type="hidden" id="extendBookingId">
+
+                    <!-- New Departure Date -->
+                    <div class="mb-3">
+                        <label for="extendDepartureDate" class="form-label fw-semibold small" style="color: #1a1a1a;">
+                            New Departure Date <span class="text-danger">*</span>
+                        </label>
+                        <input type="date" class="form-control" id="extendDepartureDate" required style="border: 1px solid #c2a889;">
+                        <div class="form-text" id="extendDateHint">Select a new date after the current departure date.</div>
+                    </div>
+
+                    <!-- New Departure Time -->
+                    <div class="mb-3">
+                        <label for="extendDepartureTime" class="form-label fw-semibold small" style="color: #1a1a1a;">
+                            New Departure Time
+                        </label>
+                        <input type="time" class="form-control" id="extendDepartureTime" value="12:00" style="border: 1px solid #c2a889;">
+                        <div class="form-text">Standard checkout is 12:00 PM.</div>
+                    </div>
+
+                    <!-- Net Rate Override (Optional) -->
+                    <div class="mb-2">
+                        <label for="extendNetRate" class="form-label fw-semibold small" style="color: #1a1a1a;">
+                            Agreed Room Rate (Optional Override)
+                        </label>
+                        <div class="input-group" style="border: 1px solid #c2a889; border-radius: 0.375rem;">
+                            <span class="input-group-text bg-white border-0">₱</span>
+                            <input type="number" class="form-control border-0 shadow-none" id="extendNetRate" min="0" step="0.01" placeholder="Leave blank to keep current rate">
+                            <span class="input-group-text bg-white border-0 text-muted">/night</span>
+                        </div>
+                    </div>
+
+                    <div class="alert alert-danger d-none mt-3 mb-0" id="extendErrorAlert"></div>
+                </form>
+            </div>
+            <div class="modal-footer border-0">
+                <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn text-white fw-semibold" id="confirmExtendDepartureBtn" style="background-color: #334c42;">
+                    <i class="fa-solid fa-check me-1"></i> Update Departure
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
 <!-- Room Action Modal -->
 <div class="modal fade" id="roomActionModal" tabindex="-1" aria-labelledby="roomActionModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered">
@@ -1014,13 +1135,19 @@
         let roomActionModal = null;
         let checkOutModal = null;
         let checkInConfirmModal = null;
+        let extendDepartureModal = null;
         let selectedRoom = null;
         let pendingCheckOutBookingId = null;
         let pendingCheckInBookingId = null;
+        let pendingExtendBookingId = null;
  
         roomActionModal = new bootstrap.Modal(document.getElementById('roomActionModal'));
         checkOutModal = new bootstrap.Modal(document.getElementById('checkOutModal'));
         checkInConfirmModal = new bootstrap.Modal(document.getElementById('checkInConfirmModal'));
+        const extendDepartureModalEl = document.getElementById('extendDepartureModal');
+        if (extendDepartureModalEl) {
+            extendDepartureModal = new bootstrap.Modal(extendDepartureModalEl);
+        }
  
         // Auto-open room modal if room query parameter is present in URL
         const urlParams = new URLSearchParams(window.location.search);
@@ -1076,9 +1203,16 @@
                 openCheckOutModal(this.getAttribute('data-booking-id'));
             });
         });
- 
+
+        document.querySelectorAll('.extend-departure-btn').forEach(btn => {
+            btn.addEventListener('click', function() {
+                openExtendDepartureModal(this);
+            });
+        });
+
         document.getElementById('confirmCheckOutBtn')?.addEventListener('click', submitCheckOut);
         document.getElementById('confirmCheckInBtn')?.addEventListener('click', submitCheckIn);
+        document.getElementById('confirmExtendDepartureBtn')?.addEventListener('click', submitExtendDeparture);
 
         const checkoutSearch = document.getElementById('checkoutSearch');
         const checkoutSort = document.getElementById('checkoutSort');
@@ -1582,6 +1716,168 @@
                 showAlert('error', error.message);
             });
     }
+
+    function openExtendDepartureModal(button) {
+        const bookingId = button.getAttribute('data-booking-id');
+        const guestName = button.getAttribute('data-guest-name') || 'Guest';
+        const folioNumber = button.getAttribute('data-folio-number') || '—';
+        const roomNumber = button.getAttribute('data-room-number') || '—';
+        const roomType = button.getAttribute('data-room-type') || '';
+        const status = button.getAttribute('data-status') || '';
+        const arrivalDate = button.getAttribute('data-arrival-date');
+        const arrivalDisplay = button.getAttribute('data-arrival-display') || arrivalDate || '—';
+        const departureDate = button.getAttribute('data-departure-date');
+        const departureTime = button.getAttribute('data-departure-time') || '12:00';
+        const departureDisplay = button.getAttribute('data-departure-display') || '—';
+        const netRate = button.getAttribute('data-net-rate') || '';
+
+        pendingExtendBookingId = bookingId;
+        document.getElementById('extendBookingId').value = bookingId;
+        document.getElementById('extendModalGuestName').textContent = guestName;
+        document.getElementById('extendModalRoomBadge').textContent = 'Room ' + roomNumber;
+        document.getElementById('extendModalRoomType').textContent = roomType;
+        document.getElementById('extendModalFolioNumber').textContent = folioNumber;
+
+        const statusBadge = document.getElementById('extendModalStatus');
+        if (statusBadge) {
+            statusBadge.textContent = status === 'CHECKED_IN' ? 'CHECKED IN' : (status === 'RESERVED' ? 'RESERVED' : status);
+            statusBadge.className = 'badge-status ' + (status === 'CHECKED_IN' ? 'badge-status-checkedin' : 'badge-status-reserved');
+        }
+
+        document.getElementById('extendModalArrival').textContent = arrivalDisplay;
+        document.getElementById('extendModalCurrentDeparture').textContent = departureDisplay;
+
+        const dateInput = document.getElementById('extendDepartureDate');
+        const timeInput = document.getElementById('extendDepartureTime');
+        const rateInput = document.getElementById('extendNetRate');
+        const errorAlert = document.getElementById('extendErrorAlert');
+        const hintEl = document.getElementById('extendDateHint');
+
+        errorAlert.classList.add('d-none');
+        errorAlert.textContent = '';
+        dateInput.classList.remove('is-invalid');
+        rateInput.value = '';
+        rateInput.placeholder = netRate ? 'Current: ₱' + parseFloat(netRate).toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2}) : 'Leave blank to keep current rate';
+
+        // Calculate minimum extension date safely using date components
+        const now = window.currentServerTime || new Date();
+        const pad = n => String(n).padStart(2, '0');
+        const toIsoDate = d => `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
+
+        // Base minimum: tomorrow
+        const tomorrow = new Date(now.getFullYear(), now.getMonth(), now.getDate() + 1);
+        let minDate = new Date(tomorrow);
+
+        // Must be after arrival date
+        if (arrivalDate) {
+            const arrParts = arrivalDate.split('-');
+            if (arrParts.length === 3) {
+                const dayAfterArr = new Date(parseInt(arrParts[0], 10), parseInt(arrParts[1], 10) - 1, parseInt(arrParts[2], 10) + 1);
+                if (dayAfterArr > minDate) {
+                    minDate = dayAfterArr;
+                }
+            }
+        }
+
+        // If current departure date is set and in the future, new departure must be strictly after it
+        if (departureDate) {
+            const depParts = departureDate.split('-');
+            if (depParts.length === 3) {
+                const dayAfterDep = new Date(parseInt(depParts[0], 10), parseInt(depParts[1], 10) - 1, parseInt(depParts[2], 10) + 1);
+                if (dayAfterDep > minDate) {
+                    minDate = dayAfterDep;
+                }
+            }
+        }
+
+        const minDateStr = toIsoDate(minDate);
+        dateInput.min = minDateStr;
+        dateInput.value = minDateStr;
+        timeInput.value = departureTime;
+
+        if (hintEl) {
+            hintEl.textContent = 'Earliest extension date: ' + minDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) + '.';
+        }
+
+        extendDepartureModal?.show();
+    }
+
+    function submitExtendDeparture() {
+        if (!pendingExtendBookingId) return;
+
+        const confirmBtn = document.getElementById('confirmExtendDepartureBtn');
+        const dateInput = document.getElementById('extendDepartureDate');
+        const timeInput = document.getElementById('extendDepartureTime');
+        const rateInput = document.getElementById('extendNetRate');
+        const errorAlert = document.getElementById('extendErrorAlert');
+
+        const newDate = dateInput.value;
+        if (!newDate) {
+            errorAlert.textContent = 'Please select a new departure date.';
+            errorAlert.classList.remove('d-none');
+            dateInput.classList.add('is-invalid');
+            return;
+        }
+
+        if (dateInput.min && newDate < dateInput.min) {
+            errorAlert.textContent = 'New departure date must be on or after ' + dateInput.min + '.';
+            errorAlert.classList.remove('d-none');
+            dateInput.classList.add('is-invalid');
+            return;
+        }
+
+        dateInput.classList.remove('is-invalid');
+        errorAlert.classList.add('d-none');
+
+        window.setBtnLoading(confirmBtn, true, 'Updating...');
+
+        const payload = {
+            booking_id: pendingExtendBookingId,
+            departure_date: newDate,
+            departure_time: timeInput.value || '12:00'
+        };
+
+        if (rateInput.value && !isNaN(parseFloat(rateInput.value))) {
+            payload.net_rate = rateInput.value;
+        }
+
+        postJson('{{ route("frontdesk.booking.extend") }}', payload)
+            .then(data => {
+                extendDepartureModal?.hide();
+                showAlert('success', data.message);
+                setTimeout(refreshDashboardInPlace, 500);
+            })
+            .catch(error => {
+                window.setBtnLoading(confirmBtn, false);
+                errorAlert.textContent = error.message;
+                errorAlert.classList.remove('d-none');
+            });
+    }
+
+    window.swalConfirmCancelDashboardReservation = function(btn) {
+        var form = btn.closest('form');
+        if (typeof Swal === 'undefined') {
+            if (confirm('Cancel this reservation? This action cannot be undone.')) {
+                if (form.requestSubmit) { form.requestSubmit(); } else { form.submit(); }
+            }
+            return;
+        }
+
+        Swal.fire({
+            icon: 'warning',
+            title: 'Cancel Reservation?',
+            text: 'This action cannot be undone. The reservation will be marked as cancelled.',
+            showCancelButton: true,
+            confirmButtonText: '<i class="fa-solid fa-ban me-1"></i> Yes, Cancel It',
+            cancelButtonText: 'Keep Reservation',
+            confirmButtonColor: '#dc3545',
+            reverseButtons: true,
+        }).then(function(result) {
+            if (result.isConfirmed && form) {
+                if (form.requestSubmit) { form.requestSubmit(); } else { form.submit(); }
+            }
+        });
+    };
 
     function checkOutGuest(bookingId) {
         openCheckOutModal(bookingId);

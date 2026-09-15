@@ -358,12 +358,12 @@ class GuestFolioController extends Controller
     }
 
     /**
-     * Extend a checked-in guest's stay with optional rate override.
+     * Extend a checked-in or reserved guest's stay with optional rate override.
      */
     public function extendStay(Request $request, Booking $booking): RedirectResponse
     {
-        if ($booking->status !== 'CHECKED_IN') {
-            return back()->withErrors(['extend' => 'Only checked-in guests can extend their stay.']);
+        if (! in_array($booking->status, ['CHECKED_IN', 'RESERVED'], true)) {
+            return back()->withErrors(['extend' => 'Only reserved or checked-in guests can extend their stay.']);
         }
 
         $validated = $request->validate([
@@ -413,7 +413,9 @@ class GuestFolioController extends Controller
                 }
             }
 
-            $booking->postRoomCharges();
+            if ($booking->status === 'CHECKED_IN') {
+                $booking->postRoomCharges();
+            }
 
             $guestName = $booking->folio?->guest
                 ? ($booking->folio->guest->first_name.' '.$booking->folio->guest->last_name)

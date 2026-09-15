@@ -50,14 +50,14 @@ class RoomChargeService
 
         $today = Carbon::today();
 
-        DB::transaction(function () use ($bookings, $userId, $activeShift, $today) {
+        DB::transaction(function () use ($bookings, $userId, $activeShift, $today, $roomChargeCode) {
             foreach ($bookings as $booking) {
-                $this->chargeBooking($booking, $userId, $activeShift, $today);
+                $this->chargeBooking($booking, $userId, $activeShift, $today, $roomChargeCode);
             }
         });
     }
 
-    private function chargeBooking(Booking $booking, int $userId, Shift $activeShift, Carbon $today): void
+    private function chargeBooking(Booking $booking, int $userId, Shift $activeShift, Carbon $today, int $roomChargeCode): void
     {
         $arrival = $booking->arrival_date;
         if (! $arrival || $arrival > $today) {

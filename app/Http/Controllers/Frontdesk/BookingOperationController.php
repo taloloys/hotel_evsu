@@ -8,6 +8,8 @@ use App\Mail\FolioBillingMail;
 use App\Models\ActivityLog;
 use App\Models\Booking;
 use App\Models\Room;
+use App\Models\Transaction;
+use App\Services\ChargeCodeResolver;
 use App\Services\EmailRecipientResolver;
 use App\Services\RoomChargeService;
 use Carbon\Carbon;
@@ -183,6 +185,137 @@ class BookingOperationController extends Controller
             'message' => 'Guest checked out! Room sent to housekeeping for cleaning.',
             'booking' => $booking,
         ]);
+    }
+
+    /**
+     * Extend a booking's departure date and time (for reserved or checked-in guests).
+     */
+    public function extend(Request $request): JsonResponse
+    {
+        $request->validate([
+            'booking_id' => ['required', 'exists:bookings,booking_id'],
+            'departure_date' => ['required', 'date', 'after_or_equal:today'],
+            'departure_time' => ['nullable', 'date_format:H:i'],
+            'net_rate' => ['nullable', 'numeric', 'min:0'],
+        ]);
+
+        $booking = Booking::with(['room', 'folio.guest'])->findOrFail($request->booking_id);
+
+        if (! in_array($booking->status, ['RESERVED', 'CHECKED_IN'], true)) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Only reserved or checked-in bookings can be extended.',
+            ], 422);
+        }
+
+        $newDepartureDate = Carbon::parse($request->departure_date)->startOfDay();
+        $arrivalDate = $booking->arrival_date ? $booking->arrival_date->copy()->startOfDay() : null;
+
+        if ($arrivalDate && $newDepartureDate->lte($arrivalDate)) {
+            return response()->json([
+                'success' => false,
+                'message' => 'New departure date must be after the arrival date ('.$booking->arrival_date->format('m/d/Y').').',
+            ], 422);
+        }
+
+        $today = Carbon::today();
+        if ($booking->departure_date) {
+            $currentDeparture = $booking->departure_date->copy()->startOfDay();
+            if ($currentDeparture->gte($today) && $newDepartureDate->lte($currentDeparture)) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'New departure date must be after the current departure date ('.$booking->departure_date->format('m/d/Y').').',
+                ], 422);
+            }
+        }
+
+        $extensionStart = $booking->departure_date
+            ? $booking->departure_date->toDateString()
+            : ($booking->arrival_date ? $booking->arrival_date->toDateString() : $today->toDateString());
+
+        $newDepartureString = $newDepartureDate->toDateString();
+
+        if ($booking->room_id && $this->roomHasConflictExcluding($booking->room_id, $booking->booking_id, $extensionStart, $newDepartureString)) {
+            $roomNumber = $booking->room?->room_number ?? 'assigned room';
+
+            return response()->json([
+                'success' => false,
+                'message' => "Room {$roomNumber} is not available for the requested extension period.",
+            ], 422);
+        }
+
+        $departureTime = $request->departure_time ?? $booking->departure_time ?? '12:00';
+
+        DB::transaction(function () use ($booking, $newDepartureString, $departureTime, $request) {
+            $booking->update([
+                'departure_date' => $newDepartureString,
+                'departure_time' => $departureTime,
+            ]);
+
+            if ($booking->folio && $request->filled('net_rate')) {
+                $rate = (float) $request->net_rate;
+                $booking->folio->update(['net_rate' => $rate]);
+
+                if ($booking->status === 'CHECKED_IN') {
+                    $roomChargeCode = ChargeCodeResolver::resolve(ChargeCodeResolver::ROOM_CHARGE);
+                    if ($roomChargeCode) {
+                        Transaction::where('folio_id', $booking->folio_id)
+                            ->where('charge_code', $roomChargeCode)
+                            ->where('charge_number', 'like', 'RM-'.$booking->booking_id.'-%')
+                            ->update(['charge_amount' => $rate]);
+                    }
+                }
+            }
+
+            if ($booking->status === 'CHECKED_IN') {
+                app(RoomChargeService::class)->processCatchUpCharges($booking->booking_id);
+            }
+        });
+
+        $booking->load(['room', 'folio.guest']);
+        $guestName = $booking->folio?->guest
+            ? ($booking->folio->guest->first_name.' '.$booking->folio->guest->last_name)
+            : 'Guest';
+        $roomNumber = $booking->room?->room_number ?? 'N/A';
+        $formattedDate = $newDepartureDate->format('m/d/Y');
+        $formattedTime = Carbon::parse($departureTime)->format('g:i A');
+
+        ActivityLog::log(
+            'STAY_EXTENDED',
+            "Extended departure for {$guestName} (Room {$roomNumber}) to {$formattedDate} {$formattedTime} (Booking #{$booking->booking_id})."
+        );
+
+        return response()->json([
+            'success' => true,
+            'message' => "Departure extended successfully to {$formattedDate} at {$formattedTime}!",
+            'booking' => $booking,
+        ]);
+    }
+
+    /**
+     * Check room availability for an extension period, excluding the current booking.
+     */
+    private function roomHasConflictExcluding(
+        int $roomId,
+        int $excludeBookingId,
+        string $fromDate,
+        string $toDate
+    ): bool {
+        return Booking::query()
+            ->where('room_id', $roomId)
+            ->where('booking_id', '!=', $excludeBookingId)
+            ->whereIn('status', ['RESERVED', 'CHECKED_IN'])
+            ->where(function ($query) use ($fromDate, $toDate) {
+                $query->where(function ($specificStayQuery) use ($fromDate, $toDate) {
+                    $specificStayQuery->whereNotNull('departure_date')
+                        ->whereDate('arrival_date', '<', $toDate)
+                        ->whereDate('departure_date', '>', $fromDate);
+                })->orWhere(function ($openStayQuery) use ($toDate) {
+                    $openStayQuery->whereNull('departure_date')
+                        ->whereDate('arrival_date', '<', $toDate);
+                });
+            })
+            ->exists();
     }
 
     /**

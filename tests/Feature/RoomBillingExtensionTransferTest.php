@@ -64,6 +64,7 @@ beforeEach(function (): void {
     // 4. Create dummy ChargeCodes
     $this->roomChargeCode = ChargeCode::create([
         'charge_code' => 100,
+        'slug' => 'room_charge',
         'description' => 'ROOM CHARGE',
         'category' => 'HOTEL',
         'is_active' => true,

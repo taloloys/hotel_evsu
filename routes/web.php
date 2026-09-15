@@ -79,6 +79,9 @@ Route::middleware('auth')->group(function () {
             Route::post('/booking/check-out', [BookingOperationController::class, 'checkOut'])
                 ->name('frontdesk.booking.check-out');
 
+            Route::post('/booking/extend', [BookingOperationController::class, 'extend'])
+                ->name('frontdesk.booking.extend');
+
             Route::post('/room/mark-cleaned', [BookingOperationController::class, 'markCleaned'])
                 ->name('frontdesk.room.mark-cleaned');
 

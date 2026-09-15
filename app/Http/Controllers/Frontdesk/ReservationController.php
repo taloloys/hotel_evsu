@@ -245,8 +245,7 @@ class ReservationController extends Controller
             );
         });
 
-        return redirect()
-            ->route('frontdesk.reservation')
+        return back()
             ->with('success', 'Reservation cancelled successfully.');
     }
 
