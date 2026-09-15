@@ -197,6 +197,37 @@ test('open stay check-in and daily room charge command', function () {
         ->exists());
 });
 
+test('legacy daily room charge command captures the resolved room charge code', function () {
+    Carbon::setTestNow('2026-07-12 00:05:00');
+
+    $folio = Folio::create([
+        'folio_number' => 'REG-DAILY-001',
+        'guest_id' => $this->guest->guest_id,
+        'status' => 'OPEN',
+        'net_rate' => 2000.00,
+    ]);
+
+    $booking = Booking::create([
+        'folio_id' => $folio->folio_id,
+        'room_id' => $this->roomA->room_id,
+        'arrival_date' => '2026-07-11',
+        'arrival_time' => '12:00',
+        'departure_date' => null,
+        'departure_time' => null,
+        'status' => 'CHECKED_IN',
+    ]);
+
+    $this->artisan('billing:post-daily-charges')
+        ->assertExitCode(0);
+
+    $this->assertDatabaseHas('transactions', [
+        'folio_id' => $booking->folio_id,
+        'charge_code' => $this->roomChargeCode->charge_code,
+        'transaction_date' => '2026-07-11 00:00:00',
+        'charge_amount' => 2000.00,
+    ]);
+});
+
 test('stay extension with rate override and billing', function () {
     Carbon::setTestNow('2026-07-11 12:00:00');
 

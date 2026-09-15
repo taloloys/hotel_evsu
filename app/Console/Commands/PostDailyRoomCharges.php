@@ -79,7 +79,7 @@ class PostDailyRoomCharges extends Command
 
         $today = Carbon::today();
 
-        DB::transaction(function () use ($bookings, $systemUser, $activeShift) {
+        DB::transaction(function () use ($bookings, $systemUser, $activeShift, $roomChargeCode) {
             foreach ($bookings as $booking) {
                 $arrival = $booking->arrival_date;
                 if (! $arrival) {
