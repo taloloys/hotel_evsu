@@ -30,6 +30,8 @@ return [
 
     'backup_disk' => env('BACKUP_DISK', 'local'),
 
+    'url_expiration_days' => (int) env('STORAGE_URL_EXPIRATION_DAYS', 7),
+
     /*
     |--------------------------------------------------------------------------
     | Filesystem Disks

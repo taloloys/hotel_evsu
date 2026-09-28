@@ -164,8 +164,15 @@ class PosProduct extends Model
             return $this->image_path;
         }
 
-        $disk = config('filesystems.uploads_disk', 'public');
+        $diskName = config('filesystems.uploads_disk', 'public');
+        $disk = Storage::disk($diskName);
 
-        return Storage::disk($disk)->url($this->image_path);
+        if (config("filesystems.disks.{$diskName}.driver") === 's3') {
+            $days = config('filesystems.url_expiration_days', 7);
+
+            return $disk->temporaryUrl($this->image_path, now()->addDays($days));
+        }
+
+        return $disk->url($this->image_path);
     }
 }

@@ -27,11 +27,13 @@ test('PosProduct image_url attribute behaves correctly across disks and url type
     $product->image_path = 'pos/products/coffee.webp';
     expect($product->image_url)->toContain('pos/products/coffee.webp');
 
-    // 4. S3 disk configuration
+    // 4. S3 disk configuration (should use temporaryUrl)
     Storage::fake('s3');
     Config::set('filesystems.uploads_disk', 's3');
+    Config::set('filesystems.disks.s3.driver', 's3');
     $product->image_path = 'pos/products/coffee.webp';
     expect($product->image_url)->toContain('pos/products/coffee.webp');
+    expect($product->image_url)->toContain('expiration=');
 });
 
 test('LandingPageShowcase url helper resolves static vs uploaded images correctly', function (): void {
@@ -48,12 +50,20 @@ test('LandingPageShowcase url helper resolves static vs uploaded images correctl
     expect(LandingPageShowcase::imageExists($staticPath))->toBeTrue();
     expect(LandingPageShowcase::url($staticPath))->toBe(asset($staticPath));
 
-    // Uploaded dynamic showcase image
+    // Uploaded dynamic showcase image (local public disk)
     $uploadedPath = 'images/showcase/rooms/room_deluxe.webp';
 
     Storage::fake('public');
     Config::set('filesystems.uploads_disk', 'public');
     expect(LandingPageShowcase::url($uploadedPath))->toContain('images/showcase/rooms/room_deluxe.webp');
+    expect(LandingPageShowcase::url($uploadedPath))->not->toContain('expiration=');
+
+    // Uploaded dynamic showcase image (s3 disk)
+    Storage::fake('s3');
+    Config::set('filesystems.uploads_disk', 's3');
+    Config::set('filesystems.disks.s3.driver', 's3');
+    expect(LandingPageShowcase::url($uploadedPath))->toContain('images/showcase/rooms/room_deluxe.webp');
+    expect(LandingPageShowcase::url($uploadedPath))->toContain('expiration=');
 });
 
 test('ImageUploadService uploads and deletes images using configured uploads disk', function (): void {

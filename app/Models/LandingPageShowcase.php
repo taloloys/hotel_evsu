@@ -50,9 +50,16 @@ class LandingPageShowcase extends Model
             return asset($path);
         }
 
-        $disk = config('filesystems.uploads_disk', 'public');
+        $diskName = config('filesystems.uploads_disk', 'public');
+        $disk = Storage::disk($diskName);
 
-        return Storage::disk($disk)->url($path);
+        if (config("filesystems.disks.{$diskName}.driver") === 's3') {
+            $days = config('filesystems.url_expiration_days', 7);
+
+            return $disk->temporaryUrl($path, now()->addDays($days));
+        }
+
+        return $disk->url($path);
     }
 
     /**
