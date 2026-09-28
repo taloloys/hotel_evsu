@@ -73,6 +73,9 @@ Route::middleware('auth')->group(function () {
             Route::get('/dashboard', [FrontdeskDashboardController::class, 'index'])
                 ->name('frontdesk.dashboard');
 
+            Route::get('/calendar/timeline-data', [FrontdeskDashboardController::class, 'calendarData'])
+                ->name('frontdesk.calendar.timeline-data');
+
             Route::post('/booking/check-in', [BookingOperationController::class, 'checkIn'])
                 ->name('frontdesk.booking.check-in');
 

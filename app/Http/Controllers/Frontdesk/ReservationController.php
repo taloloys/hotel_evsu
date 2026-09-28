@@ -10,6 +10,7 @@ use App\Models\Folio;
 use App\Models\Guest;
 use App\Models\Room;
 use App\Services\EmailRecipientResolver;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -212,9 +213,16 @@ class ReservationController extends Controller
             ->with('success', 'Reservation saved successfully. It will appear on the dashboard for today\'s arrivals.');
     }
 
-    public function cancel(Booking $booking): RedirectResponse
+    public function cancel(Booking $booking): RedirectResponse|JsonResponse
     {
         if ($booking->status !== 'RESERVED') {
+            if (request()->wantsJson()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Only reserved bookings can be cancelled.',
+                ], 422);
+            }
+
             return redirect()
                 ->route('frontdesk.reservation')
                 ->withErrors(['cancel' => 'Only reserved bookings can be cancelled.']);
@@ -244,6 +252,13 @@ class ReservationController extends Controller
                 "Cancelled reservation #{$booking->booking_id} for {$guestName} (Room {$roomNumber})."
             );
         });
+
+        if (request()->wantsJson()) {
+            return response()->json([
+                'success' => true,
+                'message' => 'Reservation cancelled successfully.',
+            ]);
+        }
 
         return back()
             ->with('success', 'Reservation cancelled successfully.');

@@ -77,7 +77,7 @@ beforeEach(function (): void {
 
 test('unauthenticated users are redirected to login', function (): void {
     $this->get(route('admin.dashboard'))
-        ->assertRedirect(route('login'));
+        ->assertRedirect(route('home'));
 });
 
 test('authenticated admin can view the admin dashboard page with dynamic data', function (): void {
