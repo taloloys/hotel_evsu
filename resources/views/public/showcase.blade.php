@@ -66,10 +66,17 @@
             </nav>
 
             <div class="flex items-center gap-3">
-                <a href="{{ route('login') }}" class="inline-flex items-center gap-2 rounded-xl bg-[#334c42] px-5 py-2.5 text-xs font-bold text-white shadow-md transition-all duration-200 hover:bg-[#627e71] active:scale-95">
-                    <i class="fa-solid fa-lock text-xs"></i>
-                    <span>Staff / Guest Login</span>
-                </a>
+                @auth
+                    <a href="javascript:void(0)" onclick="alert('Login is disabled during preview mode.')" class="inline-flex items-center gap-2 rounded-xl bg-[#627e71] px-5 py-2.5 text-xs font-bold text-white shadow-md transition-all duration-200 cursor-not-allowed opacity-75">
+                        <i class="fa-solid fa-lock text-xs"></i>
+                        <span>Preview Mode</span>
+                    </a>
+                @else
+                    <a href="{{ route('login') }}" class="inline-flex items-center gap-2 rounded-xl bg-[#334c42] px-5 py-2.5 text-xs font-bold text-white shadow-md transition-all duration-200 hover:bg-[#627e71] active:scale-95">
+                        <i class="fa-solid fa-lock text-xs"></i>
+                        <span>Staff / Guest Login</span>
+                    </a>
+                @endauth
                 <button id="mobileMenuBtn" aria-label="Toggle mobile menu" class="md:hidden flex h-10 w-10 items-center justify-center rounded-xl border border-[#827567]/40 bg-white text-[#504538]">
                     <i class="fa-solid fa-bars"></i>
                 </button>
@@ -81,7 +88,11 @@
             <a href="#hero" class="block rounded-lg px-3 py-2 text-sm font-semibold text-[#504538] hover:bg-[#827567]/20">Home</a>
             <a href="#rooms" class="block rounded-lg px-3 py-2 text-sm font-semibold text-[#504538] hover:bg-[#827567]/20">Rooms Showcase</a>
             <a href="#coffeeshop" class="block rounded-lg px-3 py-2 text-sm font-semibold text-[#504538] hover:bg-[#827567]/20">Cafeteria & Lounge</a>
-            <a href="{{ route('login') }}" class="block rounded-lg px-3 py-2 text-sm font-bold text-[#334c42] hover:bg-[#827567]/20">Staff Login Portal</a>
+            @auth
+                <a href="javascript:void(0)" onclick="alert('Login is disabled during preview mode.')" class="block rounded-lg px-3 py-2 text-sm font-bold text-[#627e71] opacity-75 cursor-not-allowed">Staff Login Portal (Disabled)</a>
+            @else
+                <a href="{{ route('login') }}" class="block rounded-lg px-3 py-2 text-sm font-bold text-[#334c42] hover:bg-[#827567]/20">Staff Login Portal</a>
+            @endauth
         </div>
     </header>
 
@@ -115,10 +126,17 @@
                             <i class="fa-solid fa-mug-hot text-[#334c42]"></i>
                             <span>Cafeteria Highlights</span>
                         </a>
-                        <a href="{{ route('login') }}" class="inline-flex items-center gap-2 rounded-2xl bg-[#627e71] px-7 py-4 text-sm font-bold text-white shadow-md transition-all hover:bg-[#334c42]">
-                            <i class="fa-solid fa-right-to-bracket"></i>
-                            <span>Staff / Guest Login</span>
-                        </a>
+                        @auth
+                            <a href="javascript:void(0)" onclick="alert('Login is disabled during preview mode.')" class="inline-flex items-center gap-2 rounded-2xl bg-[#627e71] px-7 py-4 text-sm font-bold text-white shadow-md transition-all cursor-not-allowed opacity-75">
+                                <i class="fa-solid fa-right-to-bracket"></i>
+                                <span>Preview Mode</span>
+                            </a>
+                        @else
+                            <a href="{{ route('login') }}" class="inline-flex items-center gap-2 rounded-2xl bg-[#627e71] px-7 py-4 text-sm font-bold text-white shadow-md transition-all hover:bg-[#334c42]">
+                                <i class="fa-solid fa-right-to-bracket"></i>
+                                <span>Staff / Guest Login</span>
+                            </a>
+                        @endauth
                     </div>
 
                     <!-- Highlights Bar -->
@@ -270,10 +288,17 @@
                                         <span title="Air Conditioned"><i class="fa-solid fa-snowflake"></i></span>
                                         <span title="Private Bathroom"><i class="fa-solid fa-shower"></i></span>
                                     </div>
-                                    <a href="{{ route('login') }}" class="inline-flex items-center gap-1.5 text-xs font-bold text-white bg-[#627e71] px-3.5 py-2 rounded-xl transition-all hover:bg-[#334c42]">
-                                        <span>Inquire / Book</span>
-                                        <i class="fa-solid fa-arrow-right text-[10px]"></i>
-                                    </a>
+                                    @auth
+                                        <a href="javascript:void(0)" onclick="alert('Booking is disabled during preview mode.')" class="inline-flex items-center gap-1.5 text-xs font-bold text-white bg-[#627e71] px-3.5 py-2 rounded-xl transition-all cursor-not-allowed opacity-75">
+                                            <span>Inquire / Book</span>
+                                            <i class="fa-solid fa-arrow-right text-[10px]"></i>
+                                        </a>
+                                    @else
+                                        <a href="{{ route('login') }}" class="inline-flex items-center gap-1.5 text-xs font-bold text-white bg-[#627e71] px-3.5 py-2 rounded-xl transition-all hover:bg-[#334c42]">
+                                            <span>Inquire / Book</span>
+                                            <i class="fa-solid fa-arrow-right text-[10px]"></i>
+                                        </a>
+                                    @endauth
                                 </div>
                             </div>
 
@@ -305,27 +330,26 @@
                     <div class="lg:col-span-7 relative h-72 lg:h-96 w-full bg-gradient-to-br from-[#504538] via-[#334c42] to-[#627e71]">
                         @php
                             $mainCafeteriaImg = $cafeteriaHero['image'] ?? 'images/showcase/coffeeshop/cafeteria_main.jpg';
-                            $hasMainImage = \App\Models\LandingPageShowcase::imageExists($mainCafeteriaImg);
                             $mainCafeteriaUrl = \App\Models\LandingPageShowcase::url($mainCafeteriaImg);
                         @endphp
-                        @if ($hasMainImage)
-                            <img 
-                                src="{{ $mainCafeteriaUrl }}"
-                                alt="EVSU Main Cafeteria"
-                                loading="lazy"
-                                width="700"
-                                height="400"
-                                class="h-full w-full object-cover">
-                        @else
-                            <!-- Main Cafeteria Placeholder Graphic -->
-                            <div class="flex h-full w-full flex-col items-center justify-center p-8 text-white text-center relative">
-                                <div class="flex h-20 w-20 items-center justify-center rounded-3xl bg-white/10 border border-white/20 backdrop-blur-md mb-4 shadow-inner">
-                                    <i class="fa-solid fa-store text-4xl text-[#c2a889]"></i>
-                                </div>
-                                <h3 class="text-2xl font-bold text-white font-display">EVSU Cafeteria & Lounge</h3>
-                                <p class="text-xs text-[#c2a889] max-w-sm mt-1">Main Cafeteria Showcase Photograph Container</p>
+                        
+                        <img 
+                            src="{{ $mainCafeteriaUrl }}"
+                            alt="EVSU Main Cafeteria"
+                            loading="lazy"
+                            width="700"
+                            height="400"
+                            class="h-full w-full object-cover"
+                            onerror="this.style.display='none'; this.nextElementSibling.style.display='flex'">
+                        
+                        <!-- Main Cafeteria Placeholder Graphic -->
+                        <div class="hidden h-full w-full flex-col items-center justify-center p-8 text-white text-center relative bg-gradient-to-br from-[#504538] via-[#334c42] to-[#627e71]">
+                            <div class="flex h-20 w-20 items-center justify-center rounded-3xl bg-white/10 border border-white/20 backdrop-blur-md mb-4 shadow-inner">
+                                <i class="fa-solid fa-store text-4xl text-[#c2a889]"></i>
                             </div>
-                        @endif
+                            <h3 class="text-2xl font-bold text-white font-display">EVSU Cafeteria & Lounge</h3>
+                            <p class="text-xs text-[#c2a889] max-w-sm mt-1">Main Cafeteria Showcase Photograph Container</p>
+                        </div>
                         <div class="absolute bottom-4 left-4 z-10 rounded-full bg-black/70 backdrop-blur-sm px-4 py-1.5 text-xs font-semibold text-white">
                             <i class="fa-solid fa-clock mr-1.5 text-[#c2a889]"></i>
                             {{ $cafeteriaHero['timing'] }}
@@ -358,27 +382,25 @@
                 <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
                     @foreach ($coffeeshopHighlights as $item)
                         @php
-                            $hasItemImage = \App\Models\LandingPageShowcase::imageExists($item['image']);
                             $itemImageUrl = \App\Models\LandingPageShowcase::url($item['image']);
                         @endphp
                         <div class="group overflow-hidden rounded-3xl border border-[#827567]/30 bg-white shadow-md transition-all duration-300 hover:-translate-y-1 hover:shadow-lg">
                             <div class="relative h-48 w-full bg-gradient-to-br from-[#504538] to-[#334c42] overflow-hidden">
-                                @if ($hasItemImage)
-                                    <img 
-                                        src="{{ $itemImageUrl }}"
-                                        alt="{{ $item['title'] }}"
-                                        loading="lazy"
-                                        width="320"
-                                        height="200"
-                                        class="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105">
-                                @else
-                                    <div class="flex h-full w-full flex-col items-center justify-center p-6 text-white text-center relative">
-                                        <div class="flex h-14 w-14 items-center justify-center rounded-2xl bg-[#627e71] border border-white/20 backdrop-blur-sm mb-2">
-                                            <i class="fa-solid {{ $item['icon'] ?? 'fa-mug-hot' }} text-2xl text-[#c2a889]"></i>
-                                        </div>
-                                        <span class="text-xs font-bold text-[#c2a889] font-display">{{ $item['category'] }}</span>
+                                <img 
+                                    src="{{ $itemImageUrl }}"
+                                    alt="{{ $item['title'] }}"
+                                    loading="lazy"
+                                    width="320"
+                                    height="200"
+                                    class="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
+                                    onerror="this.style.display='none'; this.nextElementSibling.style.display='flex'">
+                                
+                                <div class="hidden h-full w-full flex-col items-center justify-center p-6 text-white text-center relative">
+                                    <div class="flex h-14 w-14 items-center justify-center rounded-2xl bg-[#627e71] border border-white/20 backdrop-blur-sm mb-2">
+                                        <i class="fa-solid {{ $item['icon'] ?? 'fa-mug-hot' }} text-2xl text-[#c2a889]"></i>
                                     </div>
-                                @endif
+                                    <span class="text-xs font-bold text-[#c2a889] font-display">{{ $item['category'] }}</span>
+                                </div>
 
                                 <div class="absolute bottom-3 left-3 z-10 rounded-full bg-[#827567] px-2.5 py-0.5 text-[11px] font-semibold text-white">
                                     {{ $item['timing'] }}
@@ -418,7 +440,11 @@
                         <li><a href="#hero" class="hover:text-white transition-colors">Home Showcase</a></li>
                         <li><a href="#rooms" class="hover:text-white transition-colors">Rooms Showcase</a></li>
                         <li><a href="#coffeeshop" class="hover:text-white transition-colors">Cafeteria Highlights</a></li>
-                        <li><a href="{{ route('login') }}" class="hover:text-white transition-colors">Staff / Guest Login</a></li>
+                        @auth
+                            <li><a href="javascript:void(0)" onclick="alert('Login is disabled during preview mode.')" class="text-[#c2a889]/70 cursor-not-allowed">Staff / Guest Login (Disabled)</a></li>
+                        @else
+                            <li><a href="{{ route('login') }}" class="hover:text-white transition-colors">Staff / Guest Login</a></li>
+                        @endauth
                     </ul>
                 </div>
 

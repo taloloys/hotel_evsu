@@ -70,19 +70,15 @@
                         <div class="col-md-3 text-center">
                             @php
                                 $mainImg = !empty($cafeteriaMain->images[0]) ? $cafeteriaMain->images[0] : 'images/showcase/coffeeshop/cafeteria_main.jpg';
-                                $hasMainImg = \App\Models\LandingPageShowcase::imageExists($mainImg);
                                 $mainImgUrl = \App\Models\LandingPageShowcase::url($mainImg);
                             @endphp
                             <div class="rounded-3 overflow-hidden border border-secondary border-opacity-25 bg-white shadow-sm h-100 d-flex items-center justify-center p-2" style="min-height: 140px;">
-                                @if($hasMainImg)
-                                    <img src="{{ $mainImgUrl }}" alt="Cafeteria Main" class="img-fluid rounded" style="max-height: 130px; object-fit: cover;">
-                                @else
-                                    <div class="text-muted p-3">
-                                        <i class="fa-solid fa-mug-hot fa-2x mb-2 text-warning"></i>
-                                        <div class="small fw-bold">Main Image Placeholder</div>
-                                        <span class="badge bg-secondary">Upload Below</span>
-                                    </div>
-                                @endif
+                                <img src="{{ $mainImgUrl }}" alt="Cafeteria Main" class="img-fluid rounded" style="max-height: 130px; object-fit: cover;" onerror="this.style.display='none'; this.nextElementSibling.style.display='block'">
+                                <div class="text-muted p-3 text-center" style="display: none;">
+                                    <i class="fa-solid fa-mug-hot fa-2x mb-2 text-warning"></i>
+                                    <div class="small fw-bold">Main Image Placeholder</div>
+                                    <span class="badge bg-secondary">Upload Below</span>
+                                </div>
                             </div>
                         </div>
                         <div class="col-md-9">
@@ -155,10 +151,14 @@
                                     @php
                                         $imgs = is_array($room->images) ? $room->images : [];
                                         $firstImg = $imgs[0] ?? null;
-                                        $hasImg = $firstImg && file_exists(public_path($firstImg));
+                                        $firstImgUrl = $firstImg ? \App\Models\LandingPageShowcase::url($firstImg) : null;
                                     @endphp
-                                    @if($hasImg)
-                                        <img src="{{ asset($firstImg) }}" alt="{{ $room->title }}" class="rounded border" style="width: 60px; height: 45px; object-fit: cover;">
+                                    @if($firstImgUrl)
+                                        <img src="{{ $firstImgUrl }}" alt="{{ $room->title }}" class="rounded border" style="width: 60px; height: 45px; object-fit: cover;" onerror="this.style.display='none'; this.nextElementSibling.style.display='block'">
+                                        <div class="rounded border bg-light text-center p-1 text-muted" style="width: 60px; height: 45px; font-size: 10px; display: none;">
+                                            <i class="fa-solid {{ $room->icon ?? 'fa-bed' }}"></i>
+                                            <div class="small">SVG Card</div>
+                                        </div>
                                     @else
                                         <div class="rounded border bg-light text-center p-1 text-muted" style="width: 60px; height: 45px; font-size: 10px;">
                                             <i class="fa-solid {{ $room->icon ?? 'fa-bed' }}"></i>
@@ -243,18 +243,14 @@
                                                     <div class="d-flex flex-wrap gap-2 p-3 rounded bg-light border border-secondary border-opacity-10 mb-2">
                                                         @forelse($room->images ?? [] as $img)
                                                             @php
-                                                                $hasImgFile = \App\Models\LandingPageShowcase::imageExists($img);
                                                                 $imgUrl = \App\Models\LandingPageShowcase::url($img);
                                                             @endphp
                                                             <div class="position-relative border rounded p-1 bg-white shadow-sm text-center" style="width: 110px;">
-                                                                @if($hasImgFile)
-                                                                    <img src="{{ $imgUrl }}" alt="Preview" class="rounded w-100 mb-1" style="height: 70px; object-fit: cover;">
-                                                                @else
-                                                                    <div class="bg-secondary-subtle rounded d-flex flex-column align-items-center justify-content-center text-muted mb-1" style="height: 70px; font-size: 8px;">
-                                                                        <i class="fa-solid fa-triangle-exclamation text-warning mb-1"></i>
-                                                                        <span>Not Found</span>
-                                                                    </div>
-                                                                @endif
+                                                                <img src="{{ $imgUrl }}" alt="Preview" class="rounded w-100 mb-1" style="height: 70px; object-fit: cover;" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex'">
+                                                                <div class="bg-secondary-subtle rounded flex-column align-items-center justify-content-center text-muted mb-1" style="height: 70px; font-size: 8px; display: none;">
+                                                                    <i class="fa-solid fa-triangle-exclamation text-warning mb-1 mt-3"></i>
+                                                                    <span>Not Found</span>
+                                                                </div>
                                                                 <span class="d-block text-truncate text-secondary font-monospace" style="font-size: 9px;" title="{{ basename($img) }}">{{ basename($img) }}</span>
                                                             </div>
                                                         @empty
