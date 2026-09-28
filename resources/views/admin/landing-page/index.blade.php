@@ -70,11 +70,12 @@
                         <div class="col-md-3 text-center">
                             @php
                                 $mainImg = !empty($cafeteriaMain->images[0]) ? $cafeteriaMain->images[0] : 'images/showcase/coffeeshop/cafeteria_main.jpg';
-                                $hasMainImg = file_exists(public_path($mainImg));
+                                $hasMainImg = \App\Models\LandingPageShowcase::imageExists($mainImg);
+                                $mainImgUrl = \App\Models\LandingPageShowcase::url($mainImg);
                             @endphp
                             <div class="rounded-3 overflow-hidden border border-secondary border-opacity-25 bg-white shadow-sm h-100 d-flex items-center justify-center p-2" style="min-height: 140px;">
                                 @if($hasMainImg)
-                                    <img src="{{ asset($mainImg) }}" alt="Cafeteria Main" class="img-fluid rounded" style="max-height: 130px; object-fit: cover;">
+                                    <img src="{{ $mainImgUrl }}" alt="Cafeteria Main" class="img-fluid rounded" style="max-height: 130px; object-fit: cover;">
                                 @else
                                     <div class="text-muted p-3">
                                         <i class="fa-solid fa-mug-hot fa-2x mb-2 text-warning"></i>
@@ -242,11 +243,12 @@
                                                     <div class="d-flex flex-wrap gap-2 p-3 rounded bg-light border border-secondary border-opacity-10 mb-2">
                                                         @forelse($room->images ?? [] as $img)
                                                             @php
-                                                                $hasImgFile = file_exists(public_path($img));
+                                                                $hasImgFile = \App\Models\LandingPageShowcase::imageExists($img);
+                                                                $imgUrl = \App\Models\LandingPageShowcase::url($img);
                                                             @endphp
                                                             <div class="position-relative border rounded p-1 bg-white shadow-sm text-center" style="width: 110px;">
                                                                 @if($hasImgFile)
-                                                                    <img src="{{ asset($img) }}" alt="Preview" class="rounded w-100 mb-1" style="height: 70px; object-fit: cover;">
+                                                                    <img src="{{ $imgUrl }}" alt="Preview" class="rounded w-100 mb-1" style="height: 70px; object-fit: cover;">
                                                                 @else
                                                                     <div class="bg-secondary-subtle rounded d-flex flex-column align-items-center justify-content-center text-muted mb-1" style="height: 70px; font-size: 8px;">
                                                                         <i class="fa-solid fa-triangle-exclamation text-warning mb-1"></i>

@@ -166,7 +166,8 @@
                 <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
                     @foreach ($rooms as $room)
                         @php
-                            $imagesList = is_array($room['images']) ? $room['images'] : [$room['images'] ?? 'images/showcase/rooms/standard.jpg'];
+                            $rawImagesList = is_array($room['images']) ? $room['images'] : [$room['images'] ?? 'images/showcase/rooms/standard.jpg'];
+                            $imagesList = array_values(array_filter(array_map([\App\Models\LandingPageShowcase::class, 'url'], $rawImagesList)));
                         @endphp
                         
                         <div 
@@ -188,7 +189,7 @@
                                     <template x-for="(imgSrc, idx) in images" :key="idx">
                                         <div x-show="activeIndex === idx" class="h-full w-full">
                                             <img 
-                                                :src="'{{ asset('') }}' + imgSrc" 
+                                                :src="imgSrc"
                                                 alt="{{ $room['name'] }}"
                                                 loading="lazy"
                                                 width="400"
@@ -304,11 +305,12 @@
                     <div class="lg:col-span-7 relative h-72 lg:h-96 w-full bg-gradient-to-br from-[#504538] via-[#334c42] to-[#627e71]">
                         @php
                             $mainCafeteriaImg = $cafeteriaHero['image'] ?? 'images/showcase/coffeeshop/cafeteria_main.jpg';
-                            $hasMainImage = file_exists(public_path($mainCafeteriaImg));
+                            $hasMainImage = \App\Models\LandingPageShowcase::imageExists($mainCafeteriaImg);
+                            $mainCafeteriaUrl = \App\Models\LandingPageShowcase::url($mainCafeteriaImg);
                         @endphp
                         @if ($hasMainImage)
                             <img 
-                                src="{{ asset($mainCafeteriaImg) }}" 
+                                src="{{ $mainCafeteriaUrl }}"
                                 alt="EVSU Main Cafeteria"
                                 loading="lazy"
                                 width="700"
@@ -356,13 +358,14 @@
                 <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
                     @foreach ($coffeeshopHighlights as $item)
                         @php
-                            $hasItemImage = file_exists(public_path($item['image']));
+                            $hasItemImage = \App\Models\LandingPageShowcase::imageExists($item['image']);
+                            $itemImageUrl = \App\Models\LandingPageShowcase::url($item['image']);
                         @endphp
                         <div class="group overflow-hidden rounded-3xl border border-[#827567]/30 bg-white shadow-md transition-all duration-300 hover:-translate-y-1 hover:shadow-lg">
                             <div class="relative h-48 w-full bg-gradient-to-br from-[#504538] to-[#334c42] overflow-hidden">
                                 @if ($hasItemImage)
                                     <img 
-                                        src="{{ asset($item['image']) }}" 
+                                        src="{{ $itemImageUrl }}"
                                         alt="{{ $item['title'] }}"
                                         loading="lazy"
                                         width="320"

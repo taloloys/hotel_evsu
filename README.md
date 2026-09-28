@@ -177,10 +177,54 @@ php artisan route:list
 php artisan cache:clear
 ```
 
-## Support
+## Storage & Deployment Architecture
 
-For questions or issues, contact the development team.
+This application supports dual storage configurations: local filesystem for development (XAMPP / local PHP) and S3-compatible Object Storage for production (Laravel Cloud).
+
+### Environment Configuration
+
+#### Local Development
+```env
+FILESYSTEM_DISK=local
+UPLOADS_DISK=public
+BACKUP_DISK=local
+```
+- Temporary and system files remain in `storage/app/private`.
+- Product and landing page showcase uploads are stored in `storage/app/public` (served via `php artisan storage:link`).
+- Database backups are stored locally in `storage/backups`.
+
+#### Production (Laravel Cloud)
+```env
+FILESYSTEM_DISK=local
+UPLOADS_DISK=s3
+BACKUP_DISK=s3
+```
+- Standard application temporary/session storage remains local.
+- User uploads and database backups persist in Laravel Cloud Object Storage (or any S3-compatible bucket).
+- Note: When Object Storage is attached to your environment in Laravel Cloud, inspect the storage credentials and configuration provided in your Cloud environment settings and map them to the standard Laravel S3 environment variables:
+  - `AWS_ACCESS_KEY_ID`
+  - `AWS_SECRET_ACCESS_KEY`
+  - `AWS_DEFAULT_REGION`
+  - `AWS_BUCKET`
+  - `AWS_URL`
+  - `AWS_ENDPOINT`
+  - `AWS_USE_PATH_STYLE_ENDPOINT`
+  Do not assume fixed variable names; inspect the attached storage configuration in Laravel Cloud and set the corresponding standard Laravel AWS_* variables in your environment.
+
+### Laravel Cloud Deployment Sequence
+
+1. **Create Production Environment**: In the Laravel Cloud console, create a new project/environment.
+2. **Attach Cloud MySQL**: Provision a managed MySQL database instance in Laravel Cloud and link it to the environment.
+3. **Attach Object Storage**: Attach a Laravel Cloud Object Storage bucket for persistent file storage.
+4. **Configure Environment Variables**: Set `APP_ENV=production`, `APP_DEBUG=false`, `FILESYSTEM_DISK=local`, `UPLOADS_DISK=s3`, `BACKUP_DISK=s3`, and the database/S3 credentials.
+5. **Deploy Application**: Trigger the deployment from your repository.
+6. **Run Migrations**: Execute `php artisan migrate --force` as part of the post-deployment step.
+7. **Verify Environment**: Access the application via the Cloud-assigned environment URL.
+8. **Test Uploads**: Test product and showcase image uploads to verify S3 persistence and URL resolution.
+9. **Test Backups**: Trigger a manual backup from the Admin Backup & Restore console to confirm dump creation and S3 storage.
+10. **Verify Scheduled Tasks**: Ensure the Laravel Cloud scheduler is invoking `php artisan schedule:run` every minute (e.g. `db:auto-backup`, `db:clean-backups`).
+11. **Configure Custom Domain**: Attach and route your production domain name once staging verification is complete.
 
 ---
 
-**Last Updated:** 2026-06-17
+**Last Updated:** 2026-09-28

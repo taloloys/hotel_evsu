@@ -23,7 +23,17 @@ beforeEach(function (): void {
         'is_active' => true,
     ]);
 
-    $this->adminRole->permissions()->sync([$this->manageUsersPermission->permission_id]);
+    $this->backupPermission = Permission::create([
+        'permission_key' => 'manage-backup-restore',
+        'description' => 'Manage backup and restore',
+        'module' => 'System',
+        'is_active' => true,
+    ]);
+
+    $this->adminRole->permissions()->sync([
+        $this->manageUsersPermission->permission_id,
+        $this->backupPermission->permission_id,
+    ]);
 
     $this->adminUser = User::factory()->create([
         'username' => 'admin_test',
@@ -44,6 +54,20 @@ beforeEach(function (): void {
         'role_id' => $this->staffRole->role_id,
         'is_active' => true,
     ]);
+
+    BackupSettingsService::set([
+        'enabled' => false,
+        'time' => '02:00',
+        'retention_days' => 30,
+        'folder' => storage_path('backups'),
+    ]);
+
+    $backupDir = storage_path('backups');
+    if (is_dir($backupDir)) {
+        foreach (glob($backupDir.'/backup_2026-09-*') as $leftover) {
+            @unlink($leftover);
+        }
+    }
 });
 
 test('unauthenticated user is redirected from backup-restore page', function (): void {
@@ -127,9 +151,23 @@ test('backup saves to storage/backups/ and logs to activity log', function (): v
         ]);
 
         $backupDir = storage_path('backups');
-        $files = glob($backupDir.'/*.sql');
+        $files = array_merge(glob($backupDir.'/*.sql'), glob($backupDir.'/*.zip'));
+        $trackedFixtures = [
+            'backup_2026-07-12_19-31-49.sql',
+            'backup_2026-07-12_19-33-32.sql',
+            'August 19 2026 6-33 AM.zip',
+            'test_backup_pest.sql',
+            'test_del_pest.sql',
+            'test_dl_pest.sql',
+            'test_limit_1.sql',
+            'test_limit_2.sql',
+            'test_limit_3.sql',
+            'test_limit_4.sql',
+            'test_limit_5.sql',
+            'test_limit_6.sql',
+        ];
         foreach ($files as $file) {
-            if (basename($file) !== 'backup_2026-07-12_19-31-49.sql' && basename($file) !== 'backup_2026-07-12_19-33-32.sql') {
+            if (! in_array(basename($file), $trackedFixtures)) {
                 @unlink($file);
             }
         }
@@ -212,7 +250,7 @@ test('index page limits backups to 5 and displays older backups warning if there
     for ($i = 1; $i <= 6; $i++) {
         $file = $backupDir."/test_limit_{$i}.sql";
         file_put_contents($file, "SELECT {$i};");
-        touch($file, time() - ($i * 10));
+        touch($file, time() + 1000 - ($i * 10));
         $files[] = $file;
     }
 
@@ -361,4 +399,26 @@ test('staff cannot list backup folders', function (): void {
     $this->actingAs($this->staffUser)
         ->getJson(route('admin.backup-restore.list-folders'))
         ->assertForbidden();
+});
+
+afterAll(function (): void {
+    $backupDir = storage_path('backups');
+    $fixtures = [
+        'test_backup_pest.sql' => 'SELECT 1;',
+        'test_del_pest.sql' => 'SELECT 1;',
+        'test_dl_pest.sql' => 'SELECT 1;',
+        'test_limit_1.sql' => 'SELECT 1;',
+        'test_limit_2.sql' => 'SELECT 2;',
+        'test_limit_3.sql' => 'SELECT 3;',
+        'test_limit_4.sql' => 'SELECT 4;',
+        'test_limit_5.sql' => 'SELECT 5;',
+        'test_limit_6.sql' => 'SELECT 6;',
+    ];
+
+    foreach ($fixtures as $filename => $content) {
+        $path = $backupDir.'/'.$filename;
+        if (! file_exists($path)) {
+            @file_put_contents($path, $content);
+        }
+    }
 });

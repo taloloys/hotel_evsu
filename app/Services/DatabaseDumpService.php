@@ -112,17 +112,17 @@ class DatabaseDumpService
      */
     protected static function dumpWithPhpPdo(string $targetSqlPath): bool
     {
+        $handle = @fopen($targetSqlPath, 'w');
+        if (! $handle) {
+            return false;
+        }
+
         try {
             $pdo = DB::connection()->getPdo();
             $tables = [];
             $stmt = $pdo->query('SHOW TABLES');
             while ($row = $stmt->fetch(PDO::FETCH_NUM)) {
                 $tables[] = $row[0];
-            }
-
-            $handle = fopen($targetSqlPath, 'w');
-            if (! $handle) {
-                return false;
             }
 
             fwrite($handle, "-- Hotel EVSU Pure PHP Database Dump\n");
@@ -155,8 +155,18 @@ class DatabaseDumpService
             fwrite($handle, "SET FOREIGN_KEY_CHECKS=1;\n");
             fclose($handle);
 
+            if (! file_exists($targetSqlPath) || filesize($targetSqlPath) === 0) {
+                @unlink($targetSqlPath);
+
+                return false;
+            }
+
             return true;
         } catch (\Throwable $e) {
+            if (is_resource($handle)) {
+                fclose($handle);
+            }
+            @unlink($targetSqlPath);
             Log::error('PHP PDO DB dump failed: '.$e->getMessage());
 
             return false;
@@ -168,9 +178,17 @@ class DatabaseDumpService
      */
     protected static function restoreWithPhpPdo(string $sqlFilePath): bool
     {
+        if (! file_exists($sqlFilePath) || filesize($sqlFilePath) === 0) {
+            Log::error("PHP PDO DB restore failed: file does not exist or is empty [{$sqlFilePath}].");
+
+            return false;
+        }
+
         try {
             $sql = file_get_contents($sqlFilePath);
-            if (! $sql) {
+            if ($sql === false || trim($sql) === '') {
+                Log::error("PHP PDO DB restore failed: unable to read SQL content from [{$sqlFilePath}].");
+
                 return false;
             }
 

@@ -2,7 +2,9 @@
 
 namespace App\Console\Commands;
 
+use App\Models\ActivityLog;
 use App\Services\BackupSettingsService;
+use App\Services\BackupStorageService;
 use App\Services\DatabaseDumpService;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\Log;
@@ -22,12 +24,12 @@ class AutoBackupCommand extends Command
      *
      * @var string
      */
-    protected $description = 'Perform automatic database backup to the configured folder';
+    protected $description = 'Perform automatic database backup to the configured backup disk';
 
     /**
      * Execute the console command.
      */
-    public function handle(): int
+    public function handle(BackupStorageService $backupStorage): int
     {
         $settings = BackupSettingsService::get();
 
@@ -37,32 +39,22 @@ class AutoBackupCommand extends Command
             return 0;
         }
 
-        $folder = $settings['folder'] ?? storage_path('backups');
-
-        if (! is_dir($folder)) {
-            if (! @mkdir($folder, 0755, true)) {
-                $this->error("Failed to create backup directory: {$folder}");
-                Log::error("Automatic backup failed: Unable to create backup directory {$folder}");
-
-                $settings['last_backup_failed'] = true;
-                BackupSettingsService::set($settings);
-
-                return 1;
-            }
-        }
-
         $now = now();
         $sqlFilename = $now->format('Y-m-d_H-i-s').'_temp.sql';
         $zipFilename = $now->format('F j Y g-i A').'.zip';
-        $sqlFilepath = rtrim($folder, DIRECTORY_SEPARATOR).DIRECTORY_SEPARATOR.$sqlFilename;
-        $zipFilepath = rtrim($folder, DIRECTORY_SEPARATOR).DIRECTORY_SEPARATOR.$zipFilename;
 
-        $connection = config('database.default');
+        $tempDir = storage_path('app/temp_auto_backup_'.uniqid());
+        if (! is_dir($tempDir)) {
+            @mkdir($tempDir, 0755, true);
+        }
 
-        if (! DatabaseDumpService::dump($sqlFilepath)) {
+        $tempSqlFilePath = $tempDir.DIRECTORY_SEPARATOR.$sqlFilename;
+        $tempZipFilePath = $tempDir.DIRECTORY_SEPARATOR.$zipFilename;
+
+        if (! DatabaseDumpService::dump($tempSqlFilePath)) {
             $this->error('Backup failed: Unable to export database tables.');
             Log::error('Automatic backup failed: Unable to export database tables.');
-            @unlink($sqlFilepath);
+            $this->cleanTempDir($tempDir);
 
             $settings['last_backup_failed'] = true;
             BackupSettingsService::set($settings);
@@ -70,18 +62,47 @@ class AutoBackupCommand extends Command
             return 1;
         }
 
+        $finalFilePath = $tempSqlFilePath;
+        $finalFilename = $sqlFilename;
+
+        // If local disk and local folder configured, mirror SQL file for local inspection/testing
+        if ($backupStorage->getDiskName() === 'local' && ! empty($settings['folder']) && is_dir($settings['folder'])) {
+            @copy($tempSqlFilePath, rtrim($settings['folder'], DIRECTORY_SEPARATOR).DIRECTORY_SEPARATOR.$sqlFilename);
+        }
+
         // Zip the SQL file if ZipArchive extension is available
         if (class_exists(ZipArchive::class)) {
             $zip = new ZipArchive;
-            if ($zip->open($zipFilepath, ZipArchive::CREATE | ZipArchive::OVERWRITE) === true) {
-                $zip->addFile($sqlFilepath, $sqlFilename);
+            if ($zip->open($tempZipFilePath, ZipArchive::CREATE | ZipArchive::OVERWRITE) === true) {
+                $zip->addFile($tempSqlFilePath, $sqlFilename);
                 $zip->close();
-                @unlink($sqlFilepath); // Delete the original SQL file to save space
+                @unlink($tempSqlFilePath);
+                $finalFilePath = $tempZipFilePath;
+                $finalFilename = $zipFilename;
             }
         }
 
-        $this->info("Backup created successfully at: {$zipFilepath}");
-        Log::info("Automatic database backup created successfully: {$zipFilename}");
+        // Store to configured backup disk
+        $stored = $backupStorage->store($finalFilePath, $finalFilename);
+        $this->cleanTempDir($tempDir);
+
+        if (! $stored) {
+            $this->error('Backup failed: Unable to store backup artifact to configured backup disk.');
+            Log::error('Automatic backup failed: Unable to store backup artifact to disk.');
+
+            $settings['last_backup_failed'] = true;
+            BackupSettingsService::set($settings);
+
+            return 1;
+        }
+
+        $this->info("Backup created successfully: {$finalFilename}");
+        Log::info("Automatic database backup created successfully: {$finalFilename}");
+
+        ActivityLog::log(
+            'DATABASE_BACKUP',
+            "Automated scheduled backup created: {$finalFilename}"
+        );
 
         $settings['last_backup_failed'] = false;
         BackupSettingsService::set($settings);
@@ -91,33 +112,18 @@ class AutoBackupCommand extends Command
         return 0;
     }
 
-    /**
-     * Resolve the full path to a MySQL binary (mysqldump or mysql),
-     * falling back to common installation paths when not on system PATH.
-     */
-    private function resolveBinary(string $binary): string
+    private function cleanTempDir(string $dir): void
     {
-        $candidates = [
-            // XAMPP (Windows)
-            "C:\\xampp\\mysql\\bin\\{$binary}.exe",
-            // WAMP64
-            ...glob("C:\\wamp64\\bin\\mysql\\*\\bin\\{$binary}.exe") ?: [],
-            // Laragon
-            ...glob("C:\\laragon\\bin\\mysql\\*\\bin\\{$binary}.exe") ?: [],
-            // MAMP (Windows)
-            "C:\\MAMP\\bin\\mysql\\bin\\{$binary}.exe",
-            // Linux/macOS common paths
-            "/usr/bin/{$binary}",
-            "/usr/local/bin/{$binary}",
-            "/opt/homebrew/bin/{$binary}",
-        ];
-
-        foreach ($candidates as $path) {
-            if (file_exists($path)) {
-                return $path;
-            }
+        if (! is_dir($dir)) {
+            return;
         }
 
-        return $binary;
+        $files = @scandir($dir) ?: [];
+        foreach ($files as $file) {
+            if ($file !== '.' && $file !== '..') {
+                @unlink($dir.DIRECTORY_SEPARATOR.$file);
+            }
+        }
+        @rmdir($dir);
     }
 }

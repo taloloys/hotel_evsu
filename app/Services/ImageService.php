@@ -44,8 +44,9 @@ class ImageService
         // Generate a unique, collision-proof filename
         $filename = trim($path, '/').'/'.Str::uuid()->toString().'_'.time().'.webp';
 
-        // Store the optimized image in the storage system (e.g., 'public' disk)
-        Storage::disk('public')->put($filename, (string) $encodedImage);
+        // Store the optimized image in the storage system
+        $disk = config('filesystems.uploads_disk', 'public');
+        Storage::disk($disk)->put($filename, (string) $encodedImage);
 
         return $filename;
     }
@@ -57,8 +58,10 @@ class ImageService
      */
     public function deleteImage(?string $path): bool
     {
-        if ($path && Storage::disk('public')->exists($path)) {
-            return Storage::disk('public')->delete($path);
+        $disk = config('filesystems.uploads_disk', 'public');
+
+        if ($path && Storage::disk($disk)->exists($path)) {
+            return Storage::disk($disk)->delete($path);
         }
 
         return false;

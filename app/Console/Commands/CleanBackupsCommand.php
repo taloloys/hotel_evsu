@@ -4,7 +4,7 @@ namespace App\Console\Commands;
 
 use App\Models\ActivityLog;
 use App\Services\BackupSettingsService;
-use Carbon\Carbon;
+use App\Services\BackupStorageService;
 use Illuminate\Console\Command;
 
 class CleanBackupsCommand extends Command
@@ -14,49 +14,32 @@ class CleanBackupsCommand extends Command
      *
      * @var string
      */
-    protected $signature = 'db:clean-backups {--days=30 : The number of days to keep backups}';
+    protected $signature = 'db:clean-backups {--days= : The number of days to keep backups}';
 
     /**
      * The console command description.
      *
      * @var string
      */
-    protected $description = 'Clean up old database backups';
+    protected $description = 'Clean up old database backups from configured backup disk';
 
     /**
      * Execute the console command.
      */
-    public function handle()
+    public function handle(BackupStorageService $backupStorage): int
     {
-        $days = (int) $this->option('days');
-        $backupDir = BackupSettingsService::get()['folder'] ?? storage_path('backups');
+        $settings = BackupSettingsService::get();
+        $optionDays = $this->option('days');
+        $days = $optionDays !== null ? (int) $optionDays : (int) ($settings['retention_days'] ?? 30);
 
-        if (! is_dir($backupDir)) {
-            $this->info("Backup directory does not exist: {$backupDir}");
-
-            return 0;
+        if ($days <= 0) {
+            $days = 30;
         }
 
-        $files = scandir($backupDir);
-        $deletedCount = 0;
+        $diskName = $backupStorage->getDiskName();
+        $this->info("Cleaning up backups older than {$days} days on disk [{$diskName}]...");
 
-        foreach ($files as $file) {
-            if ($file === '.' || $file === '..') {
-                continue;
-            }
-
-            // Exclude safety backups from date-based cleanup (or include them? Probably include them)
-            if (str_ends_with($file, '.sql') || str_ends_with($file, '.zip')) {
-                $filePath = $backupDir.DIRECTORY_SEPARATOR.$file;
-                $fileTime = Carbon::createFromTimestamp(filemtime($filePath));
-
-                if ($fileTime->copy()->addDays($days)->isPast()) {
-                    @unlink($filePath);
-                    $deletedCount++;
-                    $this->line("Deleted old backup: {$file}");
-                }
-            }
-        }
+        $deletedCount = $backupStorage->cleanup($days);
 
         if ($deletedCount > 0) {
             $this->info("Successfully deleted {$deletedCount} old backup(s).");

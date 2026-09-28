@@ -5,6 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Support\Facades\Storage;
 
 class PosProduct extends Model
 {
@@ -159,6 +160,12 @@ class PosProduct extends Model
             return null;
         }
 
-        return asset('storage/'.$this->image_path);
+        if (str_starts_with($this->image_path, 'http://') || str_starts_with($this->image_path, 'https://')) {
+            return $this->image_path;
+        }
+
+        $disk = config('filesystems.uploads_disk', 'public');
+
+        return Storage::disk($disk)->url($this->image_path);
     }
 }

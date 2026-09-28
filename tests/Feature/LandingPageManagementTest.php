@@ -1,6 +1,7 @@
 <?php
 
 use App\Models\LandingPageShowcase;
+use App\Models\Permission;
 use App\Models\Role;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -10,9 +11,32 @@ use Illuminate\Support\Facades\Storage;
 
 uses(RefreshDatabase::class);
 
-it('allows admin users to access the landing page control panel', function (): void {
+beforeEach(function (): void {
+    $this->landingPerm = Permission::firstOrCreate([
+        'permission_key' => 'manage-landing-page',
+        'description' => 'Manage landing page',
+        'module' => 'System',
+        'is_active' => true,
+    ]);
+
+    $this->userPerm = Permission::firstOrCreate([
+        'permission_key' => 'manage-users',
+        'description' => 'Manage users',
+        'module' => 'System',
+        'is_active' => true,
+    ]);
+});
+
+function createAdminWithPermissions(): User
+{
     $role = Role::create(['role_name' => 'ADMIN', 'description' => 'Admin']);
-    $admin = User::factory()->create(['role_id' => $role->role_id, 'is_active' => true]);
+    $role->permissions()->sync(Permission::whereIn('permission_key', ['manage-landing-page', 'manage-users'])->pluck('permission_id'));
+
+    return User::factory()->create(['role_id' => $role->role_id, 'is_active' => true]);
+}
+
+it('allows admin users to access the landing page control panel', function (): void {
+    $admin = createAdminWithPermissions();
 
     $response = $this->actingAs($admin)->get(route('admin.landing-page'));
 
@@ -21,8 +45,7 @@ it('allows admin users to access the landing page control panel', function (): v
 });
 
 it('renders the landing page link in the admin sidebar navigation', function (): void {
-    $role = Role::create(['role_name' => 'ADMIN', 'description' => 'Admin']);
-    $admin = User::factory()->create(['role_id' => $role->role_id, 'is_active' => true]);
+    $admin = createAdminWithPermissions();
 
     $response = $this->actingAs($admin)->get(route('admin.dashboard'));
 
@@ -33,8 +56,7 @@ it('renders the landing page link in the admin sidebar navigation', function ():
 
 it('allows admin to update showcase room configuration with multiple images', function (): void {
     Storage::fake('public');
-    $role = Role::create(['role_name' => 'ADMIN', 'description' => 'Admin']);
-    $admin = User::factory()->create(['role_id' => $role->role_id, 'is_active' => true]);
+    $admin = createAdminWithPermissions();
 
     $showcase = LandingPageShowcase::create([
         'type' => 'ROOM',
@@ -67,8 +89,7 @@ it('allows admin to update showcase room configuration with multiple images', fu
 it('invalidates showcase cache when landing page showcase items are updated', function (): void {
     Cache::put('public_showcase_data', ['test' => 'cached_data'], 3600);
 
-    $role = Role::create(['role_name' => 'ADMIN', 'description' => 'Admin']);
-    $admin = User::factory()->create(['role_id' => $role->role_id, 'is_active' => true]);
+    $admin = createAdminWithPermissions();
 
     $showcase = LandingPageShowcase::create([
         'type' => 'ROOM',

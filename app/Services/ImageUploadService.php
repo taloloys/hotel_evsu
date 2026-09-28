@@ -50,13 +50,7 @@ class ImageUploadService
      */
     protected function storeFile(UploadedFile $file, string $directory, ?string $existingPath = null): string
     {
-        // Ensure directory exists
-        $storagePath = storage_path('app/public/'.trim($directory, '/'));
-
-        if (! is_dir($storagePath)) {
-            // Create directory with appropriate permissions
-            mkdir($storagePath, 0775, true);
-        }
+        $disk = config('filesystems.uploads_disk', 'public');
 
         try {
             // Initialize the ImageManager with the GD driver
@@ -75,18 +69,22 @@ class ImageUploadService
             $filename = Str::uuid()->toString().'_'.time().'.webp';
             $path = trim($directory, '/').'/'.$filename;
 
-            // Store the optimized image in the storage system (e.g., 'public' disk)
-            Storage::disk('public')->put($path, (string) $encodedImage);
+            // Store the optimized image in the configured storage disk
+            $stored = Storage::disk($disk)->put($path, (string) $encodedImage);
+            if (! $stored) {
+                throw new \RuntimeException("Failed to store image to disk [{$disk}].");
+            }
 
             // Delete old file if a new one was successfully uploaded
-            if ($existingPath && Storage::disk('public')->exists($existingPath)) {
-                Storage::disk('public')->delete($existingPath);
+            if ($existingPath && Storage::disk($disk)->exists($existingPath)) {
+                Storage::disk($disk)->delete($existingPath);
             }
 
             return $path;
         } catch (\Exception $e) {
             Log::error('Image upload failed: '.$e->getMessage(), [
                 'directory' => $directory,
+                'disk' => $disk,
                 'exception' => $e,
             ]);
 
@@ -101,8 +99,10 @@ class ImageUploadService
      */
     public function deleteImage(?string $path): bool
     {
-        if ($path && Storage::disk('public')->exists($path)) {
-            return Storage::disk('public')->delete($path);
+        $disk = config('filesystems.uploads_disk', 'public');
+
+        if ($path && Storage::disk($disk)->exists($path)) {
+            return Storage::disk($disk)->delete($path);
         }
 
         return false;

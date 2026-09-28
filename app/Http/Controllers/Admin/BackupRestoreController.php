@@ -5,16 +5,22 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Models\ActivityLog;
 use App\Services\BackupSettingsService;
+use App\Services\BackupStorageService;
 use App\Services\DatabaseDumpService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
 use Symfony\Component\HttpFoundation\BinaryFileResponse;
+use Symfony\Component\HttpFoundation\StreamedResponse;
 use ZipArchive;
 
 class BackupRestoreController extends Controller
 {
+    public function __construct(
+        protected BackupStorageService $backupStorage
+    ) {}
+
     /**
      * Display the backup & restore page.
      */
@@ -22,7 +28,7 @@ class BackupRestoreController extends Controller
     {
         $settings = BackupSettingsService::get();
         $backupDir = $settings['folder'] ?? storage_path('backups');
-        $backups = $this->listBackupFiles($backupDir);
+        $backups = $this->backupStorage->list();
 
         $hasOlderBackups = count($backups) > 5;
         $backups = array_slice($backups, 0, 5);
@@ -104,35 +110,6 @@ class BackupRestoreController extends Controller
         ]);
     }
 
-    /**
-     * @return list<array{filename: string, size: string, created_at: string}>
-     */
-    private function listBackupFiles(string $backupDir): array
-    {
-        $backups = [];
-
-        if (! is_dir($backupDir)) {
-            return $backups;
-        }
-
-        $files = scandir($backupDir);
-
-        foreach ($files as $file) {
-            if ($file !== '.' && $file !== '..' && (str_ends_with($file, '.sql') || str_ends_with($file, '.zip'))) {
-                $filePath = $backupDir.DIRECTORY_SEPARATOR.$file;
-                $backups[] = [
-                    'filename' => $file,
-                    'size' => $this->formatBytes(filesize($filePath)),
-                    'created_at' => filemtime($filePath) ? date('Y-m-d H:i:s', filemtime($filePath)) : 'Unknown',
-                ];
-            }
-        }
-
-        usort($backups, fn ($a, $b) => strcmp($b['created_at'], $a['created_at']));
-
-        return $backups;
-    }
-
     private function isAllowedBackupPath(string $path): bool
     {
         $realPath = realpath($path);
@@ -211,40 +188,25 @@ class BackupRestoreController extends Controller
     }
 
     /**
-     * Helper to format bytes to human readable format.
-     */
-    private function formatBytes(int $bytes, int $precision = 2): string
-    {
-        $units = ['B', 'KB', 'MB', 'GB', 'TB'];
-
-        $bytes = max($bytes, 0);
-        $pow = floor(($bytes ? log($bytes) : 0) / log(1024));
-        $pow = min($pow, count($units) - 1);
-
-        $bytes /= pow(1024, $pow);
-
-        return round($bytes, $precision).' '.$units[$pow];
-    }
-
-    /**
      * Run mysqldump and stream the result directly as a file download.
-     * The user's browser save-dialog will appear so they can choose where to save it.
      */
-    public function backup(Request $request): BinaryFileResponse|RedirectResponse|JsonResponse
+    public function backup(Request $request): BinaryFileResponse|RedirectResponse|JsonResponse|StreamedResponse
     {
         $now = now();
         $sqlFilename = $now->format('F j Y g-i A').'.sql';
         $zipFilename = $now->format('F j Y g-i A').'.zip';
 
-        $backupDir = BackupSettingsService::get()['folder'] ?? storage_path('backups');
-        if (! is_dir($backupDir)) {
-            mkdir($backupDir, 0755, true);
+        $tempDir = storage_path('app/temp_backup_'.uniqid());
+        if (! is_dir($tempDir)) {
+            mkdir($tempDir, 0755, true);
         }
-        $serverSqlFilePath = $backupDir.DIRECTORY_SEPARATOR.$sqlFilename;
-        $serverZipFilePath = $backupDir.DIRECTORY_SEPARATOR.$zipFilename;
 
-        if (! DatabaseDumpService::dump($serverSqlFilePath)) {
-            @unlink($serverSqlFilePath);
+        $tempSqlFilePath = $tempDir.DIRECTORY_SEPARATOR.$sqlFilename;
+        $tempZipFilePath = $tempDir.DIRECTORY_SEPARATOR.$zipFilename;
+
+        if (! DatabaseDumpService::dump($tempSqlFilePath)) {
+            $this->cleanTempDir($tempDir);
+
             if ($request->wantsJson()) {
                 return response()->json([
                     'success' => false,
@@ -257,20 +219,35 @@ class BackupRestoreController extends Controller
                 ->with('error', 'Backup failed: Unable to export database tables.');
         }
 
-        $finalFilePath = $serverSqlFilePath;
+        $finalFilePath = $tempSqlFilePath;
         $finalFilename = $sqlFilename;
-        $contentType = 'text/plain';
 
         if (class_exists(ZipArchive::class)) {
             $zip = new ZipArchive;
-            if ($zip->open($serverZipFilePath, ZipArchive::CREATE | ZipArchive::OVERWRITE) === true) {
-                $zip->addFile($serverSqlFilePath, $sqlFilename);
+            if ($zip->open($tempZipFilePath, ZipArchive::CREATE | ZipArchive::OVERWRITE) === true) {
+                $zip->addFile($tempSqlFilePath, $sqlFilename);
                 $zip->close();
-                @unlink($serverSqlFilePath);
-                $finalFilePath = $serverZipFilePath;
+                @unlink($tempSqlFilePath);
+                $finalFilePath = $tempZipFilePath;
                 $finalFilename = $zipFilename;
-                $contentType = 'application/zip';
             }
+        }
+
+        // Store to configured backup disk
+        $stored = $this->backupStorage->store($finalFilePath, $finalFilename);
+        $this->cleanTempDir($tempDir);
+
+        if (! $stored) {
+            if ($request->wantsJson()) {
+                return response()->json([
+                    'success' => false,
+                    'error' => 'Backup failed: Unable to persist backup to storage disk.',
+                ], 500);
+            }
+
+            return redirect()
+                ->route('admin.backup-restore')
+                ->with('error', 'Backup failed: Unable to persist backup to storage disk.');
         }
 
         ActivityLog::log(
@@ -285,13 +262,11 @@ class BackupRestoreController extends Controller
             ]);
         }
 
-        return response()->download($finalFilePath, $finalFilename, [
-            'Content-Type' => $contentType,
-        ]);
+        return $this->backupStorage->download($finalFilename);
     }
 
     /**
-     * Restore the database from an uploaded SQL file.
+     * Restore the database from an uploaded SQL or ZIP file.
      */
     public function restore(Request $request): RedirectResponse
     {
@@ -302,12 +277,11 @@ class BackupRestoreController extends Controller
         $file = $request->file('backup_file');
         $filePath = $file->getPathname();
         $isZip = $file->getClientOriginalExtension() === 'zip' || $file->getMimeType() === 'application/zip';
-        $tempExtractPath = null;
+        $tempExtractDir = null;
 
         if ($isZip) {
             $zip = new ZipArchive;
             if ($zip->open($filePath) === true) {
-                // Find the first .sql file in the zip
                 $sqlFilenameInZip = null;
                 for ($i = 0; $i < $zip->numFiles; $i++) {
                     $name = $zip->getNameIndex($i);
@@ -318,14 +292,13 @@ class BackupRestoreController extends Controller
                 }
 
                 if ($sqlFilenameInZip) {
-                    $extractToDir = storage_path('app/temp_restore_'.time());
-                    if (! is_dir($extractToDir)) {
-                        mkdir($extractToDir, 0755, true);
+                    $tempExtractDir = storage_path('app/temp_restore_'.uniqid());
+                    if (! is_dir($tempExtractDir)) {
+                        mkdir($tempExtractDir, 0755, true);
                     }
-                    $zip->extractTo($extractToDir, $sqlFilenameInZip);
+                    $zip->extractTo($tempExtractDir, $sqlFilenameInZip);
                     $zip->close();
-                    $tempExtractPath = $extractToDir.DIRECTORY_SEPARATOR.$sqlFilenameInZip;
-                    $filePath = $tempExtractPath;
+                    $filePath = $tempExtractDir.DIRECTORY_SEPARATOR.$sqlFilenameInZip;
                 } else {
                     $zip->close();
 
@@ -340,14 +313,11 @@ class BackupRestoreController extends Controller
             }
         }
 
-        $connection = config('database.default');
-
         try {
             $this->createSafetyBackup();
         } catch (\Exception $e) {
-            if ($tempExtractPath) {
-                @unlink($tempExtractPath);
-                @rmdir(dirname($tempExtractPath));
+            if ($tempExtractDir) {
+                $this->cleanTempDir($tempExtractDir);
             }
 
             return redirect()
@@ -356,9 +326,8 @@ class BackupRestoreController extends Controller
         }
 
         if (! DatabaseDumpService::restore($filePath)) {
-            if ($tempExtractPath) {
-                @unlink($tempExtractPath);
-                @rmdir(dirname($tempExtractPath));
+            if ($tempExtractDir) {
+                $this->cleanTempDir($tempExtractDir);
             }
 
             return redirect()
@@ -366,9 +335,8 @@ class BackupRestoreController extends Controller
                 ->with('error', 'Restore failed: Unable to import database tables.');
         }
 
-        if ($tempExtractPath) {
-            @unlink($tempExtractPath);
-            @rmdir(dirname($tempExtractPath));
+        if ($tempExtractDir) {
+            $this->cleanTempDir($tempExtractDir);
         }
 
         ActivityLog::log(
@@ -382,7 +350,7 @@ class BackupRestoreController extends Controller
     }
 
     /**
-     * Restore the database from a backup file already in server's storage/backups/ directory.
+     * Restore the database from a backup file already on the configured backup disk.
      */
     public function restoreLocal(Request $request): RedirectResponse
     {
@@ -392,25 +360,30 @@ class BackupRestoreController extends Controller
 
         $filename = $request->input('filename');
 
-        if (! preg_match('/^[a-zA-Z0-9_\-\s\.]+\.(sql|zip)$/', $filename)) {
+        if (! $this->backupStorage->isBackupFile($filename)) {
             abort(400, 'Invalid backup filename.');
         }
 
-        $backupDir = BackupSettingsService::get()['folder'] ?? storage_path('backups');
-        $filePath = rtrim($backupDir, DIRECTORY_SEPARATOR).DIRECTORY_SEPARATOR.$filename;
-
-        if (! file_exists($filePath)) {
+        if (! $this->backupStorage->exists($filename)) {
             return redirect()
                 ->route('admin.backup-restore')
                 ->with('error', 'Backup file not found on server.');
         }
 
+        $localPath = $this->backupStorage->getLocalCopy($filename);
+        if (! $localPath || ! file_exists($localPath)) {
+            return redirect()
+                ->route('admin.backup-restore')
+                ->with('error', 'Failed to retrieve backup file from storage.');
+        }
+
         $isZip = str_ends_with(strtolower($filename), '.zip');
-        $tempExtractPath = null;
+        $tempExtractDir = null;
+        $restoreSqlPath = $localPath;
 
         if ($isZip) {
             $zip = new ZipArchive;
-            if ($zip->open($filePath) === true) {
+            if ($zip->open($localPath) === true) {
                 $sqlFilenameInZip = null;
                 for ($i = 0; $i < $zip->numFiles; $i++) {
                     $name = $zip->getNameIndex($i);
@@ -421,58 +394,58 @@ class BackupRestoreController extends Controller
                 }
 
                 if ($sqlFilenameInZip) {
-                    $extractToDir = storage_path('app/temp_restore_'.time());
-                    if (! is_dir($extractToDir)) {
-                        mkdir($extractToDir, 0755, true);
+                    $tempExtractDir = storage_path('app/temp_restore_'.uniqid());
+                    if (! is_dir($tempExtractDir)) {
+                        mkdir($tempExtractDir, 0755, true);
                     }
-                    $zip->extractTo($extractToDir, $sqlFilenameInZip);
+                    $zip->extractTo($tempExtractDir, $sqlFilenameInZip);
                     $zip->close();
-                    $tempExtractPath = $extractToDir.DIRECTORY_SEPARATOR.$sqlFilenameInZip;
-                    $filePath = $tempExtractPath;
+                    $restoreSqlPath = $tempExtractDir.DIRECTORY_SEPARATOR.$sqlFilenameInZip;
                 } else {
                     $zip->close();
+                    $this->cleanupRetrievedFile($localPath);
 
                     return redirect()
                         ->route('admin.backup-restore')
                         ->with('error', 'Restore failed: No .sql file found in the ZIP archive.');
                 }
             } else {
+                $this->cleanupRetrievedFile($localPath);
+
                 return redirect()
                     ->route('admin.backup-restore')
                     ->with('error', 'Restore failed: Unable to open ZIP file.');
             }
         }
 
-        $connection = config('database.default');
-
         try {
             $this->createSafetyBackup();
         } catch (\Exception $e) {
-            if ($tempExtractPath) {
-                @unlink($tempExtractPath);
-                @rmdir(dirname($tempExtractPath));
+            if ($tempExtractDir) {
+                $this->cleanTempDir($tempExtractDir);
             }
+            $this->cleanupRetrievedFile($localPath);
 
             return redirect()
                 ->route('admin.backup-restore')
                 ->with('error', 'Restore aborted: Failed to create safety backup. Error: '.$e->getMessage());
         }
 
-        if (! DatabaseDumpService::restore($filePath)) {
-            if ($tempExtractPath) {
-                @unlink($tempExtractPath);
-                @rmdir(dirname($tempExtractPath));
+        if (! DatabaseDumpService::restore($restoreSqlPath)) {
+            if ($tempExtractDir) {
+                $this->cleanTempDir($tempExtractDir);
             }
+            $this->cleanupRetrievedFile($localPath);
 
             return redirect()
                 ->route('admin.backup-restore')
                 ->with('error', 'Restore failed: Unable to import database tables.');
         }
 
-        if ($tempExtractPath) {
-            @unlink($tempExtractPath);
-            @rmdir(dirname($tempExtractPath));
+        if ($tempExtractDir) {
+            $this->cleanTempDir($tempExtractDir);
         }
+        $this->cleanupRetrievedFile($localPath);
 
         ActivityLog::log(
             'DATABASE_RESTORE',
@@ -485,47 +458,29 @@ class BackupRestoreController extends Controller
     }
 
     /**
-     * Download a specific backup file from the server's storage/backups/ directory.
+     * Download a specific backup file from the configured backup disk.
      */
-    public function downloadLocal(string $filename): BinaryFileResponse|RedirectResponse
+    public function downloadLocal(string $filename): BinaryFileResponse|StreamedResponse
     {
-        if (! preg_match('/^[a-zA-Z0-9_\-\s\.]+\.(sql|zip)$/', $filename)) {
-            abort(400, 'Invalid backup filename.');
-        }
-
-        $backupDir = BackupSettingsService::get()['folder'] ?? storage_path('backups');
-        $filePath = rtrim($backupDir, DIRECTORY_SEPARATOR).DIRECTORY_SEPARATOR.$filename;
-
-        if (! file_exists($filePath)) {
-            return redirect()
-                ->route('admin.backup-restore')
-                ->with('error', 'Backup file not found on server.');
-        }
-
-        return response()->download($filePath, $filename, [
-            'Content-Type' => 'application/octet-stream',
-        ]);
+        return $this->backupStorage->download($filename);
     }
 
     /**
-     * Delete a specific backup file from the server's storage/backups/ directory.
+     * Delete a specific backup file from the configured backup disk.
      */
     public function deleteLocal(string $filename): RedirectResponse
     {
-        if (! preg_match('/^[a-zA-Z0-9_\-\s\.]+\.(sql|zip)$/', $filename)) {
+        if (! $this->backupStorage->isBackupFile($filename)) {
             abort(400, 'Invalid backup filename.');
         }
 
-        $backupDir = BackupSettingsService::get()['folder'] ?? storage_path('backups');
-        $filePath = rtrim($backupDir, DIRECTORY_SEPARATOR).DIRECTORY_SEPARATOR.$filename;
-
-        if (! file_exists($filePath)) {
+        if (! $this->backupStorage->exists($filename)) {
             return redirect()
                 ->route('admin.backup-restore')
                 ->with('error', 'Backup file not found on server.');
         }
 
-        @unlink($filePath);
+        $this->backupStorage->delete($filename);
 
         ActivityLog::log(
             'DATABASE_BACKUP_DELETE',
@@ -554,7 +509,6 @@ class BackupRestoreController extends Controller
 
         $folder = $request->input('folder');
 
-        // Check if directory exists or can be created, and is writable
         if (! is_dir($folder)) {
             if (! @mkdir($folder, 0755, true)) {
                 return redirect()
@@ -595,75 +549,65 @@ class BackupRestoreController extends Controller
         $sqlFilename = 'safety_temp_'.$now->format('Y-m-d_H-i-s').'.sql';
         $zipFilename = 'safety-backup-'.$now->format('Y-m-d_H-i-s').'.zip';
 
-        $backupDir = BackupSettingsService::get()['folder'] ?? storage_path('backups');
-        if (! is_dir($backupDir)) {
-            mkdir($backupDir, 0755, true);
+        $tempDir = storage_path('app/temp_safety_'.uniqid());
+        if (! is_dir($tempDir)) {
+            mkdir($tempDir, 0755, true);
         }
 
-        $serverSqlFilePath = $backupDir.DIRECTORY_SEPARATOR.$sqlFilename;
-        $serverZipFilePath = $backupDir.DIRECTORY_SEPARATOR.$zipFilename;
+        $tempSqlFilePath = $tempDir.DIRECTORY_SEPARATOR.$sqlFilename;
+        $tempZipFilePath = $tempDir.DIRECTORY_SEPARATOR.$zipFilename;
 
-        if (! DatabaseDumpService::dump($serverSqlFilePath)) {
-            @unlink($serverSqlFilePath);
+        if (! DatabaseDumpService::dump($tempSqlFilePath)) {
+            $this->cleanTempDir($tempDir);
             throw new \Exception('Failed to generate database dump for safety backup.');
         }
 
-        $zip = new ZipArchive;
-        if ($zip->open($serverZipFilePath, ZipArchive::CREATE | ZipArchive::OVERWRITE) === true) {
-            $zip->addFile($serverSqlFilePath, $sqlFilename);
-            $zip->close();
-            @unlink($serverSqlFilePath);
-        } else {
-            @unlink($serverSqlFilePath);
-            throw new \Exception('Unable to create ZIP file.');
+        $finalPath = $tempSqlFilePath;
+        $finalFilename = $sqlFilename;
+
+        if (class_exists(ZipArchive::class)) {
+            $zip = new ZipArchive;
+            if ($zip->open($tempZipFilePath, ZipArchive::CREATE | ZipArchive::OVERWRITE) === true) {
+                $zip->addFile($tempSqlFilePath, $sqlFilename);
+                $zip->close();
+                @unlink($tempSqlFilePath);
+                $finalPath = $tempZipFilePath;
+                $finalFilename = $zipFilename;
+            }
+        }
+
+        $stored = $this->backupStorage->store($finalPath, $finalFilename);
+        $this->cleanTempDir($tempDir);
+
+        if (! $stored) {
+            throw new \Exception('Failed to persist safety backup to storage.');
         }
 
         ActivityLog::log(
             'DATABASE_BACKUP',
-            'Safety backup created automatically before restore: '.$zipFilename
+            'Safety backup created automatically before restore: '.$finalFilename
         );
     }
 
-    /**
-     * Resolve the full path to a MySQL binary (mysqldump or mysql),
-     * falling back to common installation paths when not on system PATH.
-     *
-     * @param  'mysqldump'|'mysql'  $binary
-     */
-    private function resolveBinary(string $binary): string
+    private function cleanTempDir(string $dir): void
     {
-        $candidates = [
-            // XAMPP (Windows)
-            "C:\\xampp\\mysql\\bin\\{$binary}.exe",
-            // WAMP64
-            ...glob("C:\\wamp64\\bin\\mysql\\*\\bin\\{$binary}.exe") ?: [],
-            // Laragon
-            ...glob("C:\\laragon\\bin\\mysql\\*\\bin\\{$binary}.exe") ?: [],
-            // MAMP (Windows)
-            "C:\\MAMP\\bin\\mysql\\bin\\{$binary}.exe",
-            // Linux/macOS common paths
-            "/usr/bin/{$binary}",
-            "/usr/local/bin/{$binary}",
-            "/opt/homebrew/bin/{$binary}",
-            // Nixpacks (Railway Linux environment)
-            "/root/.nix-profile/bin/{$binary}",
-            "/nix/var/nix/profiles/default/bin/{$binary}",
-        ];
-
-        foreach ($candidates as $path) {
-            if (file_exists($path)) {
-                return $path;
-            }
+        if (! is_dir($dir)) {
+            return;
         }
 
-        // Try shell 'which' command on Unix environments if available
-        if (function_exists('exec') && DIRECTORY_SEPARATOR === '/') {
-            $whichPath = trim((string) @shell_exec("which {$binary} 2>/dev/null"));
-            if ($whichPath && file_exists($whichPath)) {
-                return $whichPath;
+        $files = @scandir($dir) ?: [];
+        foreach ($files as $file) {
+            if ($file !== '.' && $file !== '..') {
+                @unlink($dir.DIRECTORY_SEPARATOR.$file);
             }
         }
+        @rmdir($dir);
+    }
 
-        return $binary;
+    private function cleanupRetrievedFile(string $localPath): void
+    {
+        if (str_contains($localPath, 'temp_restore')) {
+            @unlink($localPath);
+        }
     }
 }

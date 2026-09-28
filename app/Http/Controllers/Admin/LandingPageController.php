@@ -76,15 +76,24 @@ class LandingPageController extends Controller
         }
 
         // 2. Append any newly uploaded files
+        $disk = config('filesystems.uploads_disk', 'public');
+
         if ($request->hasFile('images')) {
             foreach ($request->file('images') as $file) {
                 $filename = time().'_'.uniqid().'.'.$file->getClientOriginalExtension();
-                if (app()->environment('testing')) {
-                    Storage::disk('public')->putFileAs('images/showcase/rooms', $file, $filename);
-                } else {
-                    $file->move(public_path('images/showcase/rooms'), $filename);
-                }
+                Storage::disk($disk)->putFileAs('images/showcase/rooms', $file, $filename);
                 $imagePaths[] = 'images/showcase/rooms/'.$filename;
+            }
+        }
+
+        $finalImages = array_values(array_unique($imagePaths));
+
+        // Clean up any removed uploaded images from disk (skip static repo assets)
+        $oldImages = $showcase->images ?? [];
+        $removedImages = array_diff($oldImages, $finalImages);
+        foreach ($removedImages as $removed) {
+            if (! file_exists(public_path($removed)) && Storage::disk($disk)->exists($removed)) {
+                Storage::disk($disk)->delete($removed);
             }
         }
 
@@ -94,7 +103,7 @@ class LandingPageController extends Controller
             'capacity' => $validated['capacity'],
             'badge' => $validated['badge'] ?? null,
             'icon' => $validated['icon'] ?? 'fa-bed',
-            'images' => array_values(array_unique($imagePaths)),
+            'images' => $finalImages,
         ]);
 
         Cache::forget('public_showcase_data');
@@ -117,15 +126,19 @@ class LandingPageController extends Controller
         $main = LandingPageShowcase::firstOrNew(['type' => 'CAFETERIA_MAIN']);
 
         $imagePaths = $main->images ?? [];
+        $disk = config('filesystems.uploads_disk', 'public');
 
         if ($request->hasFile('image')) {
             $file = $request->file('image');
             $filename = 'cafeteria_main_'.time().'.'.$file->getClientOriginalExtension();
-            if (app()->environment('testing')) {
-                Storage::disk('public')->putFileAs('images/showcase/coffeeshop', $file, $filename);
-            } else {
-                $file->move(public_path('images/showcase/coffeeshop'), $filename);
+
+            // Delete previous uploaded file if exists and not a static asset
+            $oldImage = $main->images[0] ?? null;
+            if ($oldImage && ! file_exists(public_path($oldImage)) && Storage::disk($disk)->exists($oldImage)) {
+                Storage::disk($disk)->delete($oldImage);
             }
+
+            Storage::disk($disk)->putFileAs('images/showcase/coffeeshop', $file, $filename);
             $imagePaths = ['images/showcase/coffeeshop/'.$filename];
         } elseif (! empty($validated['image_path'])) {
             $imagePaths = [$validated['image_path']];
@@ -163,15 +176,12 @@ class LandingPageController extends Controller
         ]);
 
         $imagePath = 'images/showcase/coffeeshop/coffee.jpg';
+        $disk = config('filesystems.uploads_disk', 'public');
 
         if ($request->hasFile('image')) {
             $file = $request->file('image');
             $filename = time().'_'.uniqid().'.'.$file->getClientOriginalExtension();
-            if (app()->environment('testing')) {
-                Storage::disk('public')->putFileAs('images/showcase/coffeeshop', $file, $filename);
-            } else {
-                $file->move(public_path('images/showcase/coffeeshop'), $filename);
-            }
+            Storage::disk($disk)->putFileAs('images/showcase/coffeeshop', $file, $filename);
             $imagePath = 'images/showcase/coffeeshop/'.$filename;
         } elseif (! empty($validated['image_path'])) {
             $imagePath = $validated['image_path'];
@@ -210,6 +220,14 @@ class LandingPageController extends Controller
     public function destroy(LandingPageShowcase $showcase): RedirectResponse
     {
         $title = $showcase->title;
+        $disk = config('filesystems.uploads_disk', 'public');
+
+        foreach ($showcase->images ?? [] as $img) {
+            if (! file_exists(public_path($img)) && Storage::disk($disk)->exists($img)) {
+                Storage::disk($disk)->delete($img);
+            }
+        }
+
         $showcase->delete();
 
         Cache::forget('public_showcase_data');

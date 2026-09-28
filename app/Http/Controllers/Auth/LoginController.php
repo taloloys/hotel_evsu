@@ -40,7 +40,7 @@ class LoginController extends Controller
                         $scImages = [];
                         if (is_array($sc->images)) {
                             $scImages = array_filter($sc->images, function ($img) {
-                                return ! empty($img) && file_exists(public_path($img));
+                                return ! empty($img) && LandingPageShowcase::imageExists($img);
                             });
                         }
                         if (empty($scImages)) {

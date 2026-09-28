@@ -17,6 +17,21 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | Application Disks
+    |--------------------------------------------------------------------------
+    |
+    | Logical disk selections for persistent uploads and database backups.
+    | In development, uploads use 'public' and backups use 'local'.
+    | In production (Laravel Cloud), both use 's3'.
+    |
+    */
+
+    'uploads_disk' => env('UPLOADS_DISK', 'public'),
+
+    'backup_disk' => env('BACKUP_DISK', 'local'),
+
+    /*
+    |--------------------------------------------------------------------------
     | Filesystem Disks
     |--------------------------------------------------------------------------
     |
