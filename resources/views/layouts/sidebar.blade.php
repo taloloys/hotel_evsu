@@ -72,6 +72,16 @@
                     <i class="fa-solid fa-globe me-2"></i>
                     Landing Page
                 </a>
+                <a href="{{ route('admin.facilities.index') }}"
+                   class="nav-link {{ request()->routeIs('admin.facilities.*') ? 'active' : '' }}">
+                    <i class="fa-solid fa-building me-2"></i>
+                    Facilities
+                </a>
+                <a href="{{ route('admin.facility-terms.edit') }}"
+                   class="nav-link {{ request()->routeIs('admin.facility-terms.*') ? 'active' : '' }}">
+                    <i class="fa-solid fa-file-contract me-2"></i>
+                    Facility Terms
+                </a>
                 @endcan
 
                 @can('manage-charge-codes')
@@ -157,6 +167,11 @@
                    class="nav-link {{ request()->routeIs('frontdesk.reservation') ? 'active' : '' }}">
                     <i class="fa-solid fa-calendar-check me-2"></i>
                     Reservation
+                </a>
+                <a href="{{ route('frontdesk.facility-reservations.index') }}"
+                   class="nav-link {{ request()->routeIs('frontdesk.facility-reservations.*') ? 'active' : '' }}">
+                    <i class="fa-solid fa-building-flag me-2"></i>
+                    Facility Bookings
                 </a>
                 <a href="{{ route('frontdesk.registration') }}"
                    class="nav-link {{ request()->routeIs('frontdesk.registration') ? 'active' : '' }}">

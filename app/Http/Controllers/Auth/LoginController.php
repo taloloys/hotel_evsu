@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
 use App\Models\ActivityLog;
+use App\Models\Facility;
 use App\Models\LandingPageShowcase;
 use App\Models\Room;
 use App\Models\User;
@@ -240,7 +241,12 @@ class LoginController extends Controller
                 ];
             }
 
-            return compact('rooms', 'cafeteriaHero', 'coffeeshopHighlights');
+            $facilities = Facility::active()
+                ->orderBy('sort_order')
+                ->orderBy('facility_id')
+                ->get();
+
+            return compact('rooms', 'cafeteriaHero', 'coffeeshopHighlights', 'facilities');
         });
 
         return view('public.showcase', $showcaseData);

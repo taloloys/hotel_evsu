@@ -63,6 +63,7 @@
                 <a href="#hero" class="transition-colors hover:text-[#334c42]">Home</a>
                 <a href="#rooms" class="transition-colors hover:text-[#334c42]">Rooms Showcase</a>
                 <a href="#coffeeshop" class="transition-colors hover:text-[#334c42]">Cafeteria & Lounge</a>
+                <a href="#facilities" class="transition-colors hover:text-[#334c42]">Facilities</a>
             </nav>
 
             <div class="flex items-center gap-3">
@@ -88,6 +89,7 @@
             <a href="#hero" class="block rounded-lg px-3 py-2 text-sm font-semibold text-[#504538] hover:bg-[#827567]/20">Home</a>
             <a href="#rooms" class="block rounded-lg px-3 py-2 text-sm font-semibold text-[#504538] hover:bg-[#827567]/20">Rooms Showcase</a>
             <a href="#coffeeshop" class="block rounded-lg px-3 py-2 text-sm font-semibold text-[#504538] hover:bg-[#827567]/20">Cafeteria & Lounge</a>
+            <a href="#facilities" class="block rounded-lg px-3 py-2 text-sm font-semibold text-[#504538] hover:bg-[#827567]/20">Facilities</a>
             @auth
                 <a href="javascript:void(0)" onclick="alert('Login is disabled during preview mode.')" class="block rounded-lg px-3 py-2 text-sm font-bold text-[#627e71] opacity-75 cursor-not-allowed">Staff Login Portal (Disabled)</a>
             @else
@@ -463,6 +465,55 @@
                 </div>
             </div>
         </section>
+
+        <!-- Facilities Showcase Section -->
+        @if(isset($facilities) && $facilities->isNotEmpty())
+        <section id="facilities" class="relative py-24 bg-[#e8dbcb]">
+            <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+                <div class="mb-14 text-center">
+                    <span class="inline-flex items-center gap-2 rounded-full border border-[#827567]/30 bg-[#f8f3ed] px-3 py-1 text-[10px] font-bold uppercase tracking-widest text-[#627e71]">
+                        <i class="fa-solid fa-building-flag"></i> Public Rental
+                    </span>
+                    <h2 class="mt-4 text-3xl md:text-5xl font-display text-[#334c42]">Rentable Facilities</h2>
+                    <p class="mx-auto mt-4 max-w-2xl text-sm font-medium text-[#504538]">
+                        Discover and book our available facilities for your events, meetings, and recreational activities.
+                    </p>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+                    @foreach($facilities as $facility)
+                    <div class="group overflow-hidden rounded-3xl border border-[#827567]/30 bg-white shadow-md transition-all duration-300 hover:-translate-y-1 hover:shadow-lg flex flex-col">
+                        <div class="relative h-56 w-full bg-[#f8f3ed] overflow-hidden">
+                            @if(!empty($facility->images) && count($facility->images) > 0)
+                                <img src="{{ \App\Models\Facility::imageUrl($facility->images[0]) }}" alt="{{ $facility->name }}" class="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105">
+                            @else
+                                <div class="h-full w-full flex items-center justify-center text-[#827567]/50">
+                                    <i class="fa-solid fa-image text-4xl"></i>
+                                </div>
+                            @endif
+                            
+                            <div class="absolute top-4 right-4 bg-[#334c42] text-white px-3 py-1 rounded-full text-xs font-bold shadow-md">
+                                ₱{{ number_format($facility->rate, 2) }} / {{ ucfirst($facility->rate_type) }}
+                            </div>
+                        </div>
+
+                        <div class="p-6 flex flex-col grow">
+                            <h3 class="text-xl font-bold text-[#504538] font-display mb-2">{{ $facility->name }}</h3>
+                            <p class="text-sm text-[#827567] mb-6 line-clamp-2">{{ $facility->description }}</p>
+                            
+                            <div class="mt-auto">
+                                <a href="{{ route('facilities.show', $facility) }}" class="inline-flex w-full items-center justify-center gap-2 rounded-xl bg-[#c2a889] px-4 py-3 text-xs font-bold text-[#504538] shadow-sm transition-all hover:bg-[#b09677] hover:shadow">
+                                    View Details & Book
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                    @endforeach
+                </div>
+            </div>
+        </section>
+        @endif
+
     </main>
 
     <!-- Footer -->

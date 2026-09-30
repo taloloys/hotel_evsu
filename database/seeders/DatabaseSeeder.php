@@ -28,6 +28,7 @@ class DatabaseSeeder extends Seeder
             // ExpenseSeeder::class,
             PosCategorySeeder::class,
             PosProductSeeder::class,
+            FacilitySeeder::class,
         ]);
     }
 }

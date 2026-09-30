@@ -12,6 +12,8 @@ use App\Http\Controllers\Admin\BackupRestoreController;
 use App\Http\Controllers\Admin\ChargeCodeController;
 use App\Http\Controllers\Admin\CreditAccountController;
 use App\Http\Controllers\Admin\DashboardController;
+use App\Http\Controllers\Admin\FacilityController as AdminFacilityController;
+use App\Http\Controllers\Admin\FacilityTermsController;
 use App\Http\Controllers\Admin\LandingPageController;
 use App\Http\Controllers\Admin\PermissionController;
 use App\Http\Controllers\Admin\PosApprovalController;
@@ -33,6 +35,7 @@ use App\Http\Controllers\Coffeeshop\TabController as CoffeeshopTabController;
 use App\Http\Controllers\Frontdesk\BookingOperationController;
 use App\Http\Controllers\Frontdesk\CheckInController;
 use App\Http\Controllers\Frontdesk\DashboardController as FrontdeskDashboardController;
+use App\Http\Controllers\Frontdesk\FacilityReservationController;
 use App\Http\Controllers\Frontdesk\GuestFolioController;
 use App\Http\Controllers\Frontdesk\GuestListController;
 use App\Http\Controllers\Frontdesk\RegistrationController;
@@ -41,6 +44,7 @@ use App\Http\Controllers\Frontdesk\ShiftController as FrontdeskShiftController;
 use App\Http\Controllers\Frontdesk\ShiftSalesController;
 use App\Http\Controllers\LayoutDataController;
 use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\PublicFacilityController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', [LoginController::class, 'showcase'])
@@ -54,6 +58,18 @@ Route::post('/login', [LoginController::class, 'store'])
 
 Route::post('/logout', [LoginController::class, 'logout'])
     ->name('logout');
+
+// --- Public Facility Booking (no auth required) ---
+Route::prefix('facilities')->name('facilities.')->middleware('throttle:30,1')->group(function () {
+    Route::get('/terms', [PublicFacilityController::class, 'terms'])->name('terms');
+    Route::get('/{facility}', [PublicFacilityController::class, 'show'])->name('show');
+    Route::get('/{facility}/book', [PublicFacilityController::class, 'bookForm'])->name('book');
+    Route::post('/{facility}/book', [PublicFacilityController::class, 'submitBooking'])
+        ->middleware('throttle:10,1')
+        ->name('submit');
+    Route::get('/confirmation/{reservation}', [PublicFacilityController::class, 'confirmation'])
+        ->name('confirmation');
+});
 
 Route::middleware('auth')->group(function () {
 
@@ -126,6 +142,14 @@ Route::middleware('auth')->group(function () {
 
             Route::post('/shift/close', [FrontdeskShiftController::class, 'close'])
                 ->name('frontdesk.shift.close');
+        });
+
+        // FACILITY RESERVATIONS REVIEW
+        Route::middleware('can:manage-reservations')->prefix('facility-reservations')->name('frontdesk.facility-reservations.')->group(function () {
+            Route::get('/', [FacilityReservationController::class, 'index'])->name('index');
+            Route::get('/{reservation}', [FacilityReservationController::class, 'show'])->name('show');
+            Route::patch('/{reservation}/approve', [FacilityReservationController::class, 'approve'])->name('approve');
+            Route::patch('/{reservation}/reject', [FacilityReservationController::class, 'reject'])->name('reject');
         });
 
         Route::middleware('can:view-guest-list')->group(function () {
@@ -348,6 +372,29 @@ Route::middleware('auth')->group(function () {
                 ->name('admin.landing-page.toggle');
             Route::delete('/landing-page/{showcase}', [LandingPageController::class, 'destroy'])
                 ->name('admin.landing-page.destroy');
+        });
+
+        // FACILITY MANAGEMENT
+        Route::middleware('can:manage-landing-page')->group(function () {
+            Route::get('/facilities', [AdminFacilityController::class, 'index'])
+                ->name('admin.facilities.index');
+            Route::get('/facilities/create', [AdminFacilityController::class, 'create'])
+                ->name('admin.facilities.create');
+            Route::post('/facilities', [AdminFacilityController::class, 'store'])
+                ->name('admin.facilities.store');
+            Route::get('/facilities/{facility}/edit', [AdminFacilityController::class, 'edit'])
+                ->name('admin.facilities.edit');
+            Route::put('/facilities/{facility}', [AdminFacilityController::class, 'update'])
+                ->name('admin.facilities.update');
+            Route::delete('/facilities/{facility}', [AdminFacilityController::class, 'destroy'])
+                ->name('admin.facilities.destroy');
+            Route::patch('/facilities/{facility}/toggle', [AdminFacilityController::class, 'toggle'])
+                ->name('admin.facilities.toggle');
+
+            Route::get('/facility-terms', [FacilityTermsController::class, 'edit'])
+                ->name('admin.facility-terms.edit');
+            Route::put('/facility-terms', [FacilityTermsController::class, 'update'])
+                ->name('admin.facility-terms.update');
         });
 
         // CREDIT ACCOUNTS
