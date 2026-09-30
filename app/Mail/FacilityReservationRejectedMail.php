@@ -21,6 +21,7 @@ class FacilityReservationRejectedMail extends Mailable implements ShouldQueue
     public function envelope(): Envelope
     {
         return new Envelope(
+            to: [new Address($this->reservation->booker_email, $this->reservation->booker_name)],
             from: $this->resolveSender(),
             subject: "Facility Reservation Update — Ref #{$this->reservation->reference_number}",
         );

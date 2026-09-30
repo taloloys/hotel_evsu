@@ -20,18 +20,20 @@ class FacilityBookingService
 
         $hours = $this->computeDurationHours($start, $end);
 
-        return round($hours * (float) $facility->rate, 2);
+        return max(0.0, round($hours * (float) $facility->rate, 2));
     }
 
     /**
-     * Compute the duration in hours between two H:i time strings.
+     * Compute the duration in hours between two time strings.
      */
     public function computeDurationHours(string $start, string $end): float
     {
-        $startCarbon = Carbon::createFromFormat('H:i', $start);
-        $endCarbon = Carbon::createFromFormat('H:i', $end);
+        $startCarbon = Carbon::parse($start);
+        $endCarbon = Carbon::parse($end);
 
-        return round($endCarbon->diffInMinutes($startCarbon) / 60, 2);
+        $minutes = abs($startCarbon->diffInMinutes($endCarbon));
+
+        return round($minutes / 60, 2);
     }
 
     /**

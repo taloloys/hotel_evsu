@@ -83,7 +83,7 @@ class FacilityReservationController extends Controller
             return back()->with('error', 'Cannot approve — the time slot conflicts with an existing approved reservation.');
         }
 
-        Mail::queue(new FacilityReservationApprovedMail($approved));
+        Mail::to($approved->booker_email)->queue(new FacilityReservationApprovedMail($approved));
         ActivityLog::log('FACILITY_RESERVATION_APPROVED', "Approved facility reservation #{$approved->reference_number}.");
 
         return redirect()->route('frontdesk.facility-reservations.index')
@@ -103,7 +103,7 @@ class FacilityReservationController extends Controller
             'processed_at' => now(),
         ]);
 
-        Mail::queue(new FacilityReservationRejectedMail($reservation));
+        Mail::to($reservation->booker_email)->queue(new FacilityReservationRejectedMail($reservation));
         ActivityLog::log('FACILITY_RESERVATION_REJECTED', "Rejected facility reservation #{$reservation->reference_number}.");
 
         return redirect()->route('frontdesk.facility-reservations.index')

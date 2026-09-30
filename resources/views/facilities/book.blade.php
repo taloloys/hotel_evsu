@@ -59,7 +59,7 @@
                 <div class="md:col-span-2">
                     <div class="bg-white rounded-2xl shadow-lg border border-[#e8dbcb] overflow-hidden mb-6">
                         <div class="bg-[#e8dbcb] px-5 py-3 border-b border-[#d8c3ab]">
-                            <h3 class="font-bold text-[#504538]"><i class="fa-solid fa-file-contract mr-2"></i>Terms & Conditions</h3>
+                            <h3 class="font-bold text-[#504538]"><i class="fa-solid fa-file-contract mr-2"></i>Terms &amp; Conditions</h3>
                         </div>
                         <div class="p-5 max-h-64 overflow-y-auto text-sm text-[#627e71] bg-[#f8f3ed]">
                             {!! nl2br(e($termsContent)) !!}
@@ -96,7 +96,7 @@
                         <div class="space-y-5">
                             <div>
                                 <label class="block text-sm font-bold text-[#504538] mb-1">Date</label>
-                                <input type="date" name="reservation_date" min="{{ now()->format('Y-m-d') }}" value="{{ old('reservation_date') }}" required class="w-full rounded-lg border-[#d8c3ab] bg-[#f8f3ed] p-3 text-[#504538] focus:border-[#334c42] focus:ring focus:ring-[#334c42]/20">
+                                <input type="date" name="reservation_date" min="{{ now()->format('Y-m-d') }}" value="{{ old('reservation_date', request('date', now()->format('Y-m-d'))) }}" required class="w-full rounded-lg border-[#d8c3ab] bg-[#f8f3ed] p-3 text-[#504538] focus:border-[#334c42] focus:ring focus:ring-[#334c42]/20">
                             </div>
                             <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
                                 <div>
@@ -141,8 +141,8 @@
     <script>
         document.addEventListener('alpine:init', () => {
             Alpine.data('bookingCalculator', (rate, rateType) => ({
-                startTime: '{{ old('start_time', '08:00') }}',
-                endTime: '{{ old('end_time', '10:00') }}',
+                startTime: '{{ old('start_time', request('start_time', '08:00')) }}',
+                endTime: '{{ old('end_time', request('end_time', '10:00')) }}',
                 
                 get estimatedTotal() {
                     if (rateType === 'daily') {

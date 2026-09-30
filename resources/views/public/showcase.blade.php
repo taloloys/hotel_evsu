@@ -228,6 +228,7 @@
                 </div>
 
                 <!-- Rooms Grid -->
+                @if(!empty($rooms) && count($rooms) > 0)
                 <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
                     @foreach ($rooms as $room)
                         @php
@@ -352,6 +353,17 @@
                         </div>
                     @endforeach
                 </div>
+                @else
+                    <div class="flex flex-col items-center justify-center py-16 px-4 text-center border border-dashed border-[#827567]/30 rounded-3xl bg-[#f8f3ed]/50">
+                        <div class="flex h-16 w-16 items-center justify-center rounded-full bg-[#c2a889]/30 mb-4">
+                            <i class="fa-solid fa-bed text-2xl text-[#627e71]"></i>
+                        </div>
+                        <h3 class="text-xl font-bold text-[#504538] font-display mb-2">Rooms Updating</h3>
+                        <p class="text-sm text-[#827567] max-w-md">
+                            We are currently updating our room catalog. Please check back later to discover our luxury accommodations!
+                        </p>
+                    </div>
+                @endif
             </div>
         </section>
 
@@ -467,7 +479,7 @@
         </section>
 
         <!-- Facilities Showcase Section -->
-        @if(isset($facilities) && $facilities->isNotEmpty())
+        <!-- Facilities Showcase Section -->
         <section id="facilities" class="relative py-24 bg-[#e8dbcb]">
             <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
                 <div class="mb-14 text-center">
@@ -480,39 +492,50 @@
                     </p>
                 </div>
 
-                <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
-                    @foreach($facilities as $facility)
-                    <div class="group overflow-hidden rounded-3xl border border-[#827567]/30 bg-white shadow-md transition-all duration-300 hover:-translate-y-1 hover:shadow-lg flex flex-col">
-                        <div class="relative h-56 w-full bg-[#f8f3ed] overflow-hidden">
-                            @if(!empty($facility->images) && count($facility->images) > 0)
-                                <img src="{{ \App\Models\Facility::imageUrl($facility->images[0]) }}" alt="{{ $facility->name }}" class="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105">
-                            @else
-                                <div class="h-full w-full flex items-center justify-center text-[#827567]/50">
-                                    <i class="fa-solid fa-image text-4xl"></i>
+                @if(isset($facilities) && $facilities->isNotEmpty())
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+                        @foreach($facilities as $facility)
+                        <div class="group overflow-hidden rounded-3xl border border-[#827567]/30 bg-white shadow-md transition-all duration-300 hover:-translate-y-1 hover:shadow-lg flex flex-col">
+                            <div class="relative h-56 w-full bg-[#f8f3ed] overflow-hidden">
+                                @if(!empty($facility->images) && count($facility->images) > 0)
+                                    <img src="{{ \App\Models\Facility::imageUrl($facility->images[0]) }}" alt="{{ $facility->name }}" class="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105">
+                                @else
+                                    <div class="h-full w-full flex items-center justify-center text-[#827567]/50">
+                                        <i class="fa-solid fa-image text-4xl"></i>
+                                    </div>
+                                @endif
+                                
+                                <div class="absolute top-4 right-4 bg-[#334c42] text-white px-3 py-1 rounded-full text-xs font-bold shadow-md">
+                                    ₱{{ number_format($facility->rate, 2) }} / {{ ucfirst($facility->rate_type) }}
                                 </div>
-                            @endif
-                            
-                            <div class="absolute top-4 right-4 bg-[#334c42] text-white px-3 py-1 rounded-full text-xs font-bold shadow-md">
-                                ₱{{ number_format($facility->rate, 2) }} / {{ ucfirst($facility->rate_type) }}
                             </div>
-                        </div>
 
-                        <div class="p-6 flex flex-col grow">
-                            <h3 class="text-xl font-bold text-[#504538] font-display mb-2">{{ $facility->name }}</h3>
-                            <p class="text-sm text-[#827567] mb-6 line-clamp-2">{{ $facility->description }}</p>
-                            
-                            <div class="mt-auto">
-                                <a href="{{ route('facilities.show', $facility) }}" class="inline-flex w-full items-center justify-center gap-2 rounded-xl bg-[#c2a889] px-4 py-3 text-xs font-bold text-[#504538] shadow-sm transition-all hover:bg-[#b09677] hover:shadow">
-                                    View Details & Book
-                                </a>
+                            <div class="p-6 flex flex-col grow">
+                                <h3 class="text-xl font-bold text-[#504538] font-display mb-2">{{ $facility->name }}</h3>
+                                <p class="text-sm text-[#827567] mb-6 line-clamp-2">{{ $facility->description }}</p>
+                                
+                                <div class="mt-auto">
+                                    <a href="{{ route('facilities.show', $facility) }}" class="inline-flex w-full items-center justify-center gap-2 rounded-xl bg-[#c2a889] px-4 py-3 text-xs font-bold text-[#504538] shadow-sm transition-all hover:bg-[#b09677] hover:shadow">
+                                        View Details & Book
+                                    </a>
+                                </div>
                             </div>
                         </div>
+                        @endforeach
                     </div>
-                    @endforeach
-                </div>
+                @else
+                    <div class="flex flex-col items-center justify-center py-16 px-4 text-center border border-dashed border-[#827567]/30 rounded-3xl bg-[#f8f3ed]/50">
+                        <div class="flex h-16 w-16 items-center justify-center rounded-full bg-[#c2a889]/30 mb-4">
+                            <i class="fa-solid fa-building text-2xl text-[#627e71]"></i>
+                        </div>
+                        <h3 class="text-xl font-bold text-[#504538] font-display mb-2">New Facilities Coming Soon</h3>
+                        <p class="text-sm text-[#827567] max-w-md">
+                            We are currently preparing our rentable facilities. Please check back later to discover and book our event spaces!
+                        </p>
+                    </div>
+                @endif
             </div>
         </section>
-        @endif
 
     </main>
 
@@ -536,6 +559,7 @@
                         <li><a href="#hero" class="hover:text-white transition-colors">Home Showcase</a></li>
                         <li><a href="#rooms" class="hover:text-white transition-colors">Rooms Showcase</a></li>
                         <li><a href="#coffeeshop" class="hover:text-white transition-colors">Cafeteria Highlights</a></li>
+                        <li><a href="#facilities" class="hover:text-white transition-colors">Rentable Facilities</a></li>
                         @auth
                             <li><a href="javascript:void(0)" onclick="alert('Login is disabled during preview mode.')" class="text-[#c2a889]/70 cursor-not-allowed">Staff / Guest Login (Disabled)</a></li>
                         @else
@@ -546,7 +570,7 @@
 
                 <div class="space-y-2 text-xs">
                     <h4 class="text-sm font-bold text-[#627e71] font-display">Contact & Location</h4>
-                    <p class="text-[#c2a889]"><i class="fa-solid fa-location-dot mr-2 text-[#627e71]"></i> EVSU HTM Department, Tacloban City</p>
+                    <p class="text-[#c2a889]"><i class="fa-solid fa-location-dot mr-2 text-[#627e71]"></i> EVSU HTM Department, Ormoc City</p>
                     <p class="text-[#c2a889]"><i class="fa-solid fa-phone mr-2 text-[#627e71]"></i> Reception Desk: 24/7 Operations</p>
                     <p class="text-[#c2a889]"><i class="fa-solid fa-envelope mr-2 text-[#627e71]"></i> htm@evsu.edu.ph</p>
                 </div>
