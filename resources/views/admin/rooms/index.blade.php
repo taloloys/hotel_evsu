@@ -238,16 +238,45 @@
 
             </form>
 
-            <!-- ADD ROOM BUTTON -->
-            <button class="btn btn-primary d-flex align-items-center gap-2 px-3"
-                    style="height: 38px; border-radius: 6px;"
-                    data-bs-toggle="modal"
-                    data-bs-target="#addRoomModal">
+            <!-- ADD ROOM / ADD FACILITY SPLIT BUTTON -->
+            <div class="btn-group" role="group">
+                <button class="btn btn-primary d-flex align-items-center gap-2 px-3"
+                        style="height: 38px; border-radius: 6px 0 0 6px;"
+                        data-bs-toggle="modal"
+                        data-bs-target="#addRoomModal">
+                    <i class="fa-solid fa-plus"></i>
+                    <span>Add Room</span>
+                </button>
 
-                <i class="fa-solid fa-plus"></i>
-                <span>Add Room</span>
+                <button type="button"
+                        class="btn btn-primary dropdown-toggle dropdown-toggle-split px-2"
+                        style="height: 38px; border-radius: 0 6px 6px 0; border-left: 1px solid rgba(255,255,255,0.3);"
+                        data-bs-toggle="dropdown"
+                        aria-expanded="false">
+                    <span class="visually-hidden">Toggle Dropdown</span>
+                </button>
 
-            </button>
+                <ul class="dropdown-menu dropdown-menu-end shadow-sm" style="border-radius: 8px; min-width: 180px;">
+                    <li>
+                        <button class="dropdown-item d-flex align-items-center gap-2 py-2"
+                                type="button"
+                                data-bs-toggle="modal"
+                                data-bs-target="#addRoomModal">
+                            <i class="fa-solid fa-bed text-primary"></i>
+                            Add Room
+                        </button>
+                    </li>
+                    <li>
+                        <button class="dropdown-item d-flex align-items-center gap-2 py-2"
+                                type="button"
+                                data-bs-toggle="modal"
+                                data-bs-target="#addFacilityModal">
+                            <i class="fa-solid fa-building text-success"></i>
+                            Add Facility
+                        </button>
+                    </li>
+                </ul>
+            </div>
 
         </div>
     </div>
@@ -527,6 +556,118 @@
         </div>
     </div>
 </div>
+
+<!-- =========================================================
+     ADD FACILITY MODAL
+     ========================================================= -->
+<div class="modal fade" id="addFacilityModal" tabindex="-1" aria-labelledby="addFacilityModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-content" style="border-radius: 10px; overflow: hidden;">
+
+            <!-- HEADER -->
+            <div class="modal-header bg-light">
+                <h5 class="modal-title fw-bold" id="addFacilityModalLabel">
+                    <i class="fa-solid fa-building me-2 text-success"></i>
+                    Add New Facility
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+
+            <!-- FORM -->
+            <form method="POST" action="{{ route('admin.rooms.store') }}">
+                @csrf
+                {{-- Hidden field to mark this as a facility (no room number prefix parsing needed) --}}
+                <input type="hidden" name="is_facility" value="1">
+
+                <div class="modal-body px-4 py-4">
+
+                    <!-- INFO BANNER -->
+                    <div class="alert alert-info d-flex align-items-start gap-2 py-2 mb-4" style="border-radius: 8px; font-size: 0.875rem;">
+                        <i class="fa-solid fa-circle-info mt-1"></i>
+                        <span>Facilities (e.g. Function Halls, Conference Rooms) do not require a room number. Enter a unique facility name instead.</span>
+                    </div>
+
+                    <!-- FACILITY NAME -->
+                    <div class="mb-3">
+                        <label for="add_facility_name" class="form-label fw-semibold">Facility Name</label>
+                        <input type="text"
+                               id="add_facility_name"
+                               name="room_number"
+                               class="form-control form-control-lg"
+                               placeholder="e.g. Function Hall A"
+                               required>
+                        <small class="text-muted">
+                            This name acts as the unique identifier for the facility.
+                        </small>
+                    </div>
+
+                    <!-- FACILITY TYPE -->
+                    <div class="mb-3">
+                        <label for="add_facility_type" class="form-label fw-semibold">Facility Type</label>
+                        <input type="text"
+                               id="add_facility_type"
+                               name="room_type"
+                               class="form-control form-control-lg"
+                               list="facilityTypesList"
+                               placeholder="e.g. Function Hall"
+                               required>
+                        <datalist id="facilityTypesList">
+                            <option value="Function Hall">
+                            <option value="Conference Room">
+                            <option value="Banquet Hall">
+                            <option value="Meeting Room">
+                            <option value="Event Hall">
+                            @foreach($roomTypes as $type)
+                                <option value="{{ $type }}">
+                            @endforeach
+                        </datalist>
+                    </div>
+
+                    <!-- BASE RATE -->
+                    <div class="mb-3">
+                        <label for="add_facility_rate" class="form-label fw-semibold">Base Rate (PHP)</label>
+                        <input type="number"
+                               id="add_facility_rate"
+                               name="base_rate"
+                               class="form-control form-control-lg"
+                               placeholder="e.g. 15000"
+                               step="0.01"
+                               min="0"
+                               required>
+                    </div>
+
+                    <!-- STATUS -->
+                    <div class="mb-3">
+                        <label for="add_facility_status" class="form-label fw-semibold">Initial Status</label>
+                        <select id="add_facility_status"
+                                name="status"
+                                class="form-select form-select-lg"
+                                required>
+                            <option value="AVAILABLE" selected>Available</option>
+                            <option value="CLEANING">Cleaning</option>
+                            <option value="MAINTENANCE">Maintenance</option>
+                        </select>
+                    </div>
+
+                </div>
+
+                <!-- FOOTER -->
+                <div class="modal-footer bg-light">
+                    <button type="button" class="btn btn-light px-4" data-bs-dismiss="modal">
+                        Cancel
+                    </button>
+                    <button type="submit" class="btn btn-success px-4">
+                        <i class="fa-solid fa-save me-1"></i>
+                        Save Facility
+                    </button>
+                </div>
+
+            </form>
+
+        </div>
+    </div>
+</div>
+
 <!-- =========================================================
      VIEW DETAILS MODAL
      ========================================================= -->

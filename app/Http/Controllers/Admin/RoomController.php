@@ -80,7 +80,7 @@ class RoomController extends Controller
     public function store(Request $request): RedirectResponse
     {
         $validated = $request->validate([
-            'room_number' => ['required', 'string', 'max:10', 'unique:rooms,room_number'],
+            'room_number' => ['required', 'string', 'max:50', 'unique:rooms,room_number'],
             'room_type' => ['required', 'string', 'max:50'],
             'base_rate' => ['required', 'numeric', 'min:0'],
             'status' => ['required', 'string', 'in:AVAILABLE,OCCUPIED,RESERVED,CLEANING,MAINTENANCE'],
@@ -112,7 +112,7 @@ class RoomController extends Controller
     public function update(Request $request, Room $room): RedirectResponse
     {
         $validated = $request->validate([
-            'room_number' => ['required', 'string', 'max:10', Rule::unique('rooms', 'room_number')->ignore($room->room_id, 'room_id')],
+            'room_number' => ['required', 'string', 'max:50', Rule::unique('rooms', 'room_number')->ignore($room->room_id, 'room_id')],
             'room_type' => ['required', 'string', 'max:50'],
             'base_rate' => ['required', 'numeric', 'min:0'],
             'status' => ['required', 'string', 'in:AVAILABLE,OCCUPIED,RESERVED,CLEANING,MAINTENANCE'],

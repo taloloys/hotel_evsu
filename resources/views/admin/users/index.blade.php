@@ -412,12 +412,33 @@
                     <!-- PASSWORD -->
                     <div class="mb-3">
                         <label for="add_password" class="form-label fw-semibold">Password</label>
-                        <input type="password"
-                               id="add_password"
-                               name="password"
-                               class="form-control form-control-lg"
-                               placeholder="Minimum 6 characters"
-                               required>
+                        <div class="input-group">
+                            <input type="password"
+                                   id="add_password"
+                                   name="password"
+                                   class="form-control form-control-lg"
+                                   placeholder="Minimum 6 characters"
+                                   required>
+                            <button class="btn btn-outline-secondary"
+                                    type="button"
+                                    id="add_password_toggle"
+                                    title="Show/hide password"
+                                    style="border-radius: 0 6px 6px 0;"
+                                    onclick="(function(btn){
+                                        var inp = document.getElementById('add_password');
+                                        var icon = btn.querySelector('i');
+                                        if (inp.type === 'password') {
+                                            inp.type = 'text';
+                                            icon.className = 'fa-solid fa-eye-slash';
+                                        } else {
+                                            inp.type = 'password';
+                                            icon.className = 'fa-solid fa-eye';
+                                        }
+                                    })(this)">
+                                <i class="fa-solid fa-eye"></i>
+                            </button>
+                        </div>
+                        <small class="text-muted">Minimum 6 characters</small>
                     </div>
 
                     <!-- ROLE -->
