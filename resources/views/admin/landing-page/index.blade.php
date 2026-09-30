@@ -45,8 +45,8 @@
             <button class="btn btn-outline-secondary rounded-3 px-3" data-bs-toggle="modal" data-bs-target="#addCafeteriaItemModal">
                 <i class="fa-solid fa-mug-hot me-2"></i>Add Cafeteria Item
             </button>
-            <a href="{{ url('/') }}" target="_blank" class="btn btn-dark rounded-3 px-3">
-                <i class="fa-solid fa-eye me-2"></i>View Live Page
+            <a href="{{ route('admin.landing-page.preview') }}" target="_blank" class="btn btn-dark rounded-3 px-3">
+                <i class="fa-solid fa-eye me-2"></i>Preview Live Page
             </a>
         </div>
     </div>

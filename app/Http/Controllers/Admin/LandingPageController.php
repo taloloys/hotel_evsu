@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Admin;
 
+use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\Controller;
 use App\Models\ActivityLog;
 use App\Models\LandingPageShowcase;
@@ -14,6 +15,26 @@ use Illuminate\View\View;
 
 class LandingPageController extends Controller
 {
+    /**
+     * Render the public showcase page inside the admin context with a back-bar.
+     *
+     * This avoids the routing conflict where clicking "View Live Page" sends
+     * an authenticated admin to `/` which would otherwise render the bare
+     * public page with no way to navigate back to the admin panel.
+     */
+    public function preview(): View
+    {
+        $showcaseData = Cache::get('public_showcase_data');
+
+        // If the cache is cold (e.g. cleared after recent edits), build it on the fly
+        // by delegating to the LoginController which owns that logic.
+        if (! $showcaseData) {
+            $showcaseData = app(LoginController::class)->showcase()->getData();
+        }
+
+        return view('public.showcase', array_merge($showcaseData, ['adminPreview' => true]));
+    }
+
     public function index(): View
     {
         $activeRoomTypes = Room::where('is_active', true)

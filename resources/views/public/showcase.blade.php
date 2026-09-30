@@ -96,6 +96,51 @@
         </div>
     </header>
 
+    {{-- ADMIN PREVIEW BAR — only rendered when opened via admin/landing-page/preview --}}
+    @if(!empty($adminPreview))
+    <div id="admin-preview-bar"
+         style="position: fixed; top: 0; left: 0; right: 0; z-index: 99999;
+                background: linear-gradient(90deg, #1e293b 0%, #334c42 100%);
+                color: #fff; padding: 10px 20px;
+                display: flex; align-items: center; justify-content: space-between;
+                font-family: 'Plus Jakarta Sans', sans-serif; font-size: 13px;
+                box-shadow: 0 2px 12px rgba(0,0,0,0.35);">
+        <div style="display: flex; align-items: center; gap: 10px;">
+            <span style="background: #f59e0b; color: #1e293b; font-weight: 700;
+                         font-size: 10px; letter-spacing: 1px; padding: 2px 8px;
+                         border-radius: 4px; text-transform: uppercase;">Admin Preview</span>
+            <span style="color: #94a3b8;">You are viewing the public landing page in preview mode. Changes are reflected live.</span>
+        </div>
+        <div style="display: flex; align-items: center; gap: 8px;">
+            <a href="{{ route('admin.landing-page') }}"
+               style="display: inline-flex; align-items: center; gap: 6px;
+                      background: #334c42; color: #fff; font-weight: 600;
+                      padding: 6px 14px; border-radius: 6px; text-decoration: none;
+                      border: 1px solid rgba(255,255,255,0.15);
+                      transition: background 0.2s;"
+               onmouseover="this.style.background='#627e71'"
+               onmouseout="this.style.background='#334c42'">
+                <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" fill="currentColor" viewBox="0 0 16 16" style="flex-shrink:0;">
+                    <path fill-rule="evenodd" d="M15 8a.5.5 0 0 0-.5-.5H2.707l3.147-3.146a.5.5 0 1 0-.708-.708l-4 4a.5.5 0 0 0 0 .708l4 4a.5.5 0 0 0 .708-.708L2.707 8.5H14.5A.5.5 0 0 0 15 8z"/>
+                </svg>
+                Back to Landing Page Control
+            </a>
+            <a href="{{ route('admin.dashboard') }}"
+               style="display: inline-flex; align-items: center; gap: 6px;
+                      background: rgba(255,255,255,0.08); color: #cbd5e1; font-weight: 600;
+                      padding: 6px 14px; border-radius: 6px; text-decoration: none;
+                      border: 1px solid rgba(255,255,255,0.15);
+                      transition: background 0.2s;"
+               onmouseover="this.style.background='rgba(255,255,255,0.18)'"
+               onmouseout="this.style.background='rgba(255,255,255,0.08)'">
+                Admin Dashboard
+            </a>
+        </div>
+    </div>
+    {{-- Push page content down so it isn't hidden behind the fixed bar --}}
+    <div style="height: 46px;"></div>
+    @endif
+
     <!-- Main Showcase Content -->
     <main>
         <!-- Hero Showcase Banner -->

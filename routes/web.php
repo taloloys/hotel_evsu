@@ -334,6 +334,8 @@ Route::middleware('auth')->group(function () {
         Route::middleware('can:manage-landing-page')->group(function () {
             Route::get('/landing-page', [LandingPageController::class, 'index'])
                 ->name('admin.landing-page');
+            Route::get('/landing-page/preview', [LandingPageController::class, 'preview'])
+                ->name('admin.landing-page.preview');
             Route::patch('/landing-page/room/{showcase}', [LandingPageController::class, 'updateRoom'])
                 ->name('admin.landing-page.room.update');
             Route::post('/landing-page/cafeteria-main', [LandingPageController::class, 'updateCafeteriaMain'])
