@@ -7,14 +7,18 @@ use App\Http\Controllers\Controller;
 use App\Models\ActivityLog;
 use App\Models\LandingPageShowcase;
 use App\Models\Room;
+use App\Services\ImageService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
-use Illuminate\Support\Facades\Storage;
 use Illuminate\View\View;
 
 class LandingPageController extends Controller
 {
+    public function __construct(
+        protected ImageService $imageService
+    ) {}
+
     /**
      * Render the public showcase page inside the admin context with a back-bar.
      *
@@ -90,20 +94,18 @@ class LandingPageController extends Controller
         ]);
 
         // 1. Get initial image paths from text input if provided, or from current model values
-        if (isset($validated['image_paths'])) {
-            $imagePaths = array_filter(array_map('trim', explode(',', $validated['image_paths'])));
+        if (array_key_exists('image_paths', $validated)) {
+            $imagePaths = ! empty($validated['image_paths'])
+                ? array_filter(array_map('trim', explode(',', $validated['image_paths'])))
+                : [];
         } else {
             $imagePaths = $showcase->images ?? [];
         }
 
-        // 2. Append any newly uploaded files
-        $disk = config('filesystems.uploads_disk', 'public');
-
+        // 2. Compress and append any newly uploaded files
         if ($request->hasFile('images')) {
             foreach ($request->file('images') as $file) {
-                $filename = time().'_'.uniqid().'.'.$file->getClientOriginalExtension();
-                Storage::disk($disk)->putFileAs('images/showcase/rooms', $file, $filename);
-                $imagePaths[] = 'images/showcase/rooms/'.$filename;
+                $imagePaths[] = $this->imageService->compressAndStore($file, 'images/showcase/rooms', 1200, 800, 80);
             }
         }
 
@@ -113,8 +115,8 @@ class LandingPageController extends Controller
         $oldImages = $showcase->images ?? [];
         $removedImages = array_diff($oldImages, $finalImages);
         foreach ($removedImages as $removed) {
-            if (! file_exists(public_path($removed)) && Storage::disk($disk)->exists($removed)) {
-                Storage::disk($disk)->delete($removed);
+            if (! file_exists(public_path($removed))) {
+                $this->imageService->deleteImage($removed);
             }
         }
 
@@ -147,20 +149,18 @@ class LandingPageController extends Controller
         $main = LandingPageShowcase::firstOrNew(['type' => 'CAFETERIA_MAIN']);
 
         $imagePaths = $main->images ?? [];
-        $disk = config('filesystems.uploads_disk', 'public');
 
         if ($request->hasFile('image')) {
             $file = $request->file('image');
-            $filename = 'cafeteria_main_'.time().'.'.$file->getClientOriginalExtension();
 
             // Delete previous uploaded file if exists and not a static asset
             $oldImage = $main->images[0] ?? null;
-            if ($oldImage && ! file_exists(public_path($oldImage)) && Storage::disk($disk)->exists($oldImage)) {
-                Storage::disk($disk)->delete($oldImage);
+            if ($oldImage && ! file_exists(public_path($oldImage))) {
+                $this->imageService->deleteImage($oldImage);
             }
 
-            Storage::disk($disk)->putFileAs('images/showcase/coffeeshop', $file, $filename);
-            $imagePaths = ['images/showcase/coffeeshop/'.$filename];
+            $storedPath = $this->imageService->compressAndStore($file, 'images/showcase/coffeeshop', 1200, 800, 80);
+            $imagePaths = [$storedPath];
         } elseif (! empty($validated['image_path'])) {
             $imagePaths = [$validated['image_path']];
         }
@@ -197,13 +197,10 @@ class LandingPageController extends Controller
         ]);
 
         $imagePath = 'images/showcase/coffeeshop/coffee.jpg';
-        $disk = config('filesystems.uploads_disk', 'public');
 
         if ($request->hasFile('image')) {
             $file = $request->file('image');
-            $filename = time().'_'.uniqid().'.'.$file->getClientOriginalExtension();
-            Storage::disk($disk)->putFileAs('images/showcase/coffeeshop', $file, $filename);
-            $imagePath = 'images/showcase/coffeeshop/'.$filename;
+            $imagePath = $this->imageService->compressAndStore($file, 'images/showcase/coffeeshop', 800, 800, 80);
         } elseif (! empty($validated['image_path'])) {
             $imagePath = $validated['image_path'];
         }
@@ -225,6 +222,45 @@ class LandingPageController extends Controller
         return redirect()->route('admin.landing-page')->with('success', 'Cafeteria item added successfully.');
     }
 
+    public function updateCafeteriaItem(Request $request, LandingPageShowcase $showcase): RedirectResponse
+    {
+        $validated = $request->validate([
+            'title' => ['required', 'string', 'max:255'],
+            'category' => ['required', 'string', 'max:100'],
+            'timing' => ['required', 'string', 'max:255'],
+            'icon' => ['nullable', 'string', 'max:100'],
+            'image' => ['nullable', 'image', 'mimes:jpeg,png,jpg,webp', 'max:4096'],
+            'image_path' => ['nullable', 'string'],
+        ]);
+
+        $imagePath = $showcase->images[0] ?? 'images/showcase/coffeeshop/coffee.jpg';
+
+        if ($request->hasFile('image')) {
+            $file = $request->file('image');
+            $oldImage = $showcase->images[0] ?? null;
+            if ($oldImage && ! file_exists(public_path($oldImage))) {
+                $this->imageService->deleteImage($oldImage);
+            }
+            $imagePath = $this->imageService->compressAndStore($file, 'images/showcase/coffeeshop', 800, 800, 80);
+        } elseif (! empty($validated['image_path'])) {
+            $imagePath = $validated['image_path'];
+        }
+
+        $showcase->update([
+            'title' => $validated['title'],
+            'category' => $validated['category'],
+            'timing' => $validated['timing'],
+            'icon' => $validated['icon'] ?? $showcase->icon ?? 'fa-mug-hot',
+            'images' => [$imagePath],
+        ]);
+
+        Cache::forget('public_showcase_data');
+
+        ActivityLog::log('LANDING_PAGE_MODIFIED', "Updated cafeteria item: {$showcase->title}.");
+
+        return redirect()->route('admin.landing-page')->with('success', 'Cafeteria item updated successfully.');
+    }
+
     public function toggleStatus(LandingPageShowcase $showcase): RedirectResponse
     {
         $showcase->update([
@@ -241,11 +277,10 @@ class LandingPageController extends Controller
     public function destroy(LandingPageShowcase $showcase): RedirectResponse
     {
         $title = $showcase->title;
-        $disk = config('filesystems.uploads_disk', 'public');
 
         foreach ($showcase->images ?? [] as $img) {
-            if (! file_exists(public_path($img)) && Storage::disk($disk)->exists($img)) {
-                Storage::disk($disk)->delete($img);
+            if (! file_exists(public_path($img))) {
+                $this->imageService->deleteImage($img);
             }
         }
 

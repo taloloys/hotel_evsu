@@ -21,17 +21,18 @@ class ImageService
      * @return string The stored file path relative to the disk root
      */
     public function compressAndStore(
-        UploadedFile $file,
+        UploadedFile|string $file,
         string $path,
-        ?int $maxWidth = 800,
+        ?int $maxWidth = 1200,
         ?int $maxHeight = 800,
         int $quality = 80
     ): string {
         // Initialize the ImageManager with the GD driver
         $manager = new ImageManager(new Driver);
 
-        // Read the image from the uploaded file's temporary path
-        $image = $manager->read($file->getRealPath());
+        // Read the image from the uploaded file's temporary path or file path
+        $source = $file instanceof UploadedFile ? $file->getRealPath() : $file;
+        $image = $manager->read($source);
 
         // Scale down the image if dimensions exceed maximum constraints, preserving aspect ratio
         if ($maxWidth !== null && $maxHeight !== null) {
@@ -58,10 +59,15 @@ class ImageService
      */
     public function deleteImage(?string $path): bool
     {
-        $disk = config('filesystems.uploads_disk', 'public');
+        if (! $path) {
+            return false;
+        }
 
-        if ($path && Storage::disk($disk)->exists($path)) {
-            return Storage::disk($disk)->delete($path);
+        $disk = config('filesystems.uploads_disk', 'public');
+        $cleanPath = ltrim(preg_replace('#^storage/#', '', ltrim($path, '/')), '/');
+
+        if (Storage::disk($disk)->exists($cleanPath)) {
+            return Storage::disk($disk)->delete($cleanPath);
         }
 
         return false;

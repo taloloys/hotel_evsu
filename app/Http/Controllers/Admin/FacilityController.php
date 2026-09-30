@@ -7,14 +7,18 @@ use App\Http\Requests\StoreFacilityRequest;
 use App\Http\Requests\UpdateFacilityRequest;
 use App\Models\ActivityLog;
 use App\Models\Facility;
+use App\Services\ImageService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
-use Illuminate\Support\Facades\Storage;
 use Illuminate\View\View;
 
 class FacilityController extends Controller
 {
+    public function __construct(
+        protected ImageService $imageService
+    ) {}
+
     public function index(): View
     {
         $facilities = Facility::orderBy('sort_order')
@@ -61,8 +65,10 @@ class FacilityController extends Controller
         $validated = $request->validated();
 
         // Handle image paths from hidden input (existing images that weren't removed)
-        if (isset($validated['image_paths'])) {
-            $existingPaths = array_filter(array_map('trim', explode(',', $validated['image_paths'])));
+        if (array_key_exists('image_paths', $validated)) {
+            $existingPaths = ! empty($validated['image_paths'])
+                ? array_filter(array_map('trim', explode(',', $validated['image_paths'])))
+                : [];
         } else {
             $existingPaths = $facility->images ?? [];
         }
@@ -113,7 +119,7 @@ class FacilityController extends Controller
     }
 
     /**
-     * Append newly uploaded images to existing paths — mirrors LandingPageController pattern.
+     * Compress and append newly uploaded images to existing paths.
      *
      * @param  array<string>  $existingPaths
      * @return array<string>
@@ -121,12 +127,9 @@ class FacilityController extends Controller
     private function handleImageUploads(Request $request, array $existingPaths): array
     {
         $paths = $existingPaths;
-        $disk = config('filesystems.uploads_disk', 'public');
 
         foreach ($request->file('images', []) as $file) {
-            $filename = time().'_'.uniqid().'.'.$file->getClientOriginalExtension();
-            Storage::disk($disk)->putFileAs('images/showcase/facilities', $file, $filename);
-            $paths[] = 'images/showcase/facilities/'.$filename;
+            $paths[] = $this->imageService->compressAndStore($file, 'images/showcase/facilities', 1200, 800, 80);
         }
 
         return array_values(array_unique($paths));
@@ -140,12 +143,10 @@ class FacilityController extends Controller
      */
     private function cleanupRemovedImages(array $oldImages, array $currentImages): void
     {
-        $disk = config('filesystems.uploads_disk', 'public');
-
         foreach (array_diff($oldImages, $currentImages) as $removed) {
             // Only delete uploaded images (not static repo assets)
-            if (! file_exists(public_path($removed)) && Storage::disk($disk)->exists($removed)) {
-                Storage::disk($disk)->delete($removed);
+            if (! file_exists(public_path($removed))) {
+                $this->imageService->deleteImage($removed);
             }
         }
     }

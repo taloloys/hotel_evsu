@@ -164,15 +164,31 @@ class PosProduct extends Model
             return $this->image_path;
         }
 
+        $cleanPath = ltrim(preg_replace('#^storage/#', '', ltrim($this->image_path, '/')), '/');
+
+        // Check if file exists directly under public/
+        if (file_exists(public_path($cleanPath))) {
+            return asset($cleanPath);
+        }
+
+        // Check if file exists in public/storage/
+        if (file_exists(public_path('storage/'.$cleanPath))) {
+            return asset('storage/'.$cleanPath);
+        }
+
         $diskName = config('filesystems.uploads_disk', 'public');
         $disk = Storage::disk($diskName);
 
         if (config("filesystems.disks.{$diskName}.driver") === 's3') {
             $days = config('filesystems.url_expiration_days', 7);
 
-            return $disk->temporaryUrl($this->image_path, now()->addDays($days));
+            return $disk->temporaryUrl($cleanPath, now()->addDays($days));
         }
 
-        return $disk->url($this->image_path);
+        if ($diskName === 'public' || config("filesystems.disks.{$diskName}.driver") === 'local') {
+            return asset('storage/'.$cleanPath);
+        }
+
+        return $disk->url($cleanPath);
     }
 }

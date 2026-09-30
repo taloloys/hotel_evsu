@@ -107,3 +107,49 @@ it('invalidates showcase cache when landing page showcase items are updated', fu
 
     expect(Cache::has('public_showcase_data'))->toBeFalse();
 });
+
+it('compresses uploaded cafeteria main hero image to webp and saves storage', function (): void {
+    Storage::fake('public');
+    $admin = createAdminWithPermissions();
+
+    $file = UploadedFile::fake()->image('cafeteria_large.jpg', 1920, 1080);
+
+    $response = $this->actingAs($admin)->post(route('admin.landing-page.cafeteria-main.update'), [
+        'title' => 'Signature Coffee & Pastries',
+        'category' => 'EVSU Lounge',
+        'timing' => 'Open 7 AM - 9 PM',
+        'image' => $file,
+    ]);
+
+    $response->assertRedirect(route('admin.landing-page'));
+
+    $main = LandingPageShowcase::where('type', 'CAFETERIA_MAIN')->first();
+    expect($main)->not->toBeNull();
+    expect($main->images)->toHaveCount(1);
+    expect($main->images[0])->toEndWith('.webp');
+    expect(Storage::disk('public')->exists($main->images[0]))->toBeTrue();
+    expect(LandingPageShowcase::url($main->images[0]))->toContain($main->images[0]);
+});
+
+it('compresses uploaded cafeteria item highlight image to webp', function (): void {
+    Storage::fake('public');
+    $admin = createAdminWithPermissions();
+
+    $file = UploadedFile::fake()->image('cappuccino.png', 1000, 1000);
+
+    $response = $this->actingAs($admin)->post(route('admin.landing-page.cafeteria-item.store'), [
+        'title' => 'Iced Vanilla Latte',
+        'category' => 'Beverages',
+        'timing' => 'Served Daily',
+        'icon' => 'fa-mug-hot',
+        'image' => $file,
+    ]);
+
+    $response->assertRedirect(route('admin.landing-page'));
+
+    $item = LandingPageShowcase::where('type', 'CAFETERIA_ITEM')->where('title', 'Iced Vanilla Latte')->first();
+    expect($item)->not->toBeNull();
+    expect($item->images[0])->toEndWith('.webp');
+    expect(Storage::disk('public')->exists($item->images[0]))->toBeTrue();
+    expect(LandingPageShowcase::url($item->images[0]))->toContain($item->images[0]);
+});
