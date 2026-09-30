@@ -12,7 +12,7 @@ use App\Services\BackupSettingsService;
 use Illuminate\Support\Facades\Mail;
 
 Schedule::command('app:post-nightly-room-charges')->daily();
-Schedule::command('shifts:close-orphaned')->everyFifteenMinutes();
+// Schedule::command('shifts:close-orphaned')->everyFifteenMinutes();
 Schedule::command('app:archive-old-data')->dailyAt('02:00');
 
 $backupSettings = BackupSettingsService::get();
