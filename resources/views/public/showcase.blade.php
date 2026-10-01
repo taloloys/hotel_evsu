@@ -504,6 +504,62 @@
                     </p>
                 </div>
 
+                @if(isset($facilitySets) && $facilitySets->isNotEmpty())
+                    <div class="mb-12">
+                        <div class="flex items-center gap-2 mb-6">
+                            <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#334c42]/10 text-[#334c42] text-xs font-bold uppercase tracking-wider">
+                                <i class="fa-solid fa-layer-group"></i> Consolidated Facility Sets
+                            </span>
+                            <span class="text-xs text-[#827567] font-medium">&mdash; Reserve multiple connected event spaces together</span>
+                        </div>
+
+                        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                            @foreach($facilitySets as $set)
+                            <div class="group overflow-hidden rounded-3xl border-2 border-[#334c42]/20 bg-white shadow-md transition-all duration-300 hover:-translate-y-1 hover:shadow-xl flex flex-col relative">
+                                <div class="relative h-52 w-full bg-[#e8f0ec] overflow-hidden flex flex-col justify-end p-5">
+                                    <div class="absolute top-4 left-4 bg-[#334c42] text-white text-[11px] font-bold px-3 py-1 rounded-full uppercase tracking-wider shadow-sm flex items-center gap-1.5">
+                                        <i class="fa-solid fa-layer-group text-[#c2a889]"></i> Facility Set
+                                    </div>
+                                    <div class="absolute top-4 right-4 bg-white/90 backdrop-blur-xs text-[#334c42] px-3 py-1 rounded-full text-xs font-bold shadow-sm">
+                                        ₱{{ number_format($set->effective_daily_rate ?? $set->rate, 2) }} / {{ ucfirst($set->rate_type) }}
+                                    </div>
+                                    <div>
+                                        <h3 class="text-2xl font-bold text-[#334c42] font-display">{{ $set->name }}</h3>
+                                        <div class="text-xs text-[#627e71] font-semibold mt-0.5">
+                                            Combined Capacity: {{ $set->resolved_capacity }} pax
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="p-6 flex flex-col grow">
+                                    <div class="mb-4">
+                                        <div class="text-xs font-bold text-[#827567] uppercase tracking-wider mb-2">Includes Spaces:</div>
+                                        <div class="flex flex-wrap gap-1.5">
+                                            @foreach($set->facilities as $mem)
+                                                <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-md bg-[#f8f3ed] border border-[#d8c3ab] text-xs font-semibold text-[#504538]">
+                                                    <i class="fa-solid fa-check text-emerald-600 text-[10px]"></i> {{ $mem->name }}
+                                                </span>
+                                            @endforeach
+                                        </div>
+                                    </div>
+
+                                    @if($set->description)
+                                        <p class="text-sm text-[#827567] mb-6 line-clamp-2">{{ $set->description }}</p>
+                                    @endif
+
+                                    <div class="mt-auto">
+                                        <a href="{{ route('facilities.sets.show', $set) }}" class="inline-flex w-full items-center justify-center gap-2 rounded-xl bg-[#334c42] hover:bg-[#253930] px-4 py-3 text-xs font-bold text-white shadow-sm transition-all">
+                                            <span>View Set &amp; Book</span>
+                                            <i class="fa-solid fa-arrow-right text-[11px]"></i>
+                                        </a>
+                                    </div>
+                                </div>
+                            </div>
+                            @endforeach
+                        </div>
+                    </div>
+                @endif
+
                 @if(isset($facilities) && $facilities->isNotEmpty())
                     <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
                         @foreach($facilities as $facility)

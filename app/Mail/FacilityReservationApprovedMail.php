@@ -29,13 +29,13 @@ class FacilityReservationApprovedMail extends Mailable implements ShouldQueue
 
     public function content(): Content
     {
-        $this->reservation->load('facility');
+        $this->reservation->load(['facility', 'facilitySet', 'reservedFacilities']);
 
         return new Content(
             view: 'emails.facility-reservation-approved',
             with: [
                 'reservation' => $this->reservation,
-                'facility' => $this->reservation->facility,
+                'facility' => $this->reservation->facility ?? $this->reservation->facilitySet,
             ],
         );
     }

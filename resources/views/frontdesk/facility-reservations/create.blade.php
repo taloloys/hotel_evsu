@@ -46,35 +46,70 @@
                 </div>
 
                 <div class="card-body p-4">
-                    {{-- FACILITY SELECTION --}}
-                    {{-- FACILITY SELECTION --}}
+                    {{-- FACILITY OR FACILITY SET SELECTION --}}
                     <div class="mb-4">
-                        <label for="facility_id" class="form-label fw-bold">Select Facility <span class="text-danger">*</span></label>
+                        <label for="facility_id" class="form-label fw-bold">Select Facility or Consolidated Set <span class="text-danger">*</span></label>
                         <select name="facility_id" id="facility_id" class="form-select @error('facility_id') is-invalid @enderror" required>
-                            <option value="">-- Choose a Facility --</option>
-                            @foreach($facilities as $fac)
-                                <option value="{{ $fac->facility_id }}"
-                                        data-rate="{{ $fac->rate }}"
-                                        data-rate-type="{{ $fac->rate_type }}"
-                                        data-hourly-rate="{{ $fac->effective_hourly_rate ?? $fac->rate }}"
-                                        data-daily-rate="{{ $fac->effective_daily_rate ?? $fac->rate }}"
-                                        data-has-hourly="{{ $fac->effective_hourly_rate !== null ? '1' : '0' }}"
-                                        data-has-daily="{{ $fac->effective_daily_rate !== null ? '1' : '0' }}"
-                                        data-capacity="{{ $fac->capacity }}"
-                                        {{ old('facility_id', $selectedFacilityId) == $fac->facility_id ? 'selected' : '' }}>
-                                    {{ $fac->name }} &bull;
-                                    @if($fac->hourly_rate && $fac->daily_rate)
-                                        ₱{{ number_format($fac->hourly_rate, 2) }}/hr &amp; ₱{{ number_format($fac->daily_rate, 2) }}/day
-                                    @else
-                                        ₱{{ number_format($fac->rate, 2) }} / {{ $fac->rate_type }}
-                                    @endif
-                                    @if($fac->capacity) (up to {{ $fac->capacity }} pax) @endif
-                                </option>
-                            @endforeach
+                            <option value="">-- Choose a Facility or Set --</option>
+                            @if(isset($facilitySets) && $facilitySets->isNotEmpty())
+                                <optgroup label="Consolidated Facility Sets">
+                                    @foreach($facilitySets as $set)
+                                        <option value="set_{{ $set->facility_set_id }}"
+                                                data-is-set="1"
+                                                data-members="{{ $set->facilities->pluck('name')->join(', ') }}"
+                                                data-rate="{{ $set->rate }}"
+                                                data-rate-type="{{ $set->rate_type }}"
+                                                data-hourly-rate="{{ $set->effective_hourly_rate ?? $set->rate }}"
+                                                data-daily-rate="{{ $set->effective_daily_rate ?? $set->rate }}"
+                                                data-has-hourly="{{ $set->effective_hourly_rate !== null ? '1' : '0' }}"
+                                                data-has-daily="{{ $set->effective_daily_rate !== null ? '1' : '0' }}"
+                                                data-capacity="{{ $set->resolved_capacity }}"
+                                                {{ (old('facility_id', $selectedFacilityId) == 'set_'.$set->facility_set_id || (isset($selectedFacilitySetId) && $selectedFacilitySetId == $set->facility_set_id)) ? 'selected' : '' }}>
+                                            [SET] {{ $set->name }} &bull;
+                                            @if($set->effective_hourly_rate && $set->effective_daily_rate)
+                                                ₱{{ number_format($set->effective_hourly_rate, 2) }}/hr &amp; ₱{{ number_format($set->effective_daily_rate, 2) }}/day
+                                            @else
+                                                ₱{{ number_format($set->rate, 2) }} / {{ $set->rate_type }}
+                                            @endif
+                                            &bull; Includes: {{ $set->facilities->pluck('name')->join(', ') }}
+                                        </option>
+                                    @endforeach
+                                </optgroup>
+                            @endif
+                            <optgroup label="Individual Facilities">
+                                @foreach($facilities as $fac)
+                                    <option value="{{ $fac->facility_id }}"
+                                            data-is-set="0"
+                                            data-rate="{{ $fac->rate }}"
+                                            data-rate-type="{{ $fac->rate_type }}"
+                                            data-hourly-rate="{{ $fac->effective_hourly_rate ?? $fac->rate }}"
+                                            data-daily-rate="{{ $fac->effective_daily_rate ?? $fac->rate }}"
+                                            data-has-hourly="{{ $fac->effective_hourly_rate !== null ? '1' : '0' }}"
+                                            data-has-daily="{{ $fac->effective_daily_rate !== null ? '1' : '0' }}"
+                                            data-capacity="{{ $fac->capacity }}"
+                                            {{ (old('facility_id', $selectedFacilityId) == $fac->facility_id || old('facility_id', $selectedFacilityId) == 'facility_'.$fac->facility_id) ? 'selected' : '' }}>
+                                        {{ $fac->name }} &bull;
+                                        @if($fac->hourly_rate && $fac->daily_rate)
+                                            ₱{{ number_format($fac->hourly_rate, 2) }}/hr &amp; ₱{{ number_format($fac->daily_rate, 2) }}/day
+                                        @else
+                                            ₱{{ number_format($fac->rate, 2) }} / {{ $fac->rate_type }}
+                                        @endif
+                                        @if($fac->capacity) (up to {{ $fac->capacity }} pax) @endif
+                                    </option>
+                                @endforeach
+                            </optgroup>
                         </select>
                         @error('facility_id')
                             <div class="invalid-feedback">{{ $message }}</div>
                         @enderror
+
+                        <div id="setInclusionBox" class="mt-2 p-3 bg-light border border-info rounded-3 text-dark d-none">
+                            <div class="fw-bold text-success mb-1">
+                                <i class="fa-solid fa-layer-group me-1"></i> Consolidated Reservation Set
+                            </div>
+                            <div class="small text-muted mb-1">This reservation includes the following facilities reserved together:</div>
+                            <div id="setMemberList" class="fw-bold small text-dark"></div>
+                        </div>
                     </div>
 
                     {{-- BILLING MODE (Hourly vs Daily) --}}
@@ -344,10 +379,25 @@
 
         function syncFacilityRates() {
             const selectedOpt = facSelect.options[facSelect.selectedIndex];
+            const setBox = document.getElementById('setInclusionBox');
+            const memberList = document.getElementById('setMemberList');
+
             if (!selectedOpt || !selectedOpt.value) {
                 displayBaseRateEl.textContent = '₱0.00 / Hour';
                 agreedRateUnitEl.textContent = '/ Hour';
+                if (setBox) setBox.classList.add('d-none');
                 return;
+            }
+
+            const isSet = selectedOpt.getAttribute('data-is-set') === '1';
+            const members = selectedOpt.getAttribute('data-members');
+            if (setBox && memberList) {
+                if (isSet && members) {
+                    memberList.textContent = members;
+                    setBox.classList.remove('d-none');
+                } else {
+                    setBox.classList.add('d-none');
+                }
             }
 
             const hourlyRate = parseFloat(selectedOpt.getAttribute('data-hourly-rate')) || 0;

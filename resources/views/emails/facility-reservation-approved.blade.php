@@ -158,9 +158,16 @@
             <table class="detail-table">
                 <tr>
                     <td class="label">Facility</td>
-                    <td class="value">{{ $facility->name }}</td>
+                    <td class="value">
+                        {{ $reservation->facility_name }}
+                        @if($reservation->isConsolidated())
+                            <div style="font-size: 11px; color: #627e71; margin-top: 2px;">
+                                Includes: {{ $reservation->all_facilities->pluck('name')->join(', ') }}
+                            </div>
+                        @endif
+                    </td>
                 </tr>
-                @if(!empty($facility->building_location))
+                @if(!empty($facility?->building_location))
                 <tr>
                     <td class="label">Location</td>
                     <td class="value">{{ $facility->building_location }}</td>

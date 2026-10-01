@@ -63,6 +63,11 @@ Route::post('/logout', [LoginController::class, 'logout'])
 // --- Public Facility Booking (no auth required) ---
 Route::prefix('facilities')->name('facilities.')->middleware('throttle:30,1')->group(function () {
     Route::get('/terms', [PublicFacilityController::class, 'terms'])->name('terms');
+    Route::get('/sets/{facilitySet}', [PublicFacilityController::class, 'showSet'])->name('sets.show');
+    Route::get('/sets/{facilitySet}/book', [PublicFacilityController::class, 'bookSetForm'])->name('sets.book');
+    Route::post('/sets/{facilitySet}/book', [PublicFacilityController::class, 'submitSetBooking'])
+        ->middleware('throttle:10,1')
+        ->name('sets.submit');
     Route::get('/{facility}', [PublicFacilityController::class, 'show'])->name('show');
     Route::get('/{facility}/book', [PublicFacilityController::class, 'bookForm'])->name('book');
     Route::post('/{facility}/book', [PublicFacilityController::class, 'submitBooking'])

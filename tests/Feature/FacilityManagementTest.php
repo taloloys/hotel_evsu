@@ -45,13 +45,13 @@ test('admin can create facility with compressed webp images', function (): void 
     $file2 = $makeFakeImage('facility2.png', 800, 600);
 
     $response = $this->actingAs($this->admin)->post(route('admin.facilities.store'), [
+        'facility_type' => 'single',
         'name' => 'Auditorium Hall',
         'description' => 'Large auditorium for symposiums and conferences.',
         'capacity' => 500,
-        'rate' => 25000,
+        'daily_rate' => 25000,
         'rate_type' => 'daily',
         'is_active' => 1,
-        'sort_order' => 1,
         'images' => [$file1, $file2],
     ]);
 
@@ -93,8 +93,9 @@ test('admin can update facility and removes old compressed images', function ():
     $fileNew = $makeFakeImage('new_photo.jpg');
 
     $response = $this->actingAs($this->admin)->put(route('admin.facilities.update', $facility), [
+        'facility_type' => 'single',
         'name' => 'Conference Room B (Updated)',
-        'rate' => 1800,
+        'hourly_rate' => 1800,
         'rate_type' => 'hourly',
         'capacity' => 30,
         'image_paths' => '', // remove old image

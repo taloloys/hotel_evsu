@@ -102,11 +102,26 @@
                         <table class="table table-borderless table-sm mb-0">
                             <tr>
                                 <td class="text-muted" style="width: 110px;">Facility:</td>
-                                <td class="fw-bold text-primary">{{ $reservation->facility->name ?? 'Deleted Facility' }}</td>
+                                <td>
+                                    @if($reservation->isConsolidated())
+                                        <span class="badge bg-info text-dark mb-1"><i class="fa-solid fa-layer-group me-1"></i> Consolidated Set</span><br>
+                                        <span class="fw-bold text-primary fs-6">{{ $reservation->facilitySet->name ?? $reservation->facility_name }}</span>
+                                        <div class="mt-1.5 p-2 bg-light rounded-2 border">
+                                            <span class="text-muted d-block small fw-bold text-uppercase" style="font-size: 0.7rem;">Included Spaces:</span>
+                                            <ul class="mb-0 ps-3 small">
+                                                @foreach($reservation->all_facilities as $memberFac)
+                                                    <li><span class="fw-bold">{{ $memberFac->name }}</span> @if($memberFac->capacity)<span class="text-muted">({{ $memberFac->capacity }} pax)</span>@endif</li>
+                                                @endforeach
+                                            </ul>
+                                        </div>
+                                    @else
+                                        <span class="fw-bold text-primary">{{ $reservation->facility->name ?? 'Deleted Facility' }}</span>
+                                    @endif
+                                </td>
                             </tr>
                             <tr>
                                 <td class="text-muted">Billing Mode:</td>
-                                <td class="fw-bold text-capitalize">{{ $reservation->billing_type ?? ($reservation->facility?->rate_type ?? 'hourly') }}</td>
+                                <td class="fw-bold text-capitalize">{{ $reservation->billing_type ?? (($reservation->facilitySet ?? $reservation->facility)?->rate_type ?? 'hourly') }}</td>
                             </tr>
                             <tr>
                                 <td class="text-muted">Date:</td>
@@ -129,13 +144,19 @@
                             <tr>
                                 <td class="text-muted">Applied Rate:</td>
                                 <td>
+                                    @php
+                                        $targetItem = $reservation->facilitySet ?? $reservation->facility;
+                                        $rateValue = $reservation->billing_type === 'daily'
+                                            ? ($targetItem?->effective_daily_rate ?? $targetItem?->rate)
+                                            : ($targetItem?->effective_hourly_rate ?? $targetItem?->rate);
+                                    @endphp
                                     @if($reservation->agreed_rate !== null)
                                         <span class="badge bg-warning text-dark fw-bold">
                                             <i class="fa-solid fa-handshake me-1"></i> Agreed Rate: ₱{{ number_format($reservation->agreed_rate, 2) }}
                                         </span>
                                     @else
                                         <span class="fw-bold">
-                                            ₱{{ number_format($reservation->billing_type === 'daily' ? ($reservation->facility?->effective_daily_rate ?? $reservation->facility?->rate) : ($reservation->facility?->effective_hourly_rate ?? $reservation->facility?->rate), 2) }}
+                                            ₱{{ number_format($rateValue, 2) }}
                                             <span class="text-muted small fw-normal">/ {{ $reservation->billing_type === 'daily' ? 'day' : 'hr' }}</span>
                                         </span>
                                     @endif

@@ -47,7 +47,17 @@
                 <div class="grid grid-cols-2 gap-y-4 gap-x-6 text-sm">
                     <div>
                         <div class="font-bold text-[#827567] mb-1">Facility</div>
-                        <div class="text-[#504538] font-bold">{{ $reservation->facility->name }}</div>
+                        <div class="text-[#504538] font-bold">
+                            {{ $reservation->facility_name }}
+                            @if($reservation->isConsolidated())
+                                <span class="inline-block ml-1 px-2 py-0.5 text-[11px] rounded-full bg-[#334c42]/10 text-[#334c42] font-semibold">Consolidated Set</span>
+                            @endif
+                        </div>
+                        @if($reservation->isConsolidated() && $reservation->all_facilities->isNotEmpty())
+                            <div class="text-xs text-[#827567] mt-1">
+                                <strong>Includes:</strong> {{ $reservation->all_facilities->pluck('name')->join(', ') }}
+                            </div>
+                        @endif
                     </div>
                     <div>
                         <div class="font-bold text-[#827567] mb-1">Date</div>

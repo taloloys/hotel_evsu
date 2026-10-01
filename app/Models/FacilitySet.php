@@ -8,11 +8,11 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
-class Facility extends Model
+class FacilitySet extends Model
 {
     use HasFactory;
 
-    protected $primaryKey = 'facility_id';
+    protected $primaryKey = 'facility_set_id';
 
     protected $fillable = [
         'name',
@@ -46,7 +46,14 @@ class Facility extends Model
             return (float) $this->hourly_rate;
         }
 
-        return $this->rate_type === 'hourly' ? (float) $this->rate : null;
+        if ($this->rate_type === 'hourly' && $this->rate > 0) {
+            return (float) $this->rate;
+        }
+
+        // Fallback: sum of member facilities if not explicitly configured
+        $sum = $this->facilities->sum(fn (Facility $f) => $f->effective_hourly_rate ?? 0);
+
+        return $sum > 0 ? (float) $sum : ($this->rate_type === 'hourly' ? (float) $this->rate : null);
     }
 
     public function getEffectiveDailyRateAttribute(): ?float
@@ -55,32 +62,38 @@ class Facility extends Model
             return (float) $this->daily_rate;
         }
 
-        return $this->rate_type === 'daily' ? (float) $this->rate : null;
+        if ($this->rate_type === 'daily' && $this->rate > 0) {
+            return (float) $this->rate;
+        }
+
+        // Fallback: sum of member facilities if not explicitly configured
+        $sum = $this->facilities->sum(fn (Facility $f) => $f->effective_daily_rate ?? 0);
+
+        return $sum > 0 ? (float) $sum : ($this->rate_type === 'daily' ? (float) $this->rate : null);
+    }
+
+    public function getResolvedCapacityAttribute(): int
+    {
+        if ($this->capacity !== null && $this->capacity > 0) {
+            return (int) $this->capacity;
+        }
+
+        return (int) $this->facilities->sum('capacity');
+    }
+
+    public function facilities(): BelongsToMany
+    {
+        return $this->belongsToMany(
+            Facility::class,
+            'facility_set_facility',
+            'facility_set_id',
+            'facility_id'
+        );
     }
 
     public function reservations(): HasMany
     {
-        return $this->hasMany(FacilityReservation::class, 'facility_id', 'facility_id');
-    }
-
-    public function facilitySets(): BelongsToMany
-    {
-        return $this->belongsToMany(
-            FacilitySet::class,
-            'facility_set_facility',
-            'facility_id',
-            'facility_set_id'
-        );
-    }
-
-    public function reservedReservations(): BelongsToMany
-    {
-        return $this->belongsToMany(
-            FacilityReservation::class,
-            'facility_reservation_facility',
-            'facility_id',
-            'reservation_id'
-        );
+        return $this->hasMany(FacilityReservation::class, 'facility_set_id', 'facility_set_id');
     }
 
     public function scopeActive(Builder $query): Builder
@@ -88,9 +101,6 @@ class Facility extends Model
         return $query->where('is_active', true);
     }
 
-    /**
-     * Resolve image URL — delegates to LandingPageShowcase for consistent disk logic.
-     */
     public static function imageUrl(?string $path): ?string
     {
         return LandingPageShowcase::url($path);

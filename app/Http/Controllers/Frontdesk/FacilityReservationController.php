@@ -2,12 +2,14 @@
 
 namespace App\Http\Controllers\Frontdesk;
 
+use App\Exceptions\FacilityReservationConflictException;
 use App\Http\Controllers\Controller;
 use App\Mail\FacilityReservationApprovedMail;
 use App\Mail\FacilityReservationRejectedMail;
 use App\Models\ActivityLog;
 use App\Models\Facility;
 use App\Models\FacilityReservation;
+use App\Models\FacilitySet;
 use App\Services\FacilityBookingService;
 use Carbon\Carbon;
 use Illuminate\Http\RedirectResponse;
@@ -24,30 +26,36 @@ class FacilityReservationController extends Controller
     {
         $status = $request->query('status', 'all');
         $facilityId = $request->query('facility') ?? $request->query('facility_id');
+        $facilitySetId = $request->query('facility_set') ?? $request->query('facility_set_id');
 
-        $reservations = FacilityReservation::with('facility')
+        $reservations = FacilityReservation::with(['facility', 'facilitySet', 'reservedFacilities'])
             ->when($status !== 'all', fn ($q) => $q->where('status', $status))
             ->when($facilityId, fn ($q) => $q->where('facility_id', $facilityId))
+            ->when($facilitySetId, fn ($q) => $q->where('facility_set_id', $facilitySetId))
             ->latest()
             ->paginate(20);
 
         $pendingCount = FacilityReservation::where('status', 'pending')->count();
 
-        return view('frontdesk.facility-reservations.index', compact('reservations', 'status', 'pendingCount', 'facilityId'));
+        return view('frontdesk.facility-reservations.index', compact('reservations', 'status', 'pendingCount', 'facilityId', 'facilitySetId'));
     }
 
     public function create(Request $request): View
     {
         $facilities = Facility::where('is_active', true)->orderBy('name')->get();
-        $selectedFacilityId = $request->query('facility') ?? $request->query('facility_id');
+        $facilitySets = FacilitySet::with('facilities')->where('is_active', true)->orderBy('name')->get();
 
-        return view('frontdesk.facility-reservations.create', compact('facilities', 'selectedFacilityId'));
+        $selectedFacilityId = $request->query('facility') ?? $request->query('facility_id');
+        $selectedFacilitySetId = $request->query('facility_set') ?? $request->query('facility_set_id');
+
+        return view('frontdesk.facility-reservations.create', compact('facilities', 'facilitySets', 'selectedFacilityId', 'selectedFacilitySetId'));
     }
 
     public function store(Request $request): RedirectResponse
     {
         $validated = $request->validate([
-            'facility_id' => ['required', 'exists:facilities,facility_id'],
+            'facility_id' => ['nullable'],
+            'facility_set_id' => ['nullable'],
             'booker_name' => ['required', 'string', 'max:255'],
             'booker_email' => ['required', 'email', 'max:255'],
             'booker_contact' => ['required', 'string', 'max:30'],
@@ -63,26 +71,29 @@ class FacilityReservationController extends Controller
             'admin_notes' => ['nullable', 'string', 'max:1000'],
         ]);
 
-        $facility = Facility::findOrFail($validated['facility_id']);
-        $billingType = $validated['billing_type'] ?? ($facility->rate_type ?? 'hourly');
+        $rawFacility = $request->input('facility_id');
+        $rawSet = $request->input('facility_set_id');
+
+        $targetItem = null;
+        if (! empty($rawSet)) {
+            $targetItem = FacilitySet::with('facilities')->findOrFail($rawSet);
+        } elseif (is_string($rawFacility) && str_starts_with($rawFacility, 'set_')) {
+            $setId = (int) substr($rawFacility, 4);
+            $targetItem = FacilitySet::with('facilities')->findOrFail($setId);
+        } elseif (is_string($rawFacility) && str_starts_with($rawFacility, 'facility_')) {
+            $facId = (int) substr($rawFacility, 9);
+            $targetItem = Facility::findOrFail($facId);
+        } elseif (! empty($rawFacility)) {
+            $targetItem = Facility::findOrFail($rawFacility);
+        } else {
+            return back()->withErrors(['facility_id' => 'Please select a facility or facility set.'])->withInput();
+        }
+
+        $billingType = $validated['billing_type'] ?? ($targetItem->rate_type ?? 'hourly');
         $endDate = $validated['end_date'] ?? $validated['reservation_date'];
         $agreedRate = (isset($validated['agreed_rate']) && $validated['agreed_rate'] !== null && $validated['agreed_rate'] !== '')
             ? (float) $validated['agreed_rate']
             : null;
-
-        if ($this->bookingService->hasConflict(
-            $facility->facility_id,
-            $validated['reservation_date'],
-            $validated['start_time'],
-            $validated['end_time'],
-            null,
-            ['approved', 'active'],
-            $endDate
-        )) {
-            return back()->withErrors([
-                'reservation_date' => 'The selected facility already has an approved or active reservation that conflicts with this time slot.',
-            ])->withInput();
-        }
 
         $durationHours = $this->bookingService->computeDurationHours(
             $validated['start_time'],
@@ -94,7 +105,7 @@ class FacilityReservationController extends Controller
         $totalDays = max(1, $startDateCarbon->diffInDays($endDateCarbon) + 1);
 
         $amount = $this->bookingService->calculateAmount(
-            $facility,
+            $targetItem,
             $validated['start_time'],
             $validated['end_time'],
             $billingType,
@@ -105,29 +116,34 @@ class FacilityReservationController extends Controller
 
         $isApproved = $validated['status'] === 'approved';
 
-        $reservation = FacilityReservation::create([
-            'facility_id' => $facility->facility_id,
-            'booker_name' => $validated['booker_name'],
-            'booker_email' => $validated['booker_email'],
-            'booker_contact' => $validated['booker_contact'],
-            'event_name' => $validated['event_name'] ?? null,
-            'event_details' => $validated['event_details'] ?? null,
-            'billing_type' => $billingType,
-            'reservation_date' => $validated['reservation_date'],
-            'end_date' => $endDate,
-            'total_days' => $totalDays,
-            'start_time' => $validated['start_time'].':00',
-            'end_time' => $validated['end_time'].':00',
-            'duration_hours' => $durationHours,
-            'agreed_rate' => $agreedRate,
-            'estimated_amount' => $amount,
-            'status' => $validated['status'],
-            'terms_accepted' => true,
-            'terms_accepted_at' => now(),
-            'admin_notes' => $validated['admin_notes'] ?? null,
-            'processed_by' => $isApproved ? auth()->id() : null,
-            'processed_at' => $isApproved ? now() : null,
-        ]);
+        try {
+            $reservation = $this->bookingService->createReservation([
+                'booker_name' => $validated['booker_name'],
+                'booker_email' => $validated['booker_email'],
+                'booker_contact' => $validated['booker_contact'],
+                'event_name' => $validated['event_name'] ?? null,
+                'event_details' => $validated['event_details'] ?? null,
+                'billing_type' => $billingType,
+                'reservation_date' => $validated['reservation_date'],
+                'end_date' => $endDate,
+                'total_days' => $totalDays,
+                'start_time' => $validated['start_time'].':00',
+                'end_time' => $validated['end_time'].':00',
+                'duration_hours' => $durationHours,
+                'agreed_rate' => $agreedRate,
+                'estimated_amount' => $amount,
+                'status' => $validated['status'],
+                'terms_accepted' => true,
+                'terms_accepted_at' => now(),
+                'admin_notes' => $validated['admin_notes'] ?? null,
+                'processed_by' => $isApproved ? auth()->id() : null,
+                'processed_at' => $isApproved ? now() : null,
+            ], $targetItem, ['approved', 'active']);
+        } catch (FacilityReservationConflictException $e) {
+            return back()->withErrors([
+                'reservation_date' => $e->getMessage(),
+            ])->withInput();
+        }
 
         if ($isApproved) {
             Mail::to($reservation->booker_email)->queue(new FacilityReservationApprovedMail($reservation));
@@ -141,13 +157,17 @@ class FacilityReservationController extends Controller
 
     public function show(FacilityReservation $reservation): View
     {
-        $reservation->load('facility');
+        $reservation->load(['facility', 'facilitySet.facilities', 'reservedFacilities']);
 
         $endDate = $reservation->end_date ? $reservation->end_date->toDateString() : $reservation->reservation_date->toDateString();
 
+        $facilityIds = $reservation->isConsolidated()
+            ? ($reservation->facilitySet ? $reservation->facilitySet->facilities->pluck('facility_id')->all() : $reservation->reservedFacilities->pluck('facility_id')->all())
+            : (array) ($reservation->facility_id ?: $reservation->reservedFacilities->pluck('facility_id')->all());
+
         // Check if approving this would create a conflict (admin caution)
-        $hasConflict = $this->bookingService->hasConflict(
-            $reservation->facility_id,
+        $hasConflict = $this->bookingService->hasAnyConflict(
+            $facilityIds,
             $reservation->reservation_date->toDateString(),
             substr($reservation->start_time, 0, 5),
             substr($reservation->end_time, 0, 5),
@@ -165,13 +185,22 @@ class FacilityReservationController extends Controller
             return back()->with('error', 'Only pending reservations can be approved.');
         }
 
-        // Re-check conflict inside a transaction with a row lock (race-condition guard)
+        // Re-check conflict inside a transaction with row locks on affected facilities (race-condition guard)
         $approved = DB::transaction(function () use ($reservation) {
-            $locked = FacilityReservation::lockForUpdate()->findOrFail($reservation->reservation_id);
+            $locked = FacilityReservation::with(['facilitySet.facilities', 'reservedFacilities'])
+                ->lockForUpdate()
+                ->findOrFail($reservation->reservation_id);
+
             $endDate = $locked->end_date ? $locked->end_date->toDateString() : $locked->reservation_date->toDateString();
 
-            if ($this->bookingService->hasConflict(
-                $locked->facility_id,
+            $facilityIds = $locked->isConsolidated()
+                ? ($locked->facilitySet ? $locked->facilitySet->facilities->pluck('facility_id')->all() : $locked->reservedFacilities->pluck('facility_id')->all())
+                : (array) ($locked->facility_id ?: $locked->reservedFacilities->pluck('facility_id')->all());
+
+            Facility::whereIn('facility_id', $facilityIds)->lockForUpdate()->get();
+
+            if ($this->bookingService->hasAnyConflict(
+                $facilityIds,
                 $locked->reservation_date->toDateString(),
                 substr($locked->start_time, 0, 5),
                 substr($locked->end_time, 0, 5),
@@ -249,9 +278,15 @@ class FacilityReservationController extends Controller
             'end_time' => ['required', 'date_format:H:i'],
         ]);
 
-        // Conflict check
-        if ($this->bookingService->hasConflict(
-            $reservation->facility_id,
+        $reservation->load(['facilitySet.facilities', 'reservedFacilities', 'facility']);
+
+        $facilityIds = $reservation->isConsolidated()
+            ? ($reservation->facilitySet ? $reservation->facilitySet->facilities->pluck('facility_id')->all() : $reservation->reservedFacilities->pluck('facility_id')->all())
+            : (array) ($reservation->facility_id ?: $reservation->reservedFacilities->pluck('facility_id')->all());
+
+        // Conflict check across all affected facilities
+        if ($this->bookingService->hasAnyConflict(
+            $facilityIds,
             $reservation->reservation_date->toDateString(),
             substr($reservation->start_time, 0, 5),
             $validated['end_time'],
@@ -262,7 +297,7 @@ class FacilityReservationController extends Controller
             return back()->with('error', 'Cannot extend — the requested new time/date slot conflicts with another reservation.');
         }
 
-        $facility = $reservation->facility;
+        $targetItem = $reservation->facilitySet ?? $reservation->facility;
         $totalDays = Carbon::parse($reservation->reservation_date)->diffInDays(Carbon::parse($validated['end_date'])) + 1;
         $durationHours = $this->bookingService->computeDurationHours(
             substr($reservation->start_time, 0, 5),
@@ -270,10 +305,10 @@ class FacilityReservationController extends Controller
         );
 
         $newAmount = $this->bookingService->calculateAmount(
-            $facility,
+            $targetItem,
             substr($reservation->start_time, 0, 5),
             $validated['end_time'],
-            $reservation->billing_type ?? $facility->rate_type,
+            $reservation->billing_type ?? $targetItem->rate_type,
             $reservation->reservation_date->toDateString(),
             $validated['end_date'],
             $reservation->agreed_rate !== null ? (float) $reservation->agreed_rate : null
@@ -299,7 +334,7 @@ class FacilityReservationController extends Controller
         }
 
         $now = now();
-        $reservation->load('facility');
+        $reservation->load(['facility', 'facilitySet']);
         $charge = $this->bookingService->computeExcessCharge($reservation, $now);
 
         $reservation->update([

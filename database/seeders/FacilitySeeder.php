@@ -4,6 +4,7 @@ namespace Database\Seeders;
 
 use App\Models\Facility;
 use App\Models\FacilityReservation;
+use App\Models\FacilitySet;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Carbon;
 
@@ -58,10 +59,55 @@ class FacilitySeeder extends Seeder
                 'is_active' => true,
                 'sort_order' => 5,
             ],
+            [
+                'name' => 'Function Hall A',
+                'description' => 'The western wing of our function hall, fully equipped with audio-visual system, ambient lighting, and stage access. Can be booked independently or together as Function Hall.',
+                'capacity' => 150,
+                'rate' => 8000,
+                'rate_type' => 'daily',
+                'hourly_rate' => 800,
+                'daily_rate' => 8000,
+                'is_active' => true,
+                'sort_order' => 6,
+            ],
+            [
+                'name' => 'Function Hall B',
+                'description' => 'The eastern wing of our function hall, offering flexible seating configurations, banquet buffet area, and dedicated entrance. Can be booked independently or together as Function Hall.',
+                'capacity' => 150,
+                'rate' => 8000,
+                'rate_type' => 'daily',
+                'hourly_rate' => 800,
+                'daily_rate' => 8000,
+                'is_active' => true,
+                'sort_order' => 7,
+            ],
         ];
 
         foreach ($facilities as $facilityData) {
-            Facility::create($facilityData);
+            Facility::firstOrCreate(['name' => $facilityData['name']], $facilityData);
+        }
+
+        // Seed Consolidated Facility Set: Function Hall
+        $hallA = Facility::where('name', 'Function Hall A')->first();
+        $hallB = Facility::where('name', 'Function Hall B')->first();
+
+        if ($hallA && $hallB) {
+            $functionHallSet = FacilitySet::firstOrCreate(
+                ['name' => 'Function Hall'],
+                [
+                    'prefix_code' => 'EVSUOCFH',
+                    'description' => "Our premier combined venue uniting Function Hall A and Function Hall B. Ideal for large conferences, grand wedding receptions, and academic convocations.\n\nReserving this facility set guarantees exclusive use of both Function Hall A and Function Hall B.",
+                    'capacity' => 300,
+                    'hourly_rate' => 1500,
+                    'daily_rate' => 15000,
+                    'rate' => 15000,
+                    'rate_type' => 'daily',
+                    'is_active' => true,
+                    'sort_order' => 1,
+                ]
+            );
+
+            $functionHallSet->facilities()->syncWithoutDetaching([$hallA->facility_id, $hallB->facility_id]);
         }
 
         // Generate some sample reservations for testing

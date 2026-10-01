@@ -86,8 +86,18 @@
                             <div class="text-muted small">{{ $res->booker_contact }}</div>
                         </td>
                         <td>
-                            <div class="text-dark fw-semibold">{{ $res->facility->name ?? 'Deleted Facility' }}</div>
-                            <div class="text-muted small">{{ $res->duration_label }}</div>
+                            @if($res->isConsolidated())
+                                <div class="text-dark fw-semibold">
+                                    {{ $res->facilitySet->name ?? $res->facility_name }}
+                                    <span class="badge bg-info text-dark ms-1" style="font-size: 0.65rem;">Set</span>
+                                </div>
+                                <div class="text-muted small" title="{{ $res->all_facilities->pluck('name')->join(', ') }}">
+                                    {{ $res->all_facilities->count() }} spaces &bull; {{ $res->duration_label }}
+                                </div>
+                            @else
+                                <div class="text-dark fw-semibold">{{ $res->facility->name ?? 'Deleted Facility' }}</div>
+                                <div class="text-muted small">{{ $res->duration_label }}</div>
+                            @endif
                         </td>
                         <td>
                             <div class="text-dark">

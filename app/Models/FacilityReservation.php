@@ -2,9 +2,11 @@
 
 namespace App\Models;
 
+use App\Services\ReservationReferenceService;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 
 class FacilityReservation extends Model
 {
@@ -14,6 +16,7 @@ class FacilityReservation extends Model
 
     protected $fillable = [
         'facility_id',
+        'facility_set_id',
         'booker_name',
         'booker_email',
         'booker_contact',
@@ -59,21 +62,15 @@ class FacilityReservation extends Model
     }
 
     /**
-     * Auto-generate a unique reference number on creation.
+     * Auto-generate a dynamic reference number on creation if not already provided.
      */
     protected static function booted(): void
     {
         static::creating(function (self $reservation): void {
             if (empty($reservation->reference_number)) {
-                $reservation->reference_number = 'FACIL-'.strtoupper(substr(uniqid(), -8));
+                $reservation->reference_number = app(ReservationReferenceService::class)
+                    ->generateReferenceForReservation($reservation);
             }
-        });
-
-        // Finalize reference with the actual ID once created (guaranteed unique)
-        static::created(function (self $reservation): void {
-            $reservation->updateQuietly([
-                'reference_number' => 'FACIL-'.str_pad($reservation->reservation_id, 6, '0', STR_PAD_LEFT),
-            ]);
         });
     }
 
@@ -82,16 +79,64 @@ class FacilityReservation extends Model
         return $this->belongsTo(Facility::class, 'facility_id', 'facility_id');
     }
 
+    public function facilitySet(): BelongsTo
+    {
+        return $this->belongsTo(FacilitySet::class, 'facility_set_id', 'facility_set_id');
+    }
+
+    public function reservedFacilities(): BelongsToMany
+    {
+        return $this->belongsToMany(
+            Facility::class,
+            'facility_reservation_facility',
+            'reservation_id',
+            'facility_id'
+        );
+    }
+
     public function processedBy(): BelongsTo
     {
         return $this->belongsTo(User::class, 'processed_by', 'user_id');
     }
 
+    public function isConsolidated(): bool
+    {
+        return $this->facility_set_id !== null;
+    }
+
+    public function getFacilityNameAttribute(): string
+    {
+        if ($this->facilitySet) {
+            return $this->facilitySet->name;
+        }
+
+        if ($this->facility) {
+            return $this->facility->name;
+        }
+
+        return 'Unassigned Facility';
+    }
+
+    public function getAllFacilitiesAttribute()
+    {
+        if ($this->relationLoaded('reservedFacilities') && $this->reservedFacilities->isNotEmpty()) {
+            return $this->reservedFacilities;
+        }
+
+        $reserved = $this->reservedFacilities()->get();
+        if ($reserved->isNotEmpty()) {
+            return $reserved;
+        }
+
+        return $this->facility ? collect([$this->facility]) : collect();
+    }
+
     public function getDurationLabelAttribute(): string
     {
         $days = $this->total_days ?? 1;
+        $activeItem = $this->facilitySet ?? $this->facility;
 
-        if ($this->billing_type === 'daily' || ($this->facility && $this->facility->rate_type === 'daily' && ! $this->billing_type)) {
+        if ($this->billing_type === 'daily' || ($activeItem && $activeItem->rate_type === 'daily' && ! $this->billing_type)) {
             return $days === 1 ? '1 Day' : "{$days} Days";
         }
 

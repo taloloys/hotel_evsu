@@ -58,20 +58,21 @@ test('user with manage-facilities can view facilities list', function (): void {
 
     $response->assertStatus(200);
     $response->assertSee('Basketball Gym');
-    $response->assertSee('Total Facilities');
+    $response->assertSee('Individual Facilities');
 });
 
 test('user can create a facility from frontdesk', function (): void {
     Storage::fake('public');
 
     $response = $this->actingAs($this->user)->post(route('frontdesk.facilities.store'), [
+        'facility_type' => 'single',
         'name' => 'Grand Function Hall',
         'description' => 'Ideal for weddings and banquets.',
         'capacity' => 300,
-        'rate' => 15000,
+        'hourly_rate' => null,
+        'daily_rate' => 15000,
         'rate_type' => 'daily',
         'is_active' => 1,
-        'sort_order' => 1,
     ]);
 
     $response->assertRedirect(route('frontdesk.facilities.index'));
@@ -80,7 +81,7 @@ test('user can create a facility from frontdesk', function (): void {
     $facility = Facility::where('name', 'Grand Function Hall')->first();
     expect($facility)->not->toBeNull();
     expect($facility->rate_type)->toBe('daily');
-    expect((float) $facility->rate)->toBe(15000.0);
+    expect((float) $facility->daily_rate)->toBe(15000.0);
     expect($facility->capacity)->toBe(300);
 });
 
@@ -94,18 +95,18 @@ test('user can edit a facility from frontdesk', function (): void {
     ]);
 
     $response = $this->actingAs($this->user)->put(route('frontdesk.facilities.update', $facility), [
+        'facility_type' => 'single',
         'name' => 'Conference Room A (Renovated)',
-        'rate' => 1500,
+        'hourly_rate' => 1500,
         'rate_type' => 'hourly',
         'capacity' => 25,
         'is_active' => 1,
-        'sort_order' => 2,
     ]);
 
     $response->assertRedirect(route('frontdesk.facilities.index'));
     $facility->refresh();
     expect($facility->name)->toBe('Conference Room A (Renovated)');
-    expect((float) $facility->rate)->toBe(1500.0);
+    expect((float) $facility->hourly_rate)->toBe(1500.0);
 });
 
 test('user can toggle active status of a facility', function (): void {
@@ -131,10 +132,12 @@ test('user can delete a facility from frontdesk', function (): void {
         'is_active' => true,
     ]);
 
+    // Delete is disabled — facility should still exist after destroy
     $response = $this->actingAs($this->user)->delete(route('frontdesk.facilities.destroy', $facility));
 
     $response->assertRedirect(route('frontdesk.facilities.index'));
-    expect(Facility::find($facility->facility_id))->toBeNull();
+    $response->assertSessionHas('error');
+    expect(Facility::find($facility->facility_id))->not->toBeNull();
 });
 
 test('frontdesk dashboard displays facilities section and schedule', function (): void {

@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Auth;
 use App\Http\Controllers\Controller;
 use App\Models\ActivityLog;
 use App\Models\Facility;
+use App\Models\FacilitySet;
 use App\Models\LandingPageShowcase;
 use App\Models\Room;
 use App\Models\User;
@@ -246,7 +247,13 @@ class LoginController extends Controller
                 ->orderBy('facility_id')
                 ->get();
 
-            return compact('rooms', 'cafeteriaHero', 'coffeeshopHighlights', 'facilities');
+            $facilitySets = FacilitySet::with('facilities')
+                ->active()
+                ->orderBy('sort_order')
+                ->orderBy('facility_set_id')
+                ->get();
+
+            return compact('rooms', 'cafeteriaHero', 'coffeeshopHighlights', 'facilities', 'facilitySets');
         });
 
         return view('public.showcase', array_merge($showcaseData, [

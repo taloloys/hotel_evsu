@@ -14,15 +14,27 @@ class StoreFacilityRequest extends FormRequest
     public function rules(): array
     {
         return [
+            'facility_type' => ['required', 'in:single,set'],
             'name' => ['required', 'string', 'max:255'],
+            'prefix_code' => ['nullable', 'string', 'max:20'],
             'description' => ['nullable', 'string'],
             'capacity' => ['nullable', 'integer', 'min:1'],
-            'rate' => ['required', 'numeric', 'min:0'],
-            'rate_type' => ['required', 'in:hourly,daily'],
+            'hourly_rate' => ['nullable', 'numeric', 'min:0'],
+            'daily_rate' => ['nullable', 'numeric', 'min:0'],
+            'rate_type' => ['required', 'in:hourly,daily,both'],
             'is_active' => ['boolean'],
-            'sort_order' => ['integer', 'min:0'],
             'images.*' => ['nullable', 'image', 'mimes:jpeg,png,jpg,webp', 'max:4096'],
             'image_paths' => ['nullable', 'string'],
+            'member_facilities' => ['nullable', 'array'],
+            'member_facilities.*' => ['integer', 'exists:facilities,facility_id'],
+        ];
+    }
+
+    public function messages(): array
+    {
+        return [
+            'hourly_rate.required_if' => 'An hourly rate is required when rate type includes hourly.',
+            'daily_rate.required_if' => 'A daily rate is required when rate type includes daily.',
         ];
     }
 }
