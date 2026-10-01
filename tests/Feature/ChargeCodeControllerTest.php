@@ -1,6 +1,7 @@
 <?php
 
 use App\Models\ChargeCode;
+use App\Models\Permission;
 use App\Models\Role;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -14,6 +15,15 @@ beforeEach(function (): void {
         'description' => 'Admin Role',
         'is_active' => true,
     ]);
+
+    $manageChargeCodes = Permission::create([
+        'permission_key' => 'manage-charge-codes',
+        'description' => 'Manage charge codes',
+        'module' => 'System',
+        'is_active' => true,
+    ]);
+
+    $this->adminRole->permissions()->attach($manageChargeCodes->permission_id);
 
     // Create admin user
     $this->adminUser = User::factory()->create([
@@ -46,7 +56,7 @@ beforeEach(function (): void {
 
 test('unauthenticated users are redirected to login', function (): void {
     $this->get(route('admin.chargecodes'))
-        ->assertRedirect(route('login'));
+        ->assertRedirect(route('home'));
 });
 
 test('authenticated admin can view the charge codes management page with stats', function (): void {

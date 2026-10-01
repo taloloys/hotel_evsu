@@ -172,6 +172,17 @@ test('accountant can record payment', function (): void {
     $guest = Guest::create(['last_name' => 'Taylor', 'first_name' => 'Elizabeth']);
     $folio = Folio::create(['folio_number' => 'F-333', 'guest_id' => $guest->guest_id, 'status' => 'OPEN']);
 
+    Transaction::create([
+        'folio_id' => $folio->folio_id,
+        'charge_code' => $this->roomChargeCode->charge_code,
+        'shift_id' => $this->shift->shift_id,
+        'user_id' => $this->accountantUser->user_id,
+        'transaction_date' => now()->toDateString(),
+        'charge_amount' => 1500.00,
+        'credit_amount' => 0.00,
+        'payment_method' => 'NONE',
+    ]);
+
     $response = $this->actingAs($this->accountantUser)
         ->post(route('accounting.payments.store'), [
             'folio_id' => $folio->folio_id,

@@ -35,6 +35,13 @@ beforeEach(function (): void {
         'is_active' => true,
     ]);
 
+    $manageShifts = Permission::create([
+        'permission_key' => 'manage-shifts',
+        'description' => 'Manage shifts',
+        'module' => 'Front Desk',
+        'is_active' => true,
+    ]);
+
     $viewFolio = Permission::create([
         'permission_key' => 'view-shift-sales',
         'description' => 'View shift sales',
@@ -46,6 +53,8 @@ beforeEach(function (): void {
         $manageReservations->permission_id,
         $viewFolio->permission_id,
     ]);
+
+    $this->adminRole->permissions()->attach($manageShifts->permission_id);
 
     // Users
     $this->adminUser = User::factory()->create([

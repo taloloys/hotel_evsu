@@ -29,6 +29,13 @@ beforeEach(function (): void {
 
     $this->adminRole->permissions()->attach($this->systemPermission->permission_id);
 
+    $this->adminRole->permissions()->attach(Permission::create([
+        'permission_key' => 'manage-roles-permissions',
+        'description' => 'Manage roles and permissions',
+        'module' => 'System',
+        'is_active' => true,
+    ])->permission_id);
+
     // Create staff permission
     $this->staffPermission = Permission::create([
         'permission_key' => 'manage-reservations',
