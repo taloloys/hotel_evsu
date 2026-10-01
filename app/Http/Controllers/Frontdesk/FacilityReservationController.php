@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Mail\FacilityReservationApprovedMail;
 use App\Mail\FacilityReservationRejectedMail;
 use App\Models\ActivityLog;
+use App\Models\Facility;
 use App\Models\FacilityReservation;
 use App\Services\FacilityBookingService;
 use Illuminate\Http\RedirectResponse;
@@ -21,15 +22,93 @@ class FacilityReservationController extends Controller
     public function index(Request $request): View
     {
         $status = $request->query('status', 'all');
+        $facilityId = $request->query('facility') ?? $request->query('facility_id');
 
         $reservations = FacilityReservation::with('facility')
             ->when($status !== 'all', fn ($q) => $q->where('status', $status))
+            ->when($facilityId, fn ($q) => $q->where('facility_id', $facilityId))
             ->latest()
             ->paginate(20);
 
         $pendingCount = FacilityReservation::where('status', 'pending')->count();
 
-        return view('frontdesk.facility-reservations.index', compact('reservations', 'status', 'pendingCount'));
+        return view('frontdesk.facility-reservations.index', compact('reservations', 'status', 'pendingCount', 'facilityId'));
+    }
+
+    public function create(Request $request): View
+    {
+        $facilities = Facility::where('is_active', true)->orderBy('name')->get();
+        $selectedFacilityId = $request->query('facility') ?? $request->query('facility_id');
+
+        return view('frontdesk.facility-reservations.create', compact('facilities', 'selectedFacilityId'));
+    }
+
+    public function store(Request $request): RedirectResponse
+    {
+        $validated = $request->validate([
+            'facility_id' => ['required', 'exists:facilities,facility_id'],
+            'booker_name' => ['required', 'string', 'max:255'],
+            'booker_email' => ['required', 'email', 'max:255'],
+            'booker_contact' => ['required', 'string', 'max:30'],
+            'reservation_date' => ['required', 'date', 'after_or_equal:today'],
+            'start_time' => ['required', 'date_format:H:i'],
+            'end_time' => ['required', 'date_format:H:i', 'after:start_time'],
+            'status' => ['required', 'in:approved,pending'],
+            'admin_notes' => ['nullable', 'string', 'max:1000'],
+        ]);
+
+        $facility = Facility::findOrFail($validated['facility_id']);
+
+        if ($this->bookingService->hasConflict(
+            $facility->facility_id,
+            $validated['reservation_date'],
+            $validated['start_time'],
+            $validated['end_time']
+        )) {
+            return back()->withErrors([
+                'reservation_date' => 'The selected facility already has an approved reservation that conflicts with this time slot.',
+            ])->withInput();
+        }
+
+        $durationHours = $this->bookingService->computeDurationHours(
+            $validated['start_time'],
+            $validated['end_time']
+        );
+
+        $amount = $this->bookingService->calculateAmount(
+            $facility,
+            $validated['start_time'],
+            $validated['end_time']
+        );
+
+        $isApproved = $validated['status'] === 'approved';
+
+        $reservation = FacilityReservation::create([
+            'facility_id' => $facility->facility_id,
+            'booker_name' => $validated['booker_name'],
+            'booker_email' => $validated['booker_email'],
+            'booker_contact' => $validated['booker_contact'],
+            'reservation_date' => $validated['reservation_date'],
+            'start_time' => $validated['start_time'].':00',
+            'end_time' => $validated['end_time'].':00',
+            'duration_hours' => $durationHours,
+            'estimated_amount' => $amount,
+            'status' => $validated['status'],
+            'terms_accepted' => true,
+            'terms_accepted_at' => now(),
+            'admin_notes' => $validated['admin_notes'] ?? null,
+            'processed_by' => $isApproved ? auth()->id() : null,
+            'processed_at' => $isApproved ? now() : null,
+        ]);
+
+        if ($isApproved) {
+            Mail::to($reservation->booker_email)->queue(new FacilityReservationApprovedMail($reservation));
+        }
+
+        ActivityLog::log('FACILITY_RESERVATION_CREATED', "Created facility reservation #{$reservation->reference_number} for {$reservation->booker_name}.");
+
+        return redirect()->route('frontdesk.facility-reservations.show', $reservation)
+            ->with('success', "Facility reservation #{$reservation->reference_number} has been created successfully.");
     }
 
     public function show(FacilityReservation $reservation): View

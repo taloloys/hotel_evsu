@@ -21,7 +21,7 @@
 @endif
 
 <div class="card shadow-sm border-0 mb-4">
-    <div class="card-header bg-white py-3 border-bottom-0">
+    <div class="card-header bg-white py-3 border-bottom-0 d-flex justify-content-between align-items-center flex-wrap gap-2">
         <ul class="nav nav-pills card-header-pills">
             <li class="nav-item">
                 <a class="nav-link {{ $status === 'all' ? 'active' : 'text-dark' }}" href="{{ route('frontdesk.facility-reservations.index', ['status' => 'all']) }}">All</a>
@@ -41,6 +41,10 @@
                 <a class="nav-link {{ $status === 'rejected' ? 'active' : 'text-dark' }}" href="{{ route('frontdesk.facility-reservations.index', ['status' => 'rejected']) }}">Rejected</a>
             </li>
         </ul>
+
+        <a href="{{ route('frontdesk.facility-reservations.create') }}" class="btn btn-sm text-white rounded-pill px-3 shadow-sm" style="background: #334c42;">
+            <i class="fa-solid fa-plus me-1"></i> Book Facility
+        </a>
     </div>
 </div>
 

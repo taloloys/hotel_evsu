@@ -5,6 +5,8 @@ namespace App\Http\Controllers\Frontdesk;
 use App\Http\Controllers\Controller;
 use App\Models\Booking;
 use App\Models\Expense;
+use App\Models\Facility;
+use App\Models\FacilityReservation;
 use App\Models\Room;
 use App\Models\Shift;
 use App\Models\ShiftSchedule;
@@ -185,6 +187,33 @@ class DashboardController extends Controller
                 ];
             });
 
+        // Active and upcoming facility reservations for dashboard overview
+        $todayFacilityReservations = FacilityReservation::with('facility')
+            ->whereDate('reservation_date', $today)
+            ->whereIn('status', ['approved', 'pending'])
+            ->orderBy('start_time')
+            ->get();
+
+        $upcomingFacilityReservations = FacilityReservation::with('facility')
+            ->whereDate('reservation_date', '>', $today)
+            ->where('status', 'approved')
+            ->orderBy('reservation_date')
+            ->orderBy('start_time')
+            ->limit(10)
+            ->get();
+
+        $pendingFacilityCount = FacilityReservation::where('status', 'pending')->count();
+        $totalFacilities = Facility::where('is_active', true)->count();
+        $bookedFacilitiesToday = FacilityReservation::with('facility')
+            ->whereDate('reservation_date', $today)
+            ->where('status', 'approved')
+            ->count();
+
+        $facilitiesList = Facility::where('is_active', true)
+            ->orderBy('sort_order')
+            ->orderBy('name')
+            ->get();
+
         return view('frontdesk.dashboard.index', [
             'todayArrivals' => $todayArrivals,
             'todayDepartures' => $todayDepartures,
@@ -202,6 +231,13 @@ class DashboardController extends Controller
             'activeShift' => $activeShift,
             'todaySchedules' => $todaySchedules,
             'shiftSales' => $shiftSales,
+            // Facilities
+            'facilitiesList' => $facilitiesList,
+            'todayFacilityReservations' => $todayFacilityReservations,
+            'upcomingFacilityReservations' => $upcomingFacilityReservations,
+            'pendingFacilityCount' => $pendingFacilityCount,
+            'totalFacilities' => $totalFacilities,
+            'bookedFacilitiesToday' => $bookedFacilitiesToday,
         ]);
     }
 

@@ -35,8 +35,14 @@ beforeEach(function (): void {
 test('admin can create facility with compressed webp images', function (): void {
     Storage::fake('public');
 
-    $file1 = UploadedFile::fake()->image('facility1.jpg', 1600, 1200);
-    $file2 = UploadedFile::fake()->image('facility2.png', 800, 600);
+    $makeFakeImage = function (string $name, int $width = 1600, int $height = 1200) {
+        return function_exists('imagecreatetruecolor')
+            ? UploadedFile::fake()->image($name, $width, $height)
+            : UploadedFile::fake()->create($name, 100, 'image/jpeg');
+    };
+
+    $file1 = $makeFakeImage('facility1.jpg', 1600, 1200);
+    $file2 = $makeFakeImage('facility2.png', 800, 600);
 
     $response = $this->actingAs($this->admin)->post(route('admin.facilities.store'), [
         'name' => 'Auditorium Hall',
@@ -66,7 +72,13 @@ test('admin can create facility with compressed webp images', function (): void 
 test('admin can update facility and removes old compressed images', function (): void {
     Storage::fake('public');
 
-    $fileOld = UploadedFile::fake()->image('old_photo.jpg');
+    $makeFakeImage = function (string $name) {
+        return function_exists('imagecreatetruecolor')
+            ? UploadedFile::fake()->image($name)
+            : UploadedFile::fake()->create($name, 100, 'image/jpeg');
+    };
+
+    $fileOld = $makeFakeImage('old_photo.jpg');
     $oldStoredPath = app(ImageService::class)->compressAndStore($fileOld, 'images/showcase/facilities');
     expect(Storage::disk('public')->exists($oldStoredPath))->toBeTrue();
 
@@ -78,7 +90,7 @@ test('admin can update facility and removes old compressed images', function ():
         'images' => [$oldStoredPath],
     ]);
 
-    $fileNew = UploadedFile::fake()->image('new_photo.jpg');
+    $fileNew = $makeFakeImage('new_photo.jpg');
 
     $response = $this->actingAs($this->admin)->put(route('admin.facilities.update', $facility), [
         'name' => 'Conference Room B (Updated)',
@@ -104,7 +116,13 @@ test('admin can update facility and removes old compressed images', function ():
 test('facility images render with accessible URL on facilities list and public landing page', function (): void {
     Storage::fake('public');
 
-    $file = UploadedFile::fake()->image('pool.jpg');
+    $makeFakeImage = function (string $name) {
+        return function_exists('imagecreatetruecolor')
+            ? UploadedFile::fake()->image($name)
+            : UploadedFile::fake()->create($name, 100, 'image/jpeg');
+    };
+
+    $file = $makeFakeImage('pool.jpg');
     $storedPath = app(ImageService::class)->compressAndStore($file, 'images/showcase/facilities');
 
     $facility = Facility::create([

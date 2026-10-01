@@ -1,5 +1,6 @@
 <?php
 
+use App\Models\Permission;
 use App\Models\Role;
 use App\Models\Room;
 use App\Models\User;
@@ -8,12 +9,24 @@ use Illuminate\Foundation\Testing\RefreshDatabase;
 uses(RefreshDatabase::class);
 
 beforeEach(function (): void {
+    $resPerm = Permission::firstOrCreate(
+        ['permission_key' => 'manage-reservations'],
+        ['description' => 'Manage reservations', 'module' => 'Front Desk', 'is_active' => true]
+    );
+
+    $roomPerm = Permission::firstOrCreate(
+        ['permission_key' => 'manage-rooms'],
+        ['description' => 'Manage rooms', 'module' => 'Admin', 'is_active' => true]
+    );
+
     // Setup admin role
     $this->adminRole = Role::create([
         'role_name' => 'ADMIN',
         'description' => 'Admin Role',
         'is_active' => true,
     ]);
+
+    $this->adminRole->permissions()->syncWithoutDetaching([$resPerm->permission_id, $roomPerm->permission_id]);
 
     // Create admin user
     $this->adminUser = User::factory()->create([

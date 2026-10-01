@@ -8,7 +8,7 @@ class StoreFacilityRequest extends FormRequest
 {
     public function authorize(): bool
     {
-        return $this->user()?->can('manage-landing-page') ?? false;
+        return $this->user()?->can('manage-facilities') || $this->user()?->can('manage-landing-page');
     }
 
     public function rules(): array

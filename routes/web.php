@@ -35,6 +35,7 @@ use App\Http\Controllers\Coffeeshop\TabController as CoffeeshopTabController;
 use App\Http\Controllers\Frontdesk\BookingOperationController;
 use App\Http\Controllers\Frontdesk\CheckInController;
 use App\Http\Controllers\Frontdesk\DashboardController as FrontdeskDashboardController;
+use App\Http\Controllers\Frontdesk\FacilityManagementController;
 use App\Http\Controllers\Frontdesk\FacilityReservationController;
 use App\Http\Controllers\Frontdesk\GuestFolioController;
 use App\Http\Controllers\Frontdesk\GuestListController;
@@ -144,9 +145,22 @@ Route::middleware('auth')->group(function () {
                 ->name('frontdesk.shift.close');
         });
 
-        // FACILITY RESERVATIONS REVIEW
+        // FACILITY MANAGEMENT (add/edit/toggle facilities)
+        Route::middleware('can:manage-facilities')->prefix('facilities')->name('frontdesk.facilities.')->group(function () {
+            Route::get('/', [FacilityManagementController::class, 'index'])->name('index');
+            Route::get('/create', [FacilityManagementController::class, 'create'])->name('create');
+            Route::post('/', [FacilityManagementController::class, 'store'])->name('store');
+            Route::get('/{facility}/edit', [FacilityManagementController::class, 'edit'])->name('edit');
+            Route::put('/{facility}', [FacilityManagementController::class, 'update'])->name('update');
+            Route::delete('/{facility}', [FacilityManagementController::class, 'destroy'])->name('destroy');
+            Route::patch('/{facility}/toggle', [FacilityManagementController::class, 'toggle'])->name('toggle');
+        });
+
+        // FACILITY RESERVATIONS REVIEW & BOOKING
         Route::middleware('can:manage-reservations')->prefix('facility-reservations')->name('frontdesk.facility-reservations.')->group(function () {
             Route::get('/', [FacilityReservationController::class, 'index'])->name('index');
+            Route::get('/create', [FacilityReservationController::class, 'create'])->name('create');
+            Route::post('/', [FacilityReservationController::class, 'store'])->name('store');
             Route::get('/{reservation}', [FacilityReservationController::class, 'show'])->name('show');
             Route::patch('/{reservation}/approve', [FacilityReservationController::class, 'approve'])->name('approve');
             Route::patch('/{reservation}/reject', [FacilityReservationController::class, 'reject'])->name('reject');

@@ -66,12 +66,7 @@
                 </a>
                 @endcan
 
-                @can('manage-landing-page')
-                <a href="{{ route('admin.landing-page') }}"
-                   class="nav-link {{ request()->routeIs('admin.landing-page*') ? 'active' : '' }}">
-                    <i class="fa-solid fa-globe me-2"></i>
-                    Landing Page
-                </a>
+                @canany(['manage-facilities', 'manage-landing-page'])
                 <a href="{{ route('admin.facilities.index') }}"
                    class="nav-link {{ request()->routeIs('admin.facilities.*') ? 'active' : '' }}">
                     <i class="fa-solid fa-building me-2"></i>
@@ -81,6 +76,14 @@
                    class="nav-link {{ request()->routeIs('admin.facility-terms.*') ? 'active' : '' }}">
                     <i class="fa-solid fa-file-contract me-2"></i>
                     Facility Terms
+                </a>
+                @endcanany
+
+                @can('manage-landing-page')
+                <a href="{{ route('admin.landing-page') }}"
+                   class="nav-link {{ request()->routeIs('admin.landing-page*') ? 'active' : '' }}">
+                    <i class="fa-solid fa-globe me-2"></i>
+                    Landing Page
                 </a>
                 @endcan
 
@@ -168,10 +171,16 @@
                     <i class="fa-solid fa-calendar-check me-2"></i>
                     Reservation
                 </a>
+                @endcan
+
+                @can('manage-reservations')
                 <a href="{{ route('frontdesk.facility-reservations.index') }}"
-                   class="nav-link {{ request()->routeIs('frontdesk.facility-reservations.*') ? 'active' : '' }}">
-                    <i class="fa-solid fa-building-flag me-2"></i>
-                    Facility Bookings
+                   class="nav-link d-flex align-items-center justify-content-between {{ request()->routeIs('frontdesk.facility-reservations.*') ? 'active' : '' }}">
+                    <span><i class="fa-solid fa-building-flag me-2"></i>Facility Bookings</span>
+                    @php $pendingFacilityCount = \App\Models\FacilityReservation::where('status', 'pending')->count(); @endphp
+                    @if($pendingFacilityCount > 0)
+                        <span class="badge bg-danger ms-1">{{ $pendingFacilityCount }}</span>
+                    @endif
                 </a>
                 <a href="{{ route('frontdesk.registration') }}"
                    class="nav-link {{ request()->routeIs('frontdesk.registration') ? 'active' : '' }}">

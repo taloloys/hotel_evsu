@@ -27,6 +27,16 @@ class ImageService
         ?int $maxHeight = 800,
         int $quality = 80
     ): string {
+        // Fallback when GD extension is not available in the PHP runtime environment
+        if (! extension_loaded('gd') || ! function_exists('imagecreatetruecolor')) {
+            $filename = trim($path, '/').'/'.Str::uuid()->toString().'_'.time().'.webp';
+            $disk = config('filesystems.uploads_disk', 'public');
+            $content = $file instanceof UploadedFile ? $file->getContent() : file_get_contents($file);
+            Storage::disk($disk)->put($filename, $content);
+
+            return $filename;
+        }
+
         // Initialize the ImageManager with the GD driver
         $manager = new ImageManager(new Driver);
 

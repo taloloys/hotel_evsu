@@ -33,6 +33,7 @@ class AdminSeeder extends Seeder
 
             // Front Desk Module
             'manage-reservations' => ['desc' => 'Manage reservations and guest registrations', 'module' => 'Front Desk'],
+            'manage-facilities' => ['desc' => 'Create, edit, activate/deactivate, and view facilities', 'module' => 'Front Desk'],
             'process-checkout' => ['desc' => 'Process guest checkout and record payments', 'module' => 'Front Desk'],
             'view-guest-list' => ['desc' => 'View guest list details', 'module' => 'Front Desk'],
             'view-guest-folio' => ['desc' => 'View guest folio details', 'module' => 'Front Desk'],

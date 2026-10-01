@@ -1,0 +1,167 @@
+<?php
+
+namespace App\Http\Controllers\Frontdesk;
+
+use App\Http\Controllers\Controller;
+use App\Models\ActivityLog;
+use App\Models\Facility;
+use App\Models\FacilityReservation;
+use App\Services\ImageService;
+use Illuminate\Http\RedirectResponse;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Cache;
+use Illuminate\View\View;
+
+class FacilityManagementController extends Controller
+{
+    public function __construct(protected ImageService $imageService) {}
+
+    public function index(): View
+    {
+        $facilities = Facility::withCount('reservations')
+            ->orderBy('sort_order')
+            ->orderBy('facility_id')
+            ->get();
+
+        $pendingCount = FacilityReservation::where('status', 'pending')->count();
+
+        return view('frontdesk.facilities.index', compact('facilities', 'pendingCount'));
+    }
+
+    public function create(): View
+    {
+        return view('frontdesk.facilities.create');
+    }
+
+    public function store(Request $request): RedirectResponse
+    {
+        $validated = $request->validate([
+            'name' => ['required', 'string', 'max:255'],
+            'description' => ['nullable', 'string'],
+            'capacity' => ['nullable', 'integer', 'min:1'],
+            'rate' => ['required', 'numeric', 'min:0'],
+            'rate_type' => ['required', 'in:hourly,daily'],
+            'is_active' => ['boolean'],
+            'sort_order' => ['integer', 'min:0'],
+            'images.*' => ['nullable', 'image', 'mimes:jpeg,png,jpg,webp', 'max:4096'],
+        ]);
+
+        $imagePaths = $this->handleImageUploads($request, []);
+
+        Facility::create([
+            'name' => $validated['name'],
+            'description' => $validated['description'] ?? null,
+            'capacity' => $validated['capacity'] ?? null,
+            'rate' => $validated['rate'],
+            'rate_type' => $validated['rate_type'],
+            'is_active' => $request->boolean('is_active', true),
+            'sort_order' => $validated['sort_order'] ?? 0,
+            'images' => $imagePaths,
+        ]);
+
+        Cache::forget('public_showcase_data');
+        ActivityLog::log('FACILITY_CREATED', "Created facility: {$validated['name']}.");
+
+        return redirect()->route('frontdesk.facilities.index')
+            ->with('success', 'Facility created successfully.');
+    }
+
+    public function edit(Facility $facility): View
+    {
+        return view('frontdesk.facilities.edit', compact('facility'));
+    }
+
+    public function update(Request $request, Facility $facility): RedirectResponse
+    {
+        $validated = $request->validate([
+            'name' => ['required', 'string', 'max:255'],
+            'description' => ['nullable', 'string'],
+            'capacity' => ['nullable', 'integer', 'min:1'],
+            'rate' => ['required', 'numeric', 'min:0'],
+            'rate_type' => ['required', 'in:hourly,daily'],
+            'is_active' => ['boolean'],
+            'sort_order' => ['integer', 'min:0'],
+            'images.*' => ['nullable', 'image', 'mimes:jpeg,png,jpg,webp', 'max:4096'],
+            'image_paths' => ['nullable', 'string'],
+        ]);
+
+        if (array_key_exists('image_paths', $validated)) {
+            $existingPaths = ! empty($validated['image_paths'])
+                ? array_filter(array_map('trim', explode(',', $validated['image_paths'])))
+                : [];
+        } else {
+            $existingPaths = $facility->images ?? [];
+        }
+
+        $imagePaths = $this->handleImageUploads($request, $existingPaths);
+        $this->cleanupRemovedImages($facility->images ?? [], $imagePaths);
+
+        $facility->update([
+            'name' => $validated['name'],
+            'description' => $validated['description'] ?? null,
+            'capacity' => $validated['capacity'] ?? null,
+            'rate' => $validated['rate'],
+            'rate_type' => $validated['rate_type'],
+            'is_active' => $request->boolean('is_active', $facility->is_active),
+            'sort_order' => $validated['sort_order'] ?? $facility->sort_order,
+            'images' => $imagePaths,
+        ]);
+
+        Cache::forget('public_showcase_data');
+        ActivityLog::log('FACILITY_UPDATED', "Updated facility: {$facility->name}.");
+
+        return redirect()->route('frontdesk.facilities.index')
+            ->with('success', 'Facility updated successfully.');
+    }
+
+    public function toggle(Facility $facility): RedirectResponse
+    {
+        $facility->update(['is_active' => ! $facility->is_active]);
+        Cache::forget('public_showcase_data');
+        ActivityLog::log('FACILITY_TOGGLED', "Toggled facility {$facility->name} active status.");
+
+        return redirect()->route('frontdesk.facilities.index')
+            ->with('success', 'Facility status updated.');
+    }
+
+    public function destroy(Facility $facility): RedirectResponse
+    {
+        $title = $facility->name;
+        $this->cleanupRemovedImages($facility->images ?? [], []);
+        $facility->delete();
+
+        Cache::forget('public_showcase_data');
+        ActivityLog::log('FACILITY_DELETED', "Deleted facility: {$title}.");
+
+        return redirect()->route('frontdesk.facilities.index')
+            ->with('success', 'Facility deleted.');
+    }
+
+    /**
+     * @param  array<string>  $existingPaths
+     * @return array<string>
+     */
+    private function handleImageUploads(Request $request, array $existingPaths): array
+    {
+        $paths = $existingPaths;
+
+        foreach ($request->file('images', []) as $file) {
+            $paths[] = $this->imageService->compressAndStore($file, 'images/showcase/facilities', 1200, 800, 80);
+        }
+
+        return array_values(array_unique($paths));
+    }
+
+    /**
+     * @param  array<string>  $oldImages
+     * @param  array<string>  $currentImages
+     */
+    private function cleanupRemovedImages(array $oldImages, array $currentImages): void
+    {
+        foreach (array_diff($oldImages, $currentImages) as $removed) {
+            if (! file_exists(public_path($removed))) {
+                $this->imageService->deleteImage($removed);
+            }
+        }
+    }
+}
