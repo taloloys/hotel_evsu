@@ -559,7 +559,7 @@
                         Department, Ormoc City</p>
                     <p class="text-[#c2a889]"><i class="fa-solid fa-phone mr-2 text-[#627e71]"></i> Reception Desk: 24/7
                         Operations</p>
-                    <p class="text-[#c2a889]"><i class="fa-solid fa-envelope mr-2 text-[#627e71]"></i> htm@evsu.edu.ph
+                    <p class="text-[#c2a889]"><i class="fa-solid fa-envelope mr-2 text-[#627e71]"></i> <a href="mailto:htmd.evsuoc@gmail.com" class="hover:text-white transition-colors">htmd.evsuoc@gmail.com</a>
                     </p>
                 </div>
             </div>

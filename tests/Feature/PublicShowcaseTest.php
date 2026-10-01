@@ -19,6 +19,9 @@ it('loads the pure public showcase landing page on root route', function (): voi
 
     $response->assertStatus(200);
     $response->assertSee('EVSU');
+    $response->assertSee('Ormoc Campus');
+    $response->assertDontSee('Main Campus');
+    $response->assertSee('htmd.evsuoc@gmail.com');
     $response->assertSee('Standard Room');
     $response->assertSee('Superior Room');
     $response->assertSee('Senior Suite');

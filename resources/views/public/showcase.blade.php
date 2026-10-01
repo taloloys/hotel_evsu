@@ -202,7 +202,7 @@
                         </div>
                         <div class="p-4 rounded-2xl bg-[#c2a889]/30 border border-[#827567]/30 backdrop-blur-sm">
                             <span class="block text-3xl font-extrabold text-[#334c42] font-display">EVSU</span>
-                            <span class="text-xs font-semibold text-[#504538] uppercase tracking-wider font-display">Main Campus</span>
+                            <span class="text-xs font-semibold text-[#504538] uppercase tracking-wider font-display">Ormoc Campus</span>
                         </div>
                     </div>
 
@@ -572,7 +572,7 @@
                     <h4 class="text-sm font-bold text-[#627e71] font-display">Contact & Location</h4>
                     <p class="text-[#c2a889]"><i class="fa-solid fa-location-dot mr-2 text-[#627e71]"></i> EVSU HTM Department, Ormoc City</p>
                     <p class="text-[#c2a889]"><i class="fa-solid fa-phone mr-2 text-[#627e71]"></i> Reception Desk: 24/7 Operations</p>
-                    <p class="text-[#c2a889]"><i class="fa-solid fa-envelope mr-2 text-[#627e71]"></i> htm@evsu.edu.ph</p>
+                    <p class="text-[#c2a889]"><i class="fa-solid fa-envelope mr-2 text-[#627e71]"></i> <a href="mailto:htmd.evsuoc@gmail.com" class="hover:text-white transition-colors">htmd.evsuoc@gmail.com</a></p>
                 </div>
             </div>
 
