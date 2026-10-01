@@ -1,5 +1,6 @@
 <?php
 
+use App\Models\Permission;
 use App\Models\Role;
 use App\Models\Room;
 use App\Models\User;
@@ -28,6 +29,51 @@ it('loads the pure public showcase landing page on root route', function (): voi
     $response->assertSee('TWIN ROOM 1 TWIN BED 2 BEDROOMS SEA VIEW');
     $response->assertSee('EVSU Cafeteria & Lounge', false);
     $response->assertSee('Staff / Guest Login');
+});
+
+it('does not put authenticated users into preview mode on the public root route', function (): void {
+    $role = Role::create([
+        'role_name' => 'ADMIN',
+        'description' => 'Administrator',
+    ]);
+
+    $admin = User::factory()->create([
+        'role_id' => $role->role_id,
+        'is_active' => true,
+    ]);
+
+    $response = $this->actingAs($admin)->get('/');
+
+    $response->assertStatus(200);
+    $response->assertDontSee('Preview Mode');
+    $response->assertSee('Go to Dashboard');
+    $response->assertSee(route('admin.dashboard'), false);
+});
+
+it('keeps preview mode limited to the dedicated admin preview route', function (): void {
+    $permission = Permission::create([
+        'permission_key' => 'manage-landing-page',
+        'description' => 'Manage landing page',
+        'module' => 'System',
+        'is_active' => true,
+    ]);
+
+    $role = Role::create([
+        'role_name' => 'ADMIN',
+        'description' => 'Administrator',
+    ]);
+    $role->permissions()->attach($permission->permission_id);
+
+    $admin = User::factory()->create([
+        'role_id' => $role->role_id,
+        'is_active' => true,
+    ]);
+
+    $response = $this->actingAs($admin)->get(route('admin.landing-page.preview'));
+
+    $response->assertStatus(200);
+    $response->assertSee('Preview Mode');
+    $response->assertSee('Admin Preview');
 });
 
 it('loads the separate dedicated login page on login route', function (): void {

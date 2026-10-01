@@ -67,10 +67,15 @@
             </nav>
 
             <div class="flex items-center gap-3">
-                @auth
+                @if(!empty($adminPreview))
                     <a href="javascript:void(0)" onclick="alert('Login is disabled during preview mode.')" class="inline-flex items-center gap-2 rounded-xl bg-[#627e71] px-5 py-2.5 text-xs font-bold text-white shadow-md transition-all duration-200 cursor-not-allowed opacity-75">
                         <i class="fa-solid fa-lock text-xs"></i>
                         <span>Preview Mode</span>
+                    </a>
+                @elseif(auth()->check())
+                    <a href="{{ $dashboardUrl }}" class="inline-flex items-center gap-2 rounded-xl bg-[#334c42] px-5 py-2.5 text-xs font-bold text-white shadow-md transition-all duration-200 hover:bg-[#627e71] active:scale-95">
+                        <i class="fa-solid fa-gauge-high text-xs"></i>
+                        <span>Go to Dashboard</span>
                     </a>
                 @else
                     <a href="{{ route('login') }}" class="inline-flex items-center gap-2 rounded-xl bg-[#334c42] px-5 py-2.5 text-xs font-bold text-white shadow-md transition-all duration-200 hover:bg-[#627e71] active:scale-95">
@@ -90,8 +95,10 @@
             <a href="#rooms" class="block rounded-lg px-3 py-2 text-sm font-semibold text-[#504538] hover:bg-[#827567]/20">Rooms Showcase</a>
             <a href="#coffeeshop" class="block rounded-lg px-3 py-2 text-sm font-semibold text-[#504538] hover:bg-[#827567]/20">Cafeteria & Lounge</a>
             <a href="#facilities" class="block rounded-lg px-3 py-2 text-sm font-semibold text-[#504538] hover:bg-[#827567]/20">Facilities</a>
-            @auth
+            @if(!empty($adminPreview))
                 <a href="javascript:void(0)" onclick="alert('Login is disabled during preview mode.')" class="block rounded-lg px-3 py-2 text-sm font-bold text-[#627e71] opacity-75 cursor-not-allowed">Staff Login Portal (Disabled)</a>
+            @elseif(auth()->check())
+                <a href="{{ $dashboardUrl }}" class="block rounded-lg px-3 py-2 text-sm font-bold text-[#334c42] hover:bg-[#827567]/20">Go to Dashboard</a>
             @else
                 <a href="{{ route('login') }}" class="block rounded-lg px-3 py-2 text-sm font-bold text-[#334c42] hover:bg-[#827567]/20">Staff Login Portal</a>
             @endauth
@@ -173,10 +180,15 @@
                             <i class="fa-solid fa-mug-hot text-[#334c42]"></i>
                             <span>Cafeteria Highlights</span>
                         </a>
-                        @auth
+                        @if(!empty($adminPreview))
                             <a href="javascript:void(0)" onclick="alert('Login is disabled during preview mode.')" class="inline-flex items-center gap-2 rounded-2xl bg-[#627e71] px-7 py-4 text-sm font-bold text-white shadow-md transition-all cursor-not-allowed opacity-75">
                                 <i class="fa-solid fa-right-to-bracket"></i>
                                 <span>Preview Mode</span>
+                            </a>
+                        @elseif(auth()->check())
+                            <a href="{{ $dashboardUrl }}" class="inline-flex items-center gap-2 rounded-2xl bg-[#627e71] px-7 py-4 text-sm font-bold text-white shadow-md transition-all hover:bg-[#334c42]">
+                                <i class="fa-solid fa-gauge-high"></i>
+                                <span>Go to Dashboard</span>
                             </a>
                         @else
                             <a href="{{ route('login') }}" class="inline-flex items-center gap-2 rounded-2xl bg-[#627e71] px-7 py-4 text-sm font-bold text-white shadow-md transition-all hover:bg-[#334c42]">
@@ -560,8 +572,10 @@
                         <li><a href="#rooms" class="hover:text-white transition-colors">Rooms Showcase</a></li>
                         <li><a href="#coffeeshop" class="hover:text-white transition-colors">Cafeteria Highlights</a></li>
                         <li><a href="#facilities" class="hover:text-white transition-colors">Rentable Facilities</a></li>
-                        @auth
+                        @if(!empty($adminPreview))
                             <li><a href="javascript:void(0)" onclick="alert('Login is disabled during preview mode.')" class="text-[#c2a889]/70 cursor-not-allowed">Staff / Guest Login (Disabled)</a></li>
+                        @elseif(auth()->check())
+                            <li><a href="{{ $dashboardUrl }}" class="hover:text-white transition-colors">Go to Dashboard</a></li>
                         @else
                             <li><a href="{{ route('login') }}" class="hover:text-white transition-colors">Staff / Guest Login</a></li>
                         @endauth

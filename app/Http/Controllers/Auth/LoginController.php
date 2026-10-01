@@ -249,7 +249,11 @@ class LoginController extends Controller
             return compact('rooms', 'cafeteriaHero', 'coffeeshopHighlights', 'facilities');
         });
 
-        return view('public.showcase', $showcaseData);
+        return view('public.showcase', array_merge($showcaseData, [
+            'dashboardUrl' => Auth::check()
+                ? $this->dashboardRouteForUser(Auth::user())
+                : route('login'),
+        ]));
     }
 
     public function create(): View
