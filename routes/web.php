@@ -164,6 +164,10 @@ Route::middleware('auth')->group(function () {
             Route::get('/{reservation}', [FacilityReservationController::class, 'show'])->name('show');
             Route::patch('/{reservation}/approve', [FacilityReservationController::class, 'approve'])->name('approve');
             Route::patch('/{reservation}/reject', [FacilityReservationController::class, 'reject'])->name('reject');
+            Route::patch('/{reservation}/check-in', [FacilityReservationController::class, 'checkIn'])->name('check-in');
+            Route::patch('/{reservation}/extend', [FacilityReservationController::class, 'extend'])->name('extend');
+            Route::patch('/{reservation}/time-out', [FacilityReservationController::class, 'timeOut'])->name('time-out');
+            Route::patch('/{reservation}/cancel', [FacilityReservationController::class, 'cancel'])->name('cancel');
         });
 
         Route::middleware('can:view-guest-list')->group(function () {

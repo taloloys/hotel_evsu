@@ -7,6 +7,7 @@ use App\Models\Facility;
 use App\Models\FacilityReservation;
 use App\Models\SystemSetting;
 use App\Services\FacilityBookingService;
+use Carbon\Carbon;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\View\View;
 
@@ -42,16 +43,21 @@ class PublicFacilityController extends Controller
         abort_unless($facility->is_active, 404);
 
         $validated = $request->validated();
+        $endDate = $validated['end_date'] ?? $validated['reservation_date'];
+        $billingType = $validated['billing_type'] ?? ($facility->rate_type ?? 'hourly');
 
         // Server-side conflict check (approved reservations only for public)
         if ($this->bookingService->hasConflict(
             $facility->facility_id,
             $validated['reservation_date'],
             $validated['start_time'],
-            $validated['end_time']
+            $validated['end_time'],
+            null,
+            ['approved'],
+            $endDate
         )) {
             return back()->withErrors([
-                'reservation_date' => 'The selected date and time is already reserved. Please choose a different slot.',
+                'reservation_date' => 'The selected date/time slot already has an approved reservation. Please choose a different slot.',
             ])->withInput();
         }
 
@@ -60,10 +66,17 @@ class PublicFacilityController extends Controller
             $validated['end_time']
         );
 
+        $startDateCarbon = Carbon::parse($validated['reservation_date']);
+        $endDateCarbon = Carbon::parse($endDate);
+        $totalDays = max(1, $startDateCarbon->diffInDays($endDateCarbon) + 1);
+
         $estimatedAmount = $this->bookingService->calculateAmount(
             $facility,
             $validated['start_time'],
-            $validated['end_time']
+            $validated['end_time'],
+            $billingType,
+            $validated['reservation_date'],
+            $endDate
         );
 
         $reservation = FacilityReservation::create([
@@ -71,7 +84,12 @@ class PublicFacilityController extends Controller
             'booker_name' => $validated['booker_name'],
             'booker_email' => $validated['booker_email'],
             'booker_contact' => $validated['booker_contact'],
+            'event_name' => $validated['event_name'] ?? null,
+            'event_details' => $validated['event_details'] ?? null,
+            'billing_type' => $billingType,
             'reservation_date' => $validated['reservation_date'],
+            'end_date' => $endDate,
+            'total_days' => $totalDays,
             'start_time' => $validated['start_time'].':00',
             'end_time' => $validated['end_time'].':00',
             'duration_hours' => $durationHours,

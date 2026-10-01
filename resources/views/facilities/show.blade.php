@@ -86,7 +86,7 @@
     @endphp
 
     <main class="flex-grow py-6 sm:py-8 lg:py-10 pb-28 md:pb-12"
-        x-data="facilityBookingPlanner({{ (float) $facility->rate }}, '{{ $facility->rate_type }}', {{ json_encode($reservationsData) }}, '{{ now()->format('Y-m-d') }}', '{{ route('facilities.book', $facility) }}')">
+        x-data="facilityBookingPlanner({{ (float) ($facility->effective_hourly_rate ?? $facility->rate) }}, {{ (float) ($facility->effective_daily_rate ?? $facility->rate) }}, '{{ $facility->rate_type }}', {{ json_encode($reservationsData) }}, '{{ now()->format('Y-m-d') }}', '{{ route('facilities.book', $facility) }}', {{ ($facility->hourly_rate !== null && $facility->daily_rate !== null) ? 'true' : 'false' }})">
         <div class="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
 
             <!-- Facility Container -->
@@ -191,16 +191,31 @@
                         <div
                             class="text-left sm:text-right border-t sm:border-t-0 sm:border-l border-[#e8dbcb] pt-3 sm:pt-0 sm:pl-6">
                             <div class="flex items-baseline sm:justify-end gap-1.5">
-                                <span
-                                    class="text-2xl sm:text-3xl lg:text-4xl font-extrabold text-[#334c42] font-display">
-                                    ₱{{ number_format($facility->rate, 2) }}
-                                </span>
-                                <span class="text-xs sm:text-sm font-bold text-[#627e71] uppercase tracking-wider">
-                                    / {{ strtoupper($facility->rate_type === 'hourly' ? 'HR' : $facility->rate_type) }}
-                                </span>
+                                @if($facility->hourly_rate && $facility->daily_rate)
+                                    <div class="text-left sm:text-right">
+                                        <div class="text-xl sm:text-2xl font-extrabold text-[#334c42] font-display">
+                                            ₱{{ number_format($facility->hourly_rate, 2) }} <span class="text-xs text-[#627e71] uppercase tracking-wider font-bold">/ HR</span>
+                                        </div>
+                                        <div class="text-sm font-extrabold text-[#827567] font-display">
+                                            ₱{{ number_format($facility->daily_rate, 2) }} <span class="text-[10px] text-[#827567] uppercase tracking-wider font-bold">/ DAY</span>
+                                        </div>
+                                    </div>
+                                @else
+                                    <span
+                                        class="text-2xl sm:text-3xl lg:text-4xl font-extrabold text-[#334c42] font-display">
+                                        ₱{{ number_format($facility->rate, 2) }}
+                                    </span>
+                                    <span class="text-xs sm:text-sm font-bold text-[#627e71] uppercase tracking-wider">
+                                        / {{ strtoupper($facility->rate_type === 'hourly' ? 'HR' : $facility->rate_type) }}
+                                    </span>
+                                @endif
                             </div>
                             <div class="text-[11px] font-bold text-[#827567] uppercase tracking-wider mt-0.5">
-                                Per {{ ucfirst($facility->rate_type) }} Rate
+                                @if($facility->hourly_rate && $facility->daily_rate)
+                                    Standard Hourly &amp; Daily Options
+                                @else
+                                    Per {{ ucfirst($facility->rate_type) }} Rate
+                                @endif
                             </div>
                         </div>
                     </div>
@@ -320,14 +335,47 @@
                                     <h3 class="text-2xl font-extrabold font-display text-white mb-1">
                                         Ready to Book?
                                     </h3>
-                                    <p class="text-xs text-[#c2a889] mb-5 leading-relaxed">
-                                        Pick your date and time below. Your choices will automatically pre-fill on the
+                                    <p class="text-xs text-[#c2a889] mb-4 leading-relaxed">
+                                        Pick your date(s) and time below. Your choices will automatically pre-fill on the
                                         booking page.
                                     </p>
 
+                                    <!-- Date Selection Mode Switcher -->
+                                    <div class="grid grid-cols-2 gap-2 p-1 bg-black/20 rounded-xl mb-4 border border-white/10">
+                                        <button type="button" @click="setBookingMode('single')"
+                                            class="py-2 px-3 rounded-lg text-xs font-bold transition-all flex items-center justify-center gap-2"
+                                            :class="bookingMode === 'single' ? 'bg-[#c2a889] text-[#334c42] shadow-md font-extrabold' : 'text-white/70 hover:text-white'">
+                                            <i class="fa-regular fa-calendar"></i>
+                                            <span>Single Day</span>
+                                        </button>
+                                        <button type="button" @click="setBookingMode('range')"
+                                            class="py-2 px-3 rounded-lg text-xs font-bold transition-all flex items-center justify-center gap-2"
+                                            :class="bookingMode === 'range' ? 'bg-[#c2a889] text-[#334c42] shadow-md font-extrabold' : 'text-white/70 hover:text-white'">
+                                            <i class="fa-solid fa-calendar-days"></i>
+                                            <span>Multiple Days</span>
+                                        </button>
+                                    </div>
+
+                                    <!-- Helper instruction for Multi-Day -->
+                                    <div x-show="bookingMode === 'range'" class="mb-3 px-3 py-2 rounded-xl bg-white/10 border border-white/15 text-[11px] text-[#c2a889] flex items-center justify-between">
+                                        <div class="flex items-center gap-1.5">
+                                            <i class="fa-solid fa-circle-info text-amber-300"></i>
+                                            <span x-show="rangeStep === 'end' && (!endDate || endDate === startDate)">
+                                                Click calendar to select <strong>End Date</strong>
+                                            </span>
+                                            <span x-show="isRange">
+                                                Multi-day: <strong class="text-white" x-text="totalDays + ' Days'"></strong>
+                                            </span>
+                                        </div>
+                                        <button type="button" x-show="isRange" @click="resetRange()"
+                                            class="text-[10px] font-bold text-white/80 hover:text-white underline">
+                                            Reset Range
+                                        </button>
+                                    </div>
+
                                     <!-- Interactive Calendar Card -->
                                     <div
-                                        class="bg-white/10 backdrop-blur-md rounded-2xl p-4 border border-white/15 mb-5">
+                                        class="bg-white/10 backdrop-blur-md rounded-2xl p-4 border border-white/15 mb-4">
 
                                         <!-- Month Selector Header -->
                                         <div
@@ -358,29 +406,58 @@
                                         </div>
 
                                         <!-- Calendar Days Grid -->
-                                        <div class="grid grid-cols-7 gap-1 text-center text-xs">
+                                        <div class="grid grid-cols-7 gap-y-1 gap-x-0.5 text-center text-xs">
                                             <!-- Empty slots for previous month offset -->
                                             <template x-for="blank in firstDayOfWeek" :key="'blank-' + blank">
-                                                <div class="h-8 w-8"></div>
+                                                <div class="h-8 w-8 mx-auto"></div>
                                             </template>
 
                                             <!-- Days in current month -->
                                             <template x-for="day in daysInMonth" :key="'day-' + day">
                                                 <button type="button" @click="selectDay(day)" :disabled="isPast(day)"
-                                                    class="h-8 w-8 mx-auto flex flex-col items-center justify-center rounded-xl transition-all duration-150 relative"
+                                                    class="h-8 w-full max-w-[36px] mx-auto flex flex-col items-center justify-center transition-all duration-150 relative text-xs"
                                                     :class="{
                                                             'cursor-not-allowed opacity-25 text-white/40': isPast(day),
-                                                            'bg-[#c2a889] text-[#334c42] font-black shadow-lg scale-105 ring-2 ring-white': isSelected(day),
-                                                            'hover:bg-white/20 text-white': !isSelected(day) && !isPast(day)
+                                                            'bg-[#c2a889] text-[#334c42] font-black shadow-lg ring-2 ring-white z-20 rounded-xl scale-105': isStartDay(day) && (!isRange || isEndDay(day)),
+                                                            'bg-[#c2a889] text-[#334c42] font-black shadow-md rounded-l-xl rounded-r-none z-10': isRange && isStartDay(day) && !isEndDay(day),
+                                                            'bg-[#c2a889] text-[#334c42] font-black shadow-md rounded-r-xl rounded-l-none z-10': isRange && isEndDay(day) && !isStartDay(day),
+                                                            'bg-white/25 text-white font-bold rounded-none': isRange && isInBetween(day),
+                                                            'hover:bg-white/20 text-white rounded-xl': !isPast(day) && !isStartDay(day) && !isEndDay(day) && !isInBetween(day)
                                                         }">
-                                                    <span x-text="day" class="text-xs"></span>
+                                                    <span x-text="day"></span>
                                                     <!-- Dot for dates that have approved reservations -->
                                                     <template x-if="hasReservation(day)">
                                                         <span class="w-1.5 h-1.5 rounded-full absolute bottom-0.5"
-                                                            :class="isSelected(day) ? 'bg-[#334c42]' : 'bg-amber-400'"></span>
+                                                            :class="(isStartDay(day) || isEndDay(day)) ? 'bg-[#334c42]' : 'bg-amber-400'"></span>
                                                     </template>
                                                 </button>
                                             </template>
+                                        </div>
+
+                                        <!-- Date Input Pickers (Single or Multi-Day) -->
+                                        <div class="mt-3 pt-3 border-t border-white/10" x-show="bookingMode === 'single'">
+                                            <label class="block text-[10px] font-bold text-[#c2a889] uppercase tracking-wider mb-1">
+                                                <i class="fa-regular fa-calendar me-1"></i> Selected Date
+                                            </label>
+                                            <input type="date" x-model="startDate" :min="todayString" @change="onStartDateChange()"
+                                                class="w-full rounded-xl bg-white/10 border border-white/20 px-3 py-1.5 text-xs font-semibold text-white focus:outline-none focus:ring-2 focus:ring-[#c2a889]">
+                                        </div>
+
+                                        <div class="mt-3 pt-3 border-t border-white/10 grid grid-cols-2 gap-2" x-show="bookingMode === 'range'">
+                                            <div>
+                                                <label class="block text-[10px] font-bold text-[#c2a889] uppercase tracking-wider mb-1">
+                                                    <i class="fa-regular fa-calendar-check me-1"></i> Start Date
+                                                </label>
+                                                <input type="date" x-model="startDate" :min="todayString" @change="onStartDateChange()"
+                                                    class="w-full rounded-xl bg-white/10 border border-white/20 px-2.5 py-1.5 text-xs font-semibold text-white focus:outline-none focus:ring-2 focus:ring-[#c2a889]">
+                                            </div>
+                                            <div>
+                                                <label class="block text-[10px] font-bold text-[#c2a889] uppercase tracking-wider mb-1">
+                                                    <i class="fa-regular fa-calendar-plus me-1"></i> End Date
+                                                </label>
+                                                <input type="date" x-model="endDate" :min="startDate" @change="onEndDateChange()"
+                                                    class="w-full rounded-xl bg-white/10 border border-white/20 px-2.5 py-1.5 text-xs font-semibold text-white focus:outline-none focus:ring-2 focus:ring-[#c2a889]">
+                                            </div>
                                         </div>
 
                                     </div>
@@ -388,36 +465,78 @@
                                     <!-- Selected Date Confirmation & Reservation Status -->
                                     <div class="bg-white/10 rounded-xl p-3 border border-white/15 mb-4">
                                         <div class="flex items-center justify-between text-xs">
-                                            <span class="text-[#c2a889] font-bold">Selected Date:</span>
-                                            <span class="font-extrabold text-white"
-                                                x-text="formattedSelectedDate"></span>
+                                            <span class="text-[#c2a889] font-bold" x-text="isRange ? 'Selected Dates:' : 'Selected Date:'"></span>
+                                            <div class="text-right flex items-center gap-1.5">
+                                                <span class="font-extrabold text-white"
+                                                    x-text="formattedSelectedDate"></span>
+                                                <span x-show="isRange" class="px-2 py-0.5 rounded-full bg-[#c2a889] text-[#334c42] text-[10px] font-black" x-text="totalDays + ' Days'"></span>
+                                            </div>
                                         </div>
 
-                                        <!-- If the selected date has existing confirmed bookings -->
-                                        <template x-if="selectedDateReservations.length > 0">
+                                        <!-- If the selected period has existing confirmed bookings -->
+                                        <template x-if="selectedPeriodReservations.length > 0">
                                             <div
                                                 class="mt-2 pt-2 border-t border-white/10 text-[11px] text-amber-200 flex items-start gap-1.5">
                                                 <i
                                                     class="fa-solid fa-triangle-exclamation text-amber-300 mt-0.5 shrink-0"></i>
                                                 <span>
-                                                    <strong x-text="selectedDateReservations.length"></strong> existing
-                                                    reservation on this day
+                                                    <strong x-text="selectedPeriodReservations.length"></strong> existing
+                                                    reservation(s) during this period
                                                     (<span
-                                                        x-text="selectedDateReservations.map(r => r.start + ' - ' + r.end).join(', ')"></span>).
+                                                        x-text="selectedPeriodReservations.map(r => (isRange ? (r.date + ' ' + r.start + '-' + r.end) : (r.start + ' - ' + r.end))).slice(0, 3).join(', ')"></span><span x-show="selectedPeriodReservations.length > 3">...</span>).
                                                     Please pick a free window!
                                                 </span>
                                             </div>
                                         </template>
 
-                                        <!-- If the selected date is completely free -->
-                                        <template x-if="selectedDateReservations.length === 0">
+                                        <!-- If the selected period is completely free -->
+                                        <template x-if="selectedPeriodReservations.length === 0">
                                             <div
                                                 class="mt-2 pt-2 border-t border-white/10 text-[11px] text-emerald-300 flex items-center gap-1.5">
                                                 <i class="fa-solid fa-circle-check shrink-0"></i>
-                                                <span>Date has 100% availability. All slots are open!</span>
+                                                <span x-text="isRange ? 'All ' + totalDays + ' selected dates have 100% availability! All slots are open.' : 'Date has 100% availability. All slots are open!'"></span>
                                             </div>
                                         </template>
                                     </div>
+
+                                    <!-- Event Information Section (Below Selected Date) -->
+                                    <div class="bg-white/10 rounded-2xl p-4 border border-white/15 mb-5 space-y-3">
+                                        <div>
+                                            <label class="block text-[11px] font-bold text-[#c2a889] mb-1 uppercase tracking-wider">
+                                                <i class="fa-solid fa-tag me-1"></i> Event Name
+                                            </label>
+                                            <input type="text" x-model="eventName" placeholder="e.g. Annual Department Conference"
+                                                class="w-full rounded-xl bg-white/10 border border-white/20 px-3 py-2 text-xs font-semibold text-white placeholder-white/40 focus:outline-none focus:ring-2 focus:ring-[#c2a889]">
+                                        </div>
+                                        <div>
+                                            <label class="block text-[11px] font-bold text-[#c2a889] mb-1 uppercase tracking-wider">
+                                                <i class="fa-solid fa-align-left me-1"></i> Event Details / Notes
+                                            </label>
+                                            <textarea x-model="eventDetails" rows="2" placeholder="e.g. Stage arrangement, AV requirements, program duration..."
+                                                class="w-full rounded-xl bg-white/10 border border-white/20 px-3 py-2 text-xs font-semibold text-white placeholder-white/40 focus:outline-none focus:ring-2 focus:ring-[#c2a889]"></textarea>
+                                        </div>
+                                    </div>
+
+                                    <!-- Billing Type Selector (if both hourly and daily rates are supported) -->
+                                    <template x-if="hasBothRates">
+                                        <div class="mb-5 bg-white/10 rounded-2xl p-3 border border-white/15">
+                                            <label class="block text-[10px] font-bold text-[#c2a889] mb-2 uppercase tracking-wider">
+                                                Select Billing Mode
+                                            </label>
+                                            <div class="grid grid-cols-2 gap-2">
+                                                <button type="button" @click="setRateType('hourly')"
+                                                    class="py-2 px-3 rounded-xl text-xs font-bold transition-all text-center"
+                                                    :class="rateType === 'hourly' ? 'bg-[#c2a889] text-[#334c42] shadow-md font-extrabold' : 'bg-white/10 text-white/80 hover:bg-white/20'">
+                                                    Hourly (₱<span x-text="hourlyRate"></span>/hr)
+                                                </button>
+                                                <button type="button" @click="setRateType('daily')"
+                                                    class="py-2 px-3 rounded-xl text-xs font-bold transition-all text-center"
+                                                    :class="rateType === 'daily' ? 'bg-[#c2a889] text-[#334c42] shadow-md font-extrabold' : 'bg-white/10 text-white/80 hover:bg-white/20'">
+                                                    Daily (₱<span x-text="dailyRate"></span>/day)
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </template>
 
                                     <!-- Time Selection (for hourly rates) -->
                                     <template x-if="rateType === 'hourly'">
@@ -463,11 +582,13 @@
                                             <div class="text-[10px] font-bold text-[#c2a889] uppercase tracking-wider">
                                                 Estimated Total</div>
                                             <div class="text-xs text-white/70" x-show="rateType === 'hourly'">
-                                                <span x-text="durationHours"></span> hours ×
-                                                ₱{{ number_format($facility->rate, 2) }}
+                                                <span x-text="durationHours"></span> hrs/day ×
+                                                <span x-text="totalDays"></span> day(s) @
+                                                ₱<span x-text="hourlyRate.toFixed(2)"></span>/hr
                                             </div>
                                             <div class="text-xs text-white/70" x-show="rateType === 'daily'">
-                                                Full Day Booking
+                                                <span x-text="totalDays"></span> day(s) @
+                                                ₱<span x-text="dailyRate.toFixed(2)"></span>/day
                                             </div>
                                         </div>
                                         <div class="text-2xl font-extrabold text-[#c2a889] font-display">
@@ -483,7 +604,7 @@
                                     </a>
 
                                     <p class="text-[11px] text-[#c2a889]/80 text-center mt-3 font-semibold">
-                                        *Selected date &amp; hours will auto-fill on the booking &amp; T&amp;C page
+                                        *Selected date(s) &amp; hours will auto-fill on the booking &amp; T&amp;C page
                                     </p>
                                 </div>
                             </div>
@@ -572,7 +693,7 @@
 
     <script>
         document.addEventListener('alpine:init', () => {
-            Alpine.data('facilityBookingPlanner', (rate, rateType, reservations, initialDate, bookBaseUrl) => {
+            Alpine.data('facilityBookingPlanner', (hourlyRate, dailyRate, defaultRateType, reservations, initialDate, bookBaseUrl, hasBothRates = false) => {
                 const today = new Date();
                 const todayStr = today.toISOString().split('T')[0];
 
@@ -586,18 +707,47 @@
                 const [initY, initM] = startD.split('-').map(Number);
 
                 return {
-                    selectedDate: startD,
+                    bookingMode: 'single', // 'single' | 'range'
+                    rangeStep: 'start', // 'start' | 'end'
+                    startDate: startD,
+                    endDate: startD,
                     startTime: '08:00',
                     endTime: '12:00',
+                    eventName: '',
+                    eventDetails: '',
                     currentYear: initY,
                     currentMonth: initM - 1, // 0-indexed for JS Date
-                    rate: parseFloat(rate),
-                    rateType: rateType,
+                    hourlyRate: parseFloat(hourlyRate || 0),
+                    dailyRate: parseFloat(dailyRate || 0),
+                    rateType: defaultRateType || 'hourly',
+                    hasBothRates: Boolean(hasBothRates),
                     reservations: reservations || [],
                     monthNames: [
                         'January', 'February', 'March', 'April', 'May', 'June',
                         'July', 'August', 'September', 'October', 'November', 'December'
                     ],
+
+                    setBookingMode(mode) {
+                        this.bookingMode = mode;
+                        if (mode === 'single') {
+                            this.endDate = this.startDate;
+                            this.rangeStep = 'start';
+                        } else {
+                            if (!this.endDate || this.endDate <= this.startDate) {
+                                this.endDate = this.startDate;
+                                this.rangeStep = 'end';
+                            }
+                        }
+                    },
+
+                    resetRange() {
+                        this.endDate = this.startDate;
+                        this.rangeStep = 'end';
+                    },
+
+                    setRateType(type) {
+                        this.rateType = type;
+                    },
 
                     get todayString() {
                         const now = new Date();
@@ -636,25 +786,92 @@
                     isPast(day) {
                         return this.formatDayString(day) < this.todayString;
                     },
-                    isSelected(day) {
-                        return this.selectedDate === this.formatDayString(day);
+                    get isRange() {
+                        return this.bookingMode === 'range' && Boolean(this.endDate) && this.endDate > this.startDate;
+                    },
+                    isStartDay(day) {
+                        return this.startDate === this.formatDayString(day);
+                    },
+                    isEndDay(day) {
+                        return this.isRange && this.endDate === this.formatDayString(day);
+                    },
+                    isInBetween(day) {
+                        if (!this.isRange) return false;
+                        const dStr = this.formatDayString(day);
+                        return dStr > this.startDate && dStr < this.endDate;
                     },
                     selectDay(day) {
                         if (this.isPast(day)) return;
-                        this.selectedDate = this.formatDayString(day);
+                        const clickedDate = this.formatDayString(day);
+
+                        if (this.bookingMode === 'single') {
+                            this.startDate = clickedDate;
+                            this.endDate = clickedDate;
+                        } else {
+                            // Multiple Days Range mode
+                            if (this.rangeStep === 'start' || !this.startDate) {
+                                this.startDate = clickedDate;
+                                this.endDate = clickedDate;
+                                this.rangeStep = 'end';
+                            } else {
+                                // Selecting end date
+                                if (clickedDate < this.startDate) {
+                                    this.startDate = clickedDate;
+                                    this.endDate = clickedDate;
+                                    this.rangeStep = 'end';
+                                } else {
+                                    this.endDate = clickedDate;
+                                    this.rangeStep = 'start';
+                                }
+                            }
+                        }
+                    },
+                    onStartDateChange() {
+                        if (this.startDate) {
+                            const [y, m] = this.startDate.split('-').map(Number);
+                            this.currentYear = y;
+                            this.currentMonth = m - 1;
+                            if (this.bookingMode === 'single' || !this.endDate || this.endDate < this.startDate) {
+                                this.endDate = this.startDate;
+                            }
+                        }
+                    },
+                    onEndDateChange() {
+                        if (this.endDate && this.endDate < this.startDate) {
+                            this.endDate = this.startDate;
+                        }
                     },
                     hasReservation(day) {
                         const dateStr = this.formatDayString(day);
                         return this.reservations.some(r => r.date === dateStr);
                     },
+                    get totalDays() {
+                        if (!this.startDate) return 1;
+                        if (!this.isRange) return 1;
+                        const s = new Date(this.startDate + 'T00:00:00');
+                        const e = new Date(this.endDate + 'T00:00:00');
+                        return Math.max(1, Math.round((e - s) / (1000 * 60 * 60 * 24)) + 1);
+                    },
                     get formattedSelectedDate() {
-                        if (!this.selectedDate) return '';
-                        const parts = this.selectedDate.split('-').map(Number);
+                        if (!this.startDate) return '';
+                        const formatD = (str) => {
+                            const parts = str.split('-').map(Number);
+                            const d = new Date(parts[0], parts[1] - 1, parts[2]);
+                            return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+                        };
+                        if (this.isRange) {
+                            return `${formatD(this.startDate)} – ${formatD(this.endDate)}`;
+                        }
+                        const parts = this.startDate.split('-').map(Number);
                         const dateObj = new Date(parts[0], parts[1] - 1, parts[2]);
                         return dateObj.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric', year: 'numeric' });
                     },
-                    get selectedDateReservations() {
-                        return this.reservations.filter(r => r.date === this.selectedDate);
+                    get selectedPeriodReservations() {
+                        if (!this.startDate) return [];
+                        if (!this.isRange) {
+                            return this.reservations.filter(r => r.date === this.startDate);
+                        }
+                        return this.reservations.filter(r => r.date >= this.startDate && r.date <= this.endDate);
                     },
                     setDuration(hours) {
                         if (!this.startTime) this.startTime = '08:00';
@@ -670,14 +887,29 @@
                         const diff = (eh + em / 60) - (sh + sm / 60);
                         return diff > 0 ? parseFloat(diff.toFixed(2)) : 0;
                     },
+                    get activeRate() {
+                        return this.rateType === 'daily' ? this.dailyRate : this.hourlyRate;
+                    },
                     get estimatedTotal() {
+                        const days = this.totalDays;
                         if (this.rateType === 'daily') {
-                            return this.rate;
+                            return parseFloat((days * this.dailyRate).toFixed(2));
                         }
-                        return parseFloat((this.durationHours * this.rate).toFixed(2));
+                        return parseFloat((this.durationHours * this.hourlyRate * days).toFixed(2));
                     },
                     get bookingUrl() {
-                        return `${bookBaseUrl}?date=${this.selectedDate}&start_time=${this.startTime}&end_time=${this.endTime}`;
+                        let url = `${bookBaseUrl}?date=${this.startDate}`;
+                        if (this.isRange) {
+                            url += `&end_date=${this.endDate}`;
+                        }
+                        url += `&start_time=${this.startTime}&end_time=${this.endTime}&billing_type=${this.rateType}`;
+                        if (this.eventName) {
+                            url += `&event_name=${encodeURIComponent(this.eventName)}`;
+                        }
+                        if (this.eventDetails) {
+                            url += `&event_details=${encodeURIComponent(this.eventDetails)}`;
+                        }
+                        return url;
                     }
                 };
             });

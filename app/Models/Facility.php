@@ -17,6 +17,8 @@ class Facility extends Model
         'name',
         'description',
         'capacity',
+        'hourly_rate',
+        'daily_rate',
         'rate',
         'rate_type',
         'images',
@@ -29,9 +31,29 @@ class Facility extends Model
         return [
             'images' => 'array',
             'is_active' => 'boolean',
+            'hourly_rate' => 'decimal:2',
+            'daily_rate' => 'decimal:2',
             'rate' => 'decimal:2',
             'capacity' => 'integer',
         ];
+    }
+
+    public function getEffectiveHourlyRateAttribute(): ?float
+    {
+        if ($this->hourly_rate !== null) {
+            return (float) $this->hourly_rate;
+        }
+
+        return $this->rate_type === 'hourly' ? (float) $this->rate : null;
+    }
+
+    public function getEffectiveDailyRateAttribute(): ?float
+    {
+        if ($this->daily_rate !== null) {
+            return (float) $this->daily_rate;
+        }
+
+        return $this->rate_type === 'daily' ? (float) $this->rate : null;
     }
 
     public function reservations(): HasMany

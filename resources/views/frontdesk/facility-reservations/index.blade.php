@@ -38,6 +38,15 @@
                 <a class="nav-link {{ $status === 'approved' ? 'active' : 'text-dark' }}" href="{{ route('frontdesk.facility-reservations.index', ['status' => 'approved']) }}">Approved</a>
             </li>
             <li class="nav-item">
+                <a class="nav-link {{ $status === 'active' ? 'active' : 'text-dark' }}" href="{{ route('frontdesk.facility-reservations.index', ['status' => 'active']) }}">Active</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link {{ $status === 'completed' ? 'active' : 'text-dark' }}" href="{{ route('frontdesk.facility-reservations.index', ['status' => 'completed']) }}">Completed</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link {{ $status === 'cancelled' ? 'active' : 'text-dark' }}" href="{{ route('frontdesk.facility-reservations.index', ['status' => 'cancelled']) }}">Cancelled</a>
+            </li>
+            <li class="nav-item">
                 <a class="nav-link {{ $status === 'rejected' ? 'active' : 'text-dark' }}" href="{{ route('frontdesk.facility-reservations.index', ['status' => 'rejected']) }}">Rejected</a>
             </li>
         </ul>
@@ -55,10 +64,10 @@
                 <thead class="table-light text-muted">
                     <tr>
                         <th class="ps-4">Ref #</th>
-                        <th>Booker</th>
+                        <th>Booker &amp; Event</th>
                         <th>Facility</th>
-                        <th>Date & Time</th>
-                        <th>Est. Amount</th>
+                        <th>Schedule</th>
+                        <th>Amount</th>
                         <th>Status</th>
                         <th class="text-end pe-4">Action</th>
                     </tr>
@@ -69,31 +78,56 @@
                         <td class="ps-4 fw-semibold font-monospace">{{ $res->reference_number }}</td>
                         <td>
                             <div class="fw-bold text-dark">{{ $res->booker_name }}</div>
+                            @if($res->event_name)
+                                <div class="text-primary small fw-semibold">
+                                    <i class="fa-solid fa-tag me-1"></i>{{ $res->event_name }}
+                                </div>
+                            @endif
                             <div class="text-muted small">{{ $res->booker_contact }}</div>
                         </td>
                         <td>
-                            <div class="text-dark">{{ $res->facility->name ?? 'Deleted Facility' }}</div>
+                            <div class="text-dark fw-semibold">{{ $res->facility->name ?? 'Deleted Facility' }}</div>
                             <div class="text-muted small">{{ $res->duration_label }}</div>
                         </td>
                         <td>
-                            <div class="text-dark">{{ $res->reservation_date->format('M d, Y') }}</div>
-                            <div class="text-muted small">{{ \Carbon\Carbon::parse($res->start_time)->format('h:i A') }} - {{ \Carbon\Carbon::parse($res->end_time)->format('h:i A') }}</div>
+                            <div class="text-dark">
+                                {{ $res->reservation_date->format('M d, Y') }}
+                                @if($res->end_date && $res->end_date->gt($res->reservation_date))
+                                    &ndash; {{ $res->end_date->format('M d, Y') }}
+                                @endif
+                            </div>
+                            <div class="text-muted small">
+                                {{ \Carbon\Carbon::parse($res->start_time)->format('h:i A') }} - {{ \Carbon\Carbon::parse($res->end_time)->format('h:i A') }}
+                            </div>
                         </td>
-                        <td class="fw-bold text-success">
-                            ₱{{ number_format($res->estimated_amount, 2) }}
+                        <td>
+                            <div class="fw-bold text-success">
+                                ₱{{ number_format($res->effective_amount, 2) }}
+                            </div>
+                            @if($res->agreed_rate !== null)
+                                <span class="badge bg-warning text-dark font-monospace" style="font-size: 0.65rem;">
+                                    Agreed: ₱{{ number_format($res->agreed_rate, 2) }}
+                                </span>
+                            @endif
                         </td>
                         <td>
                             @if($res->status === 'pending')
                                 <span class="badge bg-warning text-dark border border-warning shadow-sm px-3 rounded-pill uppercase tracking-wider">Pending</span>
                             @elseif($res->status === 'approved')
                                 <span class="badge bg-success shadow-sm px-3 rounded-pill uppercase tracking-wider">Approved</span>
+                            @elseif($res->status === 'active')
+                                <span class="badge bg-primary shadow-sm px-3 rounded-pill uppercase tracking-wider">Active</span>
+                            @elseif($res->status === 'completed')
+                                <span class="badge bg-info text-dark shadow-sm px-3 rounded-pill uppercase tracking-wider">Completed</span>
+                            @elseif($res->status === 'cancelled')
+                                <span class="badge bg-secondary shadow-sm px-3 rounded-pill uppercase tracking-wider">Cancelled</span>
                             @else
                                 <span class="badge bg-danger shadow-sm px-3 rounded-pill uppercase tracking-wider">Rejected</span>
                             @endif
                         </td>
                         <td class="text-end pe-4">
                             <a href="{{ route('frontdesk.facility-reservations.show', $res) }}" class="btn btn-sm btn-outline-primary rounded-pill shadow-sm fw-semibold">
-                                Review <i class="fa-solid fa-arrow-right ms-1"></i>
+                                Manage <i class="fa-solid fa-arrow-right ms-1"></i>
                             </a>
                         </td>
                     </tr>

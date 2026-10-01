@@ -87,3 +87,56 @@ test('booking form pre-populates date and time parameters from facility details 
     $response->assertSee("startTime: '10:00'", false);
     $response->assertSee('Terms & Conditions');
 });
+
+test('facility show page contains single and multiple days booking switcher', function (): void {
+    $facility = Facility::create([
+        'name' => 'Conference Room',
+        'description' => 'A meeting room.',
+        'capacity' => 15,
+        'rate' => 300.00,
+        'rate_type' => 'hourly',
+        'is_active' => true,
+    ]);
+
+    $response = $this->get(route('facilities.show', $facility));
+
+    $response->assertStatus(200);
+    $response->assertSee('Single Day');
+    $response->assertSee('Multiple Days');
+    $response->assertSee('setBookingMode');
+    $response->assertSee('bookingMode');
+});
+
+test('booking form pre-populates multi-day date range and event information', function (): void {
+    $facility = Facility::create([
+        'name' => 'Auditorium',
+        'description' => 'Large auditorium',
+        'capacity' => 500,
+        'rate' => 1000.00,
+        'hourly_rate' => 1000.00,
+        'daily_rate' => 8000.00,
+        'rate_type' => 'daily',
+        'is_active' => true,
+    ]);
+
+    $startDate = now()->addDays(3)->format('Y-m-d');
+    $endDate = now()->addDays(6)->format('Y-m-d');
+
+    $response = $this->get(route('facilities.book', [
+        'facility' => $facility,
+        'date' => $startDate,
+        'end_date' => $endDate,
+        'start_time' => '08:00',
+        'end_time' => '17:00',
+        'billing_type' => 'daily',
+        'event_name' => 'Regional Hackathon 2026',
+        'event_details' => 'Auditorium setup for 300 participants',
+    ]));
+
+    $response->assertStatus(200);
+    $response->assertSee('value="'.$startDate.'"', false);
+    $response->assertSee('value="'.$endDate.'"', false);
+    $response->assertSee('Regional Hackathon 2026');
+    $response->assertSee('Auditorium setup for 300 participants');
+    $response->assertSee("endDate: '{$endDate}'", false);
+});

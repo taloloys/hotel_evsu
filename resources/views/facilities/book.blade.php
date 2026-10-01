@@ -69,7 +69,7 @@
 
                 <div class="md:col-span-3">
                     <form action="{{ route('facilities.submit', $facility) }}" method="POST" class="bg-white rounded-2xl shadow-lg border border-[#e8dbcb] p-6 md:p-8"
-                          x-data="bookingCalculator({{ $facility->rate }}, '{{ $facility->rate_type }}')">
+                          x-data="bookingCalculator({{ (float) ($facility->effective_hourly_rate ?? $facility->rate) }}, {{ (float) ($facility->effective_daily_rate ?? $facility->rate) }}, '{{ old('billing_type', request('billing_type', $facility->rate_type ?? 'hourly')) }}')">
                         @csrf
                         
                         <h3 class="text-xl font-display text-[#334c42] border-b border-[#e8dbcb] pb-3 mb-6">Booker Information</h3>
@@ -94,24 +94,63 @@
                         <h3 class="text-xl font-display text-[#334c42] border-b border-[#e8dbcb] pb-3 mt-8 mb-6">Reservation Schedule</h3>
                         
                         <div class="space-y-5">
+                            {{-- Event Name & Details placed ABOVE the Date as requested --}}
                             <div>
-                                <label class="block text-sm font-bold text-[#504538] mb-1">Date</label>
-                                <input type="date" name="reservation_date" min="{{ now()->format('Y-m-d') }}" value="{{ old('reservation_date', request('date', now()->format('Y-m-d'))) }}" required class="w-full rounded-lg border-[#d8c3ab] bg-[#f8f3ed] p-3 text-[#504538] focus:border-[#334c42] focus:ring focus:ring-[#334c42]/20">
+                                <label class="block text-sm font-bold text-[#504538] mb-1">Event Name</label>
+                                <input type="text" name="event_name" value="{{ old('event_name', request('event_name')) }}" placeholder="e.g. Annual Department Conference" class="w-full rounded-lg border-[#d8c3ab] bg-[#f8f3ed] p-3 text-[#504538] focus:border-[#334c42] focus:ring focus:ring-[#334c42]/20">
                             </div>
+
+                            <div>
+                                <label class="block text-sm font-bold text-[#504538] mb-1">Event Details / Purpose</label>
+                                <textarea name="event_details" rows="3" placeholder="Describe the purpose, setup requirements, expected attendees, etc." class="w-full rounded-lg border-[#d8c3ab] bg-[#f8f3ed] p-3 text-[#504538] focus:border-[#334c42] focus:ring focus:ring-[#334c42]/20">{{ old('event_details', request('event_details')) }}</textarea>
+                            </div>
+
+                            @if($facility->hourly_rate && $facility->daily_rate)
+                            <div>
+                                <label class="block text-sm font-bold text-[#504538] mb-1">Billing Option</label>
+                                <div class="grid grid-cols-2 gap-4">
+                                    <label class="flex items-center gap-2 p-3 rounded-lg border cursor-pointer" :class="billingType === 'hourly' ? 'border-[#334c42] bg-[#e8f0ec] text-[#334c42] font-bold' : 'border-[#d8c3ab] bg-[#f8f3ed] text-[#504538]'">
+                                        <input type="radio" name="billing_type" value="hourly" x-model="billingType" class="text-[#334c42]">
+                                        <span>Hourly (₱{{ number_format($facility->hourly_rate, 2) }}/hr)</span>
+                                    </label>
+                                    <label class="flex items-center gap-2 p-3 rounded-lg border cursor-pointer" :class="billingType === 'daily' ? 'border-[#334c42] bg-[#e8f0ec] text-[#334c42] font-bold' : 'border-[#d8c3ab] bg-[#f8f3ed] text-[#504538]'">
+                                        <input type="radio" name="billing_type" value="daily" x-model="billingType" class="text-[#334c42]">
+                                        <span>Daily (₱{{ number_format($facility->daily_rate, 2) }}/day)</span>
+                                    </label>
+                                </div>
+                            </div>
+                            @else
+                            <input type="hidden" name="billing_type" value="{{ $facility->rate_type ?? 'hourly' }}" x-model="billingType">
+                            @endif
+
                             <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
                                 <div>
-                                    <label class="block text-sm font-bold text-[#504538] mb-1">Start Time</label>
-                                    <input type="time" name="start_time" x-model="startTime" required class="w-full rounded-lg border-[#d8c3ab] bg-[#f8f3ed] p-3 text-[#504538] focus:border-[#334c42] focus:ring focus:ring-[#334c42]/20">
+                                    <label class="block text-sm font-bold text-[#504538] mb-1">Start Date</label>
+                                    <input type="date" name="reservation_date" min="{{ now()->format('Y-m-d') }}" value="{{ old('reservation_date', request('date', now()->format('Y-m-d'))) }}" x-model="startDate" required class="w-full rounded-lg border-[#d8c3ab] bg-[#f8f3ed] p-3 text-[#504538] focus:border-[#334c42] focus:ring focus:ring-[#334c42]/20">
                                 </div>
                                 <div>
-                                    <label class="block text-sm font-bold text-[#504538] mb-1">End Time</label>
-                                    <input type="time" name="end_time" x-model="endTime" required class="w-full rounded-lg border-[#d8c3ab] bg-[#f8f3ed] p-3 text-[#504538] focus:border-[#334c42] focus:ring focus:ring-[#334c42]/20">
+                                    <label class="block text-sm font-bold text-[#504538] mb-1">End Date <span class="text-xs font-normal text-[#827567]">(Multi-day)</span></label>
+                                    <input type="date" name="end_date" :min="startDate" value="{{ old('end_date', request('end_date')) }}" x-model="endDate" class="w-full rounded-lg border-[#d8c3ab] bg-[#f8f3ed] p-3 text-[#504538] focus:border-[#334c42] focus:ring focus:ring-[#334c42]/20">
+                                </div>
+                            </div>
+
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+                                <div>
+                                    <label class="block text-sm font-bold text-[#504538] mb-1">Daily Start Time</label>
+                                    <input type="time" name="start_time" value="{{ old('start_time', request('start_time', '08:00')) }}" x-model="startTime" required class="w-full rounded-lg border-[#d8c3ab] bg-[#f8f3ed] p-3 text-[#504538] focus:border-[#334c42] focus:ring focus:ring-[#334c42]/20">
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-bold text-[#504538] mb-1">Daily End Time</label>
+                                    <input type="time" name="end_time" value="{{ old('end_time', request('end_time', '12:00')) }}" x-model="endTime" required class="w-full rounded-lg border-[#d8c3ab] bg-[#f8f3ed] p-3 text-[#504538] focus:border-[#334c42] focus:ring focus:ring-[#334c42]/20">
                                 </div>
                             </div>
                         </div>
 
                         <div class="mt-8 bg-[#334c42] text-white p-5 rounded-xl flex justify-between items-center shadow-inner">
-                            <div class="font-bold">Estimated Total</div>
+                            <div>
+                                <div class="font-bold">Estimated Total</div>
+                                <div class="text-xs text-white/70" x-text="durationSummary"></div>
+                            </div>
                             <div class="text-2xl font-display" x-text="'₱' + estimatedTotal.toFixed(2)">₱0.00</div>
                         </div>
 
@@ -140,24 +179,48 @@
 
     <script>
         document.addEventListener('alpine:init', () => {
-            Alpine.data('bookingCalculator', (rate, rateType) => ({
+            Alpine.data('bookingCalculator', (hourlyRate, dailyRate, initialBillingType) => ({
+                hourlyRate: parseFloat(hourlyRate || 0),
+                dailyRate: parseFloat(dailyRate || 0),
+                billingType: initialBillingType || 'hourly',
+                startDate: '{{ old('reservation_date', request('date', now()->format('Y-m-d'))) }}',
+                endDate: '{{ old('end_date', request('end_date', '')) }}',
                 startTime: '{{ old('start_time', request('start_time', '08:00')) }}',
-                endTime: '{{ old('end_time', request('end_time', '10:00')) }}',
-                
-                get estimatedTotal() {
-                    if (rateType === 'daily') {
-                        return parseFloat(rate);
-                    }
-                    
+                endTime: '{{ old('end_time', request('end_time', '12:00')) }}',
+
+                get totalDays() {
+                    if (!this.startDate) return 1;
+                    if (!this.endDate || this.endDate < this.startDate) return 1;
+                    const s = new Date(this.startDate + 'T00:00:00');
+                    const e = new Date(this.endDate + 'T00:00:00');
+                    return Math.max(1, Math.round((e - s) / (1000 * 60 * 60 * 24)) + 1);
+                },
+
+                get durationHours() {
                     if (!this.startTime || !this.endTime) return 0;
-                    
                     const start = new Date(`2000-01-01T${this.startTime}`);
                     const end = new Date(`2000-01-01T${this.endTime}`);
-                    
-                    if (end <= start) return 0; // invalid time
-                    
-                    const hours = (end - start) / (1000 * 60 * 60);
-                    return parseFloat((hours * rate).toFixed(2));
+                    if (end <= start) return 0;
+                    return (end - start) / (1000 * 60 * 60);
+                },
+
+                get durationSummary() {
+                    const days = this.totalDays;
+                    const dayStr = days === 1 ? '1 day' : `${days} days`;
+                    if (this.billingType === 'daily') {
+                        return `${dayStr} @ ₱${this.dailyRate.toFixed(2)}/day`;
+                    }
+                    const hours = this.durationHours;
+                    return `${hours} hrs/day × ${dayStr} @ ₱${this.hourlyRate.toFixed(2)}/hr`;
+                },
+
+                get estimatedTotal() {
+                    const days = this.totalDays;
+                    if (this.billingType === 'daily') {
+                        return parseFloat((days * this.dailyRate).toFixed(2));
+                    }
+                    const hours = this.durationHours;
+                    return parseFloat((hours * this.hourlyRate * days).toFixed(2));
                 }
             }))
         })
