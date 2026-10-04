@@ -524,3 +524,18 @@ test('closing a guest folio fails when there is an outstanding balance', functio
 
     $this->assertEquals('OPEN', $folio->refresh()->status);
 });
+
+test('guest folio page renders post transaction charge codes grouped into categories with optgroups and filter controls', function (): void {
+    $guest = Guest::create(['last_name' => 'Cruz', 'first_name' => 'Juan']);
+    Folio::create(['folio_number' => 'REG-2026001', 'guest_id' => $guest->guest_id, 'status' => 'OPEN']);
+
+    $response = $this->actingAs($this->frontdeskUser)
+        ->get(route('frontdesk.guest-folio'));
+
+    $response->assertOk();
+    $response->assertSee('Organized by Category');
+    $response->assertSee('Hotel Charges');
+    $response->assertSee('post-txn-cat-pill', false);
+    $response->assertSee('<optgroup label="Hotel Charges"', false);
+    $response->assertSee('<optgroup label="Payments &amp; Settlement"', false);
+});

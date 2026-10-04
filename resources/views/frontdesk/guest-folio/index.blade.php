@@ -978,28 +978,99 @@
 
                                     <div class="row g-3">
 
-                                        {{-- Charge Code --}}
+                                        {{-- Charge Code with Category Groups & Quick Filters --}}
                                         <div class="col-12">
-                                            <label class="form-label small fw-semibold mb-1">
-                                                Charge Code
-                                            </label>
+                                            <div class="d-flex justify-content-between align-items-center mb-1">
+                                                <label class="form-label small fw-semibold mb-0" for="charge_code_{{ $folio->folio_id }}">
+                                                    Charge Code <span class="text-danger">*</span>
+                                                </label>
+                                                <span class="text-muted" style="font-size:0.75rem;">
+                                                    <i class="fa-solid fa-layer-group me-1"></i>Organized by Category
+                                                </span>
+                                            </div>
 
+                                            {{-- Category Filter Pills --}}
+                                            <div class="btn-group btn-group-sm w-100 mb-2 post-txn-cat-group" role="group" aria-label="Charge category filter">
+                                                <input type="radio" class="btn-check post-txn-cat-pill" name="cat_filter_{{ $folio->folio_id }}" id="cat_all_{{ $folio->folio_id }}" value="ALL" checked autocomplete="off" data-folio-id="{{ $folio->folio_id }}">
+                                                <label class="btn btn-outline-secondary py-1 px-1 text-nowrap" for="cat_all_{{ $folio->folio_id }}" style="font-size:0.75rem;">
+                                                    All
+                                                </label>
+
+                                                <input type="radio" class="btn-check post-txn-cat-pill" name="cat_filter_{{ $folio->folio_id }}" id="cat_hotel_{{ $folio->folio_id }}" value="HOTEL" autocomplete="off" data-folio-id="{{ $folio->folio_id }}">
+                                                <label class="btn btn-outline-primary py-1 px-1 text-nowrap" for="cat_hotel_{{ $folio->folio_id }}" style="font-size:0.75rem;">
+                                                    <i class="fa-solid fa-bed me-1"></i>Hotel Charges
+                                                </label>
+
+                                                <input type="radio" class="btn-check post-txn-cat-pill" name="cat_filter_{{ $folio->folio_id }}" id="cat_fb_{{ $folio->folio_id }}" value="RESTAURANT" autocomplete="off" data-folio-id="{{ $folio->folio_id }}">
+                                                <label class="btn btn-outline-warning py-1 px-1 text-nowrap" for="cat_fb_{{ $folio->folio_id }}" style="font-size:0.75rem;">
+                                                    <i class="fa-solid fa-utensils me-1"></i>Restaurant
+                                                </label>
+
+                                                <input type="radio" class="btn-check post-txn-cat-pill" name="cat_filter_{{ $folio->folio_id }}" id="cat_tax_{{ $folio->folio_id }}" value="TAX_SERVICE" autocomplete="off" data-folio-id="{{ $folio->folio_id }}">
+                                                <label class="btn btn-outline-secondary py-1 px-1 text-nowrap" for="cat_tax_{{ $folio->folio_id }}" style="font-size:0.75rem;">
+                                                    <i class="fa-solid fa-landmark me-1"></i>Taxes & Fees
+                                                </label>
+
+                                                <input type="radio" class="btn-check post-txn-cat-pill" name="cat_filter_{{ $folio->folio_id }}" id="cat_pay_{{ $folio->folio_id }}" value="PAYMENT" autocomplete="off" data-folio-id="{{ $folio->folio_id }}">
+                                                <label class="btn btn-outline-success py-1 px-1 text-nowrap" for="cat_pay_{{ $folio->folio_id }}" style="font-size:0.75rem;">
+                                                    <i class="fa-solid fa-money-bill-wave me-1"></i>Payments
+                                                </label>
+                                            </div>
+
+                                            {{-- Charge Code Dropdown Grouped by Category --}}
                                             <select
                                                 name="charge_code"
-                                                class="form-select"
+                                                id="charge_code_{{ $folio->folio_id }}"
+                                                class="form-select post-txn-code-select"
+                                                data-folio-id="{{ $folio->folio_id }}"
+                                                data-room-rate="{{ $folio->net_rate ?? ($room?->base_rate ?? '') }}"
                                                 required>
 
                                                 <option value="" disabled selected>
                                                     Select charge code
                                                 </option>
 
-                                                @foreach($chargeCodes as $code)
-                                                    <option value="{{ $code->charge_code }}">
-                                                        {{ $code->charge_code }}
-                                                        —
-                                                        {{ $code->description }}
-                                                        ({{ $code->category }})
-                                                    </option>
+                                                @php
+                                                    $categoryConfig = [
+                                                        'HOTEL'       => ['label' => 'Hotel Charges',            'icon' => 'fa-bed'],
+                                                        'RESTAURANT'  => ['label' => 'Restaurant / Food & Beverage', 'icon' => 'fa-utensils'],
+                                                        'TAX_SERVICE' => ['label' => 'Taxes & Service Charges',   'icon' => 'fa-landmark'],
+                                                        'PAYMENT'     => ['label' => 'Payments & Settlement',     'icon' => 'fa-money-bill-wave'],
+                                                    ];
+                                                    $groupedChargeCodes = $chargeCodes->groupBy('category');
+                                                    $orderedCategories = ['HOTEL', 'RESTAURANT', 'TAX_SERVICE', 'PAYMENT'];
+                                                @endphp
+
+                                                @foreach($orderedCategories as $catKey)
+                                                    @if(isset($groupedChargeCodes[$catKey]) && $groupedChargeCodes[$catKey]->isNotEmpty())
+                                                        <optgroup label="{{ $categoryConfig[$catKey]['label'] ?? $catKey }}" data-category="{{ $catKey }}">
+                                                            @foreach($groupedChargeCodes[$catKey] as $code)
+                                                                <option value="{{ $code->charge_code }}"
+                                                                        data-category="{{ $code->category }}"
+                                                                        data-type="{{ $code->category === 'PAYMENT' ? 'PAYMENT' : 'CHARGE' }}"
+                                                                        data-slug="{{ $code->slug }}"
+                                                                        data-is-room="{{ ($code->slug === 'room_charge' || $code->charge_code == 100) ? '1' : '0' }}">
+                                                                    {{ $code->charge_code }} — {{ $code->description }}
+                                                                </option>
+                                                            @endforeach
+                                                        </optgroup>
+                                                    @endif
+                                                @endforeach
+
+                                                @foreach($groupedChargeCodes as $catKey => $codes)
+                                                    @if(!in_array($catKey, $orderedCategories))
+                                                        <optgroup label="{{ ucwords(str_replace('_', ' ', strtolower($catKey))) }}" data-category="{{ $catKey }}">
+                                                            @foreach($codes as $code)
+                                                                <option value="{{ $code->charge_code }}"
+                                                                        data-category="{{ $code->category }}"
+                                                                        data-type="{{ $code->category === 'PAYMENT' ? 'PAYMENT' : 'CHARGE' }}"
+                                                                        data-slug="{{ $code->slug }}"
+                                                                        data-is-room="{{ ($code->slug === 'room_charge' || $code->charge_code == 100) ? '1' : '0' }}">
+                                                                    {{ $code->charge_code }} — {{ $code->description }}
+                                                                </option>
+                                                            @endforeach
+                                                        </optgroup>
+                                                    @endif
                                                 @endforeach
 
                                             </select>
@@ -1007,13 +1078,15 @@
 
                                         {{-- Type --}}
                                         <div class="col-md-4">
-                                            <label class="form-label small fw-semibold mb-1">
+                                            <label class="form-label small fw-semibold mb-1" for="txn_type_{{ $folio->folio_id }}">
                                                 Transaction
                                             </label>
 
                                             <select
                                                 name="type"
-                                                class="form-select"
+                                                id="txn_type_{{ $folio->folio_id }}"
+                                                class="form-select post-txn-type-select"
+                                                data-folio-id="{{ $folio->folio_id }}"
                                                 required>
 
                                                 <option value="CHARGE">
@@ -1029,7 +1102,7 @@
 
                                         {{-- Amount --}}
                                         <div class="col-md-8">
-                                            <label class="form-label small fw-semibold mb-1">
+                                            <label class="form-label small fw-semibold mb-1" for="txn_amount_{{ $folio->folio_id }}">
                                                 Amount
                                             </label>
 
@@ -1042,7 +1115,9 @@
                                                 <input
                                                     type="number"
                                                     name="amount"
-                                                    class="form-control text-end"
+                                                    id="txn_amount_{{ $folio->folio_id }}"
+                                                    class="form-control text-end post-txn-amount-input"
+                                                    data-folio-id="{{ $folio->folio_id }}"
                                                     min="0.01"
                                                     step="0.01"
                                                     placeholder="0.00"
@@ -1053,14 +1128,16 @@
 
                                         {{-- Reference --}}
                                         <div class="col-12">
-                                            <label class="form-label small fw-semibold mb-1">
+                                            <label class="form-label small fw-semibold mb-1" for="txn_notes_{{ $folio->folio_id }}">
                                                 Reference / Notes
                                             </label>
 
                                             <input
                                                 type="text"
                                                 name="reference_notes"
-                                                class="form-control"
+                                                id="txn_notes_{{ $folio->folio_id }}"
+                                                class="form-control post-txn-notes-input"
+                                                data-folio-id="{{ $folio->folio_id }}"
                                                 placeholder="Receipt number, surcharge, discount, remarks...">
                                         </div>
 
@@ -1927,6 +2004,136 @@
                 }, 500));
             }
         }
+
+        // ==========================================================
+        // Post Transaction: Category Filter & Auto-Sync Controls
+        // ==========================================================
+        function getFolioPostTxnElements(folioId) {
+            return {
+                codeSelect: document.getElementById('charge_code_' + folioId),
+                typeSelect: document.getElementById('txn_type_' + folioId),
+                amountInput: document.getElementById('txn_amount_' + folioId),
+                notesInput: document.getElementById('txn_notes_' + folioId),
+            };
+        }
+
+        // 1. Category Filter Pills Changed
+        document.addEventListener('change', function(e) {
+            if (e.target && e.target.classList.contains('post-txn-cat-pill')) {
+                var folioId = e.target.getAttribute('data-folio-id');
+                var selectedCat = e.target.value;
+                var els = getFolioPostTxnElements(folioId);
+                if (!els.codeSelect) return;
+
+                var optgroups = els.codeSelect.querySelectorAll('optgroup');
+                var selectedOpt = els.codeSelect.options[els.codeSelect.selectedIndex];
+                var currentOptStillVisible = false;
+
+                optgroups.forEach(function(og) {
+                    var cat = og.getAttribute('data-category');
+                    var match = (selectedCat === 'ALL' || cat === selectedCat);
+
+                    og.hidden = !match;
+                    og.disabled = !match;
+                    og.style.display = match ? '' : 'none';
+
+                    var childOptions = og.querySelectorAll('option');
+                    childOptions.forEach(function(opt) {
+                        opt.hidden = !match;
+                        opt.disabled = !match;
+                        opt.style.display = match ? '' : 'none';
+                        if (match && selectedOpt && opt.value === selectedOpt.value) {
+                            currentOptStillVisible = true;
+                        }
+                    });
+                });
+
+                if (!currentOptStillVisible && selectedOpt && selectedOpt.value) {
+                    els.codeSelect.value = '';
+                }
+
+                // If user specifically clicked PAYMENT, auto-set Transaction to PAYMENT
+                if (selectedCat === 'PAYMENT') {
+                    if (els.typeSelect) els.typeSelect.value = 'PAYMENT';
+                    if (els.notesInput && (!els.notesInput.value || els.notesInput.placeholder.includes('Receipt number'))) {
+                        els.notesInput.placeholder = 'OR # / Reference # / Payment remarks...';
+                    }
+                } else if (selectedCat !== 'ALL') {
+                    if (els.typeSelect) els.typeSelect.value = 'CHARGE';
+                    if (els.notesInput && els.notesInput.placeholder.includes('OR #')) {
+                        els.notesInput.placeholder = 'Receipt number, surcharge, discount, remarks...';
+                    }
+                }
+            }
+        });
+
+        // 2. Charge Code Selected
+        document.addEventListener('change', function(e) {
+            if (e.target && e.target.classList.contains('post-txn-code-select')) {
+                var folioId = e.target.getAttribute('data-folio-id');
+                var els = getFolioPostTxnElements(folioId);
+                var selectedOpt = e.target.options[e.target.selectedIndex];
+                if (!selectedOpt || !selectedOpt.value) return;
+
+                var cat = selectedOpt.getAttribute('data-category');
+                var type = selectedOpt.getAttribute('data-type');
+                var isRoom = selectedOpt.getAttribute('data-is-room') === '1';
+
+                // Synchronize Transaction dropdown (Charge vs Payment)
+                if (els.typeSelect && type) {
+                    els.typeSelect.value = type;
+                }
+
+                // If Room Charge is selected and amount is 0 or empty, prefill agreed net room rate
+                if (isRoom && els.amountInput) {
+                    var roomRate = parseFloat(e.target.getAttribute('data-room-rate')) || 0;
+                    var currentAmount = parseFloat(els.amountInput.value) || 0;
+                    if (roomRate > 0 && currentAmount === 0) {
+                        els.amountInput.value = roomRate.toFixed(2);
+                    }
+                    if (els.notesInput && !els.notesInput.value) {
+                        els.notesInput.placeholder = 'Room charge / Nightly rate';
+                    }
+                }
+
+                // Update Reference/Notes placeholder
+                if (els.notesInput) {
+                    if (type === 'PAYMENT') {
+                        els.notesInput.placeholder = 'OR # / Reference # / Payment remarks...';
+                    } else if (!isRoom) {
+                        els.notesInput.placeholder = 'Receipt number, surcharge, discount, remarks...';
+                    }
+                }
+            }
+        });
+
+        // 3. Transaction Type (Charge vs Payment) dropdown changed
+        document.addEventListener('change', function(e) {
+            if (e.target && e.target.classList.contains('post-txn-type-select')) {
+                var folioId = e.target.getAttribute('data-folio-id');
+                var newType = e.target.value;
+                var els = getFolioPostTxnElements(folioId);
+                if (!els.codeSelect) return;
+
+                if (newType === 'PAYMENT') {
+                    // Switch to Payment category filter pill
+                    var payPill = document.getElementById('cat_pay_' + folioId);
+                    if (payPill) {
+                        payPill.checked = true;
+                        payPill.dispatchEvent(new Event('change', { bubbles: true }));
+                    }
+                } else if (newType === 'CHARGE') {
+                    var currentPill = document.querySelector('input[name="cat_filter_' + folioId + '"]:checked');
+                    if (currentPill && currentPill.value === 'PAYMENT') {
+                        var allPill = document.getElementById('cat_all_' + folioId);
+                        if (allPill) {
+                            allPill.checked = true;
+                            allPill.dispatchEvent(new Event('change', { bubbles: true }));
+                        }
+                    }
+                }
+            }
+        });
 
     })();
 </script>
