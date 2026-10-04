@@ -12,12 +12,17 @@
     <link rel="stylesheet"
           href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
 
+    <!-- Alpine.js -->
+    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+
     <!-- Favicons and PWA manifest -->
     <link rel="icon" type="image/png" href="{{ asset('images/logo.png') }}">
     <link rel="apple-touch-icon" href="{{ asset('images/logo.png') }}">
     <link rel="manifest" href="{{ asset('site.webmanifest') }}">
 
     <style>
+        [x-cloak] { display: none !important; }
+
         /* Prevent SweetAlert heightAuto from overriding html/body height to auto, which breaks Fullscreen API */
         html.swal2-height-auto,
         body.swal2-height-auto {

@@ -55,7 +55,8 @@
                                         <div class="small text-muted">An individual bookable space — e.g. Basketball Court, Conference Room A.</div>
                                     </div>
                                 </div>
-                                <input type="radio" name="facility_type" value="single" class="d-none" x-model="type">
+                                <input type="radio" name="facility_type" value="single" class="d-none" x-model="type"
+                                       {{ old('facility_type', request('type', 'single')) === 'single' ? 'checked' : '' }}>
                             </label>
                         </div>
                         <div class="col-md-6">
@@ -68,7 +69,8 @@
                                         <div class="small text-muted">Groups multiple spaces into one unit — e.g. Function Hall (A + B).</div>
                                     </div>
                                 </div>
-                                <input type="radio" name="facility_type" value="set" class="d-none" x-model="type">
+                                <input type="radio" name="facility_type" value="set" class="d-none" x-model="type"
+                                       {{ old('facility_type', request('type', 'single')) === 'set' ? 'checked' : '' }}>
                             </label>
                         </div>
                     </div>
@@ -119,7 +121,7 @@
                     </div>
 
                     {{-- MEMBER FACILITIES (sets only) ---------------------------------------}}
-                    <div x-show="type === 'set'" x-transition class="mb-4">
+                    <div x-show="type === 'set'" x-cloak x-transition class="mb-4">
                         <h6 class="fw-bold text-uppercase small mb-3 pb-2 border-bottom" style="color:#334c42;letter-spacing:.05em;">
                             <i class="fa-solid fa-list-check me-1"></i> Member Facilities
                         </h6>
@@ -128,7 +130,7 @@
                             All selected spaces below will be <strong>blocked simultaneously</strong> when this set is reserved.
                         </div>
                         <div class="row g-2 mt-2">
-                            @foreach($individualFacilities as $f)
+                            @forelse($individualFacilities as $f)
                             <div class="col-md-4 col-6">
                                 <label class="d-flex align-items-center gap-2 border rounded-3 p-2 cursor-pointer" style="font-size:.9rem;">
                                     <input type="checkbox" name="member_facilities[]"
@@ -143,7 +145,12 @@
                                     </span>
                                 </label>
                             </div>
-                            @endforeach
+                            @empty
+                            <div class="col-12 text-muted fst-italic py-2">
+                                <i class="fa-solid fa-triangle-exclamation text-warning me-1"></i>
+                                No individual facilities available yet. Please create single facilities first before creating a consolidated set.
+                            </div>
+                            @endforelse
                         </div>
                     </div>
 
@@ -230,7 +237,7 @@
 <script>
 function facilityForm() {
     return {
-        type: '{{ old('facility_type', 'single') }}',
+        type: '{{ old('facility_type', request('type', 'single')) }}',
     }
 }
 </script>

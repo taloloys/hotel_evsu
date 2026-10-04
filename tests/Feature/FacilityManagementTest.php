@@ -1,6 +1,7 @@
 <?php
 
 use App\Models\Facility;
+use App\Models\FacilitySet;
 use App\Models\Permission;
 use App\Models\Role;
 use App\Models\User;
@@ -144,4 +145,54 @@ test('facility images render with accessible URL on facilities list and public l
     $responseLanding = $this->get(route('home'));
     $responseLanding->assertStatus(200);
     $responseLanding->assertSee(Facility::imageUrl($storedPath));
+});
+
+test('admin facilities index displays distinct Add Facility and Add Facility Set buttons', function (): void {
+    $response = $this->actingAs($this->admin)->get(route('admin.facilities.index'));
+
+    $response->assertStatus(200);
+    $response->assertSee('Add Facility');
+    $response->assertSee('Add Facility Set');
+    $response->assertSee(route('admin.facilities.create', ['type' => 'single']));
+    $response->assertSee(route('admin.facilities.create', ['type' => 'set']));
+});
+
+test('admin can create consolidated facility set grouping multiple facilities', function (): void {
+    $f1 = Facility::create([
+        'name' => 'Conference Hall Alpha',
+        'rate' => 1000,
+        'rate_type' => 'hourly',
+        'capacity' => 40,
+        'is_active' => true,
+    ]);
+
+    $f2 = Facility::create([
+        'name' => 'Conference Hall Beta',
+        'rate' => 1200,
+        'rate_type' => 'hourly',
+        'capacity' => 50,
+        'is_active' => true,
+    ]);
+
+    $response = $this->actingAs($this->admin)->post(route('admin.facilities.store'), [
+        'facility_type' => 'set',
+        'name' => 'Grand Conference Complex (Alpha + Beta)',
+        'prefix_code' => 'GCC',
+        'description' => 'Combined halls for massive conferences.',
+        'capacity' => 100,
+        'hourly_rate' => 2000,
+        'daily_rate' => 15000,
+        'rate_type' => 'both',
+        'is_active' => 1,
+        'member_facilities' => [$f1->facility_id, $f2->facility_id],
+    ]);
+
+    $response->assertRedirect(route('admin.facilities.index'));
+
+    $set = FacilitySet::with('facilities')->where('name', 'Grand Conference Complex (Alpha + Beta)')->first();
+    expect($set)->not->toBeNull();
+    expect($set->prefix_code)->toBe('GCC');
+    expect($set->facilities)->toHaveCount(2);
+    expect($set->effective_hourly_rate)->toBe(2000.0);
+    expect($set->effective_daily_rate)->toBe(15000.0);
 });

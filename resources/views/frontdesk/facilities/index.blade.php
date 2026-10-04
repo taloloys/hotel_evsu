@@ -79,10 +79,10 @@
                class="btn btn-sm btn-outline-secondary rounded-pill shadow-sm fw-semibold">
                 <i class="fa-solid fa-calendar-check me-1"></i> Reservations
             </a>
-            <a href="{{ route('frontdesk.facilities.create') }}"
+            <a href="{{ route('frontdesk.facilities.create', ['type' => 'single']) }}"
                class="btn btn-sm rounded-pill fw-semibold shadow-sm text-white"
                style="background:#334c42;border-color:#334c42;">
-                <i class="fa-solid fa-plus me-1"></i> Add Facility / Set
+                <i class="fa-solid fa-plus me-1"></i> Add Facility
             </a>
         </div>
     </div>
@@ -198,10 +198,14 @@
 
 {{-- ── Consolidated Facility Sets ────────────────────────────────────────── --}}
 <div class="card shadow-sm border-0 rounded-4 overflow-hidden" style="border:1px solid #c2a889 !important;">
-    <div class="card-header bg-white py-3 px-4" style="border-bottom:1px solid #f0e8de;">
+    <div class="card-header bg-white d-flex justify-content-between align-items-center py-3 px-4" style="border-bottom:1px solid #f0e8de;">
         <h5 class="mb-0 fw-bold" style="color:#1a1a1a;">
             <i class="fa-solid fa-layer-group me-2" style="color:#92400e;"></i>Consolidated Facility Sets
         </h5>
+        <a href="{{ route('frontdesk.facilities.create', ['type' => 'set']) }}"
+           class="btn btn-sm rounded-pill fw-semibold shadow-sm text-dark btn-warning">
+            <i class="fa-solid fa-layer-group me-1"></i> Add Facility Set
+        </a>
     </div>
     <div class="card-body p-0">
         <div class="table-responsive">

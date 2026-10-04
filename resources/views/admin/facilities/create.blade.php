@@ -45,7 +45,8 @@
                                     </div>
                                 </div>
                                 <input type="radio" name="facility_type" value="single" class="d-none"
-                                       :checked="type === 'single'" x-model="type">
+                                       :checked="type === 'single'" x-model="type"
+                                       {{ old('facility_type', request('type', 'single')) === 'single' ? 'checked' : '' }}>
                             </label>
                         </div>
                         <div class="col-md-6">
@@ -61,7 +62,8 @@
                                     </div>
                                 </div>
                                 <input type="radio" name="facility_type" value="set" class="d-none"
-                                       :checked="type === 'set'" x-model="type">
+                                       :checked="type === 'set'" x-model="type"
+                                       {{ old('facility_type', request('type', 'single')) === 'set' ? 'checked' : '' }}>
                             </label>
                         </div>
                     </div>
@@ -85,7 +87,7 @@
                                    :placeholder="type === 'set' ? 'Combined capacity (optional)' : 'e.g. 50'">
                             <div class="form-text" x-show="type === 'set'">Leave blank to auto-sum member capacities.</div>
                         </div>
-                        <div class="col-12" x-show="type === 'set'" x-transition>
+                        <div class="col-12" x-show="type === 'set'" x-cloak x-transition>
                             <label class="form-label fw-bold">Reservation Prefix Code <span class="text-muted fw-normal">(optional)</span></label>
                             <input type="text" name="prefix_code" class="form-control"
                                    value="{{ old('prefix_code') }}" maxlength="20"
@@ -100,14 +102,14 @@
                     </div>
 
                     {{-- MEMBER FACILITIES (sets only) ---------------------------------------}}
-                    <div x-show="type === 'set'" x-transition class="mb-4">
+                    <div x-show="type === 'set'" x-cloak x-transition class="mb-4">
                         <h5 class="text-primary fw-bold mb-3 border-bottom pb-2">Member Facilities</h5>
                         <div class="alert alert-info border-0 rounded-3 small py-2">
                             <i class="fa-solid fa-circle-info me-1"></i>
                             Reserving this set will simultaneously block <strong>all selected individual facilities</strong> below.
                         </div>
                         <div class="row g-2 mt-2">
-                            @foreach($individualFacilities as $f)
+                            @forelse($individualFacilities as $f)
                             <div class="col-md-4 col-6">
                                 <label class="d-flex align-items-center gap-2 border rounded-3 p-2 cursor-pointer hover-bg-light" style="font-size:.9rem;">
                                     <input type="checkbox" name="member_facilities[]"
@@ -122,7 +124,12 @@
                                     </span>
                                 </label>
                             </div>
-                            @endforeach
+                            @empty
+                            <div class="col-12 text-muted fst-italic py-2">
+                                <i class="fa-solid fa-triangle-exclamation text-warning me-1"></i>
+                                No individual facilities available yet. Please create single facilities first before creating a consolidated set.
+                            </div>
+                            @endforelse
                         </div>
                     </div>
 
@@ -194,7 +201,7 @@
 <script>
 function facilityForm() {
     return {
-        type: '{{ old('facility_type', 'single') }}',
+        type: '{{ old('facility_type', request('type', 'single')) }}',
     }
 }
 </script>

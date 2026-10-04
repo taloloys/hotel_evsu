@@ -27,8 +27,8 @@
             <i class="fa-solid fa-building me-2 text-primary"></i>Individual Facilities
             <span class="badge bg-secondary ms-2 rounded-pill" style="font-size:.75rem;">{{ $facilities->count() }}</span>
         </h5>
-        <a href="{{ route('admin.facilities.create') }}" class="btn btn-primary btn-sm rounded-pill fw-semibold shadow-sm">
-            <i class="fa-solid fa-plus me-1"></i> Add Facility / Set
+        <a href="{{ route('admin.facilities.create', ['type' => 'single']) }}" class="btn btn-primary btn-sm rounded-pill fw-semibold shadow-sm">
+            <i class="fa-solid fa-plus me-1"></i> Add Facility
         </a>
     </div>
     <div class="card-body p-0">
@@ -129,11 +129,14 @@
 
 {{-- ── Consolidated Facility Sets ────────────────────────────────────────── --}}
 <div class="card shadow-sm border-0">
-    <div class="card-header bg-white py-3">
+    <div class="card-header bg-white d-flex justify-content-between align-items-center py-3">
         <h5 class="mb-0 text-dark fw-bold">
             <i class="fa-solid fa-layer-group me-2 text-warning"></i>Consolidated Facility Sets
             <span class="badge bg-warning text-dark ms-2 rounded-pill" style="font-size:.75rem;">{{ $facilitySets->count() }}</span>
         </h5>
+        <a href="{{ route('admin.facilities.create', ['type' => 'set']) }}" class="btn btn-warning btn-sm rounded-pill fw-semibold shadow-sm text-dark">
+            <i class="fa-solid fa-layer-group me-1"></i> Add Facility Set
+        </a>
     </div>
     <div class="card-body p-0">
         <div class="table-responsive">
