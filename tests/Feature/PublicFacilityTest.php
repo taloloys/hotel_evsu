@@ -140,3 +140,82 @@ test('booking form pre-populates multi-day date range and event information', fu
     $response->assertSee('Auditorium setup for 300 participants');
     $response->assertSee("endDate: '{$endDate}'", false);
 });
+
+test('booking page contains terms agreement gate elements and hidden input in form', function (): void {
+    $facility = Facility::create([
+        'name' => 'Executive Conference Room',
+        'description' => 'Conference room',
+        'capacity' => 20,
+        'rate' => 1200.00,
+        'hourly_rate' => 1200.00,
+        'rate_type' => 'hourly',
+        'is_active' => true,
+    ]);
+
+    $response = $this->get(route('facilities.book', $facility));
+
+    $response->assertStatus(200);
+    $response->assertSee(':disabled="!scrolledToBottom"', false);
+    $response->assertSee('terms-container');
+    $response->assertSee('<input type="hidden" name="terms_accepted" value="1">', false);
+    $response->assertSee('Scroll down inside the terms box to unlock the agreement');
+});
+
+test('facility booking submission requires terms_accepted', function (): void {
+    $facility = Facility::create([
+        'name' => 'Meeting Room',
+        'description' => 'Meeting room',
+        'capacity' => 10,
+        'rate' => 500.00,
+        'hourly_rate' => 500.00,
+        'rate_type' => 'hourly',
+        'is_active' => true,
+    ]);
+
+    $response = $this->from(route('facilities.book', $facility))->post(route('facilities.submit', $facility), [
+        'booker_name' => 'Maria Clara',
+        'booker_email' => 'maria@example.com',
+        'booker_contact' => '09123456789',
+        'reservation_date' => now()->addDays(2)->format('Y-m-d'),
+        'start_time' => '08:00',
+        'end_time' => '12:00',
+        'billing_type' => 'hourly',
+    ]);
+
+    $response->assertSessionHasErrors(['terms_accepted']);
+    $this->assertDatabaseCount('facility_reservations', 0);
+});
+
+test('facility booking submission succeeds when terms_accepted is provided', function (): void {
+    $facility = Facility::create([
+        'name' => 'Meeting Room',
+        'description' => 'Meeting room',
+        'capacity' => 10,
+        'rate' => 500.00,
+        'hourly_rate' => 500.00,
+        'rate_type' => 'hourly',
+        'is_active' => true,
+    ]);
+
+    $date = now()->addDays(2)->format('Y-m-d');
+    $response = $this->post(route('facilities.submit', $facility), [
+        'booker_name' => 'Maria Clara',
+        'booker_email' => 'maria@example.com',
+        'booker_contact' => '09123456789',
+        'event_name' => 'Strategic Planning',
+        'event_details' => 'Annual strategic planning meeting',
+        'reservation_date' => $date,
+        'start_time' => '08:00',
+        'end_time' => '12:00',
+        'billing_type' => 'hourly',
+        'terms_accepted' => '1',
+    ]);
+
+    $reservation = FacilityReservation::first();
+    expect($reservation)->not->toBeNull()
+        ->and($reservation->booker_name)->toBe('Maria Clara')
+        ->and($reservation->terms_accepted)->toBeTrue()
+        ->and($reservation->status)->toBe('pending');
+
+    $response->assertRedirect(route('facilities.confirmation', $reservation));
+});
