@@ -8,6 +8,7 @@ use App\Models\Facility;
 use App\Models\FacilityReservation;
 use App\Models\FacilitySet;
 use App\Services\ImageService;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
@@ -209,7 +210,7 @@ class FacilityManagementController extends Controller
             ->with('success', 'Facility "'.$facility->name.'" updated successfully.');
     }
 
-    public function toggle(Request $request, string $id): RedirectResponse
+    public function toggle(Request $request, string $id): RedirectResponse|JsonResponse
     {
         if ($request->query('type') === 'set') {
             $set = FacilitySet::findOrFail($id);
@@ -227,6 +228,20 @@ class FacilityManagementController extends Controller
         Cache::forget('public_showcase_data');
         ActivityLog::log('FACILITY_TOGGLED', "Toggled facility {$facility->name} active status.");
         $label = $facility->is_active ? 'enabled' : 'disabled';
+
+        if ($request->wantsJson()) {
+            return response()->json([
+                'success' => true,
+                'is_active' => $facility->is_active,
+                'label' => $label,
+                'message' => 'Facility "'.$facility->name.'" has been '.$label.'.',
+            ]);
+        }
+
+        if ($request->input('return_to') === 'monitoring' || $request->query('return_to') === 'monitoring') {
+            return redirect()->route('frontdesk.monitoring', ['panel' => 'facilities'])
+                ->with('success', 'Facility "'.$facility->name.'" has been '.$label.'.');
+        }
 
         return redirect()->route('frontdesk.facilities.index')
             ->with('success', 'Facility "'.$facility->name.'" has been '.$label.'.');

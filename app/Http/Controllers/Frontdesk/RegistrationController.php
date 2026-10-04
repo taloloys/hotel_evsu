@@ -167,6 +167,12 @@ class RegistrationController extends Controller
             // Log or ignore email dispatch failures gracefully
         }
 
+        if ($request->input('return_to') === 'monitoring' || $request->query('return_to') === 'monitoring') {
+            return redirect()
+                ->route('frontdesk.monitoring', ['panel' => 'rooms'])
+                ->with('success', "{$guestName} registered successfully. Room {$room->room_number} is now occupied.");
+        }
+
         return redirect()
             ->route('frontdesk.dashboard')
             ->with('success', "{$guestName} registered successfully. Room {$room->room_number} is now occupied.");

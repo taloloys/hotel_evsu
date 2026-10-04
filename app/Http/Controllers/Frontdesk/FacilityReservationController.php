@@ -47,8 +47,19 @@ class FacilityReservationController extends Controller
 
         $selectedFacilityId = $request->query('facility') ?? $request->query('facility_id');
         $selectedFacilitySetId = $request->query('facility_set') ?? $request->query('facility_set_id');
+        $selectedDate = $request->query('date') ?? $request->query('reservation_date');
+        $selectedStartTime = $request->query('start_time');
+        $selectedEndTime = $request->query('end_time');
 
-        return view('frontdesk.facility-reservations.create', compact('facilities', 'facilitySets', 'selectedFacilityId', 'selectedFacilitySetId'));
+        return view('frontdesk.facility-reservations.create', compact(
+            'facilities',
+            'facilitySets',
+            'selectedFacilityId',
+            'selectedFacilitySetId',
+            'selectedDate',
+            'selectedStartTime',
+            'selectedEndTime'
+        ));
     }
 
     public function store(Request $request): RedirectResponse
@@ -151,6 +162,11 @@ class FacilityReservationController extends Controller
 
         ActivityLog::log('FACILITY_RESERVATION_CREATED', "Created facility reservation #{$reservation->reference_number} for {$reservation->booker_name}.");
 
+        if ($request->input('return_to') === 'monitoring' || $request->query('return_to') === 'monitoring') {
+            return redirect()->route('frontdesk.monitoring', ['panel' => 'facilities'])
+                ->with('success', "Facility reservation #{$reservation->reference_number} has been created successfully.");
+        }
+
         return redirect()->route('frontdesk.facility-reservations.show', $reservation)
             ->with('success', "Facility reservation #{$reservation->reference_number} has been created successfully.");
     }
@@ -227,6 +243,11 @@ class FacilityReservationController extends Controller
         Mail::to($approved->booker_email)->queue(new FacilityReservationApprovedMail($approved));
         ActivityLog::log('FACILITY_RESERVATION_APPROVED', "Approved facility reservation #{$approved->reference_number}.");
 
+        if (request('return_to') === 'monitoring') {
+            return redirect()->route('frontdesk.monitoring', ['panel' => 'facilities'])
+                ->with('success', "Reservation {$approved->reference_number} approved. Confirmation email queued.");
+        }
+
         return redirect()->route('frontdesk.facility-reservations.index')
             ->with('success', "Reservation {$approved->reference_number} approved. Confirmation email queued.");
     }
@@ -247,6 +268,11 @@ class FacilityReservationController extends Controller
         Mail::to($reservation->booker_email)->queue(new FacilityReservationRejectedMail($reservation));
         ActivityLog::log('FACILITY_RESERVATION_REJECTED', "Rejected facility reservation #{$reservation->reference_number}.");
 
+        if ($request->input('return_to') === 'monitoring' || request('return_to') === 'monitoring') {
+            return redirect()->route('frontdesk.monitoring', ['panel' => 'facilities'])
+                ->with('success', "Reservation {$reservation->reference_number} rejected.");
+        }
+
         return redirect()->route('frontdesk.facility-reservations.index')
             ->with('success', "Reservation {$reservation->reference_number} rejected.");
     }
@@ -263,6 +289,11 @@ class FacilityReservationController extends Controller
         ]);
 
         ActivityLog::log('FACILITY_RESERVATION_CHECKED_IN', "Checked in facility reservation #{$reservation->reference_number} for {$reservation->booker_name}.");
+
+        if (request('return_to') === 'monitoring') {
+            return redirect()->route('frontdesk.monitoring', ['panel' => 'facilities'])
+                ->with('success', "Reservation {$reservation->reference_number} is now Active (Checked In).");
+        }
 
         return back()->with('success', "Reservation {$reservation->reference_number} is now Active (Checked In).");
     }
@@ -324,6 +355,11 @@ class FacilityReservationController extends Controller
 
         ActivityLog::log('FACILITY_RESERVATION_EXTENDED', "Extended facility reservation #{$reservation->reference_number} to {$validated['end_date']} {$validated['end_time']}.");
 
+        if ($request->input('return_to') === 'monitoring' || request('return_to') === 'monitoring') {
+            return redirect()->route('frontdesk.monitoring', ['panel' => 'facilities'])
+                ->with('success', "Reservation #{$reservation->reference_number} extended successfully. Updated amount: ₱".number_format($newAmount, 2));
+        }
+
         return back()->with('success', "Reservation #{$reservation->reference_number} extended successfully. Updated amount: ₱".number_format($newAmount, 2));
     }
 
@@ -353,6 +389,11 @@ class FacilityReservationController extends Controller
 
         ActivityLog::log('FACILITY_RESERVATION_TIMED_OUT', "Timed out facility reservation #{$reservation->reference_number}. Final amount: ₱{$charge['final_amount']}.");
 
+        if ($request->input('return_to') === 'monitoring' || request('return_to') === 'monitoring') {
+            return redirect()->route('frontdesk.monitoring', ['panel' => 'facilities'])
+                ->with('success', $msg);
+        }
+
         return back()->with('success', $msg);
     }
 
@@ -374,6 +415,11 @@ class FacilityReservationController extends Controller
         ]);
 
         ActivityLog::log('FACILITY_RESERVATION_CANCELLED', "Cancelled facility reservation #{$reservation->reference_number}.");
+
+        if ($request->input('return_to') === 'monitoring' || request('return_to') === 'monitoring') {
+            return redirect()->route('frontdesk.monitoring', ['panel' => 'facilities'])
+                ->with('success', "Facility reservation #{$reservation->reference_number} has been cancelled.");
+        }
 
         return back()->with('success', "Facility reservation #{$reservation->reference_number} has been cancelled.");
     }

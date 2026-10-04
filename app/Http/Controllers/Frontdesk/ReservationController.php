@@ -208,6 +208,12 @@ class ReservationController extends Controller
             // Log or ignore email dispatch failures gracefully
         }
 
+        if ($request->input('return_to') === 'monitoring' || $request->query('return_to') === 'monitoring') {
+            return redirect()
+                ->route('frontdesk.monitoring', ['panel' => 'rooms'])
+                ->with('success', 'Reservation saved successfully.');
+        }
+
         return redirect()
             ->route('frontdesk.reservation')
             ->with('success', 'Reservation saved successfully. It will appear on the dashboard for today\'s arrivals.');

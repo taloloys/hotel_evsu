@@ -30,6 +30,10 @@
         <form action="{{ route('frontdesk.facility-reservations.store') }}" method="POST">
             @csrf
 
+            @if(request('return_to', old('return_to')))
+                <input type="hidden" name="return_to" value="{{ request('return_to', old('return_to')) }}">
+            @endif
+
             <div class="card shadow-sm border-0 mb-4 rounded-4 overflow-hidden">
                 <div class="card-header bg-white py-3 px-4 border-bottom">
                     <div class="d-flex align-items-center justify-content-between">
@@ -39,9 +43,15 @@
                             </div>
                             <h5 class="fw-bold mb-0 font-display" style="color: #1a1a1a;">Reservation Details</h5>
                         </div>
-                        <a href="{{ route('frontdesk.facility-reservations.index') }}" class="btn btn-sm btn-outline-secondary rounded-pill px-3">
-                            <i class="fa-solid fa-arrow-left me-1"></i> Back to Reservations
-                        </a>
+                        @if(request('return_to', old('return_to')) === 'monitoring')
+                            <a href="{{ route('frontdesk.monitoring', ['panel' => 'facilities']) }}" class="btn btn-sm btn-outline-secondary rounded-pill px-3">
+                                <i class="fa-solid fa-arrow-left me-1"></i> Back to Monitoring
+                            </a>
+                        @else
+                            <a href="{{ route('frontdesk.facility-reservations.index') }}" class="btn btn-sm btn-outline-secondary rounded-pill px-3">
+                                <i class="fa-solid fa-arrow-left me-1"></i> Back to Reservations
+                            </a>
+                        @endif
                     </div>
                 </div>
 
@@ -174,7 +184,7 @@
                                    name="reservation_date"
                                    id="reservation_date"
                                    class="form-control @error('reservation_date') is-invalid @enderror"
-                                   value="{{ old('reservation_date', now()->toDateString()) }}"
+                                   value="{{ old('reservation_date', $selectedDate ?? now()->toDateString()) }}"
                                    min="{{ now()->toDateString() }}"
                                    required>
                             @error('reservation_date')
@@ -188,7 +198,7 @@
                                    name="end_date"
                                    id="end_date"
                                    class="form-control @error('end_date') is-invalid @enderror"
-                                   value="{{ old('end_date', now()->toDateString()) }}"
+                                   value="{{ old('end_date', $selectedDate ?? now()->toDateString()) }}"
                                    min="{{ now()->toDateString() }}">
                             @error('end_date')
                                 <div class="invalid-feedback">{{ $message }}</div>
@@ -201,7 +211,7 @@
                                    name="start_time"
                                    id="start_time"
                                    class="form-control @error('start_time') is-invalid @enderror"
-                                   value="{{ old('start_time', '08:00') }}"
+                                   value="{{ old('start_time', $selectedStartTime ?? '08:00') }}"
                                    required>
                             @error('start_time')
                                 <div class="invalid-feedback">{{ $message }}</div>
@@ -214,7 +224,7 @@
                                    name="end_time"
                                    id="end_time"
                                    class="form-control @error('end_time') is-invalid @enderror"
-                                   value="{{ old('end_time', '12:00') }}"
+                                   value="{{ old('end_time', $selectedEndTime ?? '12:00') }}"
                                    required>
                             @error('end_time')
                                 <div class="invalid-feedback">{{ $message }}</div>
@@ -341,9 +351,15 @@
 
                     {{-- SUBMIT BUTTONS --}}
                     <div class="d-flex justify-content-end gap-2 border-top pt-3">
-                        <a href="{{ route('frontdesk.facility-reservations.index') }}" class="btn btn-outline-secondary rounded-pill px-4">
-                            Cancel
-                        </a>
+                        @if(request('return_to', old('return_to')) === 'monitoring')
+                            <a href="{{ route('frontdesk.monitoring', ['panel' => 'facilities']) }}" class="btn btn-outline-secondary rounded-pill px-4">
+                                Cancel
+                            </a>
+                        @else
+                            <a href="{{ route('frontdesk.facility-reservations.index') }}" class="btn btn-outline-secondary rounded-pill px-4">
+                                Cancel
+                            </a>
+                        @endif
                         <button type="submit" class="btn text-white rounded-pill px-4 shadow-sm fw-semibold" style="background: #334c42;">
                             <i class="fa-solid fa-calendar-check me-1"></i> Confirm &amp; Save Reservation
                         </button>

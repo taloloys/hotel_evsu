@@ -78,6 +78,7 @@
 
     <form method="POST" action="{{ route('frontdesk.registration.store') }}" id="registrationForm">
         @csrf
+        <input type="hidden" name="return_to" value="{{ request('return_to', old('return_to')) }}">
 
         <div class="card border mb-4">
 

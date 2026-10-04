@@ -35,6 +35,11 @@
             <i class="fa-solid fa-chart-line me-2"></i>
             Dashboard
         </a>
+        <a href="{{ route('frontdesk.monitoring') }}"
+           class="nav-link {{ request()->routeIs('frontdesk.monitoring*') ? 'active' : '' }}">
+            <i class="fa-solid fa-calendar-days me-2"></i>
+            Monitoring & Calendar
+        </a>
         @endcan
 
         <!-- RESERVATION -->

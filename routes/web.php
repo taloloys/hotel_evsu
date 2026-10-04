@@ -39,6 +39,7 @@ use App\Http\Controllers\Frontdesk\FacilityManagementController;
 use App\Http\Controllers\Frontdesk\FacilityReservationController;
 use App\Http\Controllers\Frontdesk\GuestFolioController;
 use App\Http\Controllers\Frontdesk\GuestListController;
+use App\Http\Controllers\Frontdesk\MonitoringController as FrontdeskMonitoringController;
 use App\Http\Controllers\Frontdesk\RegistrationController;
 use App\Http\Controllers\Frontdesk\ReservationController;
 use App\Http\Controllers\Frontdesk\ShiftController as FrontdeskShiftController;
@@ -95,7 +96,16 @@ Route::middleware('auth')->group(function () {
             Route::get('/dashboard', [FrontdeskDashboardController::class, 'index'])
                 ->name('frontdesk.dashboard');
 
-            Route::get('/calendar/timeline-data', [FrontdeskDashboardController::class, 'calendarData'])
+            Route::get('/monitoring', [FrontdeskMonitoringController::class, 'index'])
+                ->name('frontdesk.monitoring');
+
+            Route::get('/monitoring/room-timeline-data', [FrontdeskMonitoringController::class, 'roomTimelineData'])
+                ->name('frontdesk.monitoring.room-timeline-data');
+
+            Route::get('/monitoring/facility-timeline-data', [FrontdeskMonitoringController::class, 'facilityTimelineData'])
+                ->name('frontdesk.monitoring.facility-timeline-data');
+
+            Route::get('/calendar/timeline-data', [FrontdeskMonitoringController::class, 'roomTimelineData'])
                 ->name('frontdesk.calendar.timeline-data');
 
             Route::post('/booking/check-in', [BookingOperationController::class, 'checkIn'])

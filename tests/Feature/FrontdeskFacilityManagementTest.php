@@ -163,7 +163,7 @@ test('frontdesk dashboard displays facilities section and schedule', function ()
         'terms_accepted' => true,
     ]);
 
-    $response = $this->actingAs($this->user)->get(route('frontdesk.dashboard'));
+    $response = $this->actingAs($this->user)->get(route('frontdesk.monitoring'));
 
     $response->assertStatus(200);
     $response->assertSee('Hotel Room Monitoring & Calendar', false);

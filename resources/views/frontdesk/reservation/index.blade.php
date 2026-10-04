@@ -325,6 +325,10 @@
         <form method="POST" action="{{ route('frontdesk.reservation.store') }}" id="newReservationForm" class="modal-content">
             @csrf
 
+            @if(request('return_to', old('return_to')))
+                <input type="hidden" name="return_to" value="{{ request('return_to', old('return_to')) }}">
+            @endif
+
             <div class="modal-header">
                 <h5 class="modal-title fw-bold">New Reservation</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
