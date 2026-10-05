@@ -15,6 +15,7 @@ use Carbon\Carbon;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\View\View;
 
@@ -171,7 +172,7 @@ class FacilityReservationController extends Controller
             ->with('success', "Facility reservation #{$reservation->reference_number} has been created successfully.");
     }
 
-    public function show(FacilityReservation $reservation): View
+    public function show(Request $request, FacilityReservation $reservation): View
     {
         $reservation->load(['facility', 'facilitySet.facilities', 'reservedFacilities']);
 
@@ -192,7 +193,9 @@ class FacilityReservationController extends Controller
             $endDate
         );
 
-        return view('frontdesk.facility-reservations.show', compact('reservation', 'hasConflict'));
+        $returnToMonitoring = $request->query('return_to') === 'monitoring';
+
+        return view('frontdesk.facility-reservations.show', compact('reservation', 'hasConflict', 'returnToMonitoring'));
     }
 
     public function approve(FacilityReservation $reservation): RedirectResponse
@@ -240,7 +243,13 @@ class FacilityReservationController extends Controller
             return back()->with('error', 'Cannot approve — the time slot conflicts with an existing approved reservation.');
         }
 
-        Mail::to($approved->booker_email)->queue(new FacilityReservationApprovedMail($approved));
+        if (! empty($approved->booker_email) && filter_var($approved->booker_email, FILTER_VALIDATE_EMAIL)) {
+            try {
+                Mail::to($approved->booker_email)->queue(new FacilityReservationApprovedMail($approved));
+            } catch (\Throwable $e) {
+                Log::warning("Could not queue facility approval email: {$e->getMessage()}");
+            }
+        }
         ActivityLog::log('FACILITY_RESERVATION_APPROVED', "Approved facility reservation #{$approved->reference_number}.");
 
         if (request('return_to') === 'monitoring') {
@@ -265,7 +274,13 @@ class FacilityReservationController extends Controller
             'processed_at' => now(),
         ]);
 
-        Mail::to($reservation->booker_email)->queue(new FacilityReservationRejectedMail($reservation));
+        if (! empty($reservation->booker_email) && filter_var($reservation->booker_email, FILTER_VALIDATE_EMAIL)) {
+            try {
+                Mail::to($reservation->booker_email)->queue(new FacilityReservationRejectedMail($reservation));
+            } catch (\Throwable $e) {
+                Log::warning("Could not queue facility rejection email: {$e->getMessage()}");
+            }
+        }
         ActivityLog::log('FACILITY_RESERVATION_REJECTED', "Rejected facility reservation #{$reservation->reference_number}.");
 
         if ($request->input('return_to') === 'monitoring' || request('return_to') === 'monitoring') {

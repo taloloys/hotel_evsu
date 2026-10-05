@@ -7,7 +7,7 @@
 @section('content')
 
 <div class="mb-3 d-flex justify-content-between align-items-center">
-    <a href="{{ route('frontdesk.facility-reservations.index') }}" class="btn btn-sm btn-outline-secondary rounded-pill shadow-sm">
+    <a href="{{ $returnToMonitoring ? route('frontdesk.monitoring', ['panel' => 'facilities']) : route('frontdesk.facility-reservations.index') }}" class="btn btn-sm btn-outline-secondary rounded-pill shadow-sm">
         <i class="fa-solid fa-arrow-left me-1"></i> Back to List
     </a>
     <span class="badge font-monospace px-3 py-2 fs-6 rounded-pill" style="background: #334c42; color: #fff;">
@@ -275,6 +275,9 @@
                 @if($reservation->status === 'pending')
                     <form action="{{ route('frontdesk.facility-reservations.approve', $reservation) }}" method="POST" class="mb-3" onsubmit="return confirm('Are you sure you want to approve this reservation? An email confirmation will be sent to the booker.');">
                         @csrf @method('PATCH')
+                        @if($returnToMonitoring)
+                            <input type="hidden" name="return_to" value="monitoring">
+                        @endif
                         <button type="submit" class="btn btn-success w-100 py-3 fw-bold shadow-sm rounded-3" {{ $hasConflict ? 'disabled' : '' }}>
                             <i class="fa-solid fa-check-circle me-2"></i> Approve Request
                         </button>
@@ -287,6 +290,9 @@
 
                     <form action="{{ route('frontdesk.facility-reservations.reject', $reservation) }}" method="POST" onsubmit="return confirm('Are you sure you want to reject this reservation? An email notification will be sent to the booker.');">
                         @csrf @method('PATCH')
+                        @if($returnToMonitoring)
+                            <input type="hidden" name="return_to" value="monitoring">
+                        @endif
                         <div class="mb-3">
                             <label class="form-label fw-bold text-muted small">Rejection Note (Optional)</label>
                             <textarea name="admin_notes" class="form-control" rows="3" placeholder="Reason for rejection (will be included in email)..."></textarea>
@@ -301,6 +307,9 @@
                     <div class="d-grid gap-2">
                         <form action="{{ route('frontdesk.facility-reservations.check-in', $reservation) }}" method="POST" onsubmit="return confirm('Start this booking now and mark facility as Active/In-use?');">
                             @csrf @method('PATCH')
+                            @if($returnToMonitoring)
+                                <input type="hidden" name="return_to" value="monitoring">
+                            @endif
                             <button type="submit" class="btn btn-primary w-100 py-2.5 fw-bold shadow-sm rounded-3">
                                 <i class="fa-solid fa-play me-2"></i> Check-In / Start Booking
                             </button>
@@ -320,6 +329,9 @@
                     <div class="d-grid gap-2">
                         <form action="{{ route('frontdesk.facility-reservations.time-out', $reservation) }}" method="POST" onsubmit="return confirm('End this booking now and record Time-Out? Any excess hours will automatically be computed.');">
                             @csrf @method('PATCH')
+                            @if($returnToMonitoring)
+                                <input type="hidden" name="return_to" value="monitoring">
+                            @endif
                             <button type="submit" class="btn btn-success w-100 py-3 fw-bold shadow-sm rounded-3">
                                 <i class="fa-solid fa-stop me-2"></i> Check-Out / Time-Out
                             </button>
@@ -367,6 +379,9 @@
     <div class="modal-dialog">
         <form action="{{ route('frontdesk.facility-reservations.extend', $reservation) }}" method="POST">
             @csrf @method('PATCH')
+            @if($returnToMonitoring)
+                <input type="hidden" name="return_to" value="monitoring">
+            @endif
             <div class="modal-content border-0 shadow">
                 <div class="modal-header bg-light">
                     <h5 class="modal-title fw-bold" id="extendModalLabel">
@@ -408,6 +423,9 @@
     <div class="modal-dialog">
         <form action="{{ route('frontdesk.facility-reservations.cancel', $reservation) }}" method="POST">
             @csrf @method('PATCH')
+            @if($returnToMonitoring)
+                <input type="hidden" name="return_to" value="monitoring">
+            @endif
             <div class="modal-content border-0 shadow">
                 <div class="modal-header bg-danger text-white">
                     <h5 class="modal-title fw-bold" id="cancelModalLabel">

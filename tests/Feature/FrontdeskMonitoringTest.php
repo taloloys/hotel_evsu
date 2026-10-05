@@ -8,6 +8,7 @@ use App\Models\Room;
 use App\Models\User;
 use Carbon\Carbon;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Mail;
 
 uses(RefreshDatabase::class);
 
@@ -71,8 +72,22 @@ test('frontdesk staff can view the monitoring page with room and facility contai
     $response->assertSee('Grand Conference Ballroom');
     $response->assertSee('Executive Suite');
     $response->assertSee('data-turbo-cache="false"', false);
+    $response->assertSee('<meta name="turbo-cache-control" content="no-cache">', false);
     $response->assertSee('window.fetchRoomTimelineData', false);
     $response->assertSee('window.fetchFacilityTimelineData', false);
+    $response->assertSee('window.rejectFacilityReservation', false);
+    $response->assertSee('window.closeFacilityReservationModal', false);
+    $response->assertDontSee('facilityReservationModal?.hide()', false);
+    $response->assertSee('submitFacilityReservationRejection', false);
+    $response->assertSee("['admin_notes', reason]", false);
+
+    $html = $response->getContent();
+    $panelSwitcherPosition = strpos($html, 'window.switchMonitoringPanel = function(panel)');
+    $initializationPosition = strrpos($html, 'initMonitoringPage();');
+
+    expect($panelSwitcherPosition)->not->toBeFalse()
+        ->and($initializationPosition)->not->toBeFalse()
+        ->and($panelSwitcherPosition)->toBeLessThan($initializationPosition);
 });
 
 test('frontdesk staff can fetch facility timeline data', function (): void {
@@ -124,6 +139,83 @@ test('frontdesk staff can fetch facility timeline data', function (): void {
     expect($pavilion['reservations'])->toBeArray()->and(count($pavilion['reservations']))->toBe(1);
     expect($pavilion['reservations'][0]['booker_name'])->toBe('Engr. John Doe');
     expect($pavilion['reservations'][0]['event_name'])->toBe('Annual Engineering Summit');
+});
+
+test('frontdesk staff can reject a pending facility reservation from monitoring', function (): void {
+    Mail::fake();
+
+    $facility = Facility::create([
+        'name' => 'Executive Conference Room',
+        'rate' => 1200,
+        'rate_type' => 'hourly',
+        'capacity' => 20,
+        'is_active' => true,
+    ]);
+
+    $reservation = FacilityReservation::create([
+        'facility_id' => $facility->facility_id,
+        'booker_name' => 'Adrianna Strosin',
+        'booker_email' => 'letitia52@example.net',
+        'booker_contact' => '09773074402',
+        'event_name' => 'Facility Reservation',
+        'reservation_date' => Carbon::today()->toDateString(),
+        'end_date' => Carbon::today()->toDateString(),
+        'start_time' => '13:00:00',
+        'end_time' => '16:00:00',
+        'billing_type' => 'hourly',
+        'duration_hours' => 3,
+        'estimated_amount' => 3600,
+        'status' => 'pending',
+        'terms_accepted' => true,
+    ]);
+
+    $response = $this->actingAs($this->staffUser)
+        ->patch(route('frontdesk.facility-reservations.reject', $reservation), [
+            'admin_notes' => 'Time slot is unavailable.',
+            'return_to' => 'monitoring',
+        ]);
+
+    $response->assertRedirect(route('frontdesk.monitoring', ['panel' => 'facilities']))
+        ->assertSessionHas('success');
+
+    expect($reservation->refresh()->status)->toBe('rejected')
+        ->and($reservation->admin_notes)->toBe('Time slot is unavailable.');
+});
+
+test('facility details opened from monitoring returns to monitoring', function (): void {
+    $facility = Facility::create([
+        'name' => 'Executive Conference Room',
+        'rate' => 1200,
+        'rate_type' => 'hourly',
+        'capacity' => 20,
+        'is_active' => true,
+    ]);
+
+    $reservation = FacilityReservation::create([
+        'facility_id' => $facility->facility_id,
+        'booker_name' => 'Adrianna Strosin',
+        'booker_email' => 'letitia52@example.net',
+        'booker_contact' => '09773074402',
+        'reservation_date' => Carbon::today()->toDateString(),
+        'end_date' => Carbon::today()->toDateString(),
+        'start_time' => '13:00:00',
+        'end_time' => '16:00:00',
+        'billing_type' => 'hourly',
+        'duration_hours' => 3,
+        'estimated_amount' => 3600,
+        'status' => 'pending',
+        'terms_accepted' => true,
+    ]);
+
+    $response = $this->actingAs($this->staffUser)
+        ->get(route('frontdesk.facility-reservations.show', [
+            'reservation' => $reservation,
+            'return_to' => 'monitoring',
+        ]));
+
+    $response->assertOk()
+        ->assertSee(route('frontdesk.monitoring', ['panel' => 'facilities']), false)
+        ->assertSee('name="return_to" value="monitoring"', false);
 });
 
 test('frontdesk staff can fetch room timeline data from monitoring endpoint', function (): void {

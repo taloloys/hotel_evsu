@@ -29,6 +29,10 @@
             height: 100% !important;
         }
 
+        .swal2-container {
+            z-index: 10000 !important;
+        }
+
         /* Ensure SweetAlert, Modals, Toasts, and Alerts overlay properly on top in Fullscreen mode */
         :fullscreen .swal2-container,
         :-webkit-full-screen .swal2-container,
@@ -776,6 +780,9 @@
         document.addEventListener('turbo:load', function() {
             restoreSidebarScroll();
             fetchLayoutData();
+            if (window.resetSubmittingFormsAndButtons) {
+                window.resetSubmittingFormsAndButtons();
+            }
             if (window.layoutDataInterval) {
                 clearInterval(window.layoutDataInterval);
             }
@@ -784,6 +791,9 @@
 
         // Clean up Bootstrap modals and backdrops before caching the page
         document.addEventListener('turbo:before-cache', function() {
+            if (window.resetSubmittingFormsAndButtons) {
+                window.resetSubmittingFormsAndButtons();
+            }
             const openModals = document.querySelectorAll('.modal.show');
             openModals.forEach(modalEl => {
                 const modalInstance = bootstrap.Modal.getInstance(modalEl);
@@ -993,6 +1003,26 @@
             btn.disabled = false;
         }
     };
+
+    window.resetSubmittingFormsAndButtons = function() {
+        document.querySelectorAll('form[data-submitting="true"]').forEach(form => {
+            delete form.dataset.submitting;
+            const submitBtn = form.querySelector('button[type="submit"], input[type="submit"]')
+                           || form.querySelector('button:not([type="button"])');
+            if (submitBtn) {
+                window.setBtnLoading(submitBtn, false);
+            }
+        });
+        document.querySelectorAll('button[data-original-html]').forEach(btn => {
+            window.setBtnLoading(btn, false);
+        });
+    };
+
+    window.addEventListener('pageshow', function() {
+        if (window.resetSubmittingFormsAndButtons) {
+            window.resetSubmittingFormsAndButtons();
+        }
+    });
 
     // Global Anti-Duplication Form Submit Listener
     document.addEventListener('submit', function(e) {

@@ -4,6 +4,10 @@
 @section('pageTitle', 'Monitoring & Calendar')
 @section('pageSubtitle', 'Live room & facility occupancy status, reservation timelines, and schedules')
 
+@push('styles')
+<meta name="turbo-cache-control" content="no-cache">
+@endpush
+
 @section('content')
 
 @if(session('success'))
@@ -1214,7 +1218,7 @@
                 <p class="text-muted small mb-3">Are you sure you want to cancel or reject reservation <strong id="facCancelRefNum" class="text-dark"></strong>?</p>
                 <div class="mb-3">
                     <label class="form-label fw-bold small">Cancellation / Rejection Reason <span class="text-danger">*</span></label>
-                    <textarea name="cancellation_notes" id="facCancelReason" class="form-control" rows="3" placeholder="State reason for staff and client records..." required></textarea>
+                    <textarea name="admin_notes" id="facCancelReason" class="form-control" rows="3" placeholder="State reason for staff and client records..." required></textarea>
                 </div>
             </div>
             <div class="modal-footer border-0 pt-0 px-4 pb-4">
@@ -1417,18 +1421,19 @@
             document.body.style.removeProperty('overflow');
         }
 
-        // Reset timeline content to a neutral (non-spinner) placeholder before Turbo caches the page.
-        // This prevents a cached snapshot from restoring with a perpetual loading spinner.
-        function resetTimelineContentForCache() {
-            const roomsContent = document.getElementById('roomsTimelineContent');
-            if (roomsContent) roomsContent.innerHTML = '';
-            const facilContent = document.getElementById('facilitiesTimelineContent');
-            if (facilContent) facilContent.innerHTML = '';
+        function cleanupMonitoring() {
+            monitoringPageGeneration++;
+            timelineRequestControllers.forEach(controller => controller.abort());
+            timelineRequestControllers.clear();
+            closeAllOpenModals();
         }
 
         function initMonitoringPage() {
             const appContainer = document.getElementById('monitoringAppContainer');
             if (!appContainer) return;
+            if (document.documentElement.hasAttribute('data-turbo-preview')) return;
+            if (appContainer.dataset.initialized === 'true') return;
+            appContainer.dataset.initialized = 'true';
 
             monitoringPageGeneration++;
             timelineRequestControllers.forEach(controller => controller.abort());
@@ -1458,33 +1463,55 @@
             window.switchMonitoringPanel(currentPanel);
         }
 
-        // Prevent listener stacking: remove any previously registered handler before adding a new one.
-        // The IIFE re-executes on every Turbo full-visit (fresh page fetch), which would otherwise
-        // accumulate multiple turbo:load listeners, causing competing fetch() calls and stuck spinners.
+        // Prevent listener stacking: clean up old handlers on document
         if (window._monitoringTurboLoadHandler) {
             document.removeEventListener('turbo:load', window._monitoringTurboLoadHandler);
         }
-        if (window._monitoringTurboBeforeCacheHandler) {
-            document.removeEventListener('turbo:before-cache', window._monitoringTurboBeforeCacheHandler);
+        if (window._monitoringTurboBeforeVisitHandler) {
+            document.removeEventListener('turbo:before-visit', window._monitoringTurboBeforeVisitHandler);
+        }
+        if (window._monitoringTurboBeforeRenderHandler) {
+            document.removeEventListener('turbo:before-render', window._monitoringTurboBeforeRenderHandler);
         }
 
-        window._monitoringTurboLoadHandler = initMonitoringPage;
-        window._monitoringTurboBeforeCacheHandler = function() {
-            monitoringPageGeneration++;
-            timelineRequestControllers.forEach(controller => controller.abort());
-            timelineRequestControllers.clear();
-            closeAllOpenModals();
-            resetTimelineContentForCache();
+        window._monitoringTurboLoadHandler = function() {
+            const appContainer = document.getElementById('monitoringAppContainer');
+            if (!appContainer) {
+                if (window._monitoringTurboLoadHandler) {
+                    document.removeEventListener('turbo:load', window._monitoringTurboLoadHandler);
+                    window._monitoringTurboLoadHandler = null;
+                }
+                return;
+            }
+            initMonitoringPage();
+        };
+
+        window._monitoringTurboBeforeVisitHandler = function() {
+            cleanupMonitoring();
+        };
+
+        window._monitoringTurboBeforeRenderHandler = function(e) {
+            cleanupMonitoring();
+            const nextContainer = e?.detail?.newBody?.querySelector('#monitoringAppContainer');
+            if (!nextContainer) {
+                if (window._monitoringTurboLoadHandler) {
+                    document.removeEventListener('turbo:load', window._monitoringTurboLoadHandler);
+                    window._monitoringTurboLoadHandler = null;
+                }
+                if (window._monitoringTurboBeforeVisitHandler) {
+                    document.removeEventListener('turbo:before-visit', window._monitoringTurboBeforeVisitHandler);
+                    window._monitoringTurboBeforeVisitHandler = null;
+                }
+                if (window._monitoringTurboBeforeRenderHandler) {
+                    document.removeEventListener('turbo:before-render', window._monitoringTurboBeforeRenderHandler);
+                    window._monitoringTurboBeforeRenderHandler = null;
+                }
+            }
         };
 
         document.addEventListener('turbo:load', window._monitoringTurboLoadHandler);
-        document.addEventListener('turbo:before-cache', window._monitoringTurboBeforeCacheHandler);
-
-        if (document.readyState !== 'loading') {
-            initMonitoringPage();
-        } else {
-            document.addEventListener('DOMContentLoaded', initMonitoringPage);
-        }
+        document.addEventListener('turbo:before-visit', window._monitoringTurboBeforeVisitHandler);
+        document.addEventListener('turbo:before-render', window._monitoringTurboBeforeRenderHandler);
 
         // Panel Switcher (Rooms vs Facilities)
         window.switchMonitoringPanel = function(panel) {
@@ -1602,12 +1629,22 @@
 
                 if (currentPanel === 'facilities') {
                     facilitiesTimeline?.classList.remove('d-none');
-                    if (!facilityTimelineCache) {
+                    if (facilityTimelineCache) {
+                        if (timelineFacilityMode === 'hourly') {
+                            renderFacilityHourlyTimelineTable(facilityTimelineCache);
+                        } else {
+                            renderFacilityTimelineTable(facilityTimelineCache);
+                        }
+                        updateFacilityTimelineControls(facilityTimelineCache);
+                    } else {
                         fetchFacilityTimelineData();
                     }
                 } else {
                     roomsTimeline?.classList.remove('d-none');
-                    if (!roomTimelineCache) {
+                    if (roomTimelineCache) {
+                        renderRoomTimelineTable(roomTimelineCache);
+                        updateRoomTimelineControls(roomTimelineCache);
+                    } else {
                         fetchRoomTimelineData();
                     }
                 }
@@ -2085,6 +2122,7 @@
         // ================= FACILITIES TIMELINE & HOURLY LOGIC =================
 
         window.switchToFacilityHourlyView = function(dateStr) {
+            window.closeFacilityReservationModal?.();
             timelineFacilityMode = 'hourly';
             timelineDays = 1;
             if (dateStr) {
@@ -2818,7 +2856,9 @@
             const res = (facility.reservations || []).find(r => r.reservation_id === reservationId);
             if (!res) return;
 
-            document.getElementById('facModalRefSubtitle').textContent = `Reference #${res.reference_number}`;
+            const safeRef = (res.reference_number || '').replace(/'/g, "\\'");
+            const displayRef = res.reference_number ? (res.reference_number.startsWith('#') ? res.reference_number : `#${res.reference_number}`) : '—';
+            document.getElementById('facModalRefSubtitle').textContent = `Reference ${displayRef}`;
             document.getElementById('facModalFacilityName').textContent = facility.name;
             document.getElementById('facModalBillingInfo').textContent = `${facility.rate_type === 'hourly' ? 'Hourly' : 'Daily'} Rate • ₱${parseFloat(facility.rate).toFixed(2)}`;
 
@@ -2841,7 +2881,7 @@
             document.getElementById('facModalConsolidated').textContent = res.is_consolidated ? (res.facility_set_name || 'Consolidated Set') : 'Direct Single Facility';
 
             const actionsDiv = document.getElementById('facModalActionButtons');
-            const showUrl = `/frontdesk/facility-reservations/${res.reservation_id}`;
+            const showUrl = `/frontdesk/facility-reservations/${res.reservation_id}?return_to=monitoring`;
             const csrfToken = document.querySelector('meta[name="csrf-token"]')?.content || '';
 
             let actionsHtml = `
@@ -2861,7 +2901,7 @@
                             <i class="fa-solid fa-check me-1"></i> Approve
                         </button>
                     </form>
-                    <button type="button" class="btn btn-outline-danger fw-semibold py-2 px-3" onclick="facilityReservationModal?.hide(); window.openFacilityCancelModal(${res.reservation_id}, '${res.reference_number}', 'reject')">
+                    <button type="button" class="btn btn-outline-danger fw-semibold py-2 px-3" onclick="window.rejectFacilityReservation(${res.reservation_id}, '${safeRef}')">
                         <i class="fa-solid fa-xmark me-1"></i> Reject
                     </button>
                 `;
@@ -2875,10 +2915,10 @@
                             <i class="fa-solid fa-play me-1"></i> Check In
                         </button>
                     </form>
-                    <button type="button" class="btn btn-outline-dark fw-semibold py-2 px-3" onclick="facilityReservationModal?.hide(); window.openFacilityExtendModal(${res.reservation_id}, '${res.reference_number}', '${res.end_date}', '${res.end_time || '17:00'}')">
+                    <button type="button" class="btn btn-outline-dark fw-semibold py-2 px-3" onclick="window.openFacilityExtendModal(${res.reservation_id}, '${safeRef}', '${res.end_date}', '${res.end_time || '17:00'}')">
                         <i class="fa-solid fa-clock me-1"></i> Extend
                     </button>
-                    <button type="button" class="btn btn-outline-danger fw-semibold py-2 px-3" onclick="facilityReservationModal?.hide(); window.openFacilityCancelModal(${res.reservation_id}, '${res.reference_number}', 'cancel')">
+                    <button type="button" class="btn btn-outline-danger fw-semibold py-2 px-3" onclick="window.openFacilityCancelModal(${res.reservation_id}, '${safeRef}', 'cancel')">
                         <i class="fa-solid fa-ban me-1"></i> Cancel
                     </button>
                 `;
@@ -2892,14 +2932,14 @@
                             <i class="fa-solid fa-stop me-1"></i> Time Out
                         </button>
                     </form>
-                    <button type="button" class="btn btn-outline-dark fw-semibold py-2 px-3" onclick="facilityReservationModal?.hide(); window.openFacilityExtendModal(${res.reservation_id}, '${res.reference_number}', '${res.end_date}', '${res.end_time || '17:00'}')">
+                    <button type="button" class="btn btn-outline-dark fw-semibold py-2 px-3" onclick="window.openFacilityExtendModal(${res.reservation_id}, '${safeRef}', '${res.end_date}', '${res.end_time || '17:00'}')">
                         <i class="fa-solid fa-clock me-1"></i> Extend
                     </button>
                 `;
             }
 
             actionsHtml += `
-                <button type="button" class="btn btn-sm btn-light border w-100 mt-1 py-1.5" onclick="facilityReservationModal?.hide(); window.switchToFacilityHourlyView('${res.start_date}')">
+                <button type="button" class="btn btn-sm btn-light border w-100 mt-1 py-1.5" onclick="window.switchToFacilityHourlyView('${res.start_date}')">
                     <i class="fa-solid fa-calendar-day me-1 text-primary"></i> View Hourly Schedule for ${res.start_date}
                 </button>
             </div>`;
@@ -2953,8 +2993,21 @@
             facilityQuickInfoModal?.show();
         };
 
+        window.closeFacilityReservationModal = function() {
+            if (facilityReservationModal) {
+                facilityReservationModal.hide();
+            } else {
+                const el = document.getElementById('facilityReservationModal');
+                if (el && window.bootstrap) {
+                    bootstrap.Modal.getOrCreateInstance(el).hide();
+                }
+            }
+        };
+
         // Facility Extend Modal
         window.openFacilityExtendModal = function(reservationId, refNum, currentEndDate, currentEndTime) {
+            window.closeFacilityReservationModal();
+
             const form = document.getElementById('facilityExtendForm');
             if (form) form.action = `/frontdesk/facility-reservations/${reservationId}/extend`;
 
@@ -2972,6 +3025,8 @@
 
         // Facility Cancel / Reject Modal
         window.openFacilityCancelModal = function(reservationId, refNum, actionType) {
+            window.closeFacilityReservationModal();
+
             const form = document.getElementById('facilityCancelForm');
             const label = document.getElementById('facilityCancelModalLabel');
             const submitBtn = document.getElementById('facCancelSubmitBtn');
@@ -2992,6 +3047,67 @@
             facilityCancelModal?.show();
         };
 
+        window.rejectFacilityReservation = async function(reservationId, refNum) {
+            window.closeFacilityReservationModal();
+
+            const popupOptions = {
+                title: `Reject reservation ${refNum || `#${reservationId}`}?`,
+                input: 'textarea',
+                inputLabel: 'Reason for rejection',
+                inputPlaceholder: 'State the reason for rejecting this booking request...',
+                inputAttributes: {
+                    'aria-label': 'Reason for rejection'
+                },
+                showCancelButton: true,
+                confirmButtonText: 'Reject Reservation',
+                confirmButtonColor: '#dc3545',
+                cancelButtonText: 'Keep Booking',
+                reverseButtons: true,
+                inputValidator: value => {
+                    if (!value || !value.trim()) {
+                        return 'A rejection reason is required.';
+                    }
+                    return undefined;
+                }
+            };
+
+            if (!window.Swal) {
+                const reason = window.prompt('Reason for rejection:');
+                if (!reason || !reason.trim()) return;
+
+                submitFacilityReservationRejection(reservationId, reason.trim());
+                return;
+            }
+
+            const result = await window.Swal.fire(popupOptions);
+            if (result.isConfirmed) {
+                submitFacilityReservationRejection(reservationId, result.value.trim());
+            }
+        };
+
+        function submitFacilityReservationRejection(reservationId, reason) {
+            const form = document.createElement('form');
+            form.method = 'POST';
+            form.action = `/frontdesk/facility-reservations/${reservationId}/reject`;
+            form.dataset.turbo = 'false';
+
+            [
+                ['_token', document.querySelector('meta[name="csrf-token"]')?.content || ''],
+                ['_method', 'PATCH'],
+                ['admin_notes', reason],
+                ['return_to', 'monitoring']
+            ].forEach(([name, value]) => {
+                const input = document.createElement('input');
+                input.type = 'hidden';
+                input.name = name;
+                input.value = value;
+                form.appendChild(input);
+            });
+
+            document.body.appendChild(form);
+            form.submit();
+        }
+
         // Helper operations: change room status, check in, extend
         function changeRoomStatus(roomId, action) {
             fetch(`/frontdesk/room/${action}`, {
@@ -3006,30 +3122,90 @@
             .then(res => res.json())
             .then(data => {
                 if (data.success) {
-                    window.location.reload();
+                    roomActionModal?.hide();
+                    if (window.Swal) {
+                        Swal.fire({
+                            icon: 'success',
+                            title: 'Status Updated',
+                            text: data.message,
+                            timer: 1500,
+                            showConfirmButton: false
+                        });
+                    }
+                    roomTimelineCache = null;
+                    fetchRoomTimelineData();
                 } else {
-                    alert(data.message || 'Action failed.');
+                    if (window.Swal) {
+                        Swal.fire({ icon: 'error', title: 'Update Failed', text: data.message || 'Action failed.' });
+                    } else {
+                        alert(data.message || 'Action failed.');
+                    }
                 }
             })
-            .catch(err => alert('Network error: ' + err.message));
+            .catch(err => {
+                if (window.Swal) {
+                    Swal.fire({ icon: 'error', title: 'Network Error', text: err.message });
+                } else {
+                    alert('Network error: ' + err.message);
+                }
+            });
         }
 
         function checkInGuest(bookingId, guestName, roomNumber) {
             document.getElementById('checkInConfirmGuestName').textContent = guestName;
             document.getElementById('checkInConfirmRoomNumber').textContent = roomNumber;
-            document.getElementById('confirmCheckInBtn').onclick = function() {
-                const netRate = document.getElementById('checkInNetRate').value;
-                const form = document.createElement('form');
-                form.method = 'POST';
-                form.action = '{{ route("frontdesk.booking.check-in") }}';
-                form.innerHTML = `
-                    <input type="hidden" name="_token" value="${document.querySelector('meta[name="csrf-token"]')?.content}">
-                    <input type="hidden" name="booking_id" value="${bookingId}">
-                    ${netRate ? `<input type="hidden" name="net_rate" value="${netRate}">` : ''}
-                `;
-                document.body.appendChild(form);
-                form.submit();
-            };
+            const confirmBtn = document.getElementById('confirmCheckInBtn');
+            if (confirmBtn) {
+                confirmBtn.onclick = function() {
+                    const netRate = document.getElementById('checkInNetRate')?.value;
+                    const payload = { booking_id: bookingId };
+                    if (netRate) payload.net_rate = netRate;
+
+                    window.setBtnLoading(confirmBtn, true, 'Processing Check-In...');
+
+                    fetch('{{ route("frontdesk.booking.check-in") }}', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Accept': 'application/json',
+                            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.content
+                        },
+                        body: JSON.stringify(payload)
+                    })
+                    .then(res => res.json())
+                    .then(data => {
+                        window.setBtnLoading(confirmBtn, false);
+                        if (data.success) {
+                            checkInConfirmModal?.hide();
+                            if (window.Swal) {
+                                Swal.fire({
+                                    icon: 'success',
+                                    title: 'Check-In Successful',
+                                    text: data.message,
+                                    timer: 2000,
+                                    showConfirmButton: false
+                                });
+                            }
+                            roomTimelineCache = null;
+                            fetchRoomTimelineData();
+                        } else {
+                            if (window.Swal) {
+                                Swal.fire({ icon: 'error', title: 'Check-In Failed', text: data.message || 'Unable to check in.' });
+                            } else {
+                                alert(data.message || 'Check-in failed.');
+                            }
+                        }
+                    })
+                    .catch(err => {
+                        window.setBtnLoading(confirmBtn, false);
+                        if (window.Swal) {
+                            Swal.fire({ icon: 'error', title: 'Network Error', text: err.message });
+                        } else {
+                            alert('Network error: ' + err.message);
+                        }
+                    });
+                };
+            }
             checkInConfirmModal?.show();
         }
 
@@ -3052,6 +3228,8 @@
                 const newDep = document.getElementById('extendDepartureDate').value;
                 const newTime = document.getElementById('extendDepartureTime').value;
                 const newRate = document.getElementById('extendNetRate').value;
+                const btn = this;
+                window.setBtnLoading(btn, true, 'Updating...');
 
                 fetch('{{ route("frontdesk.booking.extend") }}', {
                     method: 'POST',
@@ -3069,8 +3247,20 @@
                 })
                 .then(r => r.json())
                 .then(res => {
+                    window.setBtnLoading(btn, false);
                     if (res.success) {
-                        window.location.reload();
+                        extendDepartureModal?.hide();
+                        if (window.Swal) {
+                            Swal.fire({
+                                icon: 'success',
+                                title: 'Departure Extended',
+                                text: res.message,
+                                timer: 1500,
+                                showConfirmButton: false
+                            });
+                        }
+                        roomTimelineCache = null;
+                        fetchRoomTimelineData();
                     } else {
                         const err = document.getElementById('extendErrorAlert');
                         if (err) {
@@ -3079,7 +3269,10 @@
                         }
                     }
                 })
-                .catch(e => alert(e.message));
+                .catch(e => {
+                    window.setBtnLoading(btn, false);
+                    alert(e.message);
+                });
             };
 
             extendDepartureModal?.show();
@@ -3090,6 +3283,8 @@
             window.location.href = `/frontdesk/guest-folio`;
         };
 
+        // Run initialization after all public handlers have been assigned.
+        initMonitoringPage();
     })();
 </script>
 @endpush
