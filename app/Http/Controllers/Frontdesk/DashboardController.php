@@ -188,13 +188,20 @@ class DashboardController extends Controller
             });
 
         // Active and upcoming facility reservations for dashboard overview
-        $todayFacilityReservations = FacilityReservation::with('facility')
-            ->whereDate('reservation_date', $today)
-            ->whereIn('status', ['approved', 'pending'])
+        $todayFacilityReservations = FacilityReservation::with(['facility', 'facilitySet', 'reservedFacilities'])
+            ->whereDate('reservation_date', '<=', $today)
+            ->where(function ($q) use ($today) {
+                $q->whereDate('end_date', '>=', $today)
+                    ->orWhere(function ($sub) use ($today) {
+                        $sub->whereNull('end_date')
+                            ->whereDate('reservation_date', '>=', $today);
+                    });
+            })
+            ->whereIn('status', ['approved', 'active', 'pending'])
             ->orderBy('start_time')
             ->get();
 
-        $upcomingFacilityReservations = FacilityReservation::with('facility')
+        $upcomingFacilityReservations = FacilityReservation::with(['facility', 'facilitySet'])
             ->whereDate('reservation_date', '>', $today)
             ->where('status', 'approved')
             ->orderBy('reservation_date')
@@ -204,10 +211,19 @@ class DashboardController extends Controller
 
         $pendingFacilityCount = FacilityReservation::where('status', 'pending')->count();
         $totalFacilities = Facility::where('is_active', true)->count();
-        $bookedFacilitiesToday = FacilityReservation::with('facility')
-            ->whereDate('reservation_date', $today)
-            ->where('status', 'approved')
-            ->count();
+
+        $bookedFacilityIds = collect();
+        foreach ($todayFacilityReservations as $res) {
+            if ($res->status === 'approved' || $res->status === 'active') {
+                if ($res->facility_id) {
+                    $bookedFacilityIds->push($res->facility_id);
+                }
+                foreach ($res->reservedFacilities as $rf) {
+                    $bookedFacilityIds->push($rf->facility_id);
+                }
+            }
+        }
+        $bookedFacilitiesToday = $bookedFacilityIds->unique()->count();
 
         $facilitiesList = Facility::where('is_active', true)
             ->orderBy('sort_order')

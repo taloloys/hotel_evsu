@@ -577,6 +577,20 @@
         </div>
     </div>
 
+    <div class="col-lg-3 col-md-6">
+        <div class="card border-0 shadow-sm rounded-4" style="background: #ffffff; border: 1px solid #c2a889 !important;">
+            <div class="card-body p-4 d-flex align-items-center gap-3">
+                <div class="rounded-circle d-flex align-items-center justify-content-center flex-shrink-0" style="width: 52px; height: 52px; background: #f3ede4; color: #504538;">
+                    <i class="fa-solid fa-building-flag fs-4"></i>
+                </div>
+                <div>
+                    <div class="small fw-bold font-body" style="color: #1a1a1a;">Booked Facilities Today</div>
+                    <h3 class="fw-bold mb-0 mt-1 font-display" style="color: #1a1a1a; font-size: 1.85rem;">{{ $bookedFacilitiesToday }}</h3>
+                </div>
+            </div>
+        </div>
+    </div>
+
 </div>
 
 <!-- TODAY'S CHECK-IN & RESERVATIONS -->
@@ -913,6 +927,78 @@
             <p class="text-muted small mb-0 mt-3 d-none" id="occupiedRoomsNoResults">No occupied rooms match your search.</p>
         @else
             <p class="text-center py-4 mb-0 fw-semibold font-body" style="color: #4a3e35;">No occupied rooms right now</p>
+        @endif
+    </div>
+</div>
+
+<!-- TODAY'S FACILITY CHECK-IN & RESERVATIONS -->
+<div class="card border-0 shadow-sm mb-4 rounded-4 overflow-hidden" style="background: #ffffff; border: 1px solid #c2a889 !important;">
+    <div class="card-body p-4">
+        <div class="d-flex flex-wrap justify-content-between align-items-center gap-3 mb-3">
+            <h5 class="fw-bold mb-0 font-display" style="color: #1a1a1a;">
+                <i class="fa-solid fa-building-flag me-2" style="color: #334c42;"></i> Today's Facility Check-In & Reservations
+                <span class="badge ms-2" style="background: #334c42; color: #ffffff; border-radius: 0.375rem; font-size: 0.85rem;">{{ $todayFacilityReservations->count() }}</span>
+            </h5>
+            <a href="{{ route('frontdesk.facility-reservations.index') }}" class="btn btn-sm fw-semibold" style="border: 1px solid #c2a889; color: #334c42; border-radius: 0.5rem;">
+                View All Facility Bookings
+            </a>
+        </div>
+
+        @if($todayFacilityReservations->count() > 0)
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0">
+                    <thead style="background-color: transparent; border-bottom: 2px solid #c2a889;">
+                        <tr class="small fw-bold" style="color: #1a1a1a;">
+                            <th class="ps-3">REF #</th>
+                            <th>FACILITY</th>
+                            <th>BOOKER</th>
+                            <th>TIME / DURATION</th>
+                            <th>STATUS</th>
+                            <th class="text-end pe-3">ACTION</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach($todayFacilityReservations as $reservation)
+                            <tr style="border-bottom: 1px solid #f0f0f0;">
+                                <td class="ps-3">
+                                    <span class="fw-semibold" style="color: #334c42; font-size: 0.85rem;">{{ $reservation->reference_number }}</span>
+                                </td>
+                                <td>
+                                    <div class="fw-semibold" style="color: #1a1a1a;">{{ $reservation->facilitySet?->name ?? $reservation->facility?->name ?? '—' }}</div>
+                                    @if($reservation->event_name)
+                                        <small class="text-muted">{{ $reservation->event_name }}</small>
+                                    @endif
+                                </td>
+                                <td style="color: #1a1a1a; font-weight: 500;">{{ $reservation->booker_name }}</td>
+                                <td>
+                                    <span class="fw-semibold" style="color: #262626;">
+                                        {{ \Carbon\Carbon::parse($reservation->start_time)->format('g:i A') }}
+                                        &ndash;
+                                        {{ \Carbon\Carbon::parse($reservation->end_time)->format('g:i A') }}
+                                    </span>
+                                    <small class="text-muted d-block">{{ $reservation->duration_label }}</small>
+                                </td>
+                                <td>
+                                    @if($reservation->status === 'active')
+                                        <span class="badge bg-primary rounded-pill px-2 py-1">Checked In</span>
+                                    @elseif($reservation->status === 'approved')
+                                        <span class="badge bg-success rounded-pill px-2 py-1">Approved</span>
+                                    @else
+                                        <span class="badge bg-warning text-dark rounded-pill px-2 py-1">Pending</span>
+                                    @endif
+                                </td>
+                                <td class="text-end pe-3">
+                                    <a href="{{ route('frontdesk.facility-reservations.show', $reservation) }}" class="btn btn-sm btn-outline-success rounded-pill px-3">
+                                        View
+                                    </a>
+                                </td>
+                            </tr>
+                        @endforeach
+                    </tbody>
+                </table>
+            </div>
+        @else
+            <p class="text-center py-4 mb-0 fw-semibold font-body" style="color: #4a3e35;">No facility bookings for today</p>
         @endif
     </div>
 </div>

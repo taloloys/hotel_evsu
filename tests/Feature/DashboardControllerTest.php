@@ -1,5 +1,7 @@
 <?php
 
+use App\Models\Facility;
+use App\Models\FacilityReservation;
 use App\Models\Permission;
 use App\Models\Role;
 use App\Models\User;
@@ -119,6 +121,53 @@ test('sidebar renders dynamic links based on user permissions for staff user', f
     $response->assertDontSee(route('frontdesk.guest-list'));
     $response->assertDontSee(route('frontdesk.guest-folio'));
     $response->assertDontSee(route('frontdesk.shift-sales'));
+});
+
+test('front desk dashboard displays today facility bookings', function (): void {
+    $facility = Facility::factory()->create([
+        'name' => 'Conference Hall',
+    ]);
+
+    $reservation = FacilityReservation::factory()->approved()->create([
+        'facility_id' => $facility->facility_id,
+        'reservation_date' => today(),
+        'end_date' => today(),
+        'reference_number' => 'FAC-TEST-001',
+        'booker_name' => 'Today Booker',
+    ]);
+
+    $response = $this->actingAs($this->staffUser)
+        ->get(route('frontdesk.dashboard'));
+
+    $response->assertOk();
+    $response->assertSee('Booked Facilities Today');
+    $response->assertSee('Facility Check-In');
+    $response->assertSee('Reservations');
+    $response->assertSee('Conference Hall');
+    $response->assertSee('Today Booker');
+    $response->assertSee($reservation->reference_number);
+});
+
+test('front desk dashboard displays today facility bookings with null end_date', function (): void {
+    $facility = Facility::factory()->create([
+        'name' => 'Executive Meeting Room',
+    ]);
+
+    $reservation = FacilityReservation::factory()->approved()->create([
+        'facility_id' => $facility->facility_id,
+        'reservation_date' => today(),
+        'end_date' => null,
+        'reference_number' => 'FAC-HOURLY-002',
+        'booker_name' => 'Hourly Booker',
+    ]);
+
+    $response = $this->actingAs($this->staffUser)
+        ->get(route('frontdesk.dashboard'));
+
+    $response->assertOk();
+    $response->assertSee('Executive Meeting Room');
+    $response->assertSee('Hourly Booker');
+    $response->assertSee($reservation->reference_number);
 });
 
 test('sidebar renders dynamic links for user with custom multiple permissions', function (): void {
