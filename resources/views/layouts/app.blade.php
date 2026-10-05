@@ -15,10 +15,7 @@
     <!-- Alpine.js -->
     <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
 
-    <!-- Favicons and PWA manifest -->
-    <link rel="icon" type="image/png" href="{{ asset('images/logo.png') }}">
-    <link rel="apple-touch-icon" href="{{ asset('images/logo.png') }}">
-    <link rel="manifest" href="{{ asset('site.webmanifest') }}">
+    @include('partials.pwa')
 
     <style>
         [x-cloak] { display: none !important; }
