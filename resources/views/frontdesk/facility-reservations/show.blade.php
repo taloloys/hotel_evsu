@@ -438,8 +438,11 @@
                         Are you sure you want to cancel reservation <strong>#{{ $reservation->reference_number }}</strong>? This will release the booked slot on the calendar.
                     </p>
                     <div class="mb-3">
-                        <label class="form-label fw-bold">Reason for Cancellation</label>
-                        <textarea name="cancellation_notes" class="form-control" rows="3" placeholder="Reason (e.g. Booker requested cancellation, emergency event change)..."></textarea>
+                        <label class="form-label fw-bold">Reason for Cancellation <span class="text-danger">*</span></label>
+                        <textarea name="cancellation_notes" class="form-control @error('cancellation_notes') is-invalid @enderror" rows="3" placeholder="Reason (e.g. Booker requested cancellation, emergency event change)..." required>{{ old('cancellation_notes') }}</textarea>
+                        @error('cancellation_notes')
+                            <div class="invalid-feedback">{{ $message }}</div>
+                        @enderror
                     </div>
                 </div>
                 <div class="modal-footer bg-light">

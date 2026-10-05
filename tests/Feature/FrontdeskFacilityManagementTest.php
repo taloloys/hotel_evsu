@@ -381,3 +381,37 @@ test('front desk can cancel facility reservation', function (): void {
     expect($reservation->status)->toBe('cancelled');
     expect($reservation->admin_notes)->toContain('Event postponed indefinitely');
 });
+
+test('front desk cannot cancel facility reservation without providing a reason', function (): void {
+    $facility = Facility::create([
+        'name' => 'Seminar Room',
+        'rate' => 600,
+        'rate_type' => 'hourly',
+        'is_active' => true,
+    ]);
+
+    $reservation = FacilityReservation::create([
+        'facility_id' => $facility->facility_id,
+        'booker_name' => 'Mr. Ramos',
+        'booker_email' => 'ramos@example.com',
+        'booker_contact' => '09391234568',
+        'reservation_date' => now()->addDays(2)->toDateString(),
+        'end_date' => now()->addDays(2)->toDateString(),
+        'total_days' => 1,
+        'start_time' => '13:00:00',
+        'end_time' => '15:00:00',
+        'duration_hours' => 2.0,
+        'estimated_amount' => 1200.0,
+        'status' => 'approved',
+        'terms_accepted' => true,
+    ]);
+
+    $response = $this->actingAs($this->user)
+        ->patch(route('frontdesk.facility-reservations.cancel', $reservation), [
+            'cancellation_notes' => '   ',
+        ]);
+
+    $response->assertSessionHasErrors('cancellation_notes');
+    $reservation->refresh();
+    expect($reservation->status)->toBe('approved');
+});

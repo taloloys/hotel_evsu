@@ -418,9 +418,14 @@ class FacilityReservationController extends Controller
             return back()->with('error', 'This reservation is already closed or cancelled.');
         }
 
-        $reason = $request->input('cancellation_notes') ?: $request->input('admin_notes');
+        $reason = trim((string) ($request->input('cancellation_notes') ?: $request->input('admin_notes')));
+        if ($reason === '') {
+            return back()->withErrors(['cancellation_notes' => 'A cancellation reason is required before cancelling the reservation.'])
+                ->with('error', 'A cancellation reason is required before cancelling the reservation.');
+        }
+
         $existingNotes = $reservation->admin_notes ? $reservation->admin_notes."\n" : '';
-        $newNotes = $existingNotes.'[Cancelled on '.now()->format('M d, Y h:i A').' by '.(auth()->user()?->full_name ?? 'Staff').']'.($reason ? ': '.$reason : '');
+        $newNotes = $existingNotes.'[Cancelled on '.now()->format('M d, Y h:i A').' by '.(auth()->user()?->full_name ?? 'Staff').']: '.$reason;
 
         $reservation->update([
             'status' => 'cancelled',
