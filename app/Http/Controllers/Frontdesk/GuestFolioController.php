@@ -92,7 +92,7 @@ class GuestFolioController extends Controller
      */
     public function show(Folio $folio): RedirectResponse
     {
-        return redirect()->route('frontdesk.guest-folio', ['search' => $folio->folio_number]);
+        return redirect()->route('frontdesk.guest-folio', ['search' => $folio->folio_number, 'open' => $folio->folio_id]);
     }
 
     /**

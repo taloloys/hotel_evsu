@@ -1853,6 +1853,15 @@
             sessionStorage.removeItem('openModalId');
         }
 
+        // Auto-open modal directly from URL redirection (from monitoring)
+        @if(request()->has('open'))
+            var autoOpenEl = document.getElementById('folioModal{{ request("open") }}');
+            if (autoOpenEl) {
+                var autoModal = new bootstrap.Modal(autoOpenEl);
+                autoModal.show();
+            }
+        @endif
+
         document.querySelectorAll('.modal form').forEach(function(form) {
             form.addEventListener('submit', function() {
                 var modal = form.closest('.modal');
