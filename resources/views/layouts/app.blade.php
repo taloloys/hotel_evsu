@@ -106,9 +106,30 @@
             left: 0;
             top: 0;
             overflow-y: auto;
+            overflow-x: hidden;
+            scrollbar-gutter: stable;
             box-shadow: 0 0 30px rgba(0,0,0,.18);
             z-index: 1040;
             transition: transform 0.3s ease-in-out;
+            scrollbar-width: thin;
+            scrollbar-color: rgba(255, 255, 255, 0.2) transparent;
+        }
+
+        .sidebar::-webkit-scrollbar {
+            width: 5px;
+        }
+
+        .sidebar::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        .sidebar::-webkit-scrollbar-thumb {
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 4px;
+        }
+
+        .sidebar::-webkit-scrollbar-thumb:hover {
+            background: rgba(255, 255, 255, 0.35);
         }
 
         .main-content {
@@ -708,7 +729,16 @@
             const badgeMap = {
                 'sidebar-low-stock-badge': data.lowStockCount,
                 'sidebar-pending-expenses-badge': data.pendingExpensesCount,
-                'sidebar-pos-approvals-badge': data.posApprovalsCount
+                'sidebar-pos-approvals-badge': data.posApprovalsCount,
+                'sidebar-facility-reservations-badge': data.pendingFacilityCount,
+                'switcher-frontdesk-badge': data.pendingFacilityCount,
+                'switcher-coffeeshop-badge': data.lowStockCount,
+                'switcher-accounting-badge': data.pendingExpensesCount,
+                'switcher-admin-badge': data.posApprovalsCount,
+                'menu-frontdesk-badge': data.pendingFacilityCount,
+                'menu-coffeeshop-badge': data.lowStockCount,
+                'menu-accounting-badge': data.pendingExpensesCount,
+                'menu-admin-badge': data.posApprovalsCount,
             };
 
             for (const [id, count] of Object.entries(badgeMap)) {
@@ -716,6 +746,24 @@
                 if (el) {
                     if (count && count > 0) {
                         el.textContent = count;
+                        el.classList.remove('d-none');
+                    } else {
+                        el.classList.add('d-none');
+                    }
+                }
+            }
+
+            const dotMap = {
+                'tab-dot-admin': data.posApprovalsCount,
+                'tab-dot-frontdesk': data.pendingFacilityCount,
+                'tab-dot-coffeeshop': data.lowStockCount,
+                'tab-dot-accounting': data.pendingExpensesCount,
+            };
+
+            for (const [id, count] of Object.entries(dotMap)) {
+                const el = document.getElementById(id);
+                if (el) {
+                    if (count && count > 0) {
                         el.classList.remove('d-none');
                     } else {
                         el.classList.add('d-none');

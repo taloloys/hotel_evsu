@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Booking;
 use App\Models\Expense;
+use App\Models\FacilityReservation;
 use App\Models\PosApprovalRequest;
 use App\Models\PosProduct;
 use App\Models\Room;
@@ -92,8 +93,8 @@ class LayoutDataController extends Controller
             }
         }
 
-        // 1b. POS Approval notifications (Admin only)
-        if ($user->hasPermission('manage-users')) {
+        // 1b. POS Approval notifications
+        if ($user->hasPermission('manage-pos-approvals') || $user->hasPermission('manage-users')) {
             $pendingApprovals = PosApprovalRequest::where('status', 'pending')
                 ->with(['requestedBy', 'order', 'tab'])
                 ->get();
@@ -136,6 +137,83 @@ class LayoutDataController extends Controller
                     'message' => 'Automatic Database Backup Failed! Check logs and configuration.',
                     'link' => route('admin.backup-restore'),
                     'time' => 'Urgent',
+                ];
+            }
+        }
+
+        // 1c. Facility Notifications
+        if ($user->hasPermission('manage-reservations') || $user->hasPermission('manage-facilities')) {
+            // Pending Facility Reservations
+            $pendingFacilityReservations = FacilityReservation::where('status', 'pending')
+                ->with(['facility', 'facilitySet'])
+                ->latest()
+                ->get();
+
+            foreach ($pendingFacilityReservations as $reservation) {
+                $facName = $reservation->facility_name;
+                $notifications[] = [
+                    'id' => 'facility-pending-'.$reservation->reservation_id,
+                    'type' => 'facility_reservation',
+                    'severity' => 'warning',
+                    'icon' => 'fa-building-circle-check text-warning',
+                    'message' => "Facility Booking: '{$facName}' ({$reservation->booker_name}) is pending approval.",
+                    'link' => route('frontdesk.facility-reservations.show', $reservation),
+                    'time' => $reservation->created_at ? $reservation->created_at->diffForHumans() : 'Pending',
+                ];
+            }
+
+            // Facility Reservations Scheduled for Today
+            $todayFacilityReservations = FacilityReservation::where('status', 'approved')
+                ->where(function ($q) use ($today) {
+                    $q->whereDate('reservation_date', '<=', $today)
+                        ->where(function ($sub) use ($today) {
+                            $sub->whereNull('end_date')
+                                ->whereDate('reservation_date', '>=', $today)
+                                ->orWhereDate('end_date', '>=', $today);
+                        });
+                })
+                ->with(['facility', 'facilitySet'])
+                ->get();
+
+            foreach ($todayFacilityReservations as $reservation) {
+                $facName = $reservation->facility_name;
+                $timeSlot = $reservation->start_time ? Carbon::parse($reservation->start_time)->format('h:i A') : '';
+                $timeText = $timeSlot ? "at {$timeSlot}" : 'today';
+                $notifications[] = [
+                    'id' => 'facility-today-'.$reservation->reservation_id,
+                    'type' => 'facility_reservation',
+                    'severity' => 'info',
+                    'icon' => 'fa-calendar-check text-primary',
+                    'message' => "Facility Scheduled: '{$facName}' for {$reservation->booker_name} is scheduled {$timeText}.",
+                    'link' => route('frontdesk.facility-reservations.show', $reservation),
+                    'time' => 'Today',
+                ];
+            }
+
+            // Active Facility Reservations Ending Today
+            $activeEndingReservations = FacilityReservation::where('status', 'active')
+                ->where(function ($q) use ($today) {
+                    $q->whereDate('end_date', '<=', $today)
+                        ->orWhere(function ($sub) use ($today) {
+                            $sub->whereNull('end_date')
+                                ->whereDate('reservation_date', '<=', $today);
+                        });
+                })
+                ->with(['facility', 'facilitySet'])
+                ->get();
+
+            foreach ($activeEndingReservations as $reservation) {
+                $facName = $reservation->facility_name;
+                $endTime = $reservation->end_time ? Carbon::parse($reservation->end_time)->format('h:i A') : '';
+                $timeText = $endTime ? "ends {$endTime}" : 'due today';
+                $notifications[] = [
+                    'id' => 'facility-active-'.$reservation->reservation_id,
+                    'type' => 'facility_reservation',
+                    'severity' => 'warning',
+                    'icon' => 'fa-clock text-warning',
+                    'message' => "Facility in Use: '{$facName}' ({$reservation->booker_name}) {$timeText}.",
+                    'link' => route('frontdesk.facility-reservations.show', $reservation),
+                    'time' => 'Action required',
                 ];
             }
         }
@@ -259,8 +337,15 @@ class LayoutDataController extends Controller
             ->where('is_active', true)
             ->count();
 
-        $posApprovalsCount = PosApprovalRequest::where('status', 'pending')->count();
+        $posApprovalsCount = 0;
+        if ($user->hasPermission('manage-pos-approvals') || $user->hasPermission('manage-users')) {
+            $posApprovalsCount = PosApprovalRequest::where('status', 'pending')->count();
+        }
         $pendingExpensesCount = Expense::where('status', 'PENDING')->count();
+        $pendingFacilityCount = 0;
+        if ($user->hasPermission('manage-reservations') || $user->hasPermission('manage-facilities')) {
+            $pendingFacilityCount = FacilityReservation::where('status', 'pending')->count();
+        }
 
         $data = [
             'notifications' => $notifications,
@@ -270,6 +355,7 @@ class LayoutDataController extends Controller
             'dirtyRoomsCount' => $dirtyRoomsCount,
             'posApprovalsCount' => $posApprovalsCount,
             'pendingExpensesCount' => $pendingExpensesCount,
+            'pendingFacilityCount' => $pendingFacilityCount,
         ];
 
         return response()->json($data);

@@ -105,19 +105,29 @@
 
                     </button>
 
-                    <ul class="dropdown-menu dropdown-menu-end shadow border-0 rounded-3 py-0"
+                    <div class="dropdown-menu dropdown-menu-end shadow border-0 rounded-3 p-0"
                         aria-labelledby="notificationDropdown"
-                        style="width: 320px; max-width: calc(100vw - 32px); z-index: 1050;">
+                        style="width: 380px; max-width: calc(100vw - 24px); z-index: 1050; overflow: hidden;">
 
-                        <li class="p-3 border-bottom bg-light">
-                            <span class="fw-bold font-display" style="color: #504538;">Notifications</span>
-                        </li>
+                        <div class="p-3 border-bottom bg-light d-flex align-items-center justify-content-between">
+                            <div class="d-flex align-items-center gap-2">
+                                <span class="fw-bold font-display" style="color: #504538; font-size: 1rem;">Notifications</span>
+                                <span id="notificationUnreadPill" class="badge rounded-pill bg-danger-subtle text-danger border border-danger-subtle d-none" style="font-size: 0.72rem;">0 unread</span>
+                            </div>
+                            <button type="button" 
+                                    id="markAllReadBtn" 
+                                    class="btn btn-link btn-sm p-0 text-decoration-none fw-semibold d-none" 
+                                    style="color: #334c42; font-size: 0.78rem;"
+                                    title="Mark all notifications as read">
+                                <i class="fa-solid fa-check-double me-1"></i>Mark all as read
+                            </button>
+                        </div>
 
-                        <div id="notificationList" style="max-height: 400px; overflow-y: auto;">
+                        <div id="notificationList" class="custom-scrollbar" style="max-height: 380px; overflow-y: auto; overscroll-behavior: contain;">
                             <!-- Dynamic items will be rendered here -->
                         </div>
 
-                    </ul>
+                    </div>
 
                 </div>
 
@@ -221,13 +231,63 @@
         display: none !important;
     }
 
-    /* ── Notification item hover ── */
+    /* ── Custom Scrollbar for Notification List ── */
+    #notificationList::-webkit-scrollbar {
+        width: 6px;
+    }
+    #notificationList::-webkit-scrollbar-track {
+        background: #f8f6f2;
+    }
+    #notificationList::-webkit-scrollbar-thumb {
+        background: #cfc6b8;
+        border-radius: 4px;
+    }
+    #notificationList::-webkit-scrollbar-thumb:hover {
+        background: #9b8e7e;
+    }
+
+    /* ── Notification item styles ── */
     .notification-item {
-        transition: background-color 0.2s ease-in-out;
-        border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+        position: relative;
+        transition: background-color 0.15s ease, opacity 0.15s ease;
+        border-bottom: 1px solid rgba(0, 0, 0, 0.06);
+    }
+    .notification-item.is-unread {
+        background-color: #ffffff;
+    }
+    .notification-item.is-unread::before {
+        content: '';
+        position: absolute;
+        left: 0;
+        top: 0;
+        bottom: 0;
+        width: 4px;
+        background-color: #334c42;
+        border-top-left-radius: 2px;
+        border-bottom-left-radius: 2px;
+    }
+    .notification-item.is-read {
+        background-color: #fbfaf8;
+        opacity: 0.85;
     }
     .notification-item:hover {
-        background-color: #f8fafc !important;
+        background-color: #f3efe9 !important;
+        opacity: 1;
+    }
+    .notification-item:last-child {
+        border-bottom: none;
+    }
+
+    /* Mark as read icon button */
+    .btn-mark-item-read {
+        opacity: 0.6;
+        transition: opacity 0.15s ease, transform 0.15s ease, color 0.15s ease;
+        color: #7a6e60;
+    }
+    .btn-mark-item-read:hover {
+        opacity: 1;
+        transform: scale(1.15);
+        color: #334c42;
     }
 
     /* ── Continuous bell ring swing ── */
@@ -258,7 +318,7 @@
         transform-origin: top center;
     }
 
-    /* Always animate when there are active notifications */
+    /* Always animate when there are active unread notifications */
     .notif-bell.active {
         animation: bell-ring 2.5s ease-in-out infinite;
     }
@@ -276,14 +336,21 @@
 
 @push('scripts')
 <script>
-    // ─── sessionStorage helpers ──────────────────────────────────────────────
-    function getSeenNotificationIds() {
-        try { return JSON.parse(sessionStorage.getItem('seen_notification_ids') || '[]'); }
-        catch(e) { return []; }
+    // ─── localStorage read tracking helpers ─────────────────────────────────
+    const NOTIF_STORAGE_KEY = 'evsu_read_notif_ids_' + ({{ auth()->id() ?? 0 }});
+
+    function getReadNotificationIds() {
+        try {
+            return JSON.parse(localStorage.getItem(NOTIF_STORAGE_KEY) || '[]');
+        } catch(e) {
+            return [];
+        }
     }
-    function saveSeenNotificationIds(ids) {
-        try { sessionStorage.setItem('seen_notification_ids', JSON.stringify(ids)); }
-        catch(e) {}
+
+    function saveReadNotificationIds(ids) {
+        try {
+            localStorage.setItem(NOTIF_STORAGE_KEY, JSON.stringify(ids));
+        } catch(e) {}
     }
 
     // ─── Main Notification Initializer ──────────────────────────────────────
@@ -292,73 +359,140 @@
         const notificationBadge = document.getElementById('notificationBadge');
         const bellIcon          = document.getElementById('notificationBellIcon');
         const notifDropdown     = document.getElementById('notificationDropdown');
+        const unreadPill        = document.getElementById('notificationUnreadPill');
+        const markAllReadBtn    = document.getElementById('markAllReadBtn');
 
         if (!notificationList || !notificationBadge) return;
 
-        function renderNotifications() {
-            const active = notificationsData || [];
+        const active = notificationsData || [];
+        const activeIds = active.map(n => n.id);
 
-            // ── Bell Badge & Continuous Animations ───────────────────────────
-            const currentCount = active.length;
-            if (currentCount > 0) {
-                notificationBadge.textContent = currentCount;
+        // Auto-prune stored IDs that no longer exist among active notifications
+        let readIdsArray = getReadNotificationIds().filter(id => activeIds.includes(id));
+        saveReadNotificationIds(readIdsArray);
+        let readIdsSet = new Set(readIdsArray);
+
+        function updateBadgeAndHeader() {
+            const unreadCount = active.filter(n => !readIdsSet.has(n.id)).length;
+
+            if (unreadCount > 0) {
+                notificationBadge.textContent = unreadCount;
                 notificationBadge.classList.remove('d-none');
-                // Continuous ring + blink while there are active notifications
                 notificationBadge.classList.add('active');
                 if (bellIcon) bellIcon.classList.add('active');
+
+                if (unreadPill) {
+                    unreadPill.textContent = `${unreadCount} unread`;
+                    unreadPill.classList.remove('d-none');
+                }
+                if (markAllReadBtn) {
+                    markAllReadBtn.classList.remove('d-none');
+                }
             } else {
                 notificationBadge.classList.add('d-none');
                 notificationBadge.classList.remove('active');
                 if (bellIcon) bellIcon.classList.remove('active');
-            }
 
-            // ── 3. Notification List ─────────────────────────────────────────
-            notificationList.innerHTML = '';
-            if (active.length > 0) {
-                active.forEach(n => {
-                    const li        = document.createElement('li');
-                    li.className    = 'dropdown-item p-3 d-flex align-items-start gap-3 notification-item';
-                    li.style.whiteSpace = 'normal';
-                    li.style.cursor     = 'pointer';
-
-                    li.innerHTML = `
-                        <div class="mt-1 flex-shrink-0">
-                            <i class="fa-solid ${n.icon} fa-fw fs-5"></i>
-                        </div>
-                        <div class="flex-grow-1">
-                            <div class="small text-dark mb-1">${n.message}</div>
-                            <small class="text-muted">${n.time}</small>
-                        </div>
-                    `;
-
-                    li.addEventListener('click', function() {
-                        if (window.Turbo) { window.Turbo.visit(n.link); }
-                        else { window.location.href = n.link; }
-                    });
-
-                    notificationList.appendChild(li);
-                });
-            } else {
-                notificationList.innerHTML = `
-                    <li class="p-4 text-center text-muted">
-                        <i class="fa-solid fa-bell-slash d-block fs-3 mb-2 opacity-50"></i>
-                        <span class="small">No new notifications</span>
-                    </li>
-                `;
+                if (unreadPill) {
+                    unreadPill.classList.add('d-none');
+                }
+                if (markAllReadBtn) {
+                    markAllReadBtn.classList.add('d-none');
+                }
             }
         }
 
-        // ── Opening the dropdown marks all as seen (stops pulse; keeps badge count) ──
-        if (notifDropdown && !notifDropdown.dataset.seenBound) {
-            notifDropdown.dataset.seenBound = 'true';
-            notifDropdown.addEventListener('show.bs.dropdown', function() {
-                const activeIds = (notificationsData || []).map(n => n.id);
-                const seenIds   = getSeenNotificationIds();
-                saveSeenNotificationIds(Array.from(new Set([...seenIds, ...activeIds])));
-                notificationBadge.classList.remove('new');
-                if (bellIcon) bellIcon.classList.remove('new');
+        function markItemAsRead(id) {
+            if (!readIdsSet.has(id)) {
+                readIdsSet.add(id);
+                saveReadNotificationIds(Array.from(readIdsSet));
+                updateBadgeAndHeader();
                 renderNotifications();
+            }
+        }
+
+        function markAllAsRead() {
+            activeIds.forEach(id => readIdsSet.add(id));
+            saveReadNotificationIds(Array.from(readIdsSet));
+            updateBadgeAndHeader();
+            renderNotifications();
+        }
+
+        if (markAllReadBtn && !markAllReadBtn.dataset.bound) {
+            markAllReadBtn.dataset.bound = 'true';
+            markAllReadBtn.addEventListener('click', function(e) {
+                e.stopPropagation();
+                markAllAsRead();
             });
+        }
+
+        function renderNotifications() {
+            updateBadgeAndHeader();
+            notificationList.innerHTML = '';
+
+            if (active.length > 0) {
+                active.forEach(n => {
+                    const isRead = readIdsSet.has(n.id);
+                    const item = document.createElement('div');
+                    item.className = `p-3 d-flex align-items-start gap-3 notification-item ${isRead ? 'is-read' : 'is-unread'}`;
+                    item.style.whiteSpace = 'normal';
+                    item.style.cursor = 'pointer';
+
+                    item.innerHTML = `
+                        <div class="mt-1 flex-shrink-0">
+                            <i class="fa-solid ${n.icon} fa-fw fs-5"></i>
+                        </div>
+                        <div class="flex-grow-1 min-w-0">
+                            <div class="small ${isRead ? 'text-secondary' : 'text-dark fw-semibold'} mb-1">${n.message}</div>
+                            <div class="d-flex align-items-center gap-2">
+                                <small class="text-muted">${n.time}</small>
+                                ${isRead 
+                                    ? '<span class="badge bg-light text-muted border py-0 px-1" style="font-size: 0.65rem;">Read</span>' 
+                                    : '<span class="badge bg-success-subtle text-success py-0 px-1" style="font-size: 0.65rem;">New</span>'
+                                }
+                            </div>
+                        </div>
+                        <div class="flex-shrink-0 ms-1">
+                            ${!isRead 
+                                ? `<button type="button" class="btn btn-sm p-1 border-0 btn-mark-item-read" title="Mark as read">
+                                       <i class="fa-solid fa-check"></i>
+                                   </button>`
+                                : `<span class="p-1 text-muted opacity-50" title="Read">
+                                       <i class="fa-solid fa-check-double" style="font-size: 0.75rem;"></i>
+                                   </span>`
+                            }
+                        </div>
+                    `;
+
+                    // Click item navigates to link and marks read
+                    item.addEventListener('click', function() {
+                        markItemAsRead(n.id);
+                        if (window.Turbo) {
+                            window.Turbo.visit(n.link);
+                        } else {
+                            window.location.href = n.link;
+                        }
+                    });
+
+                    // Click checkmark button marks read only (no navigation)
+                    const checkBtn = item.querySelector('.btn-mark-item-read');
+                    if (checkBtn) {
+                        checkBtn.addEventListener('click', function(e) {
+                            e.stopPropagation();
+                            markItemAsRead(n.id);
+                        });
+                    }
+
+                    notificationList.appendChild(item);
+                });
+            } else {
+                notificationList.innerHTML = `
+                    <div class="p-4 text-center text-muted">
+                        <i class="fa-solid fa-bell-slash d-block fs-3 mb-2 opacity-50"></i>
+                        <span class="small">No new notifications</span>
+                    </div>
+                `;
+            }
         }
 
         renderNotifications();
