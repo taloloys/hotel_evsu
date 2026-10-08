@@ -253,6 +253,11 @@
                                     </button>
 
                                     @if($reservation->status === 'RESERVED')
+                                        <button type="button" class="btn btn-sm d-flex align-items-center justify-content-center shadow-sm" style="width: 36px; height: 36px; border: 1px solid #10b981; color: #047857; background-color: #d1fae5; border-radius: 0.375rem;" title="Move In / Check-In"
+                                            onclick="swalConfirmMoveInReservation({{ $reservation->booking_id }}, '{{ addslashes($reservation->folio->guest->first_name . ' ' . $reservation->folio->guest->last_name) }}', '{{ $reservation->room->room_number }}')">
+                                            <i class="fa-solid fa-plane-arrival fs-6"></i>
+                                        </button>
+                                        
                                         <form method="POST" action="{{ route('frontdesk.reservation.cancel', $reservation) }}" class="d-inline m-0">
                                             @csrf
                                             @method('PATCH')
@@ -1024,6 +1029,51 @@
                 }
             });
         }
+        // SweetAlert2 — Module X: Move In / Check-In Reservation
+        window.swalConfirmMoveInReservation = function(bookingId, guestName, roomNumber) {
+            Swal.fire({
+                icon: 'question',
+                title: 'Check-In Guest?',
+                html: `Are you sure you want to check in <strong>${guestName}</strong> to Room <span class="badge bg-secondary px-2 py-1 fs-6">${roomNumber}</span>?`,
+                showCancelButton: true,
+                confirmButtonText: '<i class="fa-solid fa-plane-arrival me-1"></i> Proceed Check-In',
+                cancelButtonText: 'Cancel',
+                confirmButtonColor: '#10b981',
+                reverseButtons: true,
+                showLoaderOnConfirm: true,
+                preConfirm: () => {
+                    return fetch('{{ route("frontdesk.booking.check-in") }}', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Accept': 'application/json',
+                            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.content
+                        },
+                        body: JSON.stringify({ booking_id: bookingId })
+                    })
+                    .then(response => {
+                        if (!response.ok) {
+                            return response.json().then(err => { throw new Error(err.message || 'Server Error') });
+                        }
+                        return response.json();
+                    })
+                    .catch(error => {
+                        Swal.showValidationMessage(`Check-In failed: ${error.message}`);
+                    });
+                }
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    if (result.value && result.value.success) {
+                        Swal.fire('Success', result.value.message, 'success').then(() => {
+                            window.location.reload();
+                        });
+                    } else if (result.value && !result.value.success) {
+                        Swal.fire('Error', result.value.message, 'error');
+                    }
+                }
+            });
+        };
+
         // SweetAlert2 — Module 6: Cancel Reservation
         window.swalConfirmCancelReservation = function(btn) {
             var form = btn.closest('form');

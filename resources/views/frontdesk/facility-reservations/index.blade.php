@@ -136,9 +136,20 @@
                             @endif
                         </td>
                         <td class="text-end pe-4">
-                            <a href="{{ route('frontdesk.facility-reservations.show', $res) }}" class="btn btn-sm btn-outline-primary rounded-pill shadow-sm fw-semibold">
-                                Manage <i class="fa-solid fa-arrow-right ms-1"></i>
-                            </a>
+                            <div class="d-flex align-items-center justify-content-end gap-2">
+                                @if($res->status === 'approved')
+                                    <form action="{{ route('frontdesk.facility-reservations.check-in', $res) }}" method="POST" class="d-inline m-0" onsubmit="return confirm('Start this booking now and mark facility as Active/In-use?');">
+                                        @csrf
+                                        @method('PATCH')
+                                        <button type="submit" class="btn btn-sm d-flex align-items-center justify-content-center shadow-sm" style="width: 36px; height: 36px; border: 1px solid #10b981; color: #047857; background-color: #d1fae5; border-radius: 0.375rem;" title="Move In / Check-In">
+                                            <i class="fa-solid fa-play fs-6"></i>
+                                        </button>
+                                    </form>
+                                @endif
+                                <a href="{{ route('frontdesk.facility-reservations.show', $res) }}" class="btn btn-sm btn-outline-primary rounded-pill shadow-sm fw-semibold">
+                                    Manage <i class="fa-solid fa-arrow-right ms-1"></i>
+                                </a>
+                            </div>
                         </td>
                     </tr>
                     @empty
