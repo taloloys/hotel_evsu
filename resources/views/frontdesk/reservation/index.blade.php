@@ -253,18 +253,36 @@
                                     </button>
 
                                     @if($reservation->status === 'RESERVED')
-                                        <button type="button" class="btn btn-sm d-flex align-items-center justify-content-center shadow-sm" style="width: 36px; height: 36px; border: 1px solid #3b82f6; color: #1d4ed8; background-color: #dbeafe; border-radius: 0.375rem;" title="Move Date"
-                                            onclick="swalMoveDateReservation({{ $reservation->booking_id }}, '{{ addslashes($reservation->folio->guest->first_name . ' ' . $reservation->folio->guest->last_name) }}', '{{ $reservation->room->room_number }}', '{{ $reservation->arrival_date->format('Y-m-d') }}', '{{ $reservation->departure_date ? $reservation->departure_date->format('Y-m-d') : '' }}', '{{ $reservation->status }}')">
-                                            <i class="fa-regular fa-calendar-days fs-6"></i>
+                                        <button type="button"
+                                                class="btn btn-sm text-white check-in-btn d-inline-flex align-items-center justify-content-center shadow-sm" 
+                                                style="width: 36px; height: 36px; background-color: #334c42; border: none; border-radius: 0.375rem;"
+                                                data-booking-id="{{ $reservation->booking_id }}" 
+                                                data-guest-name="{{ $reservation->folio->guest->first_name }} {{ $reservation->folio->guest->last_name }}"
+                                                data-room-number="{{ $reservation->room->room_number }}"
+                                                title="Check in guest"
+                                                onclick="window.fdOpenCheckInModal(this)">
+                                            <i class="fa-solid fa-arrow-right-to-bracket"></i>
                                         </button>
-                                    @endif
-
-                                    @if($reservation->status === 'RESERVED')
-                                        <button type="button" class="btn btn-sm d-flex align-items-center justify-content-center shadow-sm" style="width: 36px; height: 36px; border: 1px solid #10b981; color: #047857; background-color: #d1fae5; border-radius: 0.375rem;" title="Move In / Check-In"
-                                            onclick="swalConfirmMoveInReservation({{ $reservation->booking_id }}, '{{ addslashes($reservation->folio->guest->first_name . ' ' . $reservation->folio->guest->last_name) }}', '{{ $reservation->room->room_number }}')">
-                                            <i class="fa-solid fa-plane-arrival fs-6"></i>
+                                        <button type="button" 
+                                                class="btn btn-sm extend-departure-btn d-inline-flex align-items-center justify-content-center shadow-sm" 
+                                                style="width: 36px; height: 36px; background-color: #f8f3ed; border: 1px solid #c2a889; color: #334c42; border-radius: 0.375rem;"
+                                                data-booking-id="{{ $reservation->booking_id }}" 
+                                                data-guest-name="{{ $reservation->folio->guest->first_name }} {{ $reservation->folio->guest->last_name }}"
+                                                data-folio-number="{{ $reservation->folio->folio_number }}"
+                                                data-room-number="{{ $reservation->room->room_number }}"
+                                                data-room-type="{{ $reservation->room->room_type }}"
+                                                data-status="{{ $reservation->status }}"
+                                                data-arrival-date="{{ $reservation->arrival_date->format('Y-m-d') }}"
+                                                data-arrival-time="{{ $reservation->arrival_time ? \Carbon\Carbon::parse($reservation->arrival_time)->format('H:i') : '14:00' }}"
+                                                data-arrival-display="{{ $reservation->arrival_date->format('m/d/Y') }}{{ $reservation->arrival_time ? ' ' . \Carbon\Carbon::parse($reservation->arrival_time)->format('g:i A') : '' }}"
+                                                data-departure-date="{{ $reservation->departure_date ? $reservation->departure_date->format('Y-m-d') : '' }}"
+                                                data-departure-time="{{ $reservation->departure_time ? \Carbon\Carbon::parse($reservation->departure_time)->format('H:i') : '12:00' }}"
+                                                data-departure-display="{{ $reservation->departure_date ? $reservation->departure_date->format('m/d/Y') : 'Open Stay' }}{{ $reservation->departure_time ? ' ' . \Carbon\Carbon::parse($reservation->departure_time)->format('g:i A') : '' }}"
+                                                data-net-rate="{{ $reservation->folio->net_rate ?? $reservation->room->base_rate }}"
+                                                title="Move reservation"
+                                                onclick="window.fdOpenExtendDepartureModal(this)">
+                                            <i class="fa-solid fa-calendar-plus" style="color: #627e71;"></i>
                                         </button>
-                                        
                                         <form method="POST" action="{{ route('frontdesk.reservation.cancel', $reservation) }}" class="d-inline m-0">
                                             @csrf
                                             @method('PATCH')
@@ -414,7 +432,7 @@
                         <!-- Contact Number -->
                         <div class="col-md-6">
                             <label class="form-label fw-semibold" for="contact_number">
-                                Contact Number
+                                Contact Number <span class="text-danger">*</span>
                             </label>
 
                             <input
@@ -425,13 +443,14 @@
                                 value="{{ old('contact_number') }}"
                                 maxlength="20"
                                 placeholder="09XXXXXXXXX"
-                                style="height:46px; border:1px solid #000000;">
+                                style="height:46px; border:1px solid #000000;"
+                                required>
                         </div>
 
                         <!-- Email Address -->
                         <div class="col-md-6">
                             <label class="form-label fw-semibold" for="email">
-                                Email Address
+                                Email Address <span class="text-danger">*</span>
                             </label>
 
                             <input
@@ -442,13 +461,14 @@
                                 value="{{ old('email') }}"
                                 maxlength="100"
                                 placeholder="guest@example.com"
-                                style="height:46px; border:1px solid #000000;">
+                                style="height:46px; border:1px solid #000000;"
+                                required>
                         </div>
 
                         <!-- Address Line 1 -->
                         <div class="col-md-6">
                             <label class="form-label fw-semibold" for="address_line1">
-                                Address Line 1
+                                Address Line 1 <span class="text-danger">*</span>
                             </label>
 
                             <input
@@ -459,7 +479,8 @@
                                 value="{{ old('address_line1') }}"
                                 maxlength="100"
                                 placeholder="Street, Barangay"
-                                style="height:46px; border:1px solid #000000;">
+                                style="height:46px; border:1px solid #000000;"
+                                required>
                         </div>
 
                         <!-- Address Line 2 -->
@@ -504,7 +525,7 @@
                         <!-- Number of Guests -->
                         <div class="col-12 col-md-6">
                             <label class="form-label fw-semibold" for="num_pax">
-                                Number of Guests
+                                Number of Guests <span class="text-danger">*</span>
                             </label>
 
                             <input
@@ -516,7 +537,8 @@
                                 min="1"
                                 max="20"
                                 placeholder="1"
-                                style="height:46px; border:1px solid #000000;">
+                                style="height:46px; border:1px solid #000000;"
+                                required>
                         </div>
 
                     </div>
@@ -807,6 +829,133 @@
         </div>
     </div>
 </div>
+
+<!-- Check-In Confirmation Modal -->
+<div class="modal fade" id="checkInConfirmModal" tabindex="-1" aria-labelledby="checkInConfirmModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow">
+            <div class="modal-header border-0 pb-0">
+                <h5 class="modal-title fw-bold" id="checkInConfirmModalLabel">
+                    <i class="fa-solid fa-plane-arrival text-success me-2"></i> Confirm Guest Check-In
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p class="mb-3">Are you sure you want to check in <strong id="checkInConfirmGuestName"></strong> to Room <span class="badge bg-secondary px-2 py-1 fs-6" id="checkInConfirmRoomNumber"></span>?</p>
+                <div class="mb-3">
+                    <label for="checkInNetRate" class="form-label fw-semibold small">Agreed Room Rate (optional override)</label>
+                    <div class="input-group">
+                        <span class="input-group-text">₱</span>
+                        <input type="number" class="form-control" id="checkInNetRate" min="0" step="0.01" placeholder="Leave blank for default rate">
+                        <span class="input-group-text text-muted">/night</span>
+                    </div>
+                </div>
+                <p class="text-muted small mb-0">This will change the room status to <strong>OCCUPIED</strong> and post room charges for the stay.</p>
+            </div>
+            <div class="modal-footer border-0">
+                <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-success" id="confirmCheckInBtn">
+                    <i class="fa-solid fa-check me-1"></i> Proceed Check-In
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Move Reservation Modal -->
+<div class="modal fade" id="extendDepartureModal" tabindex="-1" aria-labelledby="extendDepartureModalLabel" aria-hidden="true" style="z-index: 1065;">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow">
+            <div class="modal-header border-0 pb-0">
+                <h5 class="modal-title fw-bold" id="extendDepartureModalLabel" style="color: #1a1a1a;">
+                    <i class="fa-solid fa-calendar-plus me-2" style="color: #334c42;"></i> Move Reservation Dates
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div class="p-3 rounded-3 mb-3" style="background: #f8f3ed; border: 1px solid #c2a889;">
+                    <div class="d-flex justify-content-between align-items-start mb-2">
+                        <div>
+                            <span class="text-muted small d-block">Guest Name</span>
+                            <span class="fw-bold fs-6" id="extendModalGuestName" style="color: #1a1a1a;">—</span>
+                        </div>
+                        <div class="text-end">
+                            <span class="badge" id="extendModalRoomBadge" style="background-color: #334c42; color: #ffffff; font-size: 0.85rem;">Room —</span>
+                            <small class="d-block text-muted" id="extendModalRoomType">—</small>
+                        </div>
+                    </div>
+                    <div class="row g-2 pt-2 border-top" style="border-color: #e2d3be !important;">
+                        <div class="col-6">
+                            <span class="text-muted small d-block">Folio Number:</span>
+                            <span class="fw-semibold small" id="extendModalFolioNumber" style="color: #1a1a1a;">—</span>
+                        </div>
+                        <div class="col-6 text-end">
+                            <span class="text-muted small d-block">Booking Status:</span>
+                            <span class="badge-status" id="extendModalStatus">—</span>
+                        </div>
+                        <div class="col-6">
+                            <span class="text-muted small d-block">Current Arrival:</span>
+                            <span class="small fw-semibold text-primary" id="extendModalArrival" style="color: #262626;">—</span>
+                        </div>
+                        <div class="col-6 text-end">
+                            <span class="text-muted small d-block">Current Departure:</span>
+                            <span class="small fw-semibold text-danger" id="extendModalCurrentDeparture">—</span>
+                        </div>
+                    </div>
+                </div>
+
+                <form id="extendDepartureForm">
+                    <input type="hidden" id="extendBookingId">
+                    <div class="row g-2 mb-3" id="extendArrivalContainer">
+                        <div class="col-6">
+                            <label for="extendArrivalDate" class="form-label fw-semibold small" style="color: #1a1a1a;">
+                                New Arrival Date <span class="text-danger">*</span>
+                            </label>
+                            <input type="date" class="form-control" id="extendArrivalDate" required style="border: 1px solid #c2a889;">
+                        </div>
+                        <div class="col-6">
+                            <label for="extendArrivalTime" class="form-label fw-semibold small" style="color: #1a1a1a;">
+                                New Arrival Time
+                            </label>
+                            <input type="time" class="form-control" id="extendArrivalTime" value="14:00" style="border: 1px solid #c2a889;">
+                        </div>
+                    </div>
+                    <div class="row g-2 mb-3">
+                        <div class="col-6">
+                            <label for="extendDepartureDate" class="form-label fw-semibold small" style="color: #1a1a1a;">
+                                New Departure Date <span class="text-danger">*</span>
+                            </label>
+                            <input type="date" class="form-control" id="extendDepartureDate" required style="border: 1px solid #c2a889;">
+                        </div>
+                        <div class="col-6">
+                            <label for="extendDepartureTime" class="form-label fw-semibold small" style="color: #1a1a1a;">
+                                New Departure Time
+                            </label>
+                            <input type="time" class="form-control" id="extendDepartureTime" value="12:00" style="border: 1px solid #c2a889;">
+                        </div>
+                    </div>
+                    <div class="mb-2">
+                        <label for="extendNetRate" class="form-label fw-semibold small" style="color: #1a1a1a;">
+                            Agreed Room Rate (Optional Override)
+                        </label>
+                        <div class="input-group" style="border: 1px solid #c2a889; border-radius: 0.375rem;">
+                            <span class="input-group-text bg-white border-0">₱</span>
+                            <input type="number" class="form-control border-0 shadow-none" id="extendNetRate" min="0" step="0.01" placeholder="Leave blank to keep current rate">
+                            <span class="input-group-text bg-white border-0 text-muted">/night</span>
+                        </div>
+                    </div>
+                    <div class="alert alert-danger d-none mt-3 mb-0" id="extendErrorAlert"></div>
+                </form>
+            </div>
+            <div class="modal-footer border-0">
+                <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn text-white fw-semibold" id="confirmExtendDepartureBtn" style="background-color: #334c42;">
+                    <i class="fa-solid fa-check me-1"></i> Update Dates
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
 @endpush
 
 @push('scripts')
@@ -1036,135 +1185,394 @@
                 }
             });
         }
-        window.swalMoveDateReservation = function(bookingId, guestName, roomNumber, currentArrival, currentDeparture, status) {
-            Swal.fire({
-                title: 'Move Reservation Dates',
-                html: `
-                    <div class="text-start mb-3">
-                        <p class="mb-3">Move reservation for <strong>${guestName}</strong> in <strong>Room ${roomNumber}</strong>.</p>
-                        <div class="mb-3">
-                            <label class="form-label small fw-bold">Arrival Date</label>
-                            <input type="date" id="swalMoveArrival" class="form-control" value="${currentArrival}" ${status === 'CHECKED_IN' ? 'disabled' : ''}>
-                            ${status === 'CHECKED_IN' ? '<small class="text-muted">Cannot change arrival date for checked-in guests.</small>' : ''}
-                        </div>
-                        <div>
-                            <label class="form-label small fw-bold">Departure Date</label>
-                            <input type="date" id="swalMoveDeparture" class="form-control" value="${currentDeparture}">
-                        </div>
-                    </div>
-                `,
-                showCancelButton: true,
-                confirmButtonText: '<i class="fa-solid fa-save me-1"></i> Save New Dates',
-                cancelButtonText: 'Cancel',
-                confirmButtonColor: '#3b82f6',
-                preConfirm: () => {
-                    const arrDate = document.getElementById('swalMoveArrival').value;
-                    const depDate = document.getElementById('swalMoveDeparture').value;
-                    
-                    if (!arrDate || !depDate) {
-                        Swal.showValidationMessage('Both Arrival and Departure dates are required.');
-                        return false;
-                    }
-                    if (arrDate >= depDate) {
-                        Swal.showValidationMessage('Departure date must be after Arrival date.');
-                        return false;
-                    }
+        let pendingCheckInBookingId = null;
+        let pendingExtendBookingId = null;
 
-                    return fetch('{{ route("frontdesk.booking.move-date") }}', {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json',
-                            'Accept': 'application/json',
-                            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.content
-                        },
-                        body: JSON.stringify({
-                            booking_id: bookingId,
-                            arrival_date: arrDate,
-                            departure_date: depDate
-                        })
-                    })
-                    .then(response => {
-                        if (!response.ok) {
-                            return response.json().then(err => { throw new Error(err.message || 'Server Error') });
-                        }
-                        return response.json();
-                    })
-                    .catch(error => {
-                        Swal.showValidationMessage(`Move Date failed: ${error.message}`);
-                    });
-                }
-            }).then((result) => {
-                if (result.isConfirmed) {
-                    if (result.value && result.value.success) {
-                        Swal.fire('Success', result.value.message, 'success').then(() => {
-                            window.location.reload();
-                        });
-                    } else if (result.value && !result.value.success) {
-                        Swal.fire('Error', result.value.message, 'error');
-                    }
-                }
-            });
+        function cleanupStrayBackdrops() {
+            if (!document.querySelector('.modal.show')) {
+                document.querySelectorAll('.modal-backdrop').forEach(el => el.remove());
+                document.body.classList.remove('modal-open');
+                document.body.style.removeProperty('padding-right');
+                document.body.style.removeProperty('overflow');
+            }
+        }
+
+        window.fdOpenCheckInModal = function(trigger) {
+            const modalEl = document.getElementById('checkInConfirmModal');
+            if (!modalEl || !window.bootstrap) return;
+
+            let bookingId, guestName, roomNumber;
+            if (trigger instanceof HTMLElement) {
+                bookingId = trigger.getAttribute('data-booking-id');
+                guestName = trigger.getAttribute('data-guest-name') || 'Guest';
+                roomNumber = trigger.getAttribute('data-room-number') || '—';
+            } else {
+                bookingId = arguments[0];
+                guestName = arguments[1] || 'Guest';
+                roomNumber = arguments[2] || '—';
+            }
+
+            pendingCheckInBookingId = bookingId;
+            const guestNameEl = document.getElementById('checkInConfirmGuestName');
+            const roomNumEl = document.getElementById('checkInConfirmRoomNumber');
+            const rateInput = document.getElementById('checkInNetRate');
+
+            if (guestNameEl) guestNameEl.textContent = guestName;
+            if (roomNumEl) roomNumEl.textContent = roomNumber;
+            if (rateInput) rateInput.value = '';
+
+            cleanupStrayBackdrops();
+
+            const modal = bootstrap.Modal.getOrCreateInstance(modalEl);
+            modal.show();
         };
 
-        // SweetAlert2 — Module X: Move In / Check-In Reservation
-        window.swalConfirmMoveInReservation = function(bookingId, guestName, roomNumber) {
-            Swal.fire({
-                icon: 'question',
-                title: 'Check-In Guest?',
-                html: `Are you sure you want to check in <strong>${guestName}</strong> to Room <span class="badge bg-secondary px-2 py-1 fs-6">${roomNumber}</span>?`,
-                showCancelButton: true,
-                confirmButtonText: '<i class="fa-solid fa-plane-arrival me-1"></i> Proceed Check-In',
-                cancelButtonText: 'Cancel',
-                confirmButtonColor: '#10b981',
-                reverseButtons: true,
-                showLoaderOnConfirm: true,
-                preConfirm: () => {
-                    return fetch('{{ route("frontdesk.booking.check-in") }}', {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json',
-                            'Accept': 'application/json',
-                            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.content
-                        },
-                        body: JSON.stringify({ booking_id: bookingId })
-                    })
-                    .then(response => {
-                        if (!response.ok) {
-                            return response.json().then(err => { throw new Error(err.message || 'Server Error') });
+        window.fdOpenExtendDepartureModal = function(trigger) {
+            const modalEl = document.getElementById('extendDepartureModal');
+            if (!modalEl || !window.bootstrap) return;
+
+            let bookingId, guestName, folioNumber, roomNumber, roomType, status;
+            let arrivalDate, arrivalTime, arrivalDisplay, departureDate, departureTime, departureDisplay, netRate;
+
+            if (trigger instanceof HTMLElement) {
+                bookingId = trigger.getAttribute('data-booking-id');
+                guestName = trigger.getAttribute('data-guest-name') || 'Guest';
+                folioNumber = trigger.getAttribute('data-folio-number') || '—';
+                roomNumber = trigger.getAttribute('data-room-number') || '—';
+                roomType = trigger.getAttribute('data-room-type') || '';
+                status = trigger.getAttribute('data-status') || '';
+                arrivalDate = trigger.getAttribute('data-arrival-date');
+                arrivalTime = trigger.getAttribute('data-arrival-time') || '14:00';
+                arrivalDisplay = trigger.getAttribute('data-arrival-display') || arrivalDate || '—';
+                departureDate = trigger.getAttribute('data-departure-date');
+                departureTime = trigger.getAttribute('data-departure-time') || '12:00';
+                departureDisplay = trigger.getAttribute('data-departure-display') || departureDate || '—';
+                netRate = trigger.getAttribute('data-net-rate') || '';
+            } else {
+                bookingId = arguments[0];
+                guestName = arguments[1] || 'Guest';
+                roomNumber = arguments[2] || '—';
+                arrivalDate = arguments[3] || '';
+                departureDate = arguments[4] || '';
+                status = arguments[5] || 'RESERVED';
+                folioNumber = '—';
+                roomType = '';
+                arrivalTime = '14:00';
+                arrivalDisplay = arrivalDate || '—';
+                departureTime = '12:00';
+                departureDisplay = departureDate || '—';
+                netRate = '';
+            }
+
+            pendingExtendBookingId = bookingId;
+            const extendBookingIdEl = document.getElementById('extendBookingId');
+            if (extendBookingIdEl) extendBookingIdEl.value = bookingId;
+
+            const nameEl = document.getElementById('extendModalGuestName');
+            if (nameEl) nameEl.textContent = guestName;
+
+            const roomBadgeEl = document.getElementById('extendModalRoomBadge');
+            if (roomBadgeEl) roomBadgeEl.textContent = 'Room ' + roomNumber;
+
+            const roomTypeEl = document.getElementById('extendModalRoomType');
+            if (roomTypeEl) roomTypeEl.textContent = roomType;
+
+            const folioEl = document.getElementById('extendModalFolioNumber');
+            if (folioEl) folioEl.textContent = folioNumber;
+
+            const statusBadge = document.getElementById('extendModalStatus');
+            if (statusBadge) {
+                statusBadge.textContent = status === 'CHECKED_IN' ? 'CHECKED IN' : (status === 'RESERVED' ? 'RESERVED' : status);
+                statusBadge.className = 'badge-status ' + (status === 'CHECKED_IN' ? 'badge-status-checkedin' : 'badge-status-reserved');
+            }
+
+            const arrEl = document.getElementById('extendModalArrival');
+            if (arrEl) arrEl.textContent = arrivalDisplay;
+
+            const curDepEl = document.getElementById('extendModalCurrentDeparture');
+            if (curDepEl) curDepEl.textContent = departureDisplay;
+
+            const arrContainer = document.getElementById('extendArrivalContainer');
+            const arrDateInput = document.getElementById('extendArrivalDate');
+            const arrTimeInput = document.getElementById('extendArrivalTime');
+            const depDateInput = document.getElementById('extendDepartureDate');
+            const depTimeInput = document.getElementById('extendDepartureTime');
+            const rateInput = document.getElementById('extendNetRate');
+            const errorAlert = document.getElementById('extendErrorAlert');
+
+            if (errorAlert) {
+                errorAlert.classList.add('d-none');
+                errorAlert.textContent = '';
+            }
+            if (arrDateInput) arrDateInput.classList.remove('is-invalid');
+            if (depDateInput) depDateInput.classList.remove('is-invalid');
+
+            if (status === 'CHECKED_IN') {
+                if (arrContainer) arrContainer.classList.add('d-none');
+                if (arrDateInput) arrDateInput.removeAttribute('required');
+            } else {
+                if (arrContainer) arrContainer.classList.remove('d-none');
+                if (arrDateInput) {
+                    arrDateInput.setAttribute('required', 'required');
+                    arrDateInput.value = arrivalDate || '';
+                }
+                if (arrTimeInput) arrTimeInput.value = arrivalTime;
+            }
+
+            if (depDateInput) depDateInput.value = departureDate || '';
+            if (depTimeInput) depTimeInput.value = departureTime;
+            if (rateInput) {
+                rateInput.value = '';
+                rateInput.placeholder = netRate ? 'Current: ₱' + parseFloat(netRate).toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2}) : 'Leave blank to keep current rate';
+            }
+
+            cleanupStrayBackdrops();
+
+            const modal = bootstrap.Modal.getOrCreateInstance(modalEl);
+            modal.show();
+        };
+
+        ['checkInConfirmModal', 'extendDepartureModal'].forEach(function(modalId) {
+            const el = document.getElementById(modalId);
+            if (el) {
+                el.addEventListener('hidden.bs.modal', cleanupStrayBackdrops);
+            }
+        });
+
+        // Submit Check-In
+        const confirmCheckInBtn = document.getElementById('confirmCheckInBtn');
+        if (confirmCheckInBtn) {
+            confirmCheckInBtn.onclick = function() {
+                if (!pendingCheckInBookingId) return;
+                const btn = this;
+                const payload = { booking_id: pendingCheckInBookingId };
+                const netRateInput = document.getElementById('checkInNetRate');
+                if (netRateInput && netRateInput.value) {
+                    payload.net_rate = netRateInput.value;
+                }
+
+                window.setBtnLoading(btn, true, 'Checking In...');
+                fetch('{{ route("frontdesk.booking.check-in") }}', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Accept': 'application/json',
+                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.content
+                    },
+                    body: JSON.stringify(payload)
+                })
+                .then(r => r.json())
+                .then(res => {
+                    window.setBtnLoading(btn, false);
+                    if (res.success) {
+                        const modalEl = document.getElementById('checkInConfirmModal');
+                        if (modalEl && window.bootstrap) {
+                            bootstrap.Modal.getOrCreateInstance(modalEl).hide();
                         }
-                        return response.json();
-                    })
-                    .catch(error => {
-                        Swal.showValidationMessage(`Check-In failed: ${error.message}`);
-                    });
-                }
-            }).then((result) => {
-                if (result.isConfirmed) {
-                    if (result.value && result.value.success) {
-                        Swal.fire('Success', result.value.message, 'success').then(() => {
+                        cleanupStrayBackdrops();
+                        if (window.Swal) {
+                            Swal.fire({
+                                icon: 'success',
+                                title: 'Check-In Successful',
+                                text: res.message,
+                                timer: 1500,
+                                showConfirmButton: false
+                            }).then(() => window.location.reload());
+                        } else {
                             window.location.reload();
-                        });
-                    } else if (result.value && !result.value.success) {
-                        Swal.fire('Error', result.value.message, 'error');
+                        }
+                    } else {
+                        if (window.Swal) {
+                            Swal.fire('Check-In Failed', res.message || 'Check-in failed.', 'error');
+                        } else {
+                            alert(res.message || 'Check-in failed');
+                        }
                     }
+                })
+                .catch(err => {
+                    window.setBtnLoading(btn, false);
+                    if (window.Swal) {
+                        Swal.fire('Error', err.message || 'Network error.', 'error');
+                    } else {
+                        alert(err.message || 'Network error');
+                    }
+                });
+            };
+        }
+
+        // Submit Move Dates
+        const confirmExtendDepartureBtn = document.getElementById('confirmExtendDepartureBtn');
+        if (confirmExtendDepartureBtn) {
+            confirmExtendDepartureBtn.onclick = function() {
+                if (!pendingExtendBookingId) return;
+                const confirmBtn = this;
+                const arrContainer = document.getElementById('extendArrivalContainer');
+                const arrDateInput = document.getElementById('extendArrivalDate');
+                const arrTimeInput = document.getElementById('extendArrivalTime');
+                const depDateInput = document.getElementById('extendDepartureDate');
+                const depTimeInput = document.getElementById('extendDepartureTime');
+                const rateInput = document.getElementById('extendNetRate');
+                const errorAlert = document.getElementById('extendErrorAlert');
+
+                const newDepDate = depDateInput ? depDateInput.value : '';
+                if (!newDepDate) {
+                    if (errorAlert) {
+                        errorAlert.textContent = 'Please select a new departure date.';
+                        errorAlert.classList.remove('d-none');
+                    }
+                    if (depDateInput) depDateInput.classList.add('is-invalid');
+                    return;
                 }
-            });
+
+                const payload = {
+                    booking_id: pendingExtendBookingId,
+                    departure_date: newDepDate,
+                    departure_time: depTimeInput ? (depTimeInput.value || '12:00') : '12:00'
+                };
+
+                if (arrDateInput && arrContainer && !arrContainer.classList.contains('d-none')) {
+                    const newArrDate = arrDateInput.value;
+                    if (!newArrDate) {
+                        if (errorAlert) {
+                            errorAlert.textContent = 'Please select a new arrival date.';
+                            errorAlert.classList.remove('d-none');
+                        }
+                        arrDateInput.classList.add('is-invalid');
+                        return;
+                    }
+                    if (newArrDate >= newDepDate) {
+                        if (errorAlert) {
+                            errorAlert.textContent = 'Departure date must be after arrival date.';
+                            errorAlert.classList.remove('d-none');
+                        }
+                        if (depDateInput) depDateInput.classList.add('is-invalid');
+                        return;
+                    }
+                    payload.arrival_date = newArrDate;
+                    payload.arrival_time = arrTimeInput ? (arrTimeInput.value || '14:00') : '14:00';
+                }
+
+                if (rateInput && rateInput.value && !isNaN(parseFloat(rateInput.value))) {
+                    payload.net_rate = rateInput.value;
+                }
+
+                if (depDateInput) depDateInput.classList.remove('is-invalid');
+                if (arrDateInput) arrDateInput.classList.remove('is-invalid');
+                if (errorAlert) errorAlert.classList.add('d-none');
+
+                window.setBtnLoading(confirmBtn, true, 'Updating...');
+
+                fetch('{{ route("frontdesk.booking.move-date") }}', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Accept': 'application/json',
+                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.content
+                    },
+                    body: JSON.stringify(payload)
+                })
+                .then(r => r.json())
+                .then(res => {
+                    window.setBtnLoading(confirmBtn, false);
+                    if (res.success) {
+                        const modalEl = document.getElementById('extendDepartureModal');
+                        if (modalEl && window.bootstrap) {
+                            bootstrap.Modal.getOrCreateInstance(modalEl).hide();
+                        }
+                        cleanupStrayBackdrops();
+                        if (window.Swal) {
+                            Swal.fire({
+                                icon: 'success',
+                                title: 'Dates Updated',
+                                text: res.message,
+                                timer: 1500,
+                                showConfirmButton: false
+                            }).then(() => window.location.reload());
+                        } else {
+                            window.location.reload();
+                        }
+                    } else {
+                        if (errorAlert) {
+                            errorAlert.textContent = res.message || 'Failed to update dates.';
+                            errorAlert.classList.remove('d-none');
+                        }
+                    }
+                })
+                .catch(err => {
+                    window.setBtnLoading(confirmBtn, false);
+                    if (errorAlert) {
+                        errorAlert.textContent = err.message || 'Network error';
+                        errorAlert.classList.remove('d-none');
+                    }
+                });
+            };
+        }
+
+        window.swalConfirmMoveInReservation = function(bookingId, guestName, roomNumber) {
+            window.fdOpenCheckInModal(bookingId, guestName, roomNumber);
+        };
+
+        window.swalMoveDateReservation = function(bookingId, guestName, roomNumber, currentArrival, currentDeparture, status) {
+            window.fdOpenExtendDepartureModal(bookingId, guestName, roomNumber, currentArrival, currentDeparture, status);
         };
 
         // SweetAlert2 — Module 6: Cancel Reservation
         window.swalConfirmCancelReservation = function(btn) {
             var form = btn.closest('form');
+            if (!form) return;
+
+            if (typeof Swal === 'undefined') {
+                var reason = prompt('Please provide a reason for cancelling this reservation:');
+                if (reason === null) return;
+                if (!reason.trim()) {
+                    alert('A cancellation reason is required.');
+                    return;
+                }
+                var hiddenInput = form.querySelector('input[name="cancellation_reason"]');
+                if (!hiddenInput) {
+                    hiddenInput = document.createElement('input');
+                    hiddenInput.type = 'hidden';
+                    hiddenInput.name = 'cancellation_reason';
+                    form.appendChild(hiddenInput);
+                }
+                hiddenInput.value = reason.trim();
+                if (form.requestSubmit) { form.requestSubmit(); } else { form.submit(); }
+                return;
+            }
+
             Swal.fire({
                 icon: 'warning',
                 title: 'Cancel Reservation?',
-                text: 'This action cannot be undone. The reservation will be marked as cancelled.',
+                text: 'This action cannot be undone. Please provide a reason for cancelling this reservation.',
+                input: 'textarea',
+                inputLabel: 'Reason for Cancellation',
+                inputPlaceholder: 'Enter the reason for cancelling this reservation (e.g. Guest requested cancellation, no-show, emergency)...',
+                inputAttributes: {
+                    'aria-label': 'Reason for cancellation',
+                    'rows': '3',
+                    'maxlength': '255',
+                },
                 showCancelButton: true,
-                confirmButtonText: '<i class="fa-solid fa-ban me-1"></i> Yes, Cancel It',
+                confirmButtonText: '<i class="fa-solid fa-ban me-1"></i> Cancel Reservation',
                 cancelButtonText: 'Keep Reservation',
                 confirmButtonColor: '#dc3545',
                 reverseButtons: true,
+                inputValidator: function(value) {
+                    if (!value || !value.trim()) {
+                        return 'A cancellation reason is required.';
+                    }
+                    return undefined;
+                }
             }).then(function(result) {
-                if (result.isConfirmed && form) {
+                if (result.isConfirmed && result.value) {
+                    var hiddenInput = form.querySelector('input[name="cancellation_reason"]');
+                    if (!hiddenInput) {
+                        hiddenInput = document.createElement('input');
+                        hiddenInput.type = 'hidden';
+                        hiddenInput.name = 'cancellation_reason';
+                        form.appendChild(hiddenInput);
+                    }
+                    hiddenInput.value = result.value.trim();
                     if (form.requestSubmit) { form.requestSubmit(); } else { form.submit(); }
                 }
             });

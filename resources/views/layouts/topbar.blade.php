@@ -336,8 +336,9 @@
 
 @push('scripts')
 <script>
-    // ─── localStorage read tracking helpers ─────────────────────────────────
-    const NOTIF_STORAGE_KEY = 'evsu_read_notif_ids_' + ({{ auth()->id() ?? 0 }});
+    (function() {
+        // ─── localStorage read tracking helpers ─────────────────────────────────
+        const NOTIF_STORAGE_KEY = 'evsu_read_notif_ids_' + ({{ auth()->id() ?? 0 }});
 
     function getReadNotificationIds() {
         try {
@@ -497,6 +498,7 @@
 
         renderNotifications();
     };
+    })();
 
     // ─── Ticking Clock ───────────────────────────────────────────────────────
     (function() {

@@ -1,5 +1,6 @@
 <?php
 
+use App\Models\ActivityLog;
 use App\Models\Booking;
 use App\Models\ChargeCode;
 use App\Models\Folio;
@@ -211,4 +212,48 @@ test('rejects extension when room has a conflict with another booking during ext
         ]);
 
     expect($response->json('message'))->toContain('Room 201 is not available for the requested extension period');
+});
+
+test('staff can move reservation dates and it records an activity log entry', function (): void {
+    Carbon::setTestNow('2026-08-31 10:00:00');
+
+    $booking = Booking::create([
+        'folio_id' => $this->folio->folio_id,
+        'room_id' => $this->room->room_id,
+        'arrival_date' => '2026-08-31',
+        'arrival_time' => '14:00',
+        'departure_date' => '2026-09-02',
+        'departure_time' => '12:00',
+        'status' => 'RESERVED',
+    ]);
+
+    $response = $this->actingAs($this->frontdeskUser)
+        ->postJson(route('frontdesk.booking.move-date'), [
+            'booking_id' => $booking->booking_id,
+            'arrival_date' => '2026-09-05',
+            'arrival_time' => '15:00',
+            'departure_date' => '2026-09-08',
+            'departure_time' => '11:00',
+        ]);
+
+    $response->assertOk()
+        ->assertJson([
+            'success' => true,
+        ]);
+
+    $booking->refresh();
+    expect($booking->arrival_date->toDateString())->toBe('2026-09-05')
+        ->and($booking->arrival_time)->toBe('15:00')
+        ->and($booking->departure_date->toDateString())->toBe('2026-09-08')
+        ->and($booking->departure_time)->toBe('11:00');
+
+    $this->assertDatabaseHas('activitylogs', [
+        'action_type' => 'RESERVATION_MOVED',
+    ]);
+
+    $log = ActivityLog::where('action_type', 'RESERVATION_MOVED')->latest('log_id')->first();
+    expect($log)->not->toBeNull();
+    expect($log->description)->toContain("Moved reservation dates for {$this->guest->first_name} {$this->guest->last_name}");
+    expect($log->description)->toContain('09/05/2026');
+    expect($log->description)->toContain('09/08/2026');
 });

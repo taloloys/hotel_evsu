@@ -317,7 +317,7 @@ class BookingOperationController extends Controller
         ];
 
         if ($booking->status === 'CHECKED_IN') {
-            $rules['departure_date'] = ['required', 'date', 'after:' . ($booking->arrival_date ? $booking->arrival_date->toDateString() : 'today')];
+            $rules['departure_date'] = ['required', 'date', 'after:'.($booking->arrival_date ? $booking->arrival_date->toDateString() : 'today')];
         } else {
             $rules['arrival_date'] = ['required', 'date', 'after_or_equal:today'];
             $rules['departure_date'] = ['required', 'date', 'after:arrival_date'];
@@ -328,7 +328,7 @@ class BookingOperationController extends Controller
         $newArrivalString = $booking->status === 'CHECKED_IN'
             ? ($booking->arrival_date ? $booking->arrival_date->toDateString() : today()->toDateString())
             : Carbon::parse($request->arrival_date)->toDateString();
-            
+
         $newDepartureString = Carbon::parse($request->departure_date)->toDateString();
 
         if ($booking->room_id && $this->roomHasConflictExcluding($booking->room_id, $booking->booking_id, $newArrivalString, $newDepartureString)) {
@@ -342,6 +342,9 @@ class BookingOperationController extends Controller
 
         $arrivalTime = $request->arrival_time ?? $booking->arrival_time ?? '14:00';
         $departureTime = $request->departure_time ?? $booking->departure_time ?? '12:00';
+
+        $oldArrival = $booking->arrival_date ? $booking->arrival_date->format('m/d/Y') : 'N/A';
+        $oldDeparture = $booking->departure_date ? $booking->departure_date->format('m/d/Y') : 'N/A';
 
         DB::transaction(function () use ($booking, $newArrivalString, $newDepartureString, $arrivalTime, $departureTime, $request) {
             $booking->update([
@@ -375,6 +378,27 @@ class BookingOperationController extends Controller
         $guestName = $booking->folio?->guest
             ? ($booking->folio->guest->first_name.' '.$booking->folio->guest->last_name)
             : 'Guest';
+        $roomNumber = $booking->room?->room_number ?? 'N/A';
+
+        $formattedDepDate = Carbon::parse($newDepartureString)->format('m/d/Y');
+        $formattedDepTime = Carbon::parse($departureTime)->format('g:i A');
+
+        if ($booking->status === 'CHECKED_IN') {
+            $actionType = 'STAY_EXTENDED';
+            $logDescription = "Extended departure for {$guestName} (Room {$roomNumber}) to {$formattedDepDate} {$formattedDepTime} (Booking #{$booking->booking_id}).";
+        } else {
+            $actionType = 'RESERVATION_MOVED';
+            $formattedArrDate = Carbon::parse($newArrivalString)->format('m/d/Y');
+            $formattedArrTime = Carbon::parse($arrivalTime)->format('g:i A');
+            $logDescription = "Moved reservation dates for {$guestName} (Room {$roomNumber}) from {$oldArrival} - {$oldDeparture} to {$formattedArrDate} {$formattedArrTime} - {$formattedDepDate} {$formattedDepTime} (Booking #{$booking->booking_id}).";
+        }
+
+        $reason = $request->input('reason') ?? $request->input('move_reason');
+        if (! empty($reason)) {
+            $logDescription .= " Reason: {$reason}";
+        }
+
+        ActivityLog::log($actionType, $logDescription);
 
         $message = $booking->status === 'CHECKED_IN'
             ? "Stay for {$guestName} successfully extended until {$newDepartureString}."

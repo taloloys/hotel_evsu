@@ -237,7 +237,7 @@
                     <!-- Address -->
                     <div class="col-md-8">
                         <label class="form-label fw-semibold" for="address_line1">
-                            Address
+                            Address <span class="text-danger">*</span>
                         </label>
 
                         <input
@@ -248,7 +248,8 @@
                             value="{{ old('address_line1') }}"
                             maxlength="100"
                             placeholder="Street, Barangay, City"
-                            style="height:46px; border:1px solid #ced4da;">
+                            style="height:46px; border:1px solid #ced4da;"
+                            required>
 
                         @error('address_line1')
                             <div class="invalid-feedback">
@@ -257,10 +258,10 @@
                         @enderror
                     </div>
 
-                    <!-- Mobile Number -->
+                    <!-- Contact Number -->
                     <div class="col-md-4">
                         <label class="form-label fw-semibold" for="contact_number">
-                            Mobile Number
+                            Contact Number <span class="text-danger">*</span>
                         </label>
 
                         <input
@@ -271,7 +272,8 @@
                             value="{{ old('contact_number') }}"
                             maxlength="20"
                             placeholder="09XXXXXXXXX"
-                            style="height:46px; border:1px solid #ced4da;">
+                            style="height:46px; border:1px solid #ced4da;"
+                            required>
 
                         @error('contact_number')
                             <div class="invalid-feedback">
@@ -283,7 +285,7 @@
                     <!-- Email Address -->
                     <div class="col-md-6">
                         <label class="form-label fw-semibold" for="email">
-                            Email Address
+                            Email Address <span class="text-danger">*</span>
                         </label>
 
                         <input
@@ -294,7 +296,8 @@
                             value="{{ old('email') }}"
                             maxlength="100"
                             placeholder="guest@example.com"
-                            style="height:46px; border:1px solid #ced4da;">
+                            style="height:46px; border:1px solid #ced4da;"
+                            required>
 
                         @error('email')
                             <div class="invalid-feedback">
@@ -431,7 +434,7 @@
                     <!-- Number of Guests -->
                     <div class="col-md-3">
                         <label class="form-label fw-semibold" for="num_pax">
-                            Number of Guests
+                            Number of Guests <span class="text-danger">*</span>
                         </label>
 
                         <input
@@ -442,7 +445,8 @@
                             value="{{ old('num_pax', $defaults['num_pax']) }}"
                             min="1"
                             max="20"
-                            style="height:46px; border:1px solid #ced4da;">
+                            style="height:46px; border:1px solid #ced4da;"
+                            required>
 
                         @error('num_pax')
                             <div class="invalid-feedback">{{ $message }}</div>

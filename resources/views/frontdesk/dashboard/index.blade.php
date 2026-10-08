@@ -711,6 +711,7 @@
                                                     data-room-type="{{ $booking->room->room_type }}"
                                                     data-status="{{ $booking->status }}"
                                                     data-arrival-date="{{ $booking->arrival_date->format('Y-m-d') }}"
+                                                    data-arrival-time="{{ $booking->arrival_time ? \Carbon\Carbon::parse($booking->arrival_time)->format('H:i') : '14:00' }}"
                                                     data-arrival-display="{{ $booking->arrival_date->format('m/d/Y') }}{{ $booking->arrival_time ? ' ' . \Carbon\Carbon::parse($booking->arrival_time)->format('g:i A') : '' }}"
                                                     data-departure-date="{{ $booking->departure_date ? $booking->departure_date->format('Y-m-d') : '' }}"
                                                     data-departure-time="{{ $booking->departure_time ? \Carbon\Carbon::parse($booking->departure_time)->format('H:i') : '12:00' }}"
@@ -1179,18 +1180,17 @@
     </div>
 </div>
 
-<!-- Move Departure Modal -->
+<!-- Move Reservation Modal -->
 <div class="modal fade" id="extendDepartureModal" tabindex="-1" aria-labelledby="extendDepartureModalLabel" aria-hidden="true" style="z-index: 1065;">
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content border-0 shadow">
             <div class="modal-header border-0 pb-0">
                 <h5 class="modal-title fw-bold" id="extendDepartureModalLabel" style="color: #1a1a1a;">
-                    <i class="fa-solid fa-calendar-plus me-2" style="color: #334c42;"></i> Move Guest Departure
+                    <i class="fa-solid fa-calendar-plus me-2" style="color: #334c42;"></i> Move Reservation Dates
                 </h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body">
-                <!-- Guest & Stay Summary -->
                 <div class="p-3 rounded-3 mb-3" style="background: #f8f3ed; border: 1px solid #c2a889;">
                     <div class="d-flex justify-content-between align-items-start mb-2">
                         <div>
@@ -1212,8 +1212,8 @@
                             <span class="badge-status" id="extendModalStatus">—</span>
                         </div>
                         <div class="col-6">
-                            <span class="text-muted small d-block">Arrival:</span>
-                            <span class="small fw-semibold" id="extendModalArrival" style="color: #262626;">—</span>
+                            <span class="text-muted small d-block">Current Arrival:</span>
+                            <span class="small fw-semibold text-primary" id="extendModalArrival" style="color: #262626;">—</span>
                         </div>
                         <div class="col-6 text-end">
                             <span class="text-muted small d-block">Current Departure:</span>
@@ -1224,26 +1224,34 @@
 
                 <form id="extendDepartureForm">
                     <input type="hidden" id="extendBookingId">
-
-                    <!-- New Departure Date -->
-                    <div class="mb-3">
-                        <label for="extendDepartureDate" class="form-label fw-semibold small" style="color: #1a1a1a;">
-                            New Departure Date <span class="text-danger">*</span>
-                        </label>
-                        <input type="date" class="form-control" id="extendDepartureDate" required style="border: 1px solid #c2a889;">
-                        <div class="form-text" id="extendDateHint">Select a new date after the current departure date.</div>
+                    <div class="row g-2 mb-3" id="extendArrivalContainer">
+                        <div class="col-6">
+                            <label for="extendArrivalDate" class="form-label fw-semibold small" style="color: #1a1a1a;">
+                                New Arrival Date <span class="text-danger">*</span>
+                            </label>
+                            <input type="date" class="form-control" id="extendArrivalDate" required style="border: 1px solid #c2a889;">
+                        </div>
+                        <div class="col-6">
+                            <label for="extendArrivalTime" class="form-label fw-semibold small" style="color: #1a1a1a;">
+                                New Arrival Time
+                            </label>
+                            <input type="time" class="form-control" id="extendArrivalTime" value="14:00" style="border: 1px solid #c2a889;">
+                        </div>
                     </div>
-
-                    <!-- New Departure Time -->
-                    <div class="mb-3">
-                        <label for="extendDepartureTime" class="form-label fw-semibold small" style="color: #1a1a1a;">
-                            New Departure Time
-                        </label>
-                        <input type="time" class="form-control" id="extendDepartureTime" value="12:00" style="border: 1px solid #c2a889;">
-                        <div class="form-text">Standard checkout is 12:00 PM.</div>
+                    <div class="row g-2 mb-3">
+                        <div class="col-6">
+                            <label for="extendDepartureDate" class="form-label fw-semibold small" style="color: #1a1a1a;">
+                                New Departure Date <span class="text-danger">*</span>
+                            </label>
+                            <input type="date" class="form-control" id="extendDepartureDate" required style="border: 1px solid #c2a889;">
+                        </div>
+                        <div class="col-6">
+                            <label for="extendDepartureTime" class="form-label fw-semibold small" style="color: #1a1a1a;">
+                                New Departure Time
+                            </label>
+                            <input type="time" class="form-control" id="extendDepartureTime" value="12:00" style="border: 1px solid #c2a889;">
+                        </div>
                     </div>
-
-                    <!-- Net Rate Override (Optional) -->
                     <div class="mb-2">
                         <label for="extendNetRate" class="form-label fw-semibold small" style="color: #1a1a1a;">
                             Agreed Room Rate (Optional Override)
@@ -1254,14 +1262,13 @@
                             <span class="input-group-text bg-white border-0 text-muted">/night</span>
                         </div>
                     </div>
-
                     <div class="alert alert-danger d-none mt-3 mb-0" id="extendErrorAlert"></div>
                 </form>
             </div>
             <div class="modal-footer border-0">
                 <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
                 <button type="button" class="btn text-white fw-semibold" id="confirmExtendDepartureBtn" style="background-color: #334c42;">
-                    <i class="fa-solid fa-check me-1"></i> Update Departure
+                    <i class="fa-solid fa-check me-1"></i> Update Dates
                 </button>
             </div>
         </div>
@@ -2098,6 +2105,7 @@
             fakeBtn.setAttribute('data-room-type', room.room_type);
             fakeBtn.setAttribute('data-status', booking.status);
             fakeBtn.setAttribute('data-arrival-date', booking.arrival_date);
+            fakeBtn.setAttribute('data-arrival-time', booking.arrival_time || '14:00');
             fakeBtn.setAttribute('data-arrival-display', booking.arrival_date);
             fakeBtn.setAttribute('data-departure-date', booking.departure_date);
             fakeBtn.setAttribute('data-departure-time', booking.departure_time || '12:00');
@@ -2827,6 +2835,7 @@
         const roomType = button.getAttribute('data-room-type') || '';
         const status = button.getAttribute('data-status') || '';
         const arrivalDate = button.getAttribute('data-arrival-date');
+        const arrivalTime = button.getAttribute('data-arrival-time') || '14:00';
         const arrivalDisplay = button.getAttribute('data-arrival-display') || arrivalDate || '—';
         const departureDate = button.getAttribute('data-departure-date');
         const departureTime = button.getAttribute('data-departure-time') || '12:00';
@@ -2849,57 +2858,35 @@
         document.getElementById('extendModalArrival').textContent = arrivalDisplay;
         document.getElementById('extendModalCurrentDeparture').textContent = departureDisplay;
 
-        const dateInput = document.getElementById('extendDepartureDate');
-        const timeInput = document.getElementById('extendDepartureTime');
+        const arrContainer = document.getElementById('extendArrivalContainer');
+        const arrDateInput = document.getElementById('extendArrivalDate');
+        const arrTimeInput = document.getElementById('extendArrivalTime');
+        const depDateInput = document.getElementById('extendDepartureDate');
+        const depTimeInput = document.getElementById('extendDepartureTime');
         const rateInput = document.getElementById('extendNetRate');
         const errorAlert = document.getElementById('extendErrorAlert');
-        const hintEl = document.getElementById('extendDateHint');
 
         errorAlert.classList.add('d-none');
         errorAlert.textContent = '';
-        dateInput.classList.remove('is-invalid');
+        if (arrDateInput) arrDateInput.classList.remove('is-invalid');
+        depDateInput.classList.remove('is-invalid');
+
+        if (status === 'CHECKED_IN') {
+            if (arrContainer) arrContainer.classList.add('d-none');
+            if (arrDateInput) arrDateInput.removeAttribute('required');
+        } else {
+            if (arrContainer) arrContainer.classList.remove('d-none');
+            if (arrDateInput) {
+                arrDateInput.setAttribute('required', 'required');
+                arrDateInput.value = arrivalDate || '';
+            }
+            if (arrTimeInput) arrTimeInput.value = arrivalTime;
+        }
+
+        depDateInput.value = departureDate || '';
+        depTimeInput.value = departureTime;
         rateInput.value = '';
         rateInput.placeholder = netRate ? 'Current: ₱' + parseFloat(netRate).toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2}) : 'Leave blank to keep current rate';
-
-        // Calculate minimum extension date safely using date components
-        const now = window.currentServerTime || new Date();
-        const pad = n => String(n).padStart(2, '0');
-        const toIsoDate = d => `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
-
-        // Base minimum: tomorrow
-        const tomorrow = new Date(now.getFullYear(), now.getMonth(), now.getDate() + 1);
-        let minDate = new Date(tomorrow);
-
-        // Must be after arrival date
-        if (arrivalDate) {
-            const arrParts = arrivalDate.split('-');
-            if (arrParts.length === 3) {
-                const dayAfterArr = new Date(parseInt(arrParts[0], 10), parseInt(arrParts[1], 10) - 1, parseInt(arrParts[2], 10) + 1);
-                if (dayAfterArr > minDate) {
-                    minDate = dayAfterArr;
-                }
-            }
-        }
-
-        // If current departure date is set and in the future, new departure must be strictly after it
-        if (departureDate) {
-            const depParts = departureDate.split('-');
-            if (depParts.length === 3) {
-                const dayAfterDep = new Date(parseInt(depParts[0], 10), parseInt(depParts[1], 10) - 1, parseInt(depParts[2], 10) + 1);
-                if (dayAfterDep > minDate) {
-                    minDate = dayAfterDep;
-                }
-            }
-        }
-
-        const minDateStr = toIsoDate(minDate);
-        dateInput.min = minDateStr;
-        dateInput.value = minDateStr;
-        timeInput.value = departureTime;
-
-        if (hintEl) {
-            hintEl.textContent = 'Earliest extension date: ' + minDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) + '.';
-        }
 
         extendDepartureModal?.show();
     }
@@ -2908,42 +2895,57 @@
         if (!pendingExtendBookingId) return;
 
         const confirmBtn = document.getElementById('confirmExtendDepartureBtn');
-        const dateInput = document.getElementById('extendDepartureDate');
-        const timeInput = document.getElementById('extendDepartureTime');
+        const arrContainer = document.getElementById('extendArrivalContainer');
+        const arrDateInput = document.getElementById('extendArrivalDate');
+        const arrTimeInput = document.getElementById('extendArrivalTime');
+        const depDateInput = document.getElementById('extendDepartureDate');
+        const depTimeInput = document.getElementById('extendDepartureTime');
         const rateInput = document.getElementById('extendNetRate');
         const errorAlert = document.getElementById('extendErrorAlert');
 
-        const newDate = dateInput.value;
-        if (!newDate) {
+        const newDepDate = depDateInput.value;
+        if (!newDepDate) {
             errorAlert.textContent = 'Please select a new departure date.';
             errorAlert.classList.remove('d-none');
-            dateInput.classList.add('is-invalid');
+            depDateInput.classList.add('is-invalid');
             return;
         }
-
-        if (dateInput.min && newDate < dateInput.min) {
-            errorAlert.textContent = 'New departure date must be on or after ' + dateInput.min + '.';
-            errorAlert.classList.remove('d-none');
-            dateInput.classList.add('is-invalid');
-            return;
-        }
-
-        dateInput.classList.remove('is-invalid');
-        errorAlert.classList.add('d-none');
-
-        window.setBtnLoading(confirmBtn, true, 'Updating...');
 
         const payload = {
             booking_id: pendingExtendBookingId,
-            departure_date: newDate,
-            departure_time: timeInput.value || '12:00'
+            departure_date: newDepDate,
+            departure_time: depTimeInput.value || '12:00'
         };
+
+        if (arrDateInput && !arrContainer.classList.contains('d-none')) {
+            const newArrDate = arrDateInput.value;
+            if (!newArrDate) {
+                errorAlert.textContent = 'Please select a new arrival date.';
+                errorAlert.classList.remove('d-none');
+                arrDateInput.classList.add('is-invalid');
+                return;
+            }
+            if (newArrDate >= newDepDate) {
+                errorAlert.textContent = 'Departure date must be after arrival date.';
+                errorAlert.classList.remove('d-none');
+                depDateInput.classList.add('is-invalid');
+                return;
+            }
+            payload.arrival_date = newArrDate;
+            payload.arrival_time = arrTimeInput.value || '14:00';
+        }
 
         if (rateInput.value && !isNaN(parseFloat(rateInput.value))) {
             payload.net_rate = rateInput.value;
         }
 
-        postJson('{{ route("frontdesk.booking.extend") }}', payload)
+        depDateInput.classList.remove('is-invalid');
+        if (arrDateInput) arrDateInput.classList.remove('is-invalid');
+        errorAlert.classList.add('d-none');
+
+        window.setBtnLoading(confirmBtn, true, 'Updating...');
+
+        postJson('{{ route("frontdesk.booking.move-date") }}', payload)
             .then(data => {
                 extendDepartureModal?.hide();
                 showAlert('success', data.message);
@@ -2958,24 +2960,60 @@
 
     window.swalConfirmCancelDashboardReservation = function(btn) {
         var form = btn.closest('form');
+        if (!form) return;
+
         if (typeof Swal === 'undefined') {
-            if (confirm('Cancel this reservation? This action cannot be undone.')) {
-                if (form.requestSubmit) { form.requestSubmit(); } else { form.submit(); }
+            var reason = prompt('Please provide a reason for cancelling this reservation:');
+            if (reason === null) return;
+            if (!reason.trim()) {
+                alert('A cancellation reason is required.');
+                return;
             }
+            var hiddenInput = form.querySelector('input[name="cancellation_reason"]');
+            if (!hiddenInput) {
+                hiddenInput = document.createElement('input');
+                hiddenInput.type = 'hidden';
+                hiddenInput.name = 'cancellation_reason';
+                form.appendChild(hiddenInput);
+            }
+            hiddenInput.value = reason.trim();
+            if (form.requestSubmit) { form.requestSubmit(); } else { form.submit(); }
             return;
         }
 
         Swal.fire({
             icon: 'warning',
             title: 'Cancel Reservation?',
-            text: 'This action cannot be undone. The reservation will be marked as cancelled.',
+            text: 'This action cannot be undone. Please provide a reason for cancelling this reservation.',
+            input: 'textarea',
+            inputLabel: 'Reason for Cancellation',
+            inputPlaceholder: 'Enter the reason for cancelling this reservation (e.g. Guest requested cancellation, no-show, emergency)...',
+            inputAttributes: {
+                'aria-label': 'Reason for cancellation',
+                'rows': '3',
+                'maxlength': '255',
+            },
             showCancelButton: true,
-            confirmButtonText: '<i class="fa-solid fa-ban me-1"></i> Yes, Cancel It',
+            confirmButtonText: '<i class="fa-solid fa-ban me-1"></i> Cancel Reservation',
             cancelButtonText: 'Keep Reservation',
             confirmButtonColor: '#dc3545',
             reverseButtons: true,
+            inputValidator: function(value) {
+                if (!value || !value.trim()) {
+                    return 'A cancellation reason is required.';
+                }
+                return undefined;
+            }
         }).then(function(result) {
-            if (result.isConfirmed && form) {
+            if (result.isConfirmed && result.value) {
+                var hiddenInput = form.querySelector('input[name="cancellation_reason"]');
+                if (!hiddenInput) {
+                    hiddenInput = document.createElement('input');
+                    hiddenInput.type = 'hidden';
+                    hiddenInput.name = 'cancellation_reason';
+                    form.appendChild(hiddenInput);
+                }
+                hiddenInput.value = result.value.trim();
                 if (form.requestSubmit) { form.requestSubmit(); } else { form.submit(); }
             }
         });

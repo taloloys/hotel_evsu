@@ -1,5 +1,6 @@
 <?php
 
+use App\Models\ActivityLog;
 use App\Models\Booking;
 use App\Models\ChargeCode;
 use App\Models\Folio;
@@ -367,6 +368,49 @@ test('user can cancel a reservation when status is RESERVED', function (): void 
         'booking_id' => $booking->booking_id,
         'status' => 'CANCELLED',
     ]);
+});
+
+test('user can cancel a reservation with a cancellation reason', function (): void {
+    $manageReservations = Permission::firstOrCreate(
+        ['permission_key' => 'manage-reservations'],
+        ['description' => 'Manage reservations', 'module' => 'Front Desk', 'is_active' => true]
+    );
+    if (! $this->frontdeskRole->permissions->contains('permission_id', $manageReservations->permission_id)) {
+        $this->frontdeskRole->permissions()->attach($manageReservations->permission_id);
+    }
+
+    $guest = Guest::create(['last_name' => 'Dela Cruz', 'first_name' => 'Pedro']);
+    $folio = Folio::create(['folio_number' => 'REG-2026099', 'guest_id' => $guest->guest_id, 'status' => 'OPEN']);
+    $booking = Booking::create([
+        'folio_id' => $folio->folio_id,
+        'room_id' => $this->roomA->room_id,
+        'arrival_date' => now()->toDateString(),
+        'arrival_time' => '14:00',
+        'departure_date' => now()->addDays(2)->toDateString(),
+        'departure_time' => '12:00',
+        'status' => 'RESERVED',
+    ]);
+
+    $response = $this->actingAs($this->frontdeskUser)
+        ->patch(route('frontdesk.reservation.cancel', $booking->booking_id), [
+            'cancellation_reason' => 'Guest cancelled due to emergency travel changes.',
+        ]);
+
+    $response->assertRedirect();
+    $response->assertSessionHas('success');
+
+    $this->assertDatabaseHas('bookings', [
+        'booking_id' => $booking->booking_id,
+        'status' => 'CANCELLED',
+    ]);
+
+    $this->assertDatabaseHas('activitylogs', [
+        'action_type' => 'RESERVATION_CANCEL',
+    ]);
+
+    $log = ActivityLog::where('action_type', 'RESERVATION_CANCEL')->latest('log_id')->first();
+    expect($log)->not->toBeNull();
+    expect($log->description)->toContain('Reason: Guest cancelled due to emergency travel changes.');
 });
 
 test('user cannot cancel a reservation when status is CHECKED_IN', function (): void {

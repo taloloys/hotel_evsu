@@ -234,7 +234,9 @@ class ReservationController extends Controller
                 ->withErrors(['cancel' => 'Only reserved bookings can be cancelled.']);
         }
 
-        DB::transaction(function () use ($booking) {
+        $cancellationReason = request()->input('cancellation_reason');
+
+        DB::transaction(function () use ($booking, $cancellationReason) {
             $booking->load(['room', 'folio.guest']);
 
             $booking->update(['status' => 'CANCELLED']);
@@ -253,9 +255,14 @@ class ReservationController extends Controller
 
             $guestName = $booking->folio?->guest ? ($booking->folio->guest->first_name.' '.$booking->folio->guest->last_name) : 'Guest';
             $roomNumber = $booking->room?->room_number ?? 'N/A';
+            $logMessage = "Cancelled reservation #{$booking->booking_id} for {$guestName} (Room {$roomNumber}).";
+            if (! empty($cancellationReason)) {
+                $logMessage .= " Reason: {$cancellationReason}";
+            }
+
             ActivityLog::log(
                 'RESERVATION_CANCEL',
-                "Cancelled reservation #{$booking->booking_id} for {$guestName} (Room {$roomNumber})."
+                $logMessage
             );
         });
 

@@ -53,34 +53,55 @@ self.addEventListener('fetch', (event) => {
     // Handle page navigation requests
     if (event.request.mode === 'navigate') {
         event.respondWith(
-            fetch(event.request).catch(() => {
-                return caches.match(OFFLINE_URL);
+            fetch(event.request).catch(async () => {
+                const cachedResponse = await caches.match(OFFLINE_URL);
+                if (cachedResponse) {
+                    return cachedResponse;
+                }
+                return new Response('Network error occurred', {
+                    status: 503,
+                    statusText: 'Service Unavailable',
+                    headers: { 'Content-Type': 'text/plain' }
+                });
             })
         );
         return;
     }
 
-    // For static assets (images, manifest, icons): network first, then cache
+    // Only intercept specific static assets (images, manifest, icons, css, js)
+    const isStaticAsset =
+        url.pathname.includes('/images/') ||
+        url.pathname.endsWith('.webmanifest') ||
+        url.pathname.endsWith('.png') ||
+        url.pathname.endsWith('.jpg') ||
+        url.pathname.endsWith('.jpeg') ||
+        url.pathname.endsWith('.svg') ||
+        url.pathname.endsWith('.ico') ||
+        url.pathname.endsWith('.css') ||
+        url.pathname.endsWith('.js');
+
+    if (!isStaticAsset) {
+        return;
+    }
+
+    // For static assets: network first, then cache, with valid fallback response
     event.respondWith(
         fetch(event.request)
             .then((networkResponse) => {
                 if (networkResponse && networkResponse.status === 200 && networkResponse.type === 'basic') {
                     const clonedResponse = networkResponse.clone();
                     caches.open(CACHE_NAME).then((cache) => {
-                        if (
-                            url.pathname.includes('/images/') ||
-                            url.pathname.endsWith('.webmanifest') ||
-                            url.pathname.endsWith('.png') ||
-                            url.pathname.endsWith('.ico')
-                        ) {
-                            cache.put(event.request, clonedResponse);
-                        }
+                        cache.put(event.request, clonedResponse);
                     });
                 }
                 return networkResponse;
             })
-            .catch(() => {
-                return caches.match(event.request);
+            .catch(async () => {
+                const cachedResponse = await caches.match(event.request);
+                if (cachedResponse) {
+                    return cachedResponse;
+                }
+                return new Response('', { status: 408, statusText: 'Request Timeout' });
             })
     );
 });
