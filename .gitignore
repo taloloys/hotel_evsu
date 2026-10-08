@@ -30,3 +30,9 @@ Thumbs.db
 backlog.md
 /fix_colors.php
 /fix_showcase.php
+
+# Local Docker Development (Personal)
+/docker/
+Dockerfile
+.dockerignore
+compose.yaml
