@@ -21,92 +21,92 @@
 @endif
 
 {{-- ── Individual Facilities ──────────────────────────────────────────────── --}}
-<div class="card shadow-sm border-0 mb-4">
-    <div class="card-header bg-white d-flex justify-content-between align-items-center py-3">
-        <h5 class="mb-0 text-dark fw-bold">
-            <i class="fa-solid fa-building me-2 text-primary"></i>Individual Facilities
-            <span class="badge bg-secondary ms-2 rounded-pill" style="font-size:.75rem;">{{ $facilities->count() }}</span>
+<div class="card border-0 shadow-sm mb-4">
+    <div class="card-header bg-white border-0 py-3 px-4 d-flex align-items-center justify-content-between">
+        <h5 class="mb-0 fw-bold" style="color: #1a1a1a;">
+            <i class="fa-solid fa-building me-2" style="color: #627e71;"></i>Individual Facilities
+            <span class="badge ms-2" style="background-color: #f3ede4; color: #3d332a;">{{ $facilities->total() }}</span>
         </h5>
-        <a href="{{ route('admin.facilities.create', ['type' => 'single']) }}" class="btn btn-primary btn-sm rounded-pill fw-semibold shadow-sm">
-            <i class="fa-solid fa-plus me-1"></i> Add Facility
+        <a href="{{ route('admin.facilities.create', ['type' => 'single']) }}" class="btn text-white px-3 d-flex align-items-center gap-2 fw-semibold shadow-sm" style="height: 40px; background-color: #334c42; border: none; border-radius: 0.5rem; font-size: 0.9rem;">
+            <i class="fa-solid fa-plus"></i> Add Facility
         </a>
     </div>
     <div class="card-body p-0">
         <div class="table-responsive">
             <table class="table table-hover align-middle mb-0">
-                <thead class="table-light text-muted small">
-                    <tr>
-                        <th class="ps-4" style="width:80px;">Image</th>
-                        <th>Name</th>
-                        <th>Hourly Rate</th>
-                        <th>Daily Rate</th>
-                        <th>Capacity</th>
-                        <th>Status</th>
-                        <th class="text-end pe-4">Actions</th>
+                <thead style="background-color: #f8f3ed; border-bottom: 2px solid #c2a889;">
+                    <tr class="small fw-bold">
+                        <th class="ps-4" style="color: #2c241d;">IMAGE</th>
+                        <th style="color: #2c241d;">NAME</th>
+                        <th style="color: #2c241d;">HOURLY RATE</th>
+                        <th style="color: #2c241d;">DAILY RATE</th>
+                        <th style="color: #2c241d;">CAPACITY</th>
+                        <th style="color: #2c241d;">STATUS</th>
+                        <th class="text-end pe-4" style="color: #2c241d;">ACTIONS</th>
                     </tr>
                 </thead>
                 <tbody class="border-top-0">
                     @forelse($facilities as $facility)
-                    <tr>
+                    <tr style="border-bottom: 1px solid #f0f0f0;">
                         <td class="ps-4">
                             @if(!empty($facility->images) && count($facility->images) > 0)
                                 <img src="{{ \App\Models\Facility::imageUrl($facility->images[0]) }}"
-                                     class="rounded shadow-sm" style="width:60px;height:45px;object-fit:cover;"
+                                     class="rounded shadow-sm border" style="width:60px;height:45px;object-fit:cover; border-color: #c2a889 !important;"
                                      alt="{{ $facility->name }}">
                             @else
-                                <div class="bg-light rounded d-flex align-items-center justify-content-center text-muted"
-                                     style="width:60px;height:45px;">
-                                    <i class="fa-solid fa-image"></i>
+                                <div class="bg-light rounded d-flex align-items-center justify-content-center text-muted border"
+                                     style="width:60px;height:45px; border-color: #e2d3be !important; background-color: #f8f3ed !important;">
+                                    <i class="fa-solid fa-image" style="color: #c2a889;"></i>
                                 </div>
                             @endif
                         </td>
                         <td>
-                            <div class="fw-semibold text-dark">{{ $facility->name }}</div>
+                            <div class="fw-bold" style="color: #1a1a1a;">{{ $facility->name }}</div>
                             @if($facility->facilitySets->isNotEmpty())
-                                <div class="small text-muted mt-1">
-                                    Part of:
+                                <div class="small mt-1" style="color: #627e71;">
+                                    <span class="me-1">Part of:</span>
                                     @foreach($facility->facilitySets as $fs)
-                                        <span class="badge bg-info text-dark rounded-pill px-2" style="font-size:.7rem;">{{ $fs->name }}</span>
+                                        <span class="badge fw-semibold" style="background-color: #e8f0ec; color: #1e332b; border: 1px solid #627e71; font-size: 0.65rem;">{{ $fs->name }}</span>
                                     @endforeach
                                 </div>
                             @endif
                         </td>
                         <td>
                             @if($facility->effective_hourly_rate)
-                                <span class="fw-semibold text-success">₱{{ number_format($facility->effective_hourly_rate, 2) }}</span>
-                                <span class="badge ms-1 rounded-pill px-2" style="background:#dbeafe;color:#1e40af;font-size:.7rem;">/ hr</span>
+                                <span class="fw-bold" style="color: #334c42;">₱{{ number_format($facility->effective_hourly_rate, 2) }}</span>
+                                <span class="badge ms-1 px-2" style="background-color: #f3ede4; color: #627e71; border: 1px solid #e2d3be; font-size: 0.7rem;">/ hr</span>
                             @else
                                 <span class="text-muted small">—</span>
                             @endif
                         </td>
                         <td>
                             @if($facility->effective_daily_rate)
-                                <span class="fw-semibold text-success">₱{{ number_format($facility->effective_daily_rate, 2) }}</span>
-                                <span class="badge ms-1 rounded-pill px-2" style="background:#f3e8ff;color:#7c3aed;font-size:.7rem;">/ day</span>
+                                <span class="fw-bold" style="color: #334c42;">₱{{ number_format($facility->effective_daily_rate, 2) }}</span>
+                                <span class="badge ms-1 px-2" style="background-color: #f3ede4; color: #627e71; border: 1px solid #e2d3be; font-size: 0.7rem;">/ day</span>
                             @else
                                 <span class="text-muted small">—</span>
                             @endif
                         </td>
-                        <td class="text-muted small">
+                        <td style="color: #3d332a;">
                             {{ $facility->capacity ? $facility->capacity . ' pax' : 'N/A' }}
                         </td>
                         <td>
                             @if($facility->is_active)
-                                <span class="badge rounded-pill px-3 py-1 bg-success-subtle text-success fw-semibold" style="font-size:.8rem;">Active</span>
+                                <span class="badge-status badge-status-active">Active</span>
                             @else
-                                <span class="badge rounded-pill px-3 py-1 bg-secondary-subtle text-secondary fw-semibold" style="font-size:.8rem;">Disabled</span>
+                                <span class="badge-status badge-status-maintenance">Disabled</span>
                             @endif
                         </td>
                         <td class="text-end pe-4">
-                            <a href="{{ route('admin.facilities.edit', $facility->facility_id) }}"
-                               class="btn btn-sm btn-outline-primary rounded-circle me-1" title="Edit">
+                            <a href="{{ route('admin.facilities.edit', $facility->facility_id) }}?type=single"
+                               class="btn btn-sm shadow-sm me-1" style="border: 1px solid #c2a889; background-color: #f8f3ed; color: #3d332a;" title="Edit Facility">
                                 <i class="fa-solid fa-pen"></i>
                             </a>
-                            <form action="{{ route('admin.facilities.toggle', $facility->facility_id) }}"
+                            <form action="{{ route('admin.facilities.toggle', $facility->facility_id) }}?type=single"
                                   method="POST" class="d-inline">
                                 @csrf @method('PATCH')
                                 <button type="submit"
-                                        class="btn btn-sm rounded-circle {{ $facility->is_active ? 'btn-outline-secondary' : 'btn-outline-success' }}"
+                                        class="btn btn-sm shadow-sm" style="border: 1px solid #c2a889; background-color: {{ $facility->is_active ? '#ffffff' : '#e8f0ec' }}; color: {{ $facility->is_active ? '#999' : '#1e332b' }};"
                                         title="{{ $facility->is_active ? 'Disable' : 'Enable' }}">
                                     <i class="fa-solid {{ $facility->is_active ? 'fa-toggle-off' : 'fa-toggle-on' }}"></i>
                                 </button>
@@ -115,113 +115,122 @@
                     </tr>
                     @empty
                     <tr>
-                        <td colspan="7" class="text-center text-muted py-5">
-                            <i class="fa-solid fa-folder-open fs-2 mb-3 d-block"></i>
-                            No facilities found. <a href="{{ route('admin.facilities.create') }}">Create one</a>.
+                        <td colspan="7" class="text-center py-5" style="color: #627e71;">
+                            <i class="fa-solid fa-folder-open fs-2 mb-3 d-block" style="color: #c2a889;"></i>
+                            No facilities found. <a href="{{ route('admin.facilities.create') }}" style="color: #334c42; font-weight: bold; text-decoration: underline;">Create one</a>.
                         </td>
                     </tr>
                     @endforelse
                 </tbody>
             </table>
         </div>
+        
+        <div class="d-flex align-items-center justify-content-between p-3" style="background-color: #fcfbf9; border-top: 1px solid #e2d3be;">
+            <span class="text-muted small" style="color: #627e71 !important;">
+                Showing <span class="badge" style="background-color: #f3ede4; color: #3d332a; border: 1px solid #e2d3be;">{{ $facilities->firstItem() ?? 0 }}-{{ $facilities->lastItem() ?? 0 }}</span> of <strong>{{ $facilities->total() }}</strong>
+            </span>
+            <div class="m-0">
+                {{ $facilities->withQueryString()->links() }}
+            </div>
+        </div>
     </div>
 </div>
 
-{{-- ── Consolidated Facility Sets ────────────────────────────────────────── --}}
-<div class="card shadow-sm border-0">
-    <div class="card-header bg-white d-flex justify-content-between align-items-center py-3">
-        <h5 class="mb-0 text-dark fw-bold">
-            <i class="fa-solid fa-layer-group me-2 text-warning"></i>Consolidated Facility Sets
-            <span class="badge bg-warning text-dark ms-2 rounded-pill" style="font-size:.75rem;">{{ $facilitySets->count() }}</span>
+{{-- ── Consolidated Facility Sets ─────────────────────────────────────────── --}}
+<div class="card border-0 shadow-sm mb-4">
+    <div class="card-header bg-white border-0 py-3 px-4 d-flex align-items-center justify-content-between">
+        <h5 class="mb-0 fw-bold" style="color: #1a1a1a;">
+            <i class="fa-solid fa-layer-group me-2" style="color: #c2a889;"></i>Consolidated Facility Sets
+            <span class="badge ms-2" style="background-color: #f3ede4; color: #3d332a;">{{ $facilitySets->total() }}</span>
         </h5>
-        <a href="{{ route('admin.facilities.create', ['type' => 'set']) }}" class="btn btn-warning btn-sm rounded-pill fw-semibold shadow-sm text-dark">
-            <i class="fa-solid fa-layer-group me-1"></i> Add Facility Set
+        <a href="{{ route('admin.facilities.create', ['type' => 'set']) }}" class="btn text-white px-3 d-flex align-items-center gap-2 fw-semibold shadow-sm" style="height: 40px; background-color: #c2a889; border: none; border-radius: 0.5rem; font-size: 0.9rem; color: #2c241d !important;">
+            <i class="fa-solid fa-plus"></i> Add Facility Set
         </a>
     </div>
     <div class="card-body p-0">
         <div class="table-responsive">
             <table class="table table-hover align-middle mb-0">
-                <thead class="table-light text-muted small">
-                    <tr>
-                        <th class="ps-4" style="width:80px;">Image</th>
-                        <th>Set Name</th>
-                        <th>Includes</th>
-                        <th>Hourly Rate</th>
-                        <th>Daily Rate</th>
-                        <th>Capacity</th>
-                        <th>Status</th>
-                        <th class="text-end pe-4">Actions</th>
+                <thead style="background-color: #f8f3ed; border-bottom: 2px solid #c2a889;">
+                    <tr class="small fw-bold">
+                        <th class="ps-4" style="color: #2c241d;">IMAGE</th>
+                        <th style="color: #2c241d;">SET NAME</th>
+                        <th style="color: #2c241d;">INCLUDES</th>
+                        <th style="color: #2c241d;">HOURLY RATE</th>
+                        <th style="color: #2c241d;">DAILY RATE</th>
+                        <th style="color: #2c241d;">CAPACITY</th>
+                        <th style="color: #2c241d;">STATUS</th>
+                        <th class="text-end pe-4" style="color: #2c241d;">ACTIONS</th>
                     </tr>
                 </thead>
-                <tbody>
+                <tbody class="border-top-0">
                     @forelse($facilitySets as $set)
-                    <tr>
+                    <tr style="border-bottom: 1px solid #f0f0f0;">
                         <td class="ps-4">
                             @if(!empty($set->images) && count($set->images) > 0)
                                 <img src="{{ \App\Models\FacilitySet::imageUrl($set->images[0]) }}"
-                                     class="rounded shadow-sm" style="width:60px;height:45px;object-fit:cover;"
+                                     class="rounded shadow-sm border" style="width:60px;height:45px;object-fit:cover; border-color: #c2a889 !important;"
                                      alt="{{ $set->name }}">
                             @else
-                                <div class="bg-light rounded d-flex align-items-center justify-content-center text-muted"
-                                     style="width:60px;height:45px;">
-                                    <i class="fa-solid fa-layer-group"></i>
+                                <div class="bg-light rounded d-flex align-items-center justify-content-center text-muted border"
+                                     style="width:60px;height:45px; border-color: #e2d3be !important; background-color: #f8f3ed !important;">
+                                    <i class="fa-solid fa-layer-group" style="color: #c2a889;"></i>
                                 </div>
                             @endif
                         </td>
                         <td>
-                            <div class="fw-semibold text-dark">{{ $set->name }}</div>
+                            <div class="fw-bold" style="color: #1a1a1a;">{{ $set->name }}</div>
                             @if($set->prefix_code)
-                                <div class="small text-muted">Ref prefix: <code>{{ $set->prefix_code }}</code></div>
+                                <div class="small mt-1" style="color: #627e71;">Ref prefix: <code style="color: #c2a889; background-color: #f8f3ed; padding: 2px 6px; border-radius: 4px; border: 1px solid #e2d3be;">{{ $set->prefix_code }}</code></div>
                             @endif
                         </td>
                         <td>
                             <div class="d-flex flex-wrap gap-1">
                                 @foreach($set->facilities as $member)
-                                    <span class="badge rounded-pill px-2" style="background:#e8f0ec;color:#334c42;font-size:.72rem;">
+                                    <span class="badge fw-semibold" style="background-color: #f8f3ed; color: #3d332a; border: 1px solid #c2a889; font-size: 0.65rem;">
                                         {{ $member->name }}
                                     </span>
                                 @endforeach
                                 @if($set->facilities->isEmpty())
-                                    <span class="text-muted small fst-italic">None assigned</span>
+                                    <span class="small fst-italic" style="color: #a0a0a0;">None assigned</span>
                                 @endif
                             </div>
                         </td>
                         <td>
                             @if($set->effective_hourly_rate)
-                                <span class="fw-semibold text-success">₱{{ number_format($set->effective_hourly_rate, 2) }}</span>
-                                <span class="badge ms-1 rounded-pill px-2" style="background:#dbeafe;color:#1e40af;font-size:.7rem;">/ hr</span>
+                                <span class="fw-bold" style="color: #334c42;">₱{{ number_format($set->effective_hourly_rate, 2) }}</span>
+                                <span class="badge ms-1 px-2" style="background-color: #f3ede4; color: #627e71; border: 1px solid #e2d3be; font-size: 0.7rem;">/ hr</span>
                             @else
                                 <span class="text-muted small">—</span>
                             @endif
                         </td>
                         <td>
                             @if($set->effective_daily_rate)
-                                <span class="fw-semibold text-success">₱{{ number_format($set->effective_daily_rate, 2) }}</span>
-                                <span class="badge ms-1 rounded-pill px-2" style="background:#f3e8ff;color:#7c3aed;font-size:.7rem;">/ day</span>
+                                <span class="fw-bold" style="color: #334c42;">₱{{ number_format($set->effective_daily_rate, 2) }}</span>
+                                <span class="badge ms-1 px-2" style="background-color: #f3ede4; color: #627e71; border: 1px solid #e2d3be; font-size: 0.7rem;">/ day</span>
                             @else
                                 <span class="text-muted small">—</span>
                             @endif
                         </td>
-                        <td class="text-muted small">
+                        <td style="color: #3d332a;">
                             {{ $set->resolved_capacity ? $set->resolved_capacity . ' pax' : 'N/A' }}
                         </td>
                         <td>
                             @if($set->is_active)
-                                <span class="badge rounded-pill px-3 py-1 bg-success-subtle text-success fw-semibold" style="font-size:.8rem;">Active</span>
+                                <span class="badge-status badge-status-active">Active</span>
                             @else
-                                <span class="badge rounded-pill px-3 py-1 bg-secondary-subtle text-secondary fw-semibold" style="font-size:.8rem;">Disabled</span>
+                                <span class="badge-status badge-status-maintenance">Disabled</span>
                             @endif
                         </td>
                         <td class="text-end pe-4">
                             <a href="{{ route('admin.facilities.edit', $set->facility_set_id) }}?type=set"
-                               class="btn btn-sm btn-outline-primary rounded-circle me-1" title="Edit Set">
+                               class="btn btn-sm shadow-sm me-1" style="border: 1px solid #c2a889; background-color: #f8f3ed; color: #3d332a;" title="Edit Set">
                                 <i class="fa-solid fa-pen"></i>
                             </a>
                             <form action="{{ route('admin.facilities.toggle', $set->facility_set_id) }}?type=set"
                                   method="POST" class="d-inline">
                                 @csrf @method('PATCH')
                                 <button type="submit"
-                                        class="btn btn-sm rounded-circle {{ $set->is_active ? 'btn-outline-secondary' : 'btn-outline-success' }}"
+                                        class="btn btn-sm shadow-sm" style="border: 1px solid #c2a889; background-color: {{ $set->is_active ? '#ffffff' : '#e8f0ec' }}; color: {{ $set->is_active ? '#999' : '#1e332b' }};"
                                         title="{{ $set->is_active ? 'Disable' : 'Enable' }}">
                                     <i class="fa-solid {{ $set->is_active ? 'fa-toggle-off' : 'fa-toggle-on' }}"></i>
                                 </button>
@@ -230,15 +239,24 @@
                     </tr>
                     @empty
                     <tr>
-                        <td colspan="8" class="text-center text-muted py-5">
-                            <i class="fa-solid fa-layer-group fs-2 mb-3 d-block"></i>
+                        <td colspan="8" class="text-center py-5" style="color: #627e71;">
+                            <i class="fa-solid fa-layer-group fs-2 mb-3 d-block" style="color: #c2a889;"></i>
                             No consolidated sets configured yet.
-                            <a href="{{ route('admin.facilities.create') }}">Create a facility set</a> to group multiple spaces.
+                            <a href="{{ route('admin.facilities.create', ['type' => 'set']) }}" style="color: #334c42; font-weight: bold; text-decoration: underline;">Create a facility set</a> to group multiple spaces.
                         </td>
                     </tr>
                     @endforelse
                 </tbody>
             </table>
+        </div>
+        
+        <div class="d-flex align-items-center justify-content-between p-3" style="background-color: #fcfbf9; border-top: 1px solid #e2d3be;">
+            <span class="text-muted small" style="color: #627e71 !important;">
+                Showing <span class="badge" style="background-color: #f3ede4; color: #3d332a; border: 1px solid #e2d3be;">{{ $facilitySets->firstItem() ?? 0 }}-{{ $facilitySets->lastItem() ?? 0 }}</span> of <strong>{{ $facilitySets->total() }}</strong>
+            </span>
+            <div class="m-0">
+                {{ $facilitySets->withQueryString()->links() }}
+            </div>
         </div>
     </div>
 </div>

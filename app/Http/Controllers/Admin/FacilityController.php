@@ -24,11 +24,11 @@ class FacilityController extends Controller
     {
         $facilities = Facility::with('facilitySets')
             ->orderBy('name')
-            ->get();
+            ->paginate(10, ['*'], 'f_page');
 
         $facilitySets = FacilitySet::with('facilities')
             ->orderBy('name')
-            ->get();
+            ->paginate(10, ['*'], 's_page');
 
         return view('admin.facilities.index', compact('facilities', 'facilitySets'));
     }
