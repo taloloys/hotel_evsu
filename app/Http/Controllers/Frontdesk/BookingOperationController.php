@@ -303,6 +303,7 @@ class BookingOperationController extends Controller
             'arrival_time' => ['nullable', 'date_format:H:i'],
             'departure_date' => ['required', 'date', 'after:arrival_date'],
             'departure_time' => ['nullable', 'date_format:H:i'],
+            'net_rate' => ['nullable', 'numeric', 'min:0'],
         ]);
 
         $booking = Booking::with(['room', 'folio.guest'])->findOrFail($request->booking_id);
@@ -341,13 +342,28 @@ class BookingOperationController extends Controller
         $arrivalTime = $request->arrival_time ?? $booking->arrival_time ?? '14:00';
         $departureTime = $request->departure_time ?? $booking->departure_time ?? '12:00';
 
-        DB::transaction(function () use ($booking, $newArrivalString, $newDepartureString, $arrivalTime, $departureTime) {
+        DB::transaction(function () use ($booking, $newArrivalString, $newDepartureString, $arrivalTime, $departureTime, $request) {
             $booking->update([
                 'arrival_date' => $newArrivalString,
                 'arrival_time' => $arrivalTime,
                 'departure_date' => $newDepartureString,
                 'departure_time' => $departureTime,
             ]);
+
+            if ($booking->folio && $request->filled('net_rate')) {
+                $rate = (float) $request->net_rate;
+                $booking->folio->update(['net_rate' => $rate]);
+
+                if ($booking->status === 'CHECKED_IN') {
+                    $roomChargeCode = ChargeCodeResolver::resolve(ChargeCodeResolver::ROOM_CHARGE);
+                    if ($roomChargeCode) {
+                        Transaction::where('folio_id', $booking->folio_id)
+                            ->where('charge_code', $roomChargeCode)
+                            ->where('charge_number', 'like', 'RM-'.$booking->booking_id.'-%')
+                            ->update(['charge_amount' => $rate]);
+                    }
+                }
+            }
 
             if ($booking->status === 'CHECKED_IN') {
                 app(RoomChargeService::class)->processCatchUpCharges($booking->booking_id);

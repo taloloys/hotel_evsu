@@ -25,20 +25,28 @@ class FacilityReservationController extends Controller
 
     public function index(Request $request): View
     {
+        $search = $request->query('search');
         $status = $request->query('status', 'all');
         $facilityId = $request->query('facility') ?? $request->query('facility_id');
         $facilitySetId = $request->query('facility_set') ?? $request->query('facility_set_id');
 
         $reservations = FacilityReservation::with(['facility', 'facilitySet', 'reservedFacilities'])
+            ->when($search, function ($q) use ($search) {
+                $q->where(function ($subQ) use ($search) {
+                    $subQ->where('booker_name', 'like', "%{$search}%")
+                         ->orWhere('reference_number', 'like', "%{$search}%")
+                         ->orWhere('event_name', 'like', "%{$search}%");
+                });
+            })
             ->when($status !== 'all', fn ($q) => $q->where('status', $status))
             ->when($facilityId, fn ($q) => $q->where('facility_id', $facilityId))
             ->when($facilitySetId, fn ($q) => $q->where('facility_set_id', $facilitySetId))
             ->latest()
-            ->paginate(20);
+            ->paginate(10);
 
         $pendingCount = FacilityReservation::where('status', 'pending')->count();
 
-        return view('frontdesk.facility-reservations.index', compact('reservations', 'status', 'pendingCount', 'facilityId', 'facilitySetId'));
+        return view('frontdesk.facility-reservations.index', compact('reservations', 'search', 'status', 'pendingCount', 'facilityId', 'facilitySetId'));
     }
 
     public function create(Request $request): View

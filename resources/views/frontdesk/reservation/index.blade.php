@@ -252,7 +252,7 @@
                                         <i class="fa-solid fa-eye fs-6"></i>
                                     </button>
 
-                                    @if(in_array($reservation->status, ['RESERVED', 'CHECKED_IN']))
+                                    @if($reservation->status === 'RESERVED')
                                         <button type="button" class="btn btn-sm d-flex align-items-center justify-content-center shadow-sm" style="width: 36px; height: 36px; border: 1px solid #3b82f6; color: #1d4ed8; background-color: #dbeafe; border-radius: 0.375rem;" title="Move Date"
                                             onclick="swalMoveDateReservation({{ $reservation->booking_id }}, '{{ addslashes($reservation->folio->guest->first_name . ' ' . $reservation->folio->guest->last_name) }}', '{{ $reservation->room->room_number }}', '{{ $reservation->arrival_date->format('Y-m-d') }}', '{{ $reservation->departure_date ? $reservation->departure_date->format('Y-m-d') : '' }}', '{{ $reservation->status }}')">
                                             <i class="fa-regular fa-calendar-days fs-6"></i>
@@ -566,7 +566,7 @@
                                     <option
                                         value="{{ $room->room_id }}"
                                         data-room-type="{{ $room->room_type }}"
-                                        @selected(old('room_id') == $room->room_id)
+                                        @selected(old('room_id', request('room_id')) == $room->room_id)
                                     >
                                         {{ $room->room_number }}
                                         — {{ $room->room_type }}
@@ -599,7 +599,7 @@
                                 class="form-control shadow-none @error('arrival_date') is-invalid @enderror"
                                 id="arrival_date"
                                 name="arrival_date"
-                                value="{{ old('arrival_date', now()->toDateString()) }}"
+                                value="{{ old('arrival_date', request('arrival_date', now()->toDateString())) }}"
                                 style="height:46px; border:1px solid #000000;"
                                 required>
                         </div>
@@ -1193,5 +1193,17 @@
             }
         }
     })();
+
+    document.addEventListener('turbo:load', function() {
+        const urlParams = new URLSearchParams(window.location.search);
+        if (urlParams.has('open_modal')) {
+            const newReservationModal = new bootstrap.Modal(document.getElementById('newReservationModal'));
+            newReservationModal.show();
+            
+            urlParams.delete('open_modal');
+            const newUrl = window.location.pathname + (urlParams.toString() ? '?' + urlParams.toString() : '');
+            window.history.replaceState({}, '', newUrl);
+        }
+    });
 </script>
 @endpush

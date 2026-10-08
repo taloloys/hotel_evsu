@@ -1229,13 +1229,13 @@
     </div>
 </div>
 
-<!-- 6. MOVE DEPARTURE MODAL -->
+<!-- 6. MOVE RESERVATION MODAL -->
 <div class="modal fade" id="extendDepartureModal" tabindex="-1" aria-labelledby="extendDepartureModalLabel" aria-hidden="true" style="z-index: 1065;">
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content border-0 shadow">
             <div class="modal-header border-0 pb-0">
                 <h5 class="modal-title fw-bold" id="extendDepartureModalLabel" style="color: #1a1a1a;">
-                    <i class="fa-solid fa-calendar-plus me-2" style="color: #334c42;"></i> Move Guest Departure
+                    <i class="fa-solid fa-calendar-plus me-2" style="color: #334c42;"></i> Move Reservation Dates
                 </h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
@@ -1261,8 +1261,8 @@
                             <span class="badge-status" id="extendModalStatus">—</span>
                         </div>
                         <div class="col-6">
-                            <span class="text-muted small d-block">Arrival:</span>
-                            <span class="small fw-semibold" id="extendModalArrival" style="color: #262626;">—</span>
+                            <span class="text-muted small d-block">Current Arrival:</span>
+                            <span class="small fw-semibold text-primary" id="extendModalArrival" style="color: #262626;">—</span>
                         </div>
                         <div class="col-6 text-end">
                             <span class="text-muted small d-block">Current Departure:</span>
@@ -1273,17 +1273,33 @@
 
                 <form id="extendDepartureForm">
                     <input type="hidden" id="extendBookingId">
-                    <div class="mb-3">
-                        <label for="extendDepartureDate" class="form-label fw-semibold small" style="color: #1a1a1a;">
-                            New Departure Date <span class="text-danger">*</span>
-                        </label>
-                        <input type="date" class="form-control" id="extendDepartureDate" required style="border: 1px solid #c2a889;">
+                    <div class="row g-2 mb-3" id="extendArrivalContainer">
+                        <div class="col-6">
+                            <label for="extendArrivalDate" class="form-label fw-semibold small" style="color: #1a1a1a;">
+                                New Arrival Date <span class="text-danger">*</span>
+                            </label>
+                            <input type="date" class="form-control" id="extendArrivalDate" required style="border: 1px solid #c2a889;">
+                        </div>
+                        <div class="col-6">
+                            <label for="extendArrivalTime" class="form-label fw-semibold small" style="color: #1a1a1a;">
+                                New Arrival Time
+                            </label>
+                            <input type="time" class="form-control" id="extendArrivalTime" value="14:00" style="border: 1px solid #c2a889;">
+                        </div>
                     </div>
-                    <div class="mb-3">
-                        <label for="extendDepartureTime" class="form-label fw-semibold small" style="color: #1a1a1a;">
-                            New Departure Time
-                        </label>
-                        <input type="time" class="form-control" id="extendDepartureTime" value="12:00" style="border: 1px solid #c2a889;">
+                    <div class="row g-2 mb-3">
+                        <div class="col-6">
+                            <label for="extendDepartureDate" class="form-label fw-semibold small" style="color: #1a1a1a;">
+                                New Departure Date <span class="text-danger">*</span>
+                            </label>
+                            <input type="date" class="form-control" id="extendDepartureDate" required style="border: 1px solid #c2a889;">
+                        </div>
+                        <div class="col-6">
+                            <label for="extendDepartureTime" class="form-label fw-semibold small" style="color: #1a1a1a;">
+                                New Departure Time
+                            </label>
+                            <input type="time" class="form-control" id="extendDepartureTime" value="12:00" style="border: 1px solid #c2a889;">
+                        </div>
                     </div>
                     <div class="mb-2">
                         <label for="extendNetRate" class="form-label fw-semibold small" style="color: #1a1a1a;">
@@ -1301,7 +1317,7 @@
             <div class="modal-footer border-0">
                 <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
                 <button type="button" class="btn text-white fw-semibold" id="confirmExtendDepartureBtn" style="background-color: #334c42;">
-                    <i class="fa-solid fa-check me-1"></i> Update Departure
+                    <i class="fa-solid fa-check me-1"></i> Update Dates
                 </button>
             </div>
         </div>
@@ -2718,7 +2734,7 @@
             document.getElementById('calQuickModalSelectedDate').textContent = dateStr;
 
             const resLink = document.getElementById('calQuickBtnNewReservation');
-            if (resLink) resLink.href = `/frontdesk/reservation?room_id=${room.room_id}&arrival_date=${dateStr}&return_to=monitoring`;
+            if (resLink) resLink.href = `/frontdesk/reservation?room_id=${room.room_id}&arrival_date=${dateStr}&return_to=monitoring&open_modal=1`;
 
             const walkInLink = document.getElementById('calQuickBtnWalkInCheckIn');
             if (walkInLink) walkInLink.href = `/frontdesk/registration?room_id=${room.room_id}&arrival_date=${dateStr}&return_to=monitoring`;
@@ -3219,19 +3235,38 @@
             document.getElementById('extendModalCurrentDeparture').textContent = booking.departure_date;
 
             document.getElementById('extendBookingId').value = booking.booking_id;
+            
+            const arrContainer = document.getElementById('extendArrivalContainer');
+            const arrDateInput = document.getElementById('extendArrivalDate');
+            const arrTimeInput = document.getElementById('extendArrivalTime');
+            
+            if (booking.status === 'CHECKED_IN') {
+                if (arrContainer) arrContainer.classList.add('d-none');
+                if (arrDateInput) arrDateInput.removeAttribute('required');
+            } else {
+                if (arrContainer) arrContainer.classList.remove('d-none');
+                if (arrDateInput) {
+                    arrDateInput.setAttribute('required', 'required');
+                    arrDateInput.value = booking.arrival_date;
+                }
+                if (arrTimeInput) arrTimeInput.value = booking.arrival_time || '14:00';
+            }
+
             document.getElementById('extendDepartureDate').value = booking.departure_date;
             document.getElementById('extendDepartureTime').value = booking.departure_time || '12:00';
             document.getElementById('extendNetRate').value = booking.net_rate || '';
 
             document.getElementById('confirmExtendDepartureBtn').onclick = function() {
                 const bId = document.getElementById('extendBookingId').value;
+                const newArrDate = document.getElementById('extendArrivalDate') ? document.getElementById('extendArrivalDate').value : booking.arrival_date;
+                const newArrTime = document.getElementById('extendArrivalTime') ? document.getElementById('extendArrivalTime').value : booking.arrival_time;
                 const newDep = document.getElementById('extendDepartureDate').value;
                 const newTime = document.getElementById('extendDepartureTime').value;
                 const newRate = document.getElementById('extendNetRate').value;
                 const btn = this;
                 window.setBtnLoading(btn, true, 'Updating...');
 
-                fetch('{{ route("frontdesk.booking.extend") }}', {
+                fetch('{{ route("frontdesk.booking.move-date") }}', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
@@ -3240,8 +3275,10 @@
                     },
                     body: JSON.stringify({
                         booking_id: bId,
-                        new_departure_date: newDep,
-                        new_departure_time: newTime,
+                        arrival_date: newArrDate,
+                        arrival_time: newArrTime,
+                        departure_date: newDep,
+                        departure_time: newTime,
                         net_rate: newRate
                     })
                 })
@@ -3253,7 +3290,7 @@
                         if (window.Swal) {
                             Swal.fire({
                                 icon: 'success',
-                                title: 'Departure Extended',
+                                title: 'Dates Updated',
                                 text: res.message,
                                 timer: 1500,
                                 showConfirmButton: false
