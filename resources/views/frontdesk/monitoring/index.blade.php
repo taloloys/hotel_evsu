@@ -1020,10 +1020,10 @@
                     </div>
                 </div>
 
-                <h6 class="fw-bold small mb-2 text-uppercase" style="color: #827567; letter-spacing: 0.5px;">Reservation & Check-In</h6>
+                <h6 id="calQuickModalResHeading" class="fw-bold small mb-2 text-uppercase" style="color: #827567; letter-spacing: 0.5px;">Reservation & Check-In</h6>
                 <div class="d-grid gap-2 mb-3">
                     <a href="#" id="calQuickBtnNewReservation" class="btn text-white fw-semibold py-2 shadow-sm text-start d-flex align-items-center justify-content-between" style="background: #334c42;">
-                        <span><i class="fa-solid fa-calendar-plus me-2"></i> Create Advance Reservation</span>
+                        <span><i class="fa-solid fa-calendar-plus me-2"></i> Create New Reservation</span>
                         <i class="fa-solid fa-arrow-right"></i>
                     </a>
                     <a href="#" id="calQuickBtnWalkInCheckIn" class="btn btn-outline-success fw-semibold py-2 text-start d-flex align-items-center justify-content-between">
@@ -2737,7 +2737,23 @@
             if (resLink) resLink.href = `/frontdesk/reservation?room_id=${room.room_id}&arrival_date=${dateStr}&return_to=monitoring&open_modal=1`;
 
             const walkInLink = document.getElementById('calQuickBtnWalkInCheckIn');
-            if (walkInLink) walkInLink.href = `/frontdesk/registration?room_id=${room.room_id}&arrival_date=${dateStr}&return_to=monitoring`;
+            const resHeading = document.getElementById('calQuickModalResHeading');
+            if (walkInLink) {
+                // Determine today's date string (YYYY-MM-DD) in local time
+                const today = new Date();
+                const todayStr = new Date(today.getTime() - (today.getTimezoneOffset() * 60000)).toISOString().split('T')[0];
+                
+                if (dateStr === todayStr) {
+                    if (resHeading) resHeading.textContent = 'Reservation & Check-In';
+                    walkInLink.classList.remove('d-none');
+                    walkInLink.classList.add('d-flex');
+                    walkInLink.href = `/frontdesk/registration?room_id=${room.room_id}&arrival_date=${dateStr}&return_to=monitoring`;
+                } else {
+                    if (resHeading) resHeading.textContent = 'Reservation';
+                    walkInLink.classList.remove('d-flex');
+                    walkInLink.classList.add('d-none');
+                }
+            }
 
             document.getElementById('calQuickBtnMarkCleaning').onclick = function() {
                 calendarQuickReserveModal?.hide();
