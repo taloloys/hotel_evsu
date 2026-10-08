@@ -299,11 +299,6 @@ class BookingOperationController extends Controller
     {
         $request->validate([
             'booking_id' => ['required', 'exists:bookings,booking_id'],
-            'arrival_date' => ['required', 'date', 'after_or_equal:today'],
-            'arrival_time' => ['nullable', 'date_format:H:i'],
-            'departure_date' => ['required', 'date', 'after:arrival_date'],
-            'departure_time' => ['nullable', 'date_format:H:i'],
-            'net_rate' => ['nullable', 'numeric', 'min:0'],
         ]);
 
         $booking = Booking::with(['room', 'folio.guest'])->findOrFail($request->booking_id);
@@ -315,19 +310,25 @@ class BookingOperationController extends Controller
             ], 422);
         }
 
-        if ($booking->status === 'CHECKED_IN') {
-            $newArrivalDate = Carbon::parse($request->arrival_date)->startOfDay();
-            $originalArrivalDate = $booking->arrival_date ? $booking->arrival_date->copy()->startOfDay() : null;
+        $rules = [
+            'arrival_time' => ['nullable', 'date_format:H:i'],
+            'departure_time' => ['nullable', 'date_format:H:i'],
+            'net_rate' => ['nullable', 'numeric', 'min:0'],
+        ];
 
-            if ($originalArrivalDate && $newArrivalDate->notEqualTo($originalArrivalDate)) {
-                return response()->json([
-                    'success' => false,
-                    'message' => 'Cannot change the arrival date of a guest who is already checked in.',
-                ], 422);
-            }
+        if ($booking->status === 'CHECKED_IN') {
+            $rules['departure_date'] = ['required', 'date', 'after:' . ($booking->arrival_date ? $booking->arrival_date->toDateString() : 'today')];
+        } else {
+            $rules['arrival_date'] = ['required', 'date', 'after_or_equal:today'];
+            $rules['departure_date'] = ['required', 'date', 'after:arrival_date'];
         }
 
-        $newArrivalString = Carbon::parse($request->arrival_date)->toDateString();
+        $request->validate($rules);
+
+        $newArrivalString = $booking->status === 'CHECKED_IN'
+            ? ($booking->arrival_date ? $booking->arrival_date->toDateString() : today()->toDateString())
+            : Carbon::parse($request->arrival_date)->toDateString();
+            
         $newDepartureString = Carbon::parse($request->departure_date)->toDateString();
 
         if ($booking->room_id && $this->roomHasConflictExcluding($booking->room_id, $booking->booking_id, $newArrivalString, $newDepartureString)) {
@@ -375,9 +376,13 @@ class BookingOperationController extends Controller
             ? ($booking->folio->guest->first_name.' '.$booking->folio->guest->last_name)
             : 'Guest';
 
+        $message = $booking->status === 'CHECKED_IN'
+            ? "Stay for {$guestName} successfully extended until {$newDepartureString}."
+            : "Reservation for {$guestName} successfully moved to {$newArrivalString} - {$newDepartureString}.";
+
         return response()->json([
             'success' => true,
-            'message' => "Reservation for {$guestName} successfully moved to {$newArrivalString} - {$newDepartureString}.",
+            'message' => $message,
             'booking' => $booking,
         ]);
     }

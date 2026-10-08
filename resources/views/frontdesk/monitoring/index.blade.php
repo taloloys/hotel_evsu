@@ -2741,12 +2741,12 @@
 
             document.getElementById('calQuickBtnMarkCleaning').onclick = function() {
                 calendarQuickReserveModal?.hide();
-                changeRoomStatus(room.room_id, 'mark-for-cleaning');
+                window.changeRoomStatus(room.room_id, 'mark-for-cleaning');
             };
 
             document.getElementById('calQuickBtnMarkMaintenance').onclick = function() {
                 calendarQuickReserveModal?.hide();
-                changeRoomStatus(room.room_id, 'mark-maintenance');
+                window.changeRoomStatus(room.room_id, 'mark-maintenance');
             };
 
             calendarQuickReserveModal?.show();
@@ -3125,7 +3125,7 @@
         }
 
         // Helper operations: change room status, check in, extend
-        function changeRoomStatus(roomId, action) {
+        window.changeRoomStatus = function(roomId, action) {
             fetch(`/frontdesk/room/${action}`, {
                 method: 'POST',
                 headers: {
