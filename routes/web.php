@@ -111,6 +111,9 @@ Route::middleware('auth')->group(function () {
             Route::post('/booking/check-in', [BookingOperationController::class, 'checkIn'])
                 ->name('frontdesk.booking.check-in');
 
+            Route::post('/booking/move-date', [BookingOperationController::class, 'moveDate'])
+                ->name('frontdesk.booking.move-date');
+
             Route::post('/booking/check-out', [BookingOperationController::class, 'checkOut'])
                 ->name('frontdesk.booking.check-out');
 

@@ -252,6 +252,13 @@
                                         <i class="fa-solid fa-eye fs-6"></i>
                                     </button>
 
+                                    @if(in_array($reservation->status, ['RESERVED', 'CHECKED_IN']))
+                                        <button type="button" class="btn btn-sm d-flex align-items-center justify-content-center shadow-sm" style="width: 36px; height: 36px; border: 1px solid #3b82f6; color: #1d4ed8; background-color: #dbeafe; border-radius: 0.375rem;" title="Move Date"
+                                            onclick="swalMoveDateReservation({{ $reservation->booking_id }}, '{{ addslashes($reservation->folio->guest->first_name . ' ' . $reservation->folio->guest->last_name) }}', '{{ $reservation->room->room_number }}', '{{ $reservation->arrival_date->format('Y-m-d') }}', '{{ $reservation->departure_date ? $reservation->departure_date->format('Y-m-d') : '' }}', '{{ $reservation->status }}')">
+                                            <i class="fa-regular fa-calendar-days fs-6"></i>
+                                        </button>
+                                    @endif
+
                                     @if($reservation->status === 'RESERVED')
                                         <button type="button" class="btn btn-sm d-flex align-items-center justify-content-center shadow-sm" style="width: 36px; height: 36px; border: 1px solid #10b981; color: #047857; background-color: #d1fae5; border-radius: 0.375rem;" title="Move In / Check-In"
                                             onclick="swalConfirmMoveInReservation({{ $reservation->booking_id }}, '{{ addslashes($reservation->folio->guest->first_name . ' ' . $reservation->folio->guest->last_name) }}', '{{ $reservation->room->room_number }}')">
@@ -1029,6 +1036,76 @@
                 }
             });
         }
+        window.swalMoveDateReservation = function(bookingId, guestName, roomNumber, currentArrival, currentDeparture, status) {
+            Swal.fire({
+                title: 'Move Reservation Dates',
+                html: `
+                    <div class="text-start mb-3">
+                        <p class="mb-3">Move reservation for <strong>${guestName}</strong> in <strong>Room ${roomNumber}</strong>.</p>
+                        <div class="mb-3">
+                            <label class="form-label small fw-bold">Arrival Date</label>
+                            <input type="date" id="swalMoveArrival" class="form-control" value="${currentArrival}" ${status === 'CHECKED_IN' ? 'disabled' : ''}>
+                            ${status === 'CHECKED_IN' ? '<small class="text-muted">Cannot change arrival date for checked-in guests.</small>' : ''}
+                        </div>
+                        <div>
+                            <label class="form-label small fw-bold">Departure Date</label>
+                            <input type="date" id="swalMoveDeparture" class="form-control" value="${currentDeparture}">
+                        </div>
+                    </div>
+                `,
+                showCancelButton: true,
+                confirmButtonText: '<i class="fa-solid fa-save me-1"></i> Save New Dates',
+                cancelButtonText: 'Cancel',
+                confirmButtonColor: '#3b82f6',
+                preConfirm: () => {
+                    const arrDate = document.getElementById('swalMoveArrival').value;
+                    const depDate = document.getElementById('swalMoveDeparture').value;
+                    
+                    if (!arrDate || !depDate) {
+                        Swal.showValidationMessage('Both Arrival and Departure dates are required.');
+                        return false;
+                    }
+                    if (arrDate >= depDate) {
+                        Swal.showValidationMessage('Departure date must be after Arrival date.');
+                        return false;
+                    }
+
+                    return fetch('{{ route("frontdesk.booking.move-date") }}', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Accept': 'application/json',
+                            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.content
+                        },
+                        body: JSON.stringify({
+                            booking_id: bookingId,
+                            arrival_date: arrDate,
+                            departure_date: depDate
+                        })
+                    })
+                    .then(response => {
+                        if (!response.ok) {
+                            return response.json().then(err => { throw new Error(err.message || 'Server Error') });
+                        }
+                        return response.json();
+                    })
+                    .catch(error => {
+                        Swal.showValidationMessage(`Move Date failed: ${error.message}`);
+                    });
+                }
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    if (result.value && result.value.success) {
+                        Swal.fire('Success', result.value.message, 'success').then(() => {
+                            window.location.reload();
+                        });
+                    } else if (result.value && !result.value.success) {
+                        Swal.fire('Error', result.value.message, 'error');
+                    }
+                }
+            });
+        };
+
         // SweetAlert2 — Module X: Move In / Check-In Reservation
         window.swalConfirmMoveInReservation = function(bookingId, guestName, roomNumber) {
             Swal.fire({

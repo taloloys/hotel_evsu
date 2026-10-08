@@ -293,6 +293,80 @@ class BookingOperationController extends Controller
     }
 
     /**
+     * Move a booking's arrival and departure dates.
+     */
+    public function moveDate(Request $request): JsonResponse
+    {
+        $request->validate([
+            'booking_id' => ['required', 'exists:bookings,booking_id'],
+            'arrival_date' => ['required', 'date', 'after_or_equal:today'],
+            'arrival_time' => ['nullable', 'date_format:H:i'],
+            'departure_date' => ['required', 'date', 'after:arrival_date'],
+            'departure_time' => ['nullable', 'date_format:H:i'],
+        ]);
+
+        $booking = Booking::with(['room', 'folio.guest'])->findOrFail($request->booking_id);
+
+        if (! in_array($booking->status, ['RESERVED', 'CHECKED_IN'], true)) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Only reserved or checked-in bookings can be moved.',
+            ], 422);
+        }
+
+        if ($booking->status === 'CHECKED_IN') {
+            $newArrivalDate = Carbon::parse($request->arrival_date)->startOfDay();
+            $originalArrivalDate = $booking->arrival_date ? $booking->arrival_date->copy()->startOfDay() : null;
+
+            if ($originalArrivalDate && $newArrivalDate->notEqualTo($originalArrivalDate)) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Cannot change the arrival date of a guest who is already checked in.',
+                ], 422);
+            }
+        }
+
+        $newArrivalString = Carbon::parse($request->arrival_date)->toDateString();
+        $newDepartureString = Carbon::parse($request->departure_date)->toDateString();
+
+        if ($booking->room_id && $this->roomHasConflictExcluding($booking->room_id, $booking->booking_id, $newArrivalString, $newDepartureString)) {
+            $roomNumber = $booking->room?->room_number ?? 'assigned room';
+
+            return response()->json([
+                'success' => false,
+                'message' => "Room {$roomNumber} is not available for the requested dates.",
+            ], 422);
+        }
+
+        $arrivalTime = $request->arrival_time ?? $booking->arrival_time ?? '14:00';
+        $departureTime = $request->departure_time ?? $booking->departure_time ?? '12:00';
+
+        DB::transaction(function () use ($booking, $newArrivalString, $newDepartureString, $arrivalTime, $departureTime) {
+            $booking->update([
+                'arrival_date' => $newArrivalString,
+                'arrival_time' => $arrivalTime,
+                'departure_date' => $newDepartureString,
+                'departure_time' => $departureTime,
+            ]);
+
+            if ($booking->status === 'CHECKED_IN') {
+                app(RoomChargeService::class)->processCatchUpCharges($booking->booking_id);
+            }
+        });
+
+        $booking->load(['room', 'folio.guest']);
+        $guestName = $booking->folio?->guest
+            ? ($booking->folio->guest->first_name.' '.$booking->folio->guest->last_name)
+            : 'Guest';
+
+        return response()->json([
+            'success' => true,
+            'message' => "Reservation for {$guestName} successfully moved to {$newArrivalString} - {$newDepartureString}.",
+            'booking' => $booking,
+        ]);
+    }
+
+    /**
      * Check room availability for an extension period, excluding the current booking.
      */
     private function roomHasConflictExcluding(
